@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="http://www.oasis-open.org/docbook/xml/5.0/rng/docbook.rng" type="xml"?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink"
+    version="5.0">
+    <title>tvpvrd</title>
+    <refentry xml:id="tvpvrd">
+        
+        <refmeta>
+            <refentrytitle>tvpvrd</refentrytitle>
+            <manvolnum>1</manvolnum>
+            <refmiscinfo class="version">@VERSION@</refmiscinfo>
+            <refmiscinfo class="source">http://aditus.nu/tvpvrd</refmiscinfo>
+            <refmiscinfo class="manual">http://aditus.nu/tvpvrd/docs</refmiscinfo>
+        </refmeta>
+        
+        <refnamediv>
+            <refname>tvpvrd</refname>
+            <refpurpose>TV Video Recorder Server</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv xml:id="tvpvrd.synopsis">
+            <title>Synopsis</title>
+            <cmdsynopsis>
+                <command>tvpvrd</command>
+                <arg choice="opt">options...</arg>
+            </cmdsynopsis>
+        </refsynopsisdiv>
+        
+        <refsect1 xml:id="tvpvrd.options">
+            <title>Arguments</title>
+            <para>The following arguments are supported</para>
+            <variablelist>
+                <varlistentry>
+                    <term><option>-p</option></term>
+                    <listitem>
+                        <para>Specify TCP/IP port number</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        
+        <refsect1 xml:id="tvpvrd.description">
+            <title>Description</title>
+            <para>The
+                <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+                command starts a video recording server that will make use of one or more installed
+                TV-Capture cards and, following a specified schedule, will record broadcasted and
+                encoded streams from the capture card to disk. </para>
+            <para>The orignal stored HW encoded file (from the capture card) can then be automatically
+                transcoded (using
+                <citerefentry><refentrytitle>ffmpeg</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+                ) to a more efficient format. The specific details on both the iniitial HW encoder
+                settings as well as the transcoding options are bundled in a 'profile'. </para>
+            <para>Each recording is done using one (or multiple) profiles. Each recording will always
+                have at least one profile. By default the distribution includes four profiles 'high',
+                'normal', 'low', 'mobile'. Additional profiles can easily be added by the user. A
+                profile is specified in a traditional ini-file text file stored under the 'profiles'
+                directory.</para>
+        </refsect1>
+        
+        <refsect1 xml:id="tvpvrd.example">
+            <title>Examples</title>
+            <para/>
+        </refsect1>
+        
+        <refsect1 xml:id="tvpvrd.files">
+            <title>Files</title>
+            <para>Used files are</para>
+            <variablelist>
+                <varlistentry>
+                    <term>xawtvrc</term>
+                    <listitem><para>A list in ini-file format which maps the commonly known sation name to a frequency channel</para></listitem>
+                </varlistentry>
+            </variablelist>        
+        </refsect1>
+        
+        <refsect1 xml:id="tvpvrd.seealso">
+            <title>See also</title>
+            <para><citerefentry>
+                <refentrytitle>yyy</refentrytitle>
+                <manvolnum>1</manvolnum>
+            </citerefentry>, <citerefentry>
+                <refentrytitle>yyy</refentrytitle>
+                <manvolnum>1</manvolnum>
+            </citerefentry>, <citerefentry>
+                <refentrytitle>yyy</refentrytitle>
+                <manvolnum>1</manvolnum>
+            </citerefentry>
+            </para>
+        </refsect1>
+        
+    </refentry>
+</article>
