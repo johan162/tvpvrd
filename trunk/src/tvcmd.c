@@ -6,7 +6,7 @@
  *              function jump table. Each command is parsed using
  *              pcre_grep() family of functions (Perl Compatible regex).
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: tvcmd.c 144 2009-11-21 10:48:04Z ljp $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009 Johan Persson
  *

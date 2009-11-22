@@ -4,7 +4,7 @@
  *              For example setting the encoded bitrate for both audio and
  *              video.
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: vctrl.h 124 2009-11-16 20:07:27Z ljp $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009 Johan Persson
  *

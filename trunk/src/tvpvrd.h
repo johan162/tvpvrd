@@ -5,7 +5,7 @@
  *              global variables that need to be accessible throughout
  *              the rpogram.
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: tvpvrd.h 138 2009-11-19 11:34:29Z ljp $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009 Johan Persson
  *

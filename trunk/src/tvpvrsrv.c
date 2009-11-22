@@ -2,7 +2,7 @@
  * File:        TVPVRSRV.C
  * Description: Main file for TV PVR daemon
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: tvpvrsrv.c 139 2009-11-19 13:01:58Z ljp $
+ * SVN:         $Id$
  *
  * Synopsis:
  * The main function is responsible for parsing any command line options
