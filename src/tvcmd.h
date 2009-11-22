@@ -7,7 +7,7 @@
  *              pcre_grep() family of functions (Perl Compatible regex).
  *              Note that the regex is made to support UTF-8/16 characters.
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: tvcmd.h 144 2009-11-21 10:48:04Z ljp $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009 Johan Persson
  *

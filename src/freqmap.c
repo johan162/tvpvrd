@@ -8,7 +8,7 @@
  *              location and hence each geographic location uses its own
  *              frequency map. By defaylt the "west-euprope" map will be used.
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: freqmap.c 138 2009-11-19 11:34:29Z ljp $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009 Johan Persson
  *

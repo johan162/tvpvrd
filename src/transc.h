@@ -2,7 +2,7 @@
  * File:        TRANSC.H
  * Description: Module to handle transcoding profiles
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: transc.h 144 2009-11-21 10:48:04Z ljp $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009 Johan Persson
  *
