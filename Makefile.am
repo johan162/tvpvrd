@@ -1,5 +1,3 @@
 AUTOMAKE_OPTIONS = gnu
-SUBDIRS = . src scripts
+SUBDIRS = . src scripts docs
 
-# man page
-# man_MANS = tvpvrd.1x

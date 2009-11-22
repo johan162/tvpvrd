@@ -3672,7 +3672,7 @@ esac
 
 ac_config_headers="$ac_config_headers src/config.h"
 
-ac_config_files="$ac_config_files Makefile src/Makefile scripts/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile scripts/Makefile docs/Makefile docs/manpages/Makefile"
 
 
 ac_ext=c
@@ -9033,6 +9033,8 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "scripts/Makefile") CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
+    "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
+    "docs/manpages/Makefile") CONFIG_FILES="$CONFIG_FILES docs/manpages/Makefile" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 $as_echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
