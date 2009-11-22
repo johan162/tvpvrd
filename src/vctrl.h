@@ -3,7 +3,7 @@
  * Description: Collection of utility functions fo interface the video device
  *              For example setting the encoded bitrate for both audio and
  *              video.
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: vctrl.h 124 2009-11-16 20:07:27Z ljp $
  *
  * Copyright (C) 2009 Johan Persson

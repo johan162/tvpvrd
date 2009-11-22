@@ -3,7 +3,7 @@
  * Description: Module for reading/writing the database of all recordings
  *              to and from file. The database itself is stored in
  *              XML format in plain text files.
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: tvxmldb.c 124 2009-11-16 20:07:27Z ljp $
  *
  * Copyright (C) 2009 Johan Persson

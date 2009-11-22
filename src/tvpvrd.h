@@ -4,7 +4,7 @@
  *              tvpvrd server. It contains definition of constants and
  *              global variables that need to be accessible throughout
  *              the rpogram.
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: tvpvrd.h 138 2009-11-19 11:34:29Z ljp $
  *
  * Copyright (C) 2009 Johan Persson

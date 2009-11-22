@@ -4,7 +4,7 @@
  *              list of current defined recordings. This is mainatained
  *              as a vector for each video capture card which holds
  *              details on specific recordings.
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: recs.h 144 2009-11-21 10:48:04Z ljp $
  *
  * Copyright (C) 2009 Johan Persson

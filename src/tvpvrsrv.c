@@ -1,7 +1,7 @@
 /* =========================================================================
  * File:        TVPVRSRV.C
  * Description: Main file for TV PVR daemon
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: tvpvrsrv.c 139 2009-11-19 13:01:58Z ljp $
  *
  * Synopsis:
@@ -1444,7 +1444,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'h':
                 fprintf(stdout,
-                        "'%s' (C) 2009 Johan Persson, (johanp@aditus.nu) \n"
+                        "'%s' (C) 2009 Johan Persson, (johan162@gmail.com) \n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 #ifdef DEBUG_SIMULATE
@@ -1477,7 +1477,7 @@ parsecmdline(int argc, char **argv) {
 #ifdef _LARGEFILE64_SOURCE
                         "Compiled with LFS (Large File Support). Can handle files > 2GB.\n"
 #endif
-                        "Copyright (C) 2009 Johan Persson (johanp@aditus.nu)\n"
+                        "Copyright (C) 2009 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
                 exit(EXIT_SUCCESS);

@@ -6,7 +6,7 @@
  *              function jump table. Each command is parsed using
  *              pcre_grep() family of functions (Perl Compatible regex).
  *              Note that the regex is made to support UTF-8/16 characters.
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: tvcmd.h 144 2009-11-21 10:48:04Z ljp $
  *
  * Copyright (C) 2009 Johan Persson

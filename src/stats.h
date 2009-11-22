@@ -1,7 +1,7 @@
 /* =========================================================================
  * File:        STATS.H
  * Description: Keep track of recording/transcoding statistics
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: stats.h 144 2009-11-21 10:48:04Z ljp $
  *
  * Copyright (C) 2009 Johan Persson

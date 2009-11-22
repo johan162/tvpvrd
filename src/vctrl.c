@@ -11,7 +11,7 @@
  *              See documentation for v4l2 for details on the ioctl()
  *              parameters used.
  *              
- * Author:      Johan Persson (johanp@aditus.nu)
+ * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id: vctrl.c 124 2009-11-16 20:07:27Z ljp $
  *
  * Copyright (C) 2009 Johan Persson
