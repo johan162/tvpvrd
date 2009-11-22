@@ -1,2 +1,0 @@
-#! /bin/sh
-kill -1 `cat /var/run/tvpvrd.pid `
