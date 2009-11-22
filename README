@@ -6,7 +6,7 @@ README FILE FOR PACKAGE : 'TVPVRD'
 Quick installation
 -------------------
 
-A) Traditional GNU location install
+Alternative A) Traditional GNU location install
 
 $>./configure
 $>make
@@ -17,7 +17,7 @@ $>make install
 This will install the package under '/usr/local/bin/ and use '/usr/local/etc/tvpvrd/' for
 configuration files
 
-B) Modern system install
+Alternative B) Modern system install
 
 $>./configure --prefix=/usr --sysconfdir=/etc
 $>make
@@ -28,6 +28,33 @@ $>make install
 This will install the package under '/usr/bin/ and use '/etc/tvpvrd/' for
 configuration files.
 
+After installation you should check the configuration file 'tvpvrd.conf' so
+that it corresponds to your server setup. Escpecially it is important that the
+following settings are correct and matching your installation.
+
+    * datadir                   - Where the recorded files are stored. 
+    * video_device_basename     - The device basename for the capture device,
+                                  normally '/dev/video'. The first device is
+                                  then named '/dev/video0'
+    * username                  - Make sure you have user with the specified
+                                  user name
+    * max_video                 - This must be less or equal to the actual number 
+                                  of video cards you have installed
+
+Some notes on where to store the data
+-------------------------------------
+
+The Linux File Hierarchy stanfard suggests that varaibel program data is
+stored under the '/var' directory. However, for this application this might
+not be the optimal choice. The main reason is that this application has the
+potential to make use of a *lot* of disk space. In many standard installation
+it is not uncommon to keep the root directory and the '/var' directory ina a
+partition with a size of ~10GB even if the disk itself is a  1TB. The
+remaining data is usually allcoated to '/home'
+
+Since the disk requirements for this application is potentiall so huge we
+suggest that a separate partition of at least 20GB is used. In the default
+configuration file this partition is assumed to be mounted at '/data/pvr'
 
 What is 'tvpvrd'?
 -----------------
@@ -167,7 +194,7 @@ Full documentation including manual page, tvpvrd(1) , is available i the
 
 Author
 ------
-Johan Persson (johanp@aditus.nu)
+Johan Persson (johan162@gmail.com)
 
 License
 -------

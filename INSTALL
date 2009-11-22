@@ -15,6 +15,16 @@ configure, build, and install this package.  The following
 more-detailed instructions are generic; see the `README' file for
 instructions specific to this package.
 
+We recommend the following basic configuration arguments for a modern
+installation 
+
+$> ./configure --prefix=/usr --sysconfdir=/etc
+
+This will put the executable in '/usr/bin' and the create the 
+configuration directory '/etc/tvpvrd/'. Without these argument the 
+default base installation location will be '/usr/local' 
+(and '/usr/local/etc')
+
    The `configure' shell script attempts to guess correct values for
 various system-dependent variables used during compilation.  It uses
 those values to create a `Makefile' in each directory of the package.
