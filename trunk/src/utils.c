@@ -543,8 +543,7 @@ void
 getsysload(float *avg1, float *avg5, float *avg15) {
     char lbuff[24];
     int ld = open("/proc/loadavg", O_RDONLY);
-    int nread = read(ld, lbuff, 24);
-    if( nread <= 0 ) {
+    if( -1 == read(ld, lbuff, 24) ) {
         logmsg(LOG_ERR,"FATAL: Cannot read '/proc/loadavg' (%d:%s)",errno,strerror(errno));
         *avg1=-1; *avg5=-1; *avg15=-1;
     }
