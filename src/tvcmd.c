@@ -179,7 +179,7 @@ _cmd_undefined(const char *cmd, int sockfd) {
     char msgbuff[1024];
 
     snprintf(msgbuff, 1024,  "Unrecognized command. Try 'h' for a list of available commands.\n");
-    write(sockfd, msgbuff, strlen(msgbuff));
+    _writef(sockfd, msgbuff);
 
 }
 
