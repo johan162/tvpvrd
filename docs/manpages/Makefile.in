@@ -394,6 +394,8 @@ uninstall-man: uninstall-man1
 	uninstall-man1
 
 
+all: tvpvrd.1 tvpvrd.1.html 
+
 tvpvrd.1.html: tvpvrd.1.xml
 	xsltproc --output tvpvrd.1.html /usr/share/xml/docbook/stylesheet/nwalsh/current/html/docbook.xsl $<
 

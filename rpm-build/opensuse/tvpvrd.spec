@@ -12,13 +12,15 @@
  # license that conforms to the Open Source Definition (Version 1.9)
  # published by the Open Source Initiative.
 
-BuildRequires: v4l-tools glibc-devel libiniparser-devel libxml2-devel pcre-devel
-Summary: TV Personal Video Recorder Daemon
-Name: tvpvrd
-Version: 1.0.1
-Release: 1.1
-License: GPLv3
-Group: Multimedia/Vide
+BuildRequires:  v4l-tools glibc-devel libiniparser-devel libxml2-devel pcre-devel libxslt docbook-xsl-stylesheets
+Requires:       pwdutils v4l-tools libiniparser libxml2 pcre glibc
+Summary:        TV Personal Video Recorder Daemon
+Name:           tvpvrd
+Version:        1.0.1
+Release:        1.1
+License:        GPLv3
+Group:          Multimedia/Video
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build  
 
 # main source bundle
 Source0: %{name}-%{version}.tar.gz
@@ -31,6 +33,7 @@ transcoding to MP4 format via ffmpeg.
 # ---------------------------------------------------------------------------------
 # PREPARE
 # Extract original source tar ball
+# ---------------------------------------------------------------------------------
 %prep
 %setup -q
 
@@ -39,7 +42,7 @@ transcoding to MP4 format via ffmpeg.
 # configure and build. The %configure macro will automatically set the
 # correct prefix and sysconfdir directories
 %build
-autoreconf -fi 
+#autoreconf -fi 
 %configure
 make
 
@@ -47,12 +50,13 @@ make
 # INSTALL 
 # The %makeinstall macro will make a install into the proper staging
 # directory used during the RPM build
+# ---------------------------------------------------------------------------------
 %install
 %makeinstall
 
 # ---------------------------------------------------------------------------------
 # FILES
-# 
+# ---------------------------------------------------------------------------------
 %files
 %defattr(-,root,root) 
 /usr/bin/tvpvrd
@@ -70,13 +74,15 @@ make
 
 # ---------------------------------------------------------------------------------
 # Setup the user that normally will run tvpvrd
-%pre  
+# ---------------------------------------------------------------------------------
+%post  
 /usr/sbin/useradd -r -g users -s /bin/false -c "tvpvrd daemon" tvpvrd > /dev/null || :  
 test -e /var/run/tvpvrd.pid  || rm -rf /var/run/tvpvrd.pid && :  
 
-%preun
+%postun
 # ---------------------------------------------------------------------------------
 # Setup the user that normally will run tvpvrd
+# ---------------------------------------------------------------------------------
 /usr/sbin/userdel tvpvrd > /dev/null ||
 test -e /var/run/tvpvrd.pid  || rm -rf /var/run/tvpvrd.pid && : 
 
