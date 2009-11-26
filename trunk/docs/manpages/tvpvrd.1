@@ -23,65 +23,11 @@ tvpvrd \- TV Personal Video Recorder Server/Daemon
 .SH "SYNOPSIS"
 .HP \w'\fBtvpvrd\fR\ 'u
 \fBtvpvrd\fR [options\&.\&.\&.]
-.SH "ARGUMENTS"
-.PP
-The following arguments are supported
-.PP
-\fB\-d\fR, \fB\-\-daemon\fR [\fIy\fR|\fIn\fR]
-.RS 4
-Determine whether the server should be disconnected from the controlling terminal (a\&.k\&.a\&. running as a daemon)\&. If the server is run as a daemon the logfile cannot be \'\fIstdout\fR\'\&. This command line option will override the \'\fIdaemon\fR\' setting in the ini\-file\&.
-.RE
-.PP
-\fB\-f\fR, \fB\-\-xmldbfile\fR filename
-.RS 4
-Use the specified file as the database file where all the specified recordings are stored in XML format\&. This command line option will override the \'\fIxmldbfile\fR\' setting in the ini\-file\&.
-.RE
-.PP
-\fB\-h\fR, \fB\-\-help\fR
-.RS 4
-Print a short help and exit\&.
-.RE
-.PP
-\fB\-i\fR, \fB\-\-inifile\fR filename
-.RS 4
-Use the specified file as configuration file\&. This will override the location specified at compile time\&.
-.RE
-.PP
-\fB\-l\fR, \fB\-\-logfile\fR filename
-.RS 4
-Define what logfile to use\&. Two special names can be used
-stdout
-which will cause the log to be written to the
-\fIstdout\fR
-and
-syslog
-which will cause the logs to be written using the default system log\&. This command line option will override the \'\fIlogfile\fR\' setting in the ini\-file\&.
-.RE
-.PP
-\fB\-p\fR, \fB\-\-port\fR \fInnnn\fR
-.RS 4
-Specify TCP/IP port number\&. This will override the \'\fIport\fR\' setting in the ini\-file\&. By default the distribution uses port 9300\&.
-.RE
-.PP
-\fB\-V\fR, \fB\-\-verbose\fR [\fI0\fR|\fI1\fR|\fI2\fR]
-.RS 4
-Log verbosity level\&. 0 will only log error messages, 1 will log error and info messages, 2 will log errors, info and additional debug messages\&.
-.RE
-.PP
-\fB\-v\fR, \fB\-\-version\fR
-.RS 4
-Print program version information and exit\&.
-.RE
-.PP
-\fB\-x\fR, \fB\-\-xawtvrc\fR filename
-.RS 4
-Use the specified file to read the station names\&. The station name file maps the standardized frequency channel names to the more commonly used station names\&. See the section "Stations, channels and frequencies" below for more information\&. This will override the setting in the ini\-file\&.
-.RE
 .SH "DESCRIPTION"
 .PP
 The
 \fBtvpvrd\fR(1)
-command starts a video recording server that will make use of one or more installed TV\-Capture cards and, following a specified schedule, will record broadcasted and encoded streams from the capture card to disk\&.
+command starts a video recording server that will make use of one or more installed TV\-Capture cards and, following a specified schedule, will record broadcasted and encoded streams from the capture card to disk\&. In affect a digital version of a programmable VHS\&.
 .PP
 The original stored HW encoded file (from the capture card) can then be automatically transcoded (using
 \fBffmpeg\fR(1)
@@ -100,9 +46,64 @@ Additional profiles can easily be added by the user\&. A profile is specified in
 The recordings specified are stored in a database which is a plain text file in XML format (UTF\-8 encoded)\&.
 .PP
 Recorded and transcoded files are stored in a predefined directory structure\&. The base directory for this directory structure is defined in the ini\-file\&.
+.SH "ARGUMENTS"
+.PP
+The following arguments are supported
+.PP
+\fB\-d\fR, \fB\-\-daemon\fR [\fIy\fR|\fIn\fR]
+.RS 4
+Determine whether the server should be disconnected from the controlling terminal (a\&.k\&.a\&. running as a daemon)\&. If the server is run as a daemon the logfile cannot be \'\fIstdout\fR\'\&. This command line option will override the \'\fIdaemon\fR\' setting in the ini\-file\&. The default setting is to run as a daemon\&.
+.RE
+.PP
+\fB\-f\fR, \fB\-\-xmldbfile\fR filename
+.RS 4
+Use the specified file as the database file where all the specified recordings are stored in XML format\&. This command line option will override the \'\fIxmldbfile\fR\' setting in the ini\-file\&. The default location is \'<dataroot>/xmldb/tvpvrd_db\&.xml\'
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Print a short help and exit\&.
+.RE
+.PP
+\fB\-i\fR, \fB\-\-inifile\fR filename
+.RS 4
+Use the specified file as configuration file\&. This will override the location specified at compile time\&. The default location is \'/etc/tvpvrd/tvpvrd\&.conf\'
+.RE
+.PP
+\fB\-l\fR, \fB\-\-logfile\fR filename
+.RS 4
+Define what logfile to use\&. Two special names can be used
+stdout
+which will cause the log to be written to the
+\fIstdout\fR
+and
+syslog
+which will cause the logs to be written using the default system log\&. This command line option will override the \'\fIlogfile\fR\' setting in the ini\-file\&. The default location is \'/tmp/tvpvrd\&.log\'
+.RE
+.PP
+\fB\-p\fR, \fB\-\-port\fR \fInnnn\fR
+.RS 4
+Specify TCP/IP port number\&. This will override the \'\fIport\fR\' setting in the ini\-file\&. By default the distribution uses port 9300\&.
+.RE
+.PP
+\fB\-V\fR, \fB\-\-verbose\fR [\fI0\fR|\fI1\fR|\fI2\fR]
+.RS 4
+Log verbosity level\&. 0 will only log error messages, 1 will log error and info messages, 2 will log errors, info and additional low volumne debug messages, 3 will also log high volume debug messages\&.
+.RE
+.PP
+\fB\-v\fR, \fB\-\-version\fR
+.RS 4
+Print program version information and exit\&.
+.RE
+.PP
+\fB\-x\fR, \fB\-\-xawtvrc\fR filename
+.RS 4
+Use the specified file to read the station names\&. The station name file maps the standardized frequency channel names to the more commonly used station names\&. See the section "Stations, channels and frequencies" below for more information\&. This will override the setting in the ini\-file\&. The default location is \'/etc/X11/xawtvrc\'
+.RE
 .SH "STARTING AND STOPPING THE SERVER"
 .PP
-While strictly speaking not necessary the server should normally be started by the root user\&. As soon as the server doesn\'t need root privileges it will switch to run as the user specified in the ini\-file\&. This user should for security reasons not be the \'root\' user\&. By default this user is named \'tvpvrd\'\&. This user should be a system user without login shell\&. Such a user can normally be created by running the command \'\fIuseradd\fR\'
+While strictly speaking not necessary the server should normally be started by the root user\&. As soon as the server doesn\'t need root privileges it will switch to run as the user specified in the ini\-file, by default this is the user
+\fItvpvrd\fR\&. This user should for security reasons not be the \'root\' user\&. This user should be a system user without login shell\&. Such a user can normally be created by running the command \'\fIuseradd\fR\'\&. (If the server is installed via the RPM package this user will be automatically created)
 .PP
 
 .sp
@@ -116,7 +117,7 @@ $> useradd \-r tvpvrd
 .RE
 .\}
 .PP
-Then it is trivial to start the server
+To start the server as root the simplest way is to just call
 .PP
 
 .sp
@@ -132,7 +133,7 @@ $root> tvpvrd
 .PP
 In order to stop the server and allow it to do a clean shutdown the SIGHUP (or SIGSTOP) signal should be sent to the process running the server (assuming tvpvrd has been started as a daemon)\&. The distribution includes a simple script \'stop\-tvpvrd\' which will read the server pid from \'/var/run/tvpvrd\&.pid\' and send the SIGHUP signal\&.
 .PP
-So in order to stop the server it is normally enough to switch to root and use the command
+In order to stop the server first switch to root user and then use the command
 .PP
 
 .sp
@@ -146,7 +147,7 @@ $root> stop\-tvpvrd
 .RE
 .\}
 .PP
-To manually kill the daemon process could easily be done with the \'\fIkill\fR\'command as
+To manually kill the daemon process one can send the SIGHUP signal via the \'\fIkill\fR\'command as
 .PP
 
 .sp
@@ -171,7 +172,8 @@ command) any on\-going transcodings will be shutdown\&. Any potential ongoing re
 .PP
 Once the server is running the easiest way to connect to the server is by using the \'\fItelnet\fR\' program\&. Assuming that the
 \fItvpvrd\fR
-server is running on the localhost the following command will connect to the server (assuming the default port 9300 has not been changed in the ini\-file or by a command line argument)\&.
+server is running on the localhost the following command will connect to the server (assuming the default port 9300 has not been changed in the ini\-file (e\&.g\&.
+/etc/tvpvrd\&.conf) or by a command line argument)\&.
 .PP
 
 .sp
@@ -185,7 +187,7 @@ $> telnet localhost 9300
 .RE
 .\}
 .PP
-After a successful connection the server will reply with a short information message\&. To help identify the server the first line returned is always \'!TVPVRD!\'\&. The full returned information message is
+After a successful connection the server will reply with a short information message\&. To help identify the server the first line returned is always \'!TVPVRD!\'\&. The full returned information message at the connection time is
 .sp
 .if n \{\
 .RS 4
@@ -202,7 +204,7 @@ Connection will be closed after 30 min of inactivity\&.
 .RE
 .\}
 .PP
-If password protection (see section "Security" below) the welcome message is not shown until the correct password has been specified\&. Instead when password protection is enabled the connection sequence looks like
+If password protection (see section "Security" below) the welcome message is not be shown until the correct password has been specified\&. Instead when password protection is enabled the connection sequence looks like this
 .PP
 
 .sp
@@ -223,14 +225,14 @@ Connection will be closed after 30 min of inactivity
 .RE
 .\}
 .PP
-The server is now ready to accept commands on this connection\&.
+This means that the correct server password has to be given before the welcome message is seen\&. The server is now ready to accept commands on this connection\&.
 .SH "THE RECORDING AND TRANSCODING PROCESS"
 .PP
 The recording process refers to the process of saving the generated MP2 video stream from the capture card to a file\&.
 .PP
 The transcoding process refers to the re\-coding of the original MP2 video stream to a more efficient format, usually an MP4 container using H\&.264 video codec (the default in the distributed profiles)\&. Depending on the quality settings it is common to see reduction in original file size with 75%
 .PP
-Unfortunately the transcoding process is extremely CPU\-intensive and with the default settings in the distribution the normal profile will require roughly the same time to transcode as the original play time on a very high end machine (as of 2009) \&. In order not to make the machine totally unresponsive the ini\-file specifies a maximum load for a transcoding to start in order not to load the server with too many parallel transcoding processes\&. If the load is too high the transcoding processes will be put in a queue waiting for the load to become acceptable\&.
+Unfortunately the transcoding process is extremely CPU\-intensive and with the default settings in the distribution the normal profile will require roughly the same time to transcode as the original play time on a high end machine (as of 2009) \&. In order not to make the machine totally unresponsive the ini\-file specifies a maximum load for a transcoding to start in order not to load the server with too many parallel transcoding processes\&. If the load is too high the transcoding processes will be put in a queue waiting for the load to become acceptable\&.
 .PP
 Each transcoding process is run with a \'nice\' value of 20\&.
 .PP
@@ -245,6 +247,35 @@ As a special case no transcoding will be made if the \'\fIffmpeg\fR\' profile bi
 Once a transcoding has finished the resulting MP4 file will be moved to the directory \'<data\-dir>/mp4/<profile>/\' with the same file basename as the title but with the filename suffix "\&.mp4"\&.
 .PP
 When all the transcodings have been done and if the profile defines that the original MP2 video stream should be kept it is moved to the directory \'<data\-dir>/mp2/\'\&. After that the temporary directory (and the original MP2 file) is deleted\&.
+.SH "DIRECTORY STRUCTURE"
+.PP
+The root directory for where the video files (recordings) are stored is specified in the ini\-file (e\&.g\&. /etc/tvpvrd/tvpvrd\&.conf)\&. Under this root directory the following subdirectories and files are automatically created by the server:
+.PP
+.PP
+<dataroot>/mp2
+.RS 4
+If the profile specifies that the original MP2 files recorded from the capture card should be saved they are stored under this directory\&.
+.RE
+.PP
+<dataroot>/mp4/<profile>
+.RS 4
+The transcoded original MP2 files are placed under a subdirectory under MP4 corresponding to the name of the profile used for the transcoding\&.
+.RE
+.PP
+<dataroot>/stats/<profile>\&.stats
+.RS 4
+The statistics recorded while transcoded is stored in a file corresponding to the name of the profile\&.
+.RE
+.PP
+<dataroot>/vtmp
+.RS 4
+Temporary video directory used while recording and transcoding is performed\&. Each capture card used has its own subdirectory\&.
+.RE
+.PP
+<dataroot>/xmldb/
+.RS 4
+The XML file which represents the recordings database is stored under this directory
+.RE
 .SH "SECURITY"
 .PP
 In order to prevent unauthorized access to the server the server have a basic password protection\&. This means that a password can be configured to be used before a client can start giving command to the server\&. This is configured in the ini\-file\&. The configuration uses the same password for all clients so the server does not support multiple users/multiple password\&. Since the password is stored in plain text format the configuration file should have restricted access\&. This should not be considered strong security but rather a weak "stop\-messing\-with\-my\-recordings" protection\&.
@@ -270,7 +301,7 @@ Password:
 .PP
 All TV stations are broadcasted on a local unique frequency\&. The frequency spectrum is divided in internationally standardized fixed width channels\&. A channel is the same as a specified frequency\&. The distance between each assigned frequency is different depending on both the frequency area and the TV standard used\&. This depends on the fact that different TV standard requires different bandwidth\&. This channel division is also different depending on the geographic location\&.
 .PP
-It is important to realize that these fixed frequencies are assigned according to international standards\&. In each city (and city area) the broadcasting company is then responsible for assigning local stations to appropriate frequency channels\&. This is the difference between station and channel names\&. The channel names have short names with 2 to 5 characters, for example \'SE14\'\&. Even though the frequency division is standardized the exact channel names are not always given with the assigned names\&. For example a broadcosting company might claim (for example on their home page) that the station \'BBC1\' in a certain area can be found on channel \'14\' when they actually should have said that the station can be found on channel \'SE14\' which is the official name of this channel\&.
+It is important to realize that these fixed frequencies are assigned according to international standards\&. In each city (and city area) the broadcasting company is then responsible for assigning local stations to appropriate frequency channels\&. This is the difference between station and channel names\&. The channel names have short names with 2 to 5 characters, for example \'SE14\'\&. Even though the frequency division is standardized the exact channel names are not always given with the assigned names\&. For example a broadcasting company might claim (for example on their home page) that the station \'BBC1\' in a certain area can be found on channel \'14\' when they actually should have said that the station can be found on channel \'SE14\' which is the official name of this channel\&.
 .PP
 To further complicate matters different countries uses different standardized frequency maps\&. The program has built in knowledge of the frequency channels available in the following geographic areas
 .PP
@@ -434,7 +465,9 @@ While it is possible to use either the station name or the channel name in a rec
 The location of this file is normally specified in the ini\-file but the location can also be overridden with command line argument (\fB\-x\fR) when the server is started (see Options) which will override the setting in the ini\-file\&.
 .SH "COMMANDS"
 .PP
-The following is a list and detailed explanation of the recognized commands\&. Commands are specified by 1 to 3 letters followed by option arguments\&. It is possible to get more detailed help/information for each command by giving the help command \'h\' followed by the command, e\&.g\&. \'h l\', will give more detailed help on the \'list\' command\&.
+The following is a list and detailed explanation of the commands that are recognized by the server\&. Commands are specified by 1 to 3 letters followed by any necessary arguments\&. It is possible to get more detailed help/information for each command by giving the help command \'h\' followed by the command, e\&.g\&. \'h l\', will give more detailed help on the \'list\' command\&.
+.PP
+The input and output has a format suitable for both human interactive use as well as a programatically interfacing in order to build a UI that interacts with the server\&.
 .PP
 .PP
 \'\fBh\fR\' \- Help command
@@ -913,7 +946,7 @@ If no profile is specified then the default profile specified in the ini\-file w
 .PP
 \fIa <ch> <starttime> <endtime> [<title>] [<@profile]\fR
 .RS 4
-Specifictaion of both start and end time\&.
+Specification of both start and end time\&.
 .sp
 If the start time is after the current time the date will be assumed to be today\&. If the time is earlier than the current time the date is assumed to be tomorrow\&.
 .sp
@@ -1264,14 +1297,9 @@ for recording
 .PP
 Note: The system configuration directory to be used is a compile time settings and specified with the \'\fIconfiguration\fR\' argument \'\-\-sysconfdir\'\&.
 .PP
-xawtvrc
+/etc/X11/xawtvrc
 .RS 4
-A list in ini\-file format which maps the commonly known station name to a frequency channel
-.RE
-.PP
-/etc/tvpvrd
-.RS 4
-Default configuration directory
+A list in ini\-file format which maps the commonly known station name to a frequency channel\&. This is the default location used by the package xawtv
 .RE
 .PP
 <log\-directory>/tvpvrd\&.log
@@ -1328,11 +1356,6 @@ The database files are stored under this directory
 <data\-directory>/stats
 .RS 4
 The statistics for each profile is stored in a file in XML format with the same name as the profile and with the suffix \'\&.stats\'\&.
-.RE
-.PP
-/var/log/messages
-.RS 4
-System log
 .RE
 .SH "LIMITATIONS"
 .PP
@@ -1543,11 +1566,12 @@ Video for Linux: <http://linux\&.bytesex\&.org/v4l2/>
 .RE
 .sp
 .RE
-.SH "COPYING AND COPYRIGHT"
+.SH "AUTHOR"
 .PP
-Copyright (C) 2009 Johan Persson\&.
+Originally written by Johan Persson <johan162@gmail\&.com>, see the file AUTHORS for more information
+.SH "COPYRIGHT"
 .PP
-Free use of this software is granted under the terms of the GNU General Public License (GPL v3)\&.
+Free use of this software is granted under the terms of the GNU General Public License (GPL v3)\&., see the file COPYING included in the distribution archive for details\&.
 .SH "SEE ALSO"
 .PP
 \fBtvpvrd\fR(5),

@@ -1,44 +1,11 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>tvpvrd</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" title="tvpvrd"><div class="titlepage"><div><div><h2 class="title"><a name="id3357309"></a>tvpvrd</h2></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="refentrytitle"><a href="#tvpvrd">tvpvrd</a></span><span class="refpurpose"> &#8212; TV Personal Video Recorder Server/Daemon</span></dt></dl></div><div class="refentry" title="tvpvrd"><a name="tvpvrd"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>tvpvrd &#8212; TV Personal Video Recorder Server/Daemon</p></div><div class="refsynopsisdiv" title="Synopsis"><a name="tvpvrd.synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">tvpvrd</code>  [options...]</p></div></div><div class="refsect1" title="Arguments"><a name="tvpvrd.options"></a><h2>Arguments</h2>
-            
-            <p>The following arguments are supported</p>
-            <div class="variablelist"><dl><dt><span class="term"><code class="option">-d</code>, <code class="option">--daemon</code>
-                            [<span class="emphasis"><em>y</em></span>|<span class="emphasis"><em>n</em></span>]</span></dt><dd><p>Determine whether the server should be disconnected from the
-                            controlling terminal (a.k.a. running as a daemon). If the server is run
-                            as a daemon the logfile cannot be '<span class="emphasis"><em>stdout</em></span>'. This
-                            command line option will override the '<span class="emphasis"><em>daemon</em></span>'
-                            setting in the ini-file.</p></dd><dt><span class="term"><code class="option">-f</code>, <code class="option">--xmldbfile</code>
-                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file as the database file where all the specified
-                            recordings are stored in XML format. This command line option will
-                            override the '<span class="emphasis"><em>xmldbfile</em></span>' setting in the
-                            ini-file.</p></dd><dt><span class="term"><code class="option">-h</code>, <code class="option">--help</code></span></dt><dd><p>Print a short help and exit.</p></dd><dt><span class="term"><code class="option">-i</code>, <code class="option">--inifile</code>
-                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file as configuration file. This will override the
-                            location specified at compile time.</p></dd><dt><span class="term"><code class="option">-l</code>, <code class="option">--logfile</code>
-                        <code class="filename">filename</code></span></dt><dd><p>Define what logfile to use. Two special names can be used
-                                <code class="filename">stdout</code> which will cause the log to be written
-                            to the <span class="emphasis"><em>stdout</em></span> and <code class="filename">syslog</code> which
-                            will cause the logs to be written using the default system log. This
-                            command line option will override the '<span class="emphasis"><em>logfile</em></span>'
-                            setting in the ini-file.</p></dd><dt><span class="term">
-                        <code class="option">-p</code>, <code class="option">--port</code>
-                        <span class="emphasis"><em>nnnn</em></span>
-                    </span></dt><dd><p>Specify TCP/IP port number. This will override the
-                                '<span class="emphasis"><em>port</em></span>' setting in the ini-file. By default the
-                            distribution uses port 9300.</p></dd><dt><span class="term"><code class="option">-V</code>, <code class="option">--verbose</code>
-                            [<span class="emphasis"><em>0</em></span>|<span class="emphasis"><em>1</em></span>|<span class="emphasis"><em>2</em></span>]</span></dt><dd><p>Log verbosity level. 0 will only log error messages, 1 will log error
-                            and info messages, 2 will log errors, info and additional debug
-                            messages.</p></dd><dt><span class="term"><code class="option">-v</code>, <code class="option">--version</code></span></dt><dd><p>Print program version information and exit.</p></dd><dt><span class="term"><code class="option">-x</code>, <code class="option">--xawtvrc</code>
-                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file to read the station names. The station name
-                            file maps the standardized frequency channel names to the more commonly
-                            used station names. See the section "Stations, channels and frequencies"
-                            below for more information. This will override the setting in the
-                            ini-file. </p></dd></dl></div>
-        </div><div class="refsect1" title="Description"><a name="tvpvrd.description"></a><h2>Description</h2>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>tvpvrd</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" title="tvpvrd"><div class="titlepage"><div><div><h2 class="title"><a name="id3357435"></a>tvpvrd</h2></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="refentrytitle"><a href="#tvpvrd">tvpvrd</a></span><span class="refpurpose"> &#8212; TV Personal Video Recorder Server/Daemon</span></dt></dl></div><div class="refentry" title="tvpvrd"><a name="tvpvrd"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>tvpvrd &#8212; TV Personal Video Recorder Server/Daemon</p></div><div class="refsynopsisdiv" title="Synopsis"><a name="tvpvrd.synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">tvpvrd</code>  [options...]</p></div></div><div class="refsect1" title="Description"><a name="tvpvrd.description"></a><h2>Description</h2>
             
             <p>The
                     <span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(1)</span>
                 command starts a video recording server that will make use of one or more installed
                 TV-Capture cards and, following a specified schedule, will record broadcasted and
-                encoded streams from the capture card to disk. </p>
+                encoded streams from the capture card to disk. In affect a digital version of a
+                programmable VHS.</p>
             <p>The original stored HW encoded file (from the capture card) can then be
                 automatically transcoded (using
                         <span class="citerefentry"><span class="refentrytitle">ffmpeg</span>(1)</span>
@@ -70,18 +37,57 @@
                 XML format (UTF-8 encoded).</p>
             <p>Recorded and transcoded files are stored in a predefined directory structure. The
                 base directory for this directory structure is defined in the ini-file.</p>
-        </div><div class="refsect1" title="Starting and stopping the server"><a name="id3357781"></a><h2>Starting and stopping the server</h2>
+        </div><div class="refsect1" title="Arguments"><a name="tvpvrd.options"></a><h2>Arguments</h2>
+            
+            <p>The following arguments are supported</p>
+            <div class="variablelist"><dl><dt><span class="term"><code class="option">-d</code>, <code class="option">--daemon</code>
+                            [<span class="emphasis"><em>y</em></span>|<span class="emphasis"><em>n</em></span>]</span></dt><dd><p>Determine whether the server should be disconnected from the
+                            controlling terminal (a.k.a. running as a daemon). If the server is run
+                            as a daemon the logfile cannot be '<span class="emphasis"><em>stdout</em></span>'. This
+                            command line option will override the '<span class="emphasis"><em>daemon</em></span>'
+                            setting in the ini-file. The default setting is to run as a
+                            daemon.</p></dd><dt><span class="term"><code class="option">-f</code>, <code class="option">--xmldbfile</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file as the database file where all the specified
+                            recordings are stored in XML format. This command line option will
+                            override the '<span class="emphasis"><em>xmldbfile</em></span>' setting in the ini-file.
+                            The default location is '&lt;dataroot&gt;/xmldb/tvpvrd_db.xml' </p></dd><dt><span class="term"><code class="option">-h</code>, <code class="option">--help</code></span></dt><dd><p>Print a short help and exit.</p></dd><dt><span class="term"><code class="option">-i</code>, <code class="option">--inifile</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file as configuration file. This will override the
+                            location specified at compile time. The default location is
+                            '/etc/tvpvrd/tvpvrd.conf'</p></dd><dt><span class="term"><code class="option">-l</code>, <code class="option">--logfile</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Define what logfile to use. Two special names can be used
+                                <code class="filename">stdout</code> which will cause the log to be written
+                            to the <span class="emphasis"><em>stdout</em></span> and <code class="filename">syslog</code> which
+                            will cause the logs to be written using the default system log. This
+                            command line option will override the '<span class="emphasis"><em>logfile</em></span>'
+                            setting in the ini-file. The default location is
+                            '/tmp/tvpvrd.log'</p></dd><dt><span class="term">
+                        <code class="option">-p</code>, <code class="option">--port</code>
+                        <span class="emphasis"><em>nnnn</em></span>
+                    </span></dt><dd><p>Specify TCP/IP port number. This will override the
+                                '<span class="emphasis"><em>port</em></span>' setting in the ini-file. By default the
+                            distribution uses port 9300.</p></dd><dt><span class="term"><code class="option">-V</code>, <code class="option">--verbose</code>
+                            [<span class="emphasis"><em>0</em></span>|<span class="emphasis"><em>1</em></span>|<span class="emphasis"><em>2</em></span>]</span></dt><dd><p>Log verbosity level. 0 will only log error messages, 1 will log error
+                            and info messages, 2 will log errors, info and additional low volumne
+                            debug messages, 3 will also log high volume debug messages.</p></dd><dt><span class="term"><code class="option">-v</code>, <code class="option">--version</code></span></dt><dd><p>Print program version information and exit.</p></dd><dt><span class="term"><code class="option">-x</code>, <code class="option">--xawtvrc</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file to read the station names. The station name
+                            file maps the standardized frequency channel names to the more commonly
+                            used station names. See the section "Stations, channels and frequencies"
+                            below for more information. This will override the setting in the
+                            ini-file. The default location is '/etc/X11/xawtvrc'</p></dd></dl></div>
+        </div><div class="refsect1" title="Starting and stopping the server"><a name="id3358025"></a><h2>Starting and stopping the server</h2>
             
             <p>While strictly speaking not necessary the server should normally be started by the
                 root user. As soon as the server doesn't need root privileges it will switch to run
-                as the user specified in the ini-file. This user should for security reasons not be
-                the 'root' user. By default this user is named 'tvpvrd'. This user should be a
-                system user without login shell. Such a user can normally be created by running the
-                command '<span class="emphasis"><em>useradd</em></span>'</p>
+                as the user specified in the ini-file, by default this is the user
+                    <span class="emphasis"><em>tvpvrd</em></span>. This user should for security reasons not be the
+                'root' user. This user should be a system user without login shell. Such a user can
+                normally be created by running the command '<span class="emphasis"><em>useradd</em></span>'. (If the
+                server is installed via the RPM package this user will be automatically
+                created)</p>
             <p>
                 </p><pre class="screen">$&gt; useradd -r tvpvrd</pre><p>
             </p>
-            <p>Then it is trivial to start the server</p>
+            <p>To start the server as root the simplest way is to just call</p>
             <p>
                 </p><pre class="screen">$root&gt; tvpvrd</pre><p>
             </p>
@@ -90,12 +96,12 @@
                 has been started as a daemon). The distribution includes a simple script
                 'stop-tvpvrd' which will read the server pid from
                     '<code class="filename">/var/run/tvpvrd.pid</code>' and send the SIGHUP signal.</p>
-            <p>So in order to stop the server it is normally enough to switch to root and use the
+            <p>In order to stop the server first switch to root user and then use the
                 command</p>
             <p>
                 </p><pre class="screen">$root&gt; stop-tvpvrd</pre><p>
             </p>
-            <p>To manually kill the daemon process could easily be done with the
+            <p>To manually kill the daemon process one can send the SIGHUP signal via the
                     '<span class="emphasis"><em>kill</em></span>'command as</p>
             <p>
                 </p><pre class="screen">$&gt; kill -SIGHUP &lt;pid&gt;</pre><p>
@@ -109,19 +115,21 @@
                 recordings up to the time the recording is shutdown will be left in the
                     '<code class="filename">&lt;data-dir&gt;/vtmp</code>' directory and must be removed
                 manually.</p>
-        </div><div class="refsect1" title="Connecting to the server"><a name="id3357890"></a><h2>Connecting to the server</h2>
+        </div><div class="refsect1" title="Connecting to the server"><a name="id3358026"></a><h2>Connecting to the server</h2>
             
             <p>Once the server is running the easiest way to connect to the server is by using
                 the '<span class="emphasis"><em>telnet</em></span>' program. Assuming that the
                     <span class="emphasis"><em>tvpvrd</em></span> server is running on the localhost the following
                 command will connect to the server (assuming the default port 9300 has not been
-                changed in the ini-file or by a command line argument).</p>
+                changed in the ini-file (e.g. <code class="filename">/etc/tvpvrd.conf</code>) or by a command
+                line argument).</p>
             <p>
                 </p><pre class="screen">$&gt; telnet localhost 9300</pre><p>
             </p>
             <p>After a successful connection the server will reply with a short information
                 message. To help identify the server the first line returned is always
-                    '<code class="code">!TVPVRD!</code>'. The full returned information message is</p>
+                    '<code class="code">!TVPVRD!</code>'. The full returned information message at the connection
+                time is</p>
             <pre class="screen">!TVPVRD!
 Welcome to TVPVR-Server 1.0.0 (Nov 19 2009)
 You are user number 1 out of 2 allowed.
@@ -129,8 +137,8 @@ Type 'exit' to disconnect.
 Type 'h' to list available commands.
 Connection will be closed after 30 min of inactivity.</pre>
             <p>If password protection (see section "Security" below) the welcome message is not
-                shown until the correct password has been specified. Instead when password
-                protection is enabled the connection sequence looks like</p>
+                be shown until the correct password has been specified. Instead when password
+                protection is enabled the connection sequence looks like this</p>
             <p>
                 </p><pre class="screen">$&gt; telnet localhost 9300
 Password:<span class="bold"><strong>xxxxxxx</strong></span>
@@ -141,8 +149,10 @@ Type 'exit' to disconnect.
 Type 'h' to list available commands.
 Connection will be closed after 30 min of inactivity</pre><p>
             </p>
-            <p>The server is now ready to accept commands on this connection.</p>
-        </div><div class="refsect1" title="The recording and transcoding process"><a name="id3358090"></a><h2>The recording and transcoding process</h2>
+            <p>This means that the correct server password has to be given before the welcome
+                message is seen. The server is now ready to accept commands on this
+                connection.</p>
+        </div><div class="refsect1" title="The recording and transcoding process"><a name="id3358240"></a><h2>The recording and transcoding process</h2>
             
             <p>The recording process refers to the process of saving the generated MP2 video
                 stream from the capture card to a file.</p>
@@ -152,9 +162,9 @@ Connection will be closed after 30 min of inactivity</pre><p>
                 to see reduction in original file size with 75%</p>
             <p>Unfortunately the transcoding process is extremely CPU-intensive and with the
                 default settings in the distribution the normal profile will require roughly the
-                same time to transcode as the original play time on a very high end machine (as of
-                2009) . In order not to make the machine totally unresponsive the ini-file specifies
-                a maximum load for a transcoding to start in order not to load the server with too
+                same time to transcode as the original play time on a high end machine (as of 2009)
+                . In order not to make the machine totally unresponsive the ini-file specifies a
+                maximum load for a transcoding to start in order not to load the server with too
                 many parallel transcoding processes. If the load is too high the transcoding
                 processes will be put in a queue waiting for the load to become acceptable.</p>
             <p>Each transcoding process is run with a 'nice' value of 20.</p>
@@ -182,7 +192,22 @@ Connection will be closed after 30 min of inactivity</pre><p>
                 original MP2 video stream should be kept it is moved to the directory
                     '<code class="filename">&lt;data-dir&gt;/mp2/</code>'. After that the temporary directory
                 (and the original MP2 file) is deleted. </p>
-        </div><div class="refsect1" title="Security"><a name="id3358094"></a><h2>Security</h2>
+        </div><div class="refsect1" title="Directory structure"><a name="id3358242"></a><h2>Directory structure</h2>
+            
+            <p>The root directory for where the video files (recordings) are stored is specified
+                in the ini-file (e.g. /etc/tvpvrd/tvpvrd.conf). Under this root directory the
+                following subdirectories and files are automatically created by the server:</p>
+            <p>
+                </p><div class="variablelist"><dl><dt><span class="term">&lt;dataroot&gt;/mp2</span></dt><dd><p>If the profile specifies that the original MP2 files recorded from
+                                the capture card should be saved they are stored under this
+                                directory.</p></dd><dt><span class="term">&lt;dataroot&gt;/mp4/&lt;profile&gt;</span></dt><dd><p>The transcoded original MP2 files are placed under a subdirectory
+                                under MP4 corresponding to the name of the profile used for the
+                                transcoding.</p></dd><dt><span class="term">&lt;dataroot&gt;/stats/&lt;profile&gt;.stats</span></dt><dd><p>The statistics recorded while transcoded is stored in a file
+                                corresponding to the name of the profile.</p></dd><dt><span class="term">&lt;dataroot&gt;/vtmp</span></dt><dd><p>Temporary video directory used while recording and transcoding is
+                                performed. Each capture card used has its own subdirectory.</p></dd><dt><span class="term">&lt;dataroot&gt;/xmldb/</span></dt><dd><p>The XML file which represents the recordings database is stored
+                                under this directory</p></dd></dl></div><p>
+            </p>
+        </div><div class="refsect1" title="Security"><a name="id3358472"></a><h2>Security</h2>
             
             <p>In order to prevent unauthorized access to the server the server have a basic
                 password protection. This means that a password can be configured to be used before
@@ -201,7 +226,7 @@ Connection will be closed after 30 min of inactivity</pre><p>
             <p>
                 </p><pre class="screen">Password:</pre><p>
             </p>
-        </div><div class="refsect1" title="Stations, channels and frequencies"><a name="id3358251"></a><h2>Stations, channels and frequencies</h2>
+        </div><div class="refsect1" title="Stations, channels and frequencies"><a name="id3358521"></a><h2>Stations, channels and frequencies</h2>
             
             <p>All TV stations are broadcasted on a local unique frequency. The frequency
                 spectrum is divided in internationally standardized fixed width channels. A channel
@@ -215,7 +240,7 @@ Connection will be closed after 30 min of inactivity</pre><p>
                 This is the difference between station and channel names. The channel names have
                 short names with 2 to 5 characters, for example 'SE14'. Even though the frequency
                 division is standardized the exact channel names are not always given with the
-                assigned names. For example a broadcosting company might claim (for example on their
+                assigned names. For example a broadcasting company might claim (for example on their
                 home page) that the station 'BBC1' in a certain area can be found on channel '14'
                 when they actually should have said that the station can be found on channel 'SE14'
                 which is the official name of this channel.</p>
@@ -293,13 +318,16 @@ channel = E8
                 can also be overridden with command line argument (<code class="option">-x</code>) when the
                 server is started (see Options) which will override the setting in the
                 ini-file.</p>
-        </div><div class="refsect1" title="Commands"><a name="id3358253"></a><h2>Commands</h2>
+        </div><div class="refsect1" title="Commands"><a name="id3358523"></a><h2>Commands</h2>
             
-            <p>The following is a list and detailed explanation of the recognized commands.
-                Commands are specified by 1 to 3 letters followed by option arguments. It is
-                possible to get more detailed help/information for each command by giving the help
-                command 'h' followed by the command, e.g. 'h l', will give more detailed help on the
-                'list' command.</p>
+            <p>The following is a list and detailed explanation of the commands that are
+                recognized by the server. Commands are specified by 1 to 3 letters followed by any
+                necessary arguments. It is possible to get more detailed help/information for each
+                command by giving the help command 'h' followed by the command, e.g. 'h l', will
+                give more detailed help on the 'list' command.</p>
+            <p>The input and output has a format suitable for both human interactive use as well
+                as a programatically interfacing  in order to build a UI that interacts with the
+                server.</p>
             <p>
                 </p><div class="variablelist"><dl><dt><span class="term">'<span class="command"><strong>h</strong></span>' - Help command</span></dt><dd><p>Print a summary of all commands available.</p></dd><dt><span class="term">'<span class="command"><strong>v</strong></span>' - Version command</span></dt><dd><p>Print program version and name as well as the build date. The
                                 following lines will give information on how the server was
@@ -463,7 +491,7 @@ FFMPEG:
                                                 start date and time.</p><p>If no profile is specified then the default
                                                 profile specified in the ini-file will be
                                                 used.</p></dd><dt><span class="term"><span class="emphasis"><em>a &lt;ch&gt; &lt;starttime&gt; &lt;endtime&gt;
-                                                [&lt;title&gt;] [&lt;@profile]</em></span></span></dt><dd><p>Specifictaion of both start and end time.</p><p>If the start time is after the current time the
+                                                [&lt;title&gt;] [&lt;@profile]</em></span></span></dt><dd><p>Specification of both start and end time.</p><p>If the start time is after the current time the
                                                 date will be assumed to be today. If the time is
                                                 earlier than the current time the date is assumed to
                                                 be tomorrow.</p><p>If no title is specified the title will be
@@ -517,8 +545,7 @@ FFMPEG:
                                 which indicates the type of recurrence and the number of repeated
                                 occurrences. The full syntax is:</p><p>
                                 </p><div class="variablelist"><dl><dt><span class="term"><span class="emphasis"><em>ar &lt;repeat-type&gt; &lt;repeat-count&gt;
-                                                &lt;normal add arguments&gt;</em></span></span></dt><dd><p>
-                                            </p><p><span class="emphasis"><em>repeat-type</em></span></p><p>This specifies how often the repetition should be
+                                                &lt;normal add arguments&gt;</em></span></span></dt><dd><p> </p><p><span class="emphasis"><em>repeat-type</em></span></p><p>This specifies how often the repetition should be
                                                 done. This can be specified as one of the following
                                                 arguments:</p><p>
                                                 </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>'d' - Repeat daily (can also be specified as
@@ -557,8 +584,9 @@ FFMPEG:
             
             <p>Note: The system configuration directory to be used is a compile time settings and
                 specified with the '<span class="emphasis"><em>configuration</em></span>' argument '--sysconfdir'. </p>
-            <div class="variablelist"><dl><dt><span class="term">xawtvrc</span></dt><dd><p>A list in ini-file format which maps the commonly known station name
-                            to a frequency channel</p></dd><dt><span class="term">/etc/tvpvrd</span></dt><dd><p>Default configuration directory</p></dd><dt><span class="term">&lt;log-directory&gt;/tvpvrd.log</span></dt><dd><p>The logfile. The log-directory is specified in the ini-file. It can
+            <div class="variablelist"><dl><dt><span class="term">/etc/X11/xawtvrc</span></dt><dd><p>A list in ini-file format which maps the commonly known station name
+                            to a frequency channel. This is the default location used by the package
+                            xawtv</p></dd><dt><span class="term">&lt;log-directory&gt;/tvpvrd.log</span></dt><dd><p>The logfile. The log-directory is specified in the ini-file. It can
                             also be specified as a command line argument (<code class="option">-l,
                                 --logfile</code>) which will then override the ini-file setting.
                             By default the log file will be stored under
@@ -573,8 +601,8 @@ FFMPEG:
                             working directories while doing transcoding</p></dd><dt><span class="term">&lt;data-directory&gt;/mp2</span></dt><dd><p>If the profile specifies that the original mp2 files should be kept
                             they are stored in this directory.</p></dd><dt><span class="term">&lt;data-directory&gt;/mp4</span></dt><dd><p>The transcoded files are stored under this folder in a subfolder with
                             the name of the profile used for the transcoding.</p></dd><dt><span class="term">&lt;data-directory&gt;/xmldb</span></dt><dd><p>The database files are stored under this directory</p></dd><dt><span class="term">&lt;data-directory&gt;/stats</span></dt><dd><p>The statistics for each profile is stored in a file in XML format with
-                            the same name as the profile and with the suffix '.stats'.</p></dd><dt><span class="term">/var/log/messages</span></dt><dd><p>System log</p></dd></dl></div>
-        </div><div class="refsect1" title="Limitations"><a name="id3360693"></a><h2>Limitations</h2>
+                            the same name as the profile and with the suffix '.stats'.</p></dd></dl></div>
+        </div><div class="refsect1" title="Limitations"><a name="id3360939"></a><h2>Limitations</h2>
             
             <p>
                 </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Numerical dates must be specified in European format,
@@ -588,11 +616,11 @@ FFMPEG:
                             size manageable). This can result in up to ~8GB MP2 files, of course
                             depending on the HW bitrate defined.</p></li></ul></div><p>
             </p>
-        </div><div class="refsect1" title="Bugs"><a name="id3360838"></a><h2>Bugs</h2>
+        </div><div class="refsect1" title="Bugs"><a name="id3361084"></a><h2>Bugs</h2>
             
             <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>The configuration file has too many settings. </p></li><li class="listitem"><p>All information and error messages are hard coded in English and cannot be
                         easily localized.</p></li></ul></div>
-        </div><div class="refsect1" title="Notes"><a name="id3360867"></a><h2>Notes</h2>
+        </div><div class="refsect1" title="Notes"><a name="id3361113"></a><h2>Notes</h2>
             
             <p>There is currently no graphic client but writing a basic GUI (or WEB interface) is
                 fairly simple from a functional point of view since all necessary functionality is
@@ -600,16 +628,20 @@ FFMPEG:
             <p>Any errors that are discovered in the startup phase before a logfile has been
                 established will be written to the default system log (normally
                     <code class="filename">/var/log/messages</code>) </p>
-        </div><div class="refsect1" title="Resources"><a name="id3360890"></a><h2>Resources</h2>
+        </div><div class="refsect1" title="Resources"><a name="id3361138"></a><h2>Resources</h2>
             
             <p>
                 </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>SourceForge: &lt;http://sourceforge.net/projects/tvpvrd/&gt;</p></li><li class="listitem"><p>ivtv-driver: &lt;http://ivtvdriver.org/&gt;</p></li><li class="listitem"><p>Video for Linux: &lt;http://linux.bytesex.org/v4l2/&gt;</p></li></ul></div><p>
             </p>
-        </div><div class="refsect1" title="Copying and Copyright"><a name="id3360935"></a><h2>Copying and Copyright</h2>
+        </div><div class="refsect1" title="Author"><a name="id3361182"></a><h2>Author</h2>
             
-            <p>Copyright (C) 2009 Johan Persson. </p>
+            <p>Originally written by Johan Persson &lt;johan162@gmail.com&gt;, see the file AUTHORS
+                for more information</p>
+        </div><div class="refsect1" title="Copyright"><a name="id3361195"></a><h2>Copyright</h2>
+            
             <p>Free use of this software is granted under the terms of the GNU General Public
-                License (GPL v3).</p>
+                License (GPL v3)., see the file COPYING included in the distribution archive for
+                details.</p>
         </div><div class="refsect1" title="See also"><a name="tvpvrd.seealso"></a><h2>See also</h2>
             
             <p><span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(5)</span>,

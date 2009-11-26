@@ -13,7 +13,7 @@
  # published by the Open Source Initiative.
 
 BuildRequires: v4l-tools glibc-devel libiniparser-devel libxml2-devel pcre-devel
-Summary: tvpvrd - TV Personal Video Recorder Daemon
+Summary: TV Personal Video Recorder Daemon
 Name: tvpvrd
 Version: 1.0.1
 Release: 1.1
@@ -24,13 +24,9 @@ Group: Multimedia/Vide
 Source0: %{name}-%{version}.tar.gz
 
 %description
-tvpvrd is aflexible and configurable server daemon that acts as an advanced 
-digital TV recorder using one or several installed TV capture cards.
-The server manages scheduled recordings and provides an efficient command language 
-interface on a dedicated TCP/IP port.
-
-The goal is to provide an advanced recording and transcoding (using ffmpeg) server 
-without the need to have to configure databases or a complex GUI.
+TV Personal Video recorder daemon. Schedule and manage video recordings from a 
+TV capture card, e.g. Hauppauge 150, 250, or 350. The server also provides automatic 
+transcoding to MP4 format via ffmpeg.
 
 # ---------------------------------------------------------------------------------
 # PREPARE
@@ -61,7 +57,8 @@ make
 %defattr(-,root,root) 
 /usr/bin/tvpvrd
 /usr/bin/stop-tvpvrd
-/etc/tvpvrd
+
+%config /etc/tvpvrd
 
 %doc %attr(0444,root,root) /usr/share/man/man1/tvpvrd.1.gz
 %doc COPYING AUTHORS README NEWS 
@@ -85,7 +82,7 @@ test -e /var/run/tvpvrd.pid  || rm -rf /var/run/tvpvrd.pid && :
 
 %changelog
 * Thu Nov 26 2009  Johan Persson  <johan162@gmail.com>
-- Maintenance release 1.0.1
+- v1.0.1
 - Updated build structure with RPM building capability
 - Updated source to build clean even with FORTIFY_SOURCE=2 flag
 - Corrected missing file in 1.0.0 tar package build
