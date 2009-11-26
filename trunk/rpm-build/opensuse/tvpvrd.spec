@@ -15,20 +15,21 @@
 BuildRequires: v4l-tools glibc-devel libiniparser-devel libxml2-devel pcre-devel
 Summary: tvpvrd - TV Personal Video Recorder Daemon
 Name: tvpvrd
-Version: 1.0.0
+Version: 1.0.1
 Release: 1.1
 License: GPLv3
 Group: Multimedia/Vide
+
 # main source bundle
 Source0: %{name}-%{version}.tar.gz
 
 %description
-tvpvrd is a highly flexible and configurable server daemon that acts as an advanced 
+tvpvrd is aflexible and configurable server daemon that acts as an advanced 
 digital TV recorder using one or several installed TV capture cards.
 The server manages scheduled recordings and provides an efficient command language 
 interface on a dedicated TCP/IP port.
 
-The goal to provide an advanced recording and transcoding (using 'ffmpeg') server 
+The goal is to provide an advanced recording and transcoding (using ffmpeg) server 
 without the need to have to configure databases or a complex GUI.
 
 # ---------------------------------------------------------------------------------
@@ -39,7 +40,7 @@ without the need to have to configure databases or a complex GUI.
 
 # ---------------------------------------------------------------------------------
 # BUILD 
-# configure and build. The '%configure' macro will automatically set the
+# configure and build. The %configure macro will automatically set the
 # correct prefix and sysconfdir directories
 %build
 autoreconf -fi 
@@ -48,7 +49,7 @@ make
 
 # ---------------------------------------------------------------------------------
 # INSTALL 
-# The '%makeinstall' macro will make a install into the proper staging
+# The %makeinstall macro will make a install into the proper staging
 # directory used during the RPM build
 %install
 %makeinstall
@@ -73,5 +74,20 @@ make
 # ---------------------------------------------------------------------------------
 # Setup the user that normally will run tvpvrd
 %pre  
-/usr/sbin/useradd -r -g users -s /bin/false -c "tvpvrd daemon" tvpvrd -2> /dev/null || :  
+/usr/sbin/useradd -r -g users -s /bin/false -c "tvpvrd daemon" tvpvrd > /dev/null || :  
 test -e /var/run/tvpvrd.pid  || rm -rf /var/run/tvpvrd.pid && :  
+
+%preun
+# ---------------------------------------------------------------------------------
+# Setup the user that normally will run tvpvrd
+/usr/sbin/userdel tvpvrd > /dev/null ||
+test -e /var/run/tvpvrd.pid  || rm -rf /var/run/tvpvrd.pid && : 
+
+%changelog
+* Thu Nov 26 2009  Johan Persson  <johan162@gmail.com>
+- Maintenance release 1.0.1
+- Updated build structure with RPM building capability
+- Updated source to build clean even with FORTIFY_SOURCE=2 flag
+- Corrected missing file in 1.0.0 tar package build
+ 
+
