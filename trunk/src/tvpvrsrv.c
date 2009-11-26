@@ -505,7 +505,9 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                 // is stopped by the user. The pid returned by the fork() will not be
                 // the same process as is running the 'ffmpeg' command !
                 setpgid(getpid(),0); // This sets the PGID to be the same as the PID
-                nice(20);
+                if( nice(20) ) {
+                    logmsg(LOG_ERR, "Error when calling 'nice()' : (%d:%s)",errno,strerror(errno));
+                }
                 execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0);
             } else if (pid < 0) {
                 logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file \"%s\" (%d : %s)",
@@ -1210,7 +1212,7 @@ startupsrv(void) {
             } else {
                 logmsg(LOG_ERR, "Client connection not allowed. Too many clients connected.");
                 strcpy(tmpbuff, "Too many connections.");
-                write(newsocket, tmpbuff, strlen(tmpbuff));
+                _writef(newsocket, tmpbuff);
                 _dbg_close(newsocket);
             }
 
@@ -1333,8 +1335,8 @@ void startdaemon(void) {
     // Reopen stdin, stdout, stderr so the point harmlessly to /dev/null
     // (Some brain dead library routines might write to, for example, stderr)
     int i = open("/dev/null", O_RDWR);
-    (void)dup(i);
-    (void)dup(i);
+    int dummy=dup(i);
+    dummy=dup(i);
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
 }
 
@@ -1612,7 +1614,10 @@ createlockfile(void) {
 	int fd = open(buff, O_RDONLY);
 	char pidbuff[32];
 	int oldpid;
-	read(fd,pidbuff,31);
+	int nread = read(fd,pidbuff,31);
+        if( nread <= 0 ) {
+            _vsyslogf(LOG_ERR,"FATAL: Failed to read file '%s'",buff);
+        }
 	_dbg_close(fd);
 	pidbuff[31]='\0';
 	sscanf(pidbuff,"%d",&oldpid);	
@@ -1664,7 +1669,11 @@ createlockfile(void) {
                     int fd = open(buff, O_RDONLY);
                     char pidbuff[32];
                     int oldpid;
-                    read(fd,pidbuff,31);
+                    int nread = read(fd,pidbuff,31);
+                    if( nread <= 0 ) {
+                        _vsyslogf(LOG_ERR,"FATAL: Failed to read file '%s'",buff);
+                    }
+
                     _dbg_close(fd);
                     pidbuff[31]='\0';
                     sscanf(pidbuff,"%d",&oldpid);
@@ -2037,7 +2046,11 @@ main(int argc, char *argv[]) {
 
     // Get current directory
     char cwd_buff[256];
-    getcwd(cwd_buff,255);
+    char *res = getcwd(cwd_buff,255);
+    if( res == NULL ) {
+        fprintf(stderr,"FATAL: Cannot determine working directory: (%d:%s)\n",errno,strerror(errno));
+        exit(EXIT_FAILURE);
+    }
     cwd_buff[255] = '\0';
 
     // Check for inifile at common locations
