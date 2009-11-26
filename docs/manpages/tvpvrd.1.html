@@ -1,4 +1,4 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>tvpvrd</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" title="tvpvrd"><div class="titlepage"><div><div><h2 class="title"><a name="id3357308"></a>tvpvrd</h2></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="refentrytitle"><a href="#tvpvrd">tvpvrd</a></span><span class="refpurpose"> &#8212; TV Personal Video Recorder Server/Daemon</span></dt></dl></div><div class="refentry" title="tvpvrd"><a name="tvpvrd"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>tvpvrd &#8212; TV Personal Video Recorder Server/Daemon</p></div><div class="refsynopsisdiv" title="Synopsis"><a name="tvpvrd.synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">tvpvrd</code>  [options...]</p></div></div><div class="refsect1" title="Arguments"><a name="tvpvrd.options"></a><h2>Arguments</h2>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>tvpvrd</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" title="tvpvrd"><div class="titlepage"><div><div><h2 class="title"><a name="id3357309"></a>tvpvrd</h2></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="refentrytitle"><a href="#tvpvrd">tvpvrd</a></span><span class="refpurpose"> &#8212; TV Personal Video Recorder Server/Daemon</span></dt></dl></div><div class="refentry" title="tvpvrd"><a name="tvpvrd"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>tvpvrd &#8212; TV Personal Video Recorder Server/Daemon</p></div><div class="refsynopsisdiv" title="Synopsis"><a name="tvpvrd.synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">tvpvrd</code>  [options...]</p></div></div><div class="refsect1" title="Arguments"><a name="tvpvrd.options"></a><h2>Arguments</h2>
             
             <p>The following arguments are supported</p>
             <div class="variablelist"><dl><dt><span class="term"><code class="option">-d</code>, <code class="option">--daemon</code>
@@ -70,7 +70,7 @@
                 XML format (UTF-8 encoded).</p>
             <p>Recorded and transcoded files are stored in a predefined directory structure. The
                 base directory for this directory structure is defined in the ini-file.</p>
-        </div><div class="refsect1" title="Starting and stopping the server"><a name="id3357883"></a><h2>Starting and stopping the server</h2>
+        </div><div class="refsect1" title="Starting and stopping the server"><a name="id3357781"></a><h2>Starting and stopping the server</h2>
             
             <p>While strictly speaking not necessary the server should normally be started by the
                 root user. As soon as the server doesn't need root privileges it will switch to run
@@ -109,7 +109,7 @@
                 recordings up to the time the recording is shutdown will be left in the
                     '<code class="filename">&lt;data-dir&gt;/vtmp</code>' directory and must be removed
                 manually.</p>
-        </div><div class="refsect1" title="Connecting to the server"><a name="id3357885"></a><h2>Connecting to the server</h2>
+        </div><div class="refsect1" title="Connecting to the server"><a name="id3357890"></a><h2>Connecting to the server</h2>
             
             <p>Once the server is running the easiest way to connect to the server is by using
                 the '<span class="emphasis"><em>telnet</em></span>' program. Assuming that the
@@ -142,7 +142,7 @@ Type 'h' to list available commands.
 Connection will be closed after 30 min of inactivity</pre><p>
             </p>
             <p>The server is now ready to accept commands on this connection.</p>
-        </div><div class="refsect1" title="The recording and transcoding process"><a name="id3358086"></a><h2>The recording and transcoding process</h2>
+        </div><div class="refsect1" title="The recording and transcoding process"><a name="id3358090"></a><h2>The recording and transcoding process</h2>
             
             <p>The recording process refers to the process of saving the generated MP2 video
                 stream from the capture card to a file.</p>
@@ -182,7 +182,7 @@ Connection will be closed after 30 min of inactivity</pre><p>
                 original MP2 video stream should be kept it is moved to the directory
                     '<code class="filename">&lt;data-dir&gt;/mp2/</code>'. After that the temporary directory
                 (and the original MP2 file) is deleted. </p>
-        </div><div class="refsect1" title="Security"><a name="id3358091"></a><h2>Security</h2>
+        </div><div class="refsect1" title="Security"><a name="id3358094"></a><h2>Security</h2>
             
             <p>In order to prevent unauthorized access to the server the server have a basic
                 password protection. This means that a password can be configured to be used before
@@ -201,7 +201,7 @@ Connection will be closed after 30 min of inactivity</pre><p>
             <p>
                 </p><pre class="screen">Password:</pre><p>
             </p>
-        </div><div class="refsect1" title="Stations, channels and frequencies"><a name="id3358246"></a><h2>Stations, channels and frequencies</h2>
+        </div><div class="refsect1" title="Stations, channels and frequencies"><a name="id3358251"></a><h2>Stations, channels and frequencies</h2>
             
             <p>All TV stations are broadcasted on a local unique frequency. The frequency
                 spectrum is divided in internationally standardized fixed width channels. A channel
@@ -293,7 +293,7 @@ channel = E8
                 can also be overridden with command line argument (<code class="option">-x</code>) when the
                 server is started (see Options) which will override the setting in the
                 ini-file.</p>
-        </div><div class="refsect1" title="Commands"><a name="id3358248"></a><h2>Commands</h2>
+        </div><div class="refsect1" title="Commands"><a name="id3358253"></a><h2>Commands</h2>
             
             <p>The following is a list and detailed explanation of the recognized commands.
                 Commands are specified by 1 to 3 letters followed by option arguments. It is
@@ -574,7 +574,7 @@ FFMPEG:
                             they are stored in this directory.</p></dd><dt><span class="term">&lt;data-directory&gt;/mp4</span></dt><dd><p>The transcoded files are stored under this folder in a subfolder with
                             the name of the profile used for the transcoding.</p></dd><dt><span class="term">&lt;data-directory&gt;/xmldb</span></dt><dd><p>The database files are stored under this directory</p></dd><dt><span class="term">&lt;data-directory&gt;/stats</span></dt><dd><p>The statistics for each profile is stored in a file in XML format with
                             the same name as the profile and with the suffix '.stats'.</p></dd><dt><span class="term">/var/log/messages</span></dt><dd><p>System log</p></dd></dl></div>
-        </div><div class="refsect1" title="Limitations"><a name="id3360690"></a><h2>Limitations</h2>
+        </div><div class="refsect1" title="Limitations"><a name="id3360693"></a><h2>Limitations</h2>
             
             <p>
                 </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Numerical dates must be specified in European format,
@@ -588,11 +588,11 @@ FFMPEG:
                             size manageable). This can result in up to ~8GB MP2 files, of course
                             depending on the HW bitrate defined.</p></li></ul></div><p>
             </p>
-        </div><div class="refsect1" title="Bugs"><a name="id3360835"></a><h2>Bugs</h2>
+        </div><div class="refsect1" title="Bugs"><a name="id3360838"></a><h2>Bugs</h2>
             
             <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>The configuration file has too many settings. </p></li><li class="listitem"><p>All information and error messages are hard coded in English and cannot be
                         easily localized.</p></li></ul></div>
-        </div><div class="refsect1" title="Notes"><a name="id3360864"></a><h2>Notes</h2>
+        </div><div class="refsect1" title="Notes"><a name="id3360867"></a><h2>Notes</h2>
             
             <p>There is currently no graphic client but writing a basic GUI (or WEB interface) is
                 fairly simple from a functional point of view since all necessary functionality is
@@ -600,12 +600,12 @@ FFMPEG:
             <p>Any errors that are discovered in the startup phase before a logfile has been
                 established will be written to the default system log (normally
                     <code class="filename">/var/log/messages</code>) </p>
-        </div><div class="refsect1" title="Resources"><a name="id3360887"></a><h2>Resources</h2>
+        </div><div class="refsect1" title="Resources"><a name="id3360890"></a><h2>Resources</h2>
             
             <p>
                 </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>SourceForge: &lt;http://sourceforge.net/projects/tvpvrd/&gt;</p></li><li class="listitem"><p>ivtv-driver: &lt;http://ivtvdriver.org/&gt;</p></li><li class="listitem"><p>Video for Linux: &lt;http://linux.bytesex.org/v4l2/&gt;</p></li></ul></div><p>
             </p>
-        </div><div class="refsect1" title="Copying and Copyright"><a name="id3360932"></a><h2>Copying and Copyright</h2>
+        </div><div class="refsect1" title="Copying and Copyright"><a name="id3360935"></a><h2>Copying and Copyright</h2>
             
             <p>Copyright (C) 2009 Johan Persson. </p>
             <p>Free use of this software is granted under the terms of the GNU General Public
