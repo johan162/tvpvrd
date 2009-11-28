@@ -389,6 +389,12 @@ extern int defaultDurationHour, defaultDurationMin;
 // TVP/IP Port to listen to
 extern int tcpip_port;
 
+// Should we run as a daemon or not
+extern int daemonize;
+
+// What username are we running as
+extern char username[];
+
 // Logfile details
 extern int verbose_log;
 extern char logfile_name[];
@@ -410,6 +416,10 @@ extern char device_basename[];
 
 // Whether all transcoding processes should also be killed when the server stops
 extern int dokilltranscodings;
+
+// The name of the frequency map we are using. This is set at the startup and cannot
+// be changed at runtime.
+extern char frequencymap_name[];
 
 #ifdef	__cplusplus
 }

@@ -1237,24 +1237,31 @@ _cmd_getSettings(const char *cmd, int sockfd) {
     }
 
     _writef(sockfd,
-            "%-24s: %s\n"
-            "%-24s: %s\n"
-            "%-24s: %s\n"
-            "%-24s: %s\n"
-            "%-24s: %d\n"
-            "%-24s: %d\n"
-            "%-24s: %d\n"
-            "%-24s: %ds\n"
-            "%-24s: %d\n"
-            "%-24s: %ds\n"
-            "%-24s: %d (%0.1fMB)\n"
-            "%-24s: %02d:%02d (h:min)\n"
-            "%-24s: %s\n"
-            "%-24s: %s\n"
+            "%24s: %s\n"
+            "%24s: %s\n"
+            "%24s: %d\n"
+            "%24s: %s\n"
+            "%24s: %s\n"
+            "%24s: %s\n"
+            "%24s: %s\n"
+            "%24s: %d\n"
+            "%24s: %d\n"
+            "%24s: %d\n"
+            "%24s: %ds\n"
+            "%24s: %d\n"
+            "%24s: %ds\n"
+            "%24s: %d (%0.1fMB)\n"
+            "%24s: %02d:%02d (h:min)\n"
+            "%24s: %s\n"
+            "%24s: %s\n"
+            "%24s: %s\n"
             ,
             "datadir",datadir,
             "logfile",logfile_name,
+            "verbose_log",verbose_log,
             "inifile_name",inifile,
+            "daemonize",daemonize,
+            "username",username, 
             "xmldbfile_name",xmldbfile,
             "max_video",max_video,
             "max_entries",max_entries,
@@ -1265,7 +1272,8 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "video_buffer_size",video_bufsize,(float)video_bufsize/1024.0/1024.0,
             "default_recording_time",defaultDurationHour,defaultDurationMin,
             "xawtv_station file",xawtv_channel_file,
-            "default_profile",default_transcoding_profile
+            "default_profile",default_transcoding_profile,
+            "frequency_map",frequencymap_name
             );
 }
 
