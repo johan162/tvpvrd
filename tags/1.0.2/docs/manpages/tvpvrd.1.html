@@ -1,0 +1,654 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>tvpvrd</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" title="tvpvrd"><div class="titlepage"><div><div><h2 class="title"><a name="id3357435"></a>tvpvrd</h2></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="refentrytitle"><a href="#tvpvrd">tvpvrd</a></span><span class="refpurpose"> &#8212; TV Personal Video Recorder Server/Daemon</span></dt></dl></div><div class="refentry" title="tvpvrd"><a name="tvpvrd"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>tvpvrd &#8212; TV Personal Video Recorder Server/Daemon</p></div><div class="refsynopsisdiv" title="Synopsis"><a name="tvpvrd.synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">tvpvrd</code>  [options...]</p></div></div><div class="refsect1" title="Description"><a name="tvpvrd.description"></a><h2>Description</h2>
+            
+            <p>The
+                    <span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(1)</span>
+                command starts a video recording server that will make use of one or more installed
+                TV-Capture cards and, following a specified schedule, will record broadcasted and
+                encoded streams from the capture card to disk. In affect a digital version of a
+                programmable VHS.</p>
+            <p>The original stored HW encoded file (from the capture card) can then be
+                automatically transcoded (using
+                        <span class="citerefentry"><span class="refentrytitle">ffmpeg</span>(1)</span>
+                ) to a more efficient format. The specific details on both the initial HW encoder
+                settings as well as the transcoding options are bundled in a 'profile'. </p>
+            <p>Each recording is done using one (or multiple) profiles. Each recording will
+                always have at least one profile. By default the distribution includes four profiles
+                'high', 'normal', 'low', 'mobile'. Additional profiles can easily be added by the
+                user. A profile is specified in a traditional ini-file text file stored under the
+                'profiles' directory. Each setting in the profile is well documented in the
+                profiles. The settings are also described in
+                        <span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(5)</span></p>
+            <p>The primary interface to the server is via a TCP/IP connection to the server
+                running '<span class="emphasis"><em>tvpvrd</em></span>' via a dedicated port (by default 9300). The
+                server is controlled via a simple (but efficient) command language which allows
+                manipulation of future recordings and various other administrative tasks. All
+                commands are extensively described in the section 'Command language' below. </p>
+            <p>Each recording is done using one (or multiple) profiles. Each recording will
+                always have at least one profile, the primary profile. In this way it is possible to
+                create multiple transcoded versions of one recording, for example one high quality
+                version for viewing on a computer and one low quality versions for viewing on a
+                mobile device.</p>
+            <p>Additional profiles can easily be added by the user. A profile is specified in a
+                traditional ini-file text file stored under the 'profiles' directory. For details on
+                the profile file settings see
+                        <span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(5)</span>
+            </p>
+            <p>The recordings specified are stored in a database which is a plain text file in
+                XML format (UTF-8 encoded).</p>
+            <p>Recorded and transcoded files are stored in a predefined directory structure. The
+                base directory for this directory structure is defined in the ini-file.</p>
+        </div><div class="refsect1" title="Arguments"><a name="tvpvrd.options"></a><h2>Arguments</h2>
+            
+            <p>The following arguments are supported</p>
+            <div class="variablelist"><dl><dt><span class="term"><code class="option">-d</code>, <code class="option">--daemon</code>
+                            [<span class="emphasis"><em>y</em></span>|<span class="emphasis"><em>n</em></span>]</span></dt><dd><p>Determine whether the server should be disconnected from the
+                            controlling terminal (a.k.a. running as a daemon). If the server is run
+                            as a daemon the logfile cannot be '<span class="emphasis"><em>stdout</em></span>'. This
+                            command line option will override the '<span class="emphasis"><em>daemon</em></span>'
+                            setting in the ini-file. The default setting is to run as a
+                            daemon.</p></dd><dt><span class="term"><code class="option">-f</code>, <code class="option">--xmldbfile</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file as the database file where all the specified
+                            recordings are stored in XML format. This command line option will
+                            override the '<span class="emphasis"><em>xmldbfile</em></span>' setting in the ini-file.
+                            The default location is '&lt;dataroot&gt;/xmldb/tvpvrd_db.xml' </p></dd><dt><span class="term"><code class="option">-h</code>, <code class="option">--help</code></span></dt><dd><p>Print a short help and exit.</p></dd><dt><span class="term"><code class="option">-i</code>, <code class="option">--inifile</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file as configuration file. This will override the
+                            location specified at compile time. The default location is
+                            '/etc/tvpvrd/tvpvrd.conf'</p></dd><dt><span class="term"><code class="option">-l</code>, <code class="option">--logfile</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Define what logfile to use. Two special names can be used
+                                <code class="filename">stdout</code> which will cause the log to be written
+                            to the <span class="emphasis"><em>stdout</em></span> and <code class="filename">syslog</code> which
+                            will cause the logs to be written using the default system log. This
+                            command line option will override the '<span class="emphasis"><em>logfile</em></span>'
+                            setting in the ini-file. The default location is
+                            '/tmp/tvpvrd.log'</p></dd><dt><span class="term">
+                        <code class="option">-p</code>, <code class="option">--port</code>
+                        <span class="emphasis"><em>nnnn</em></span>
+                    </span></dt><dd><p>Specify TCP/IP port number. This will override the
+                                '<span class="emphasis"><em>port</em></span>' setting in the ini-file. By default the
+                            distribution uses port 9300.</p></dd><dt><span class="term"><code class="option">-V</code>, <code class="option">--verbose</code>
+                            [<span class="emphasis"><em>0</em></span>|<span class="emphasis"><em>1</em></span>|<span class="emphasis"><em>2</em></span>]</span></dt><dd><p>Log verbosity level. 0 will only log error messages, 1 will log error
+                            and info messages, 2 will log errors, info and additional low volumne
+                            debug messages, 3 will also log high volume debug messages.</p></dd><dt><span class="term"><code class="option">-v</code>, <code class="option">--version</code></span></dt><dd><p>Print program version information and exit.</p></dd><dt><span class="term"><code class="option">-x</code>, <code class="option">--xawtvrc</code>
+                        <code class="filename">filename</code></span></dt><dd><p>Use the specified file to read the station names. The station name
+                            file maps the standardized frequency channel names to the more commonly
+                            used station names. See the section "Stations, channels and frequencies"
+                            below for more information. This will override the setting in the
+                            ini-file. The default location is '/etc/X11/xawtvrc'</p></dd></dl></div>
+        </div><div class="refsect1" title="Starting and stopping the server"><a name="id3358025"></a><h2>Starting and stopping the server</h2>
+            
+            <p>While strictly speaking not necessary the server should normally be started by the
+                root user. As soon as the server doesn't need root privileges it will switch to run
+                as the user specified in the ini-file, by default this is the user
+                    <span class="emphasis"><em>tvpvrd</em></span>. This user should for security reasons not be the
+                'root' user. This user should be a system user without login shell. Such a user can
+                normally be created by running the command '<span class="emphasis"><em>useradd</em></span>'. (If the
+                server is installed via the RPM package this user will be automatically
+                created)</p>
+            <p>
+                </p><pre class="screen">$&gt; useradd -r tvpvrd</pre><p>
+            </p>
+            <p>To start the server as root the simplest way is to just call</p>
+            <p>
+                </p><pre class="screen">$root&gt; tvpvrd</pre><p>
+            </p>
+            <p>In order to stop the server and allow it to do a clean shutdown the SIGHUP (or
+                SIGSTOP) signal should be sent to the process running the server (assuming tvpvrd
+                has been started as a daemon). The distribution includes a simple script
+                'stop-tvpvrd' which will read the server pid from
+                    '<code class="filename">/var/run/tvpvrd.pid</code>' and send the SIGHUP signal.</p>
+            <p>In order to stop the server first switch to root user and then use the
+                command</p>
+            <p>
+                </p><pre class="screen">$root&gt; stop-tvpvrd</pre><p>
+            </p>
+            <p>To manually kill the daemon process one can send the SIGHUP signal via the
+                    '<span class="emphasis"><em>kill</em></span>'command as</p>
+            <p>
+                </p><pre class="screen">$&gt; kill -SIGHUP &lt;pid&gt;</pre><p>
+            </p>
+            <p>where &lt;pid&gt; is the process id of the <span class="emphasis"><em>tvpvrd</em></span> daemon. Use
+                'ps xa' to find the pid or if the server was started as root look in the file
+                    '<code class="filename">/var/run/tvpvrd.pid</code>' </p>
+            <p>When the server is shutdown the DB will be updated and depending on the "Kill
+                transcoding flag" (see the <code class="option">-ktf</code> command) any on-going transcodings
+                will be shutdown. Any potential ongoing recordings will be aborted and the
+                recordings up to the time the recording is shutdown will be left in the
+                    '<code class="filename">&lt;data-dir&gt;/vtmp</code>' directory and must be removed
+                manually.</p>
+        </div><div class="refsect1" title="Connecting to the server"><a name="id3358026"></a><h2>Connecting to the server</h2>
+            
+            <p>Once the server is running the easiest way to connect to the server is by using
+                the '<span class="emphasis"><em>telnet</em></span>' program. Assuming that the
+                    <span class="emphasis"><em>tvpvrd</em></span> server is running on the localhost the following
+                command will connect to the server (assuming the default port 9300 has not been
+                changed in the ini-file (e.g. <code class="filename">/etc/tvpvrd.conf</code>) or by a command
+                line argument).</p>
+            <p>
+                </p><pre class="screen">$&gt; telnet localhost 9300</pre><p>
+            </p>
+            <p>After a successful connection the server will reply with a short information
+                message. To help identify the server the first line returned is always
+                    '<code class="code">!TVPVRD!</code>'. The full returned information message at the connection
+                time is</p>
+            <pre class="screen">!TVPVRD!
+Welcome to TVPVR-Server 1.0.0 (Nov 19 2009)
+You are user number 1 out of 2 allowed.
+Type 'exit' to disconnect.
+Type 'h' to list available commands.
+Connection will be closed after 30 min of inactivity.</pre>
+            <p>If password protection (see section "Security" below) the welcome message is not
+                be shown until the correct password has been specified. Instead when password
+                protection is enabled the connection sequence looks like this</p>
+            <p>
+                </p><pre class="screen">$&gt; telnet localhost 9300
+Password:<span class="bold"><strong>xxxxxxx</strong></span>
+!TVPVRD!
+Welcome to TVPVR-Server 1.0.0 (Nov 19 2009)
+You are user number 1 out of 2 allowed.
+Type 'exit' to disconnect.
+Type 'h' to list available commands.
+Connection will be closed after 30 min of inactivity</pre><p>
+            </p>
+            <p>This means that the correct server password has to be given before the welcome
+                message is seen. The server is now ready to accept commands on this
+                connection.</p>
+        </div><div class="refsect1" title="The recording and transcoding process"><a name="id3358240"></a><h2>The recording and transcoding process</h2>
+            
+            <p>The recording process refers to the process of saving the generated MP2 video
+                stream from the capture card to a file.</p>
+            <p>The transcoding process refers to the re-coding of the original MP2 video stream
+                to a more efficient format, usually an MP4 container using H.264 video codec (the
+                default in the distributed profiles). Depending on the quality settings it is common
+                to see reduction in original file size with 75%</p>
+            <p>Unfortunately the transcoding process is extremely CPU-intensive and with the
+                default settings in the distribution the normal profile will require roughly the
+                same time to transcode as the original play time on a high end machine (as of 2009)
+                . In order not to make the machine totally unresponsive the ini-file specifies a
+                maximum load for a transcoding to start in order not to load the server with too
+                many parallel transcoding processes. If the load is too high the transcoding
+                processes will be put in a queue waiting for the load to become acceptable.</p>
+            <p>Each transcoding process is run with a 'nice' value of 20.</p>
+            <p>When a recording is started a temporary directory will be created under
+                    '<code class="filename">&lt;data-dir&gt;/vtmp/vid&lt;n&gt;/</code>' where &lt;n&gt; is the number
+                of the video card used. The name of the temporary directory will be the same as the
+                base name of the recording. The MPEG stream is read from the video card and stored
+                in a file in the temporary directory with the same name as the title (converted to
+                lower case) with the suffix ".mpg".</p>
+            <p>The hardware capture card settings to be used (bitrate, frame size etc.) is read
+                from the primary profile (i.e. the first profile).</p>
+            <p>When the recording has stopped the transcoding profile(s) is read and the
+                transcoding is started after a check that the server load is not higher than the
+                maximum allowed load in order to start a transcoding. If the load is too high the
+                transcoding is put in a queue of waiting transcodings that will be started when the
+                server load allows the transcoding to start. One transcoding will be made for each
+                of the associated profiles of this recording.</p>
+            <p>As a special case no transcoding will be made if the '<span class="emphasis"><em>ffmpeg</em></span>'
+                profile bitrate is set to 0 Mbps in the profile. In this case only the original MP2
+                video file will be kept.</p>
+            <p>Once a transcoding has finished the resulting MP4 file will be moved to the
+                directory '<code class="filename">&lt;data-dir&gt;/mp4/&lt;profile&gt;/</code>' with the same file
+                basename as the title but with the filename suffix ".mp4".</p>
+            <p>When all the transcodings have been done and if the profile defines that the
+                original MP2 video stream should be kept it is moved to the directory
+                    '<code class="filename">&lt;data-dir&gt;/mp2/</code>'. After that the temporary directory
+                (and the original MP2 file) is deleted. </p>
+        </div><div class="refsect1" title="Directory structure"><a name="id3358242"></a><h2>Directory structure</h2>
+            
+            <p>The root directory for where the video files (recordings) are stored is specified
+                in the ini-file (e.g. /etc/tvpvrd/tvpvrd.conf). Under this root directory the
+                following subdirectories and files are automatically created by the server:</p>
+            <p>
+                </p><div class="variablelist"><dl><dt><span class="term">&lt;dataroot&gt;/mp2</span></dt><dd><p>If the profile specifies that the original MP2 files recorded from
+                                the capture card should be saved they are stored under this
+                                directory.</p></dd><dt><span class="term">&lt;dataroot&gt;/mp4/&lt;profile&gt;</span></dt><dd><p>The transcoded original MP2 files are placed under a subdirectory
+                                under MP4 corresponding to the name of the profile used for the
+                                transcoding.</p></dd><dt><span class="term">&lt;dataroot&gt;/stats/&lt;profile&gt;.stats</span></dt><dd><p>The statistics recorded while transcoded is stored in a file
+                                corresponding to the name of the profile.</p></dd><dt><span class="term">&lt;dataroot&gt;/vtmp</span></dt><dd><p>Temporary video directory used while recording and transcoding is
+                                performed. Each capture card used has its own subdirectory.</p></dd><dt><span class="term">&lt;dataroot&gt;/xmldb/</span></dt><dd><p>The XML file which represents the recordings database is stored
+                                under this directory</p></dd></dl></div><p>
+            </p>
+        </div><div class="refsect1" title="Security"><a name="id3358472"></a><h2>Security</h2>
+            
+            <p>In order to prevent unauthorized access to the server the server have a basic
+                password protection. This means that a password can be configured to be used before
+                a client can start giving command to the server. This is configured in the ini-file.
+                The configuration uses the same password for all clients so the server does not
+                support multiple users/multiple password. Since the password is stored in plain text
+                format the configuration file should have restricted access. This should not be
+                considered strong security but rather a weak "stop-messing-with-my-recordings"
+                protection.</p>
+            <p>The setting whether password should be used or not and the actual password is
+                specified in the ini-file. For more information on the ini-file see
+                        <span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(5)</span>
+            </p>
+            <p>After connecting to the server when the password has been enabled the first string
+                sent back from the server will be</p>
+            <p>
+                </p><pre class="screen">Password:</pre><p>
+            </p>
+        </div><div class="refsect1" title="Stations, channels and frequencies"><a name="id3358521"></a><h2>Stations, channels and frequencies</h2>
+            
+            <p>All TV stations are broadcasted on a local unique frequency. The frequency
+                spectrum is divided in internationally standardized fixed width channels. A channel
+                is the same as a specified frequency. The distance between each assigned frequency
+                is different depending on both the frequency area and the TV standard used. This
+                depends on the fact that different TV standard requires different bandwidth. This
+                channel division is also different depending on the geographic location. </p>
+            <p>It is important to realize that these fixed frequencies are assigned according to
+                international standards. In each city (and city area) the broadcasting company is
+                then responsible for assigning local stations to appropriate frequency channels.
+                This is the difference between station and channel names. The channel names have
+                short names with 2 to 5 characters, for example 'SE14'. Even though the frequency
+                division is standardized the exact channel names are not always given with the
+                assigned names. For example a broadcasting company might claim (for example on their
+                home page) that the station 'BBC1' in a certain area can be found on channel '14'
+                when they actually should have said that the station can be found on channel 'SE14'
+                which is the official name of this channel.</p>
+            <p>To further complicate matters different countries uses different standardized
+                frequency maps. The program has built in knowledge of the frequency channels
+                available in the following geographic areas</p>
+            <p>
+                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>FREQMAP_EUROPEWEST</p></li><li class="listitem"><p>FREQMAP_EUROPEEAST</p></li><li class="listitem"><p>FREQMAP_FRANCE</p></li><li class="listitem"><p>FREQMAP_IRELAND</p></li><li class="listitem"><p>FREQMAP_ITALY</p></li><li class="listitem"><p>FREQMAP_AUSTRALIA</p></li><li class="listitem"><p>FREQMAP_NEWZEALAND</p></li><li class="listitem"><p>FREQMAP_USBCAST</p></li><li class="listitem"><p>FREQMAP_USCABLE</p></li></ul></div><p>
+            </p>
+            <p>Since the program has no way to automatically know which map to use this must be
+                specified in the application ini-file. This map file lists all the defined
+                frequencies and the official name for that country and frequency.</p>
+            <p>In order to record a specific station the tuner on the capture card must be tuned
+                to the correct frequency channel used by the station we want to record. Since it is
+                a lot easier to use the station names, for example "BBC1", than the official name on
+                the frequency channel, e.g. SE14, the program uses yet another mapping file so it is
+                possible to use station names when recording instead of frequency channels. </p>
+            <p>In order for maximum re-use <span class="emphasis"><em>tvpvrd</em></span> uses the same format of
+                the station/channel mapping file as is done in '<span class="emphasis"><em>xawtvrc</em></span>'. This
+                is a plain text file using ini-file format. In the distribution an example file is
+                included. Normally your TV provider provides a channel plan for your area.
+                Unfortunately, to make things a bit more difficult some broadcasting company is not
+                following the international naming convention. </p>
+            <p>If you are already viewing TV on your computer chances are very high that you
+                already have this 'xawtvrc' ini-file since it is used by many of the available TV
+                viewing programs. Common location for this file is either
+                    '<code class="filename">/etc/X11/xawtvrc</code>' or in your home directory
+                    '<code class="filename">.xawtvrc</code>'.</p>
+            <p>An example of a station-channel mapping file is shown below (this mapping file
+                happens to be the maps for a large Swedish distributor in the Stockholm
+                region):</p>
+            <p>
+                </p><pre class="screen">[Kanal5]
+channel = SE11
+[Kanal8]
+channel = 57
+[Kanal9]
+channel = S36
+[MTV]
+channel = SE16
+[SVT24]
+channel = E10
+[SVTB/Kunsk]
+channel = SE13
+[TV1]
+channel = E5
+[TV2]
+channel = E7
+[TV3]
+channel = E11
+[TV4]
+channel = E6
+[TV4+]
+channel = SE14
+[TV6]
+channel = E8
+</pre><p>
+            </p>
+            <p>In some Unix distributions there are automatic frequency scanning helper programs
+                (for example <span class="citerefentry"><span class="refentrytitle">scantv</span>(1)</span>) which will search through a given
+                frequency map and list all channels where a broadcasting was find (this is
+                identified as a high enough signal strength). For example SuSE distribution have a
+                TV channel scanning setup in the yast2 configuration tool. The result of this
+                channel scan is usually stored in a file named 'xawtvrc'. This is usually stored in
+                either '/etc/X11/xawtvrc' or in you home directory, usually as
+                    '<code class="filename">~/.awtvrc</code>'. Of course even if the channel with
+                broadcastings can be found the station names must be manually given. </p>
+            <p>The somewhat strange name of the map file comes from an ancient TV viewer program
+                under X11 which is called 'xawtv'. For historic reason this name has stayed.</p>
+            <p>While it is possible to use either the station name or the channel name in a
+                recording there must be a 'xawtvrc' file in order for the server to start properly.
+                If the station file cannot be found an error message will be printed and the server
+                will not start.</p>
+            <p>The location of this file is normally specified in the ini-file but the location
+                can also be overridden with command line argument (<code class="option">-x</code>) when the
+                server is started (see Options) which will override the setting in the
+                ini-file.</p>
+        </div><div class="refsect1" title="Commands"><a name="id3358523"></a><h2>Commands</h2>
+            
+            <p>The following is a list and detailed explanation of the commands that are
+                recognized by the server. Commands are specified by 1 to 3 letters followed by any
+                necessary arguments. It is possible to get more detailed help/information for each
+                command by giving the help command 'h' followed by the command, e.g. 'h l', will
+                give more detailed help on the 'list' command.</p>
+            <p>The input and output has a format suitable for both human interactive use as well
+                as a programatically interfacing  in order to build a UI that interacts with the
+                server.</p>
+            <p>
+                </p><div class="variablelist"><dl><dt><span class="term">'<span class="command"><strong>h</strong></span>' - Help command</span></dt><dd><p>Print a summary of all commands available.</p></dd><dt><span class="term">'<span class="command"><strong>v</strong></span>' - Version command</span></dt><dd><p>Print program version and name as well as the build date. The
+                                following lines will give information on how the server was
+                                compiled.</p><p>Output example:</p><pre class="screen">tvpvrd 1.0.0 (Nov 19 2009)
+Compiled with Large File Support (files &gt; 2GB).</pre></dd><dt><span class="term">'<span class="command"><strong>t</strong></span>' - Current Time and Date command</span></dt><dd><p>Print current time and date on the server where 'tvpvrd' is
+                                running</p><p>Output example:</p><pre class="screen">Fri Nov 20 15:51:20 2009</pre></dd><dt><span class="term">'<span class="command"><strong>s</strong></span>' - Server status command</span></dt><dd><p>Print a summary of the server status. This includes when the
+                                tvpvrd was started, how long it has been running for, the current
+                                server load, current server time and a list of the clients currently
+                                connected to the server.</p><p>Output example:</p><pre class="screen">   Current time: Fri Nov 20 15:45:04 2009
+        Started: Thu Nov 19 14:00:19 2009
+         Uptime: 25:44:45
+    Server load: 0.0 0.0 0.3
+        Clients: #01: 127.0.0.1, Fri Nov 20 15:44:52 2009</pre></dd><dt><span class="term">'<span class="command"><strong>st</strong></span>' - Print profile statistics</span></dt><dd><p>Print transcoding statistics for the defined profiles. This
+                                statistics is gathered for every transcoding made. The statistics
+                                includes among other things the running time and average size per
+                                minute of the original MP2 and the transcoded file. The statistics
+                                for the transcoding can be used to predict how long time a
+                                transcoding will take. However since it is highly dependent on the
+                                load on the server it can be difficult to accurately predict the
+                                needed transcoding time.</p><p>Output example:</p><pre class="screen">profile_name            : 'normal'
+transcoding_speed       : 44 s transcoded / min
+mp2size_1min            : 27.5 Mb/min
+mp4size_1min            : 6.4 Mb/min
+comp_ratio              : 4.3
+total_ttime             : 3481 min
+total_mp2time           : 1779 min
+total_mp2files          : 31
+total_mp4files          : 31</pre><p>The different fields have the following meaning</p><p>
+                                </p><div class="variablelist"><dl><dt><span class="term"><span class="emphasis"><em>profile_name</em></span></span></dt><dd><p>The name of the profile that this statistics apply
+                                                to.</p></dd><dt><span class="term"><span class="emphasis"><em>transcoding_speed</em></span></span></dt><dd><p>How much play time the server on average can
+                                                transcode per minute run time of 'ffmpeg'.</p></dd><dt><span class="term"><span class="emphasis"><em>mp2size_1min</em></span></span></dt><dd><p>The average size of 1 minute play time in the
+                                                original MP2 file.</p></dd><dt><span class="term"><span class="emphasis"><em>mp4size_1min</em></span></span></dt><dd><p>The average size of 1 minute of play time in the
+                                                resulting transcoded MP4 size.</p></dd><dt><span class="term"><span class="emphasis"><em>comp_ratio</em></span></span></dt><dd><p>The compression ration between the original MP2
+                                                size and the MP4 transcoded file.</p></dd><dt><span class="term"><span class="emphasis"><em>total_ttime</em></span></span></dt><dd><p>Total running time that has been spent transcoding
+                                                files.</p></dd><dt><span class="term"><span class="emphasis"><em>total_mp2time</em></span></span></dt><dd><p>Total recorded original MP2 time.</p></dd><dt><span class="term"><span class="emphasis"><em>total_mp2files</em></span></span></dt><dd><p>Total number of mp2files recorded with this
+                                                profile.</p></dd><dt><span class="term"><span class="emphasis"><em>total_mp4files</em></span></span></dt><dd><p>Total number of transcoded MP4 files with this
+                                                profile.</p></dd></dl></div><p>
+                            </p></dd><dt><span class="term">'<span class="command"><strong>rst</strong></span>' - Reset statistics command</span></dt><dd><p>Reset all statistics, i.e. set all statistics to 0.</p></dd><dt><span class="term">'<span class="command"><strong>vc</strong></span>
+                                [<span class="emphasis"><em>0</em></span>|<span class="emphasis"><em>1</em></span>|<span class="emphasis"><em>2</em></span>|<span class="emphasis"><em>3</em></span>|<span class="emphasis"><em>4</em></span>]'
+                            - Video Card information command</span></dt><dd><p>Print information on the specified video/capture cards. The
+                                command will print information of all available cards if no specific
+                                card number is specified. The information shown is the name of the
+                                card, driver and driver version.</p><p>Output example:</p><pre class="screen">Card 00: Hauppauge WinTV PVR-350, driver=ivtv v1.4.1
+Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</pre></dd><dt><span class="term">'<span class="command"><strong>l</strong></span>' - List command</span></dt><dd><p>List all upcoming recordings.</p><p>Each record is listed with 7 fields. Each record starts with a '['
+                                and ends with a ']' character. Each field is separated with a bar
+                                '|'. The order of fields are</p><p>
+                                </p><pre class="screen">&lt;id#&gt; &lt;station/channel name&gt; &lt;start-date&gt; &lt;start-time&gt; &lt;end-time&gt; &lt;title&gt; &lt;profile&gt;</pre><p>
+                            </p><p>Output example:</p><pre class="screen">[160|tv4    |2010-03-09|21:00|21:59|House (16/20)                 |@normal]
+[135|kanal5 |2010-03-11|21:00|21:59|Criminal minds (16/20)        |@normal]
+[038|kanal5 |2010-03-11|22:00|22:59|Fringe (17/20)                |@normal]
+[088|kanal5 |2010-03-14|22:25|23:19|Supernatural (18/21)          |@normal]
+[161|tv4    |2010-03-16|21:00|21:59|House (17/20)                 |@normal]
+[136|kanal5 |2010-03-18|21:00|21:59|Criminal minds (17/20)        |@normal]
+[039|kanal5 |2010-03-18|22:00|22:59|Fringe (18/20)                |@normal]</pre></dd><dt><span class="term">'<span class="command"><strong>ls</strong></span>' - List stations command</span></dt><dd><p>List all defined station names. The stations are specified in the
+                                    <code class="filename">xawtvrc</code> file and maps station names to
+                                channel names. When defining the frequency for a recording either
+                                the defined station name or channel (frequency) name can be
+                                used.</p><p>Output example:</p><pre class="screen">  SE11: kanal5
+    57: kanal8
+   S36: kanal9
+  SE16: mtv
+   E10: svt24
+  SE13: svtb/kunsk
+    E5: tv1
+    E7: tv2
+   E11: tv3
+    E6: tv4
+  SE14: tv4+
+    E8: tv6</pre></dd><dt><span class="term">'<span class="command"><strong>lc</strong></span> [<span class="emphasis"><em>#card</em></span>]' - List all video
+                            capture card controls command</span></dt><dd><p>This can be considered a low level command of limited use for an
+                                end user. This command will list all user controllable controls that
+                                can be adjusted on the specified video card. This is directly
+                                related to the discovered 'v4l2' interfaces. Since the output is
+                                quite long we do not include any example output here.</p></dd><dt><span class="term">'<span class="command"><strong>n</strong></span>' - Next recording command</span></dt><dd><p>List the immediate next recording(sw) scheduled for the available
+                                video card(s). The first number in parenthesis is how long time
+                                until the recording will start.</p><p>Output example:</p><pre class="screen">(01:37) : [002|tv3    |2009-11-20|18:00|18:59|NCIS_18 (02/20)               |@normal]
+(52:37) : [143|tv4    |2009-11-22|21:00|22:00|Shooter 1                     |@normal]</pre></dd><dt><span class="term">'<span class="command"><strong>o</strong></span>' - Ongoing recordings command</span></dt><dd><p>List all ongoing recording in ordinary list format for all video
+                                cards. If no recordings are ongoing the output will show
+                                "None"</p><p>Output example:</p><pre class="screen">Video #0: [175|tv1    |2009-11-20|16:26|16:27|tv1_20091120_1626             |@normal]
+Video #1: None.</pre></dd><dt><span class="term">'<span class="command"><strong>ot</strong></span>' - Ongoing transcodings command</span></dt><dd><p>List all ongoing transcodings. The output format is</p><p>
+                                </p><pre class="screen">&lt;#id&gt; &lt;start-time&gt; &lt;(duration)&gt; &lt;filename&gt; &lt;profile&gt;</pre><p>
+                            </p><p>The start time identifies when the transcoding was started and
+                                duration shows for how long the transcoding has been running.</p><p>Output example:</p><pre class="screen">[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]</pre></dd><dt><span class="term">'<span class="command"><strong>otl</strong></span>' - Ongoing transcoding long command</span></dt><dd><p>List all ongoing transcoding in long format which includes the
+                                detailed 'ffmpeg' command used which is printed on the second
+                                line.</p><p>Output example:</p><pre class="screen">[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]
+(cmd: /usr/bin/ffmpeg -v 0 -i tv1_20091120_1626.mpg -threads 0 
+-vcodec libx264 -vpre normal -b 700k -bt 1000k  -croptop 8 -cropbottom 8 
+-cropleft 2 -cropright 2  -acodec copy -ab 196k  -y  
+tv1_20091120_1626.mp4 &gt; /dev/null 2&gt;&amp;1)</pre></dd><dt><span class="term">'<span class="command"><strong>kt</strong></span>' - Kill allgoing transcoding command</span></dt><dd><p>Stop all ongoing transcodings.</p></dd><dt><span class="term">'<span class="command"><strong>ktf</strong></span>
+                            [<span class="emphasis"><em>y</em></span>|<span class="emphasis"><em>n</em></span>]' - Kill transcoding flag
+                            set/unset command</span></dt><dd><p>The kill transcoding flag determines whether or not the
+                                transcoding processes should be killed when the server is stopped.
+                                By default all transcoding processes are killed when the tvpvrd
+                                server is killed. By setting this flag to 'n' (No) the transcoding
+                                processes will be allowed to keep running after the server is
+                                stopped.</p><p>Output example:</p><pre class="screen">ktf n
+killflag=n</pre></dd><dt><span class="term">'<span class="command"><strong>z</strong></span>' - Display all ini-file settings command</span></dt><dd><p>This will list all settings made in the ini-file as well as the
+                                location of the used ini file.</p><p>Output example:</p><pre class="screen">datadir                 : /data/pvr
+logfile                 : /tmp/tvpvrd.log
+inifile_name            : /etc/tvpvrd/tvpvrd.conf
+xmldbfile_name          : /data/pvr/xmldb/tvpvrd_db.xml
+max_video               : 2
+max_entries             : 1024
+max_clients             : 2
+client_idle_time        : 1800s
+port                    : 9300
+time_resolution         : 3s
+video_buffer_size       : 200000 (0.2MB)
+default_recording_time  : 00:59 (h:min)
+xawtv_station file      : /etc/X11/xawtvrc
+default_profile         : normal</pre></dd><dt><span class="term">'<span class="command"><strong>zp</strong></span> [<span class="emphasis"><em>@profile</em></span>]' - Display
+                            profile information command</span></dt><dd><p>Display information on the settings of the specified profile. </p><p>Output example:</p><pre class="screen">                     name: normal
+ENCODER:
+            video_bitrate: 3400000
+       video_peak_bitrate: 4000000
+           audio_sampling: 44.1
+            audio_bitrate: 192
+                   aspect: 4x3
+                     size: vga
+FFMPEG:
+            video_bitrate: 700
+       video_peak_bitrate: 1000
+                   vcodec: libx264
+                     vpre: normal
+                     pass: 1
+                   acodec: copy
+            audio_bitrate: 196
+               video_size:
+                     crop: (l=2, r=2, t=8, b=8)
+     ffmpeg_extra_options:
+           file_extension: .mp4</pre></dd><dt><span class="term">'<span class="command"><strong>!</strong></span> [<span class="emphasis"><em>#videocard</em></span>]' - Stop
+                            recording on specified video card</span></dt><dd><p>Stop the recording on the specified video card. The aborted
+                                recording will be left in the '&lt;data-dir&gt;/vtmp/vid&lt;n&gt;/'
+                                directory and must be manually removed. </p></dd><dt><span class="term">'<span class="command"><strong>u</strong></span>' - Update database file command</span></dt><dd><p>Force update of the database file from memory.</p></dd><dt><span class="term">'<span class="command"><strong>x</strong></span>' - View XML database command</span></dt><dd><p>View the current specified recordings in XML DB format. See
+                                        <span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(5)</span>
+                                for details about the format.</p></dd><dt><span class="term">'<span class="command"><strong>a</strong></span>' - Add recording command</span></dt><dd><p>Add new recording. The date/time logic is fairly complete and will
+                                for example correctly handle date crossings when recording starts
+                                and ends on different sides on the midnight. For all recording
+                                formats both title and profile might be omitted. In such case the
+                                title will be constructed from the station/channel name and the
+                                start date/time.</p><p>If no end time is given the recording will have the default
+                                recording length as defined in the ini-file. In the distribution
+                                this is set to 0:59 hours.</p><p>For all variants the start and end time is specified as</p><p>
+                                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="emphasis"><em>hh</em></span> [:<span class="emphasis"><em>mm</em></span>
+                                                [:<span class="emphasis"><em>ss</em></span>]]</p></li></ul></div><p>
+                            </p><p>The maximum length for one recording is 4 hours in order to keep
+                                the file size manageable.</p><p>The primary formats are described below. The syntactic element
+                                used have the following meaning:</p><p>&lt;ch&gt; = Channel or station name</p><p>&lt;starttime&gt; = Time for recording start</p><p>&lt;endtime&gt; = Time for recording end</p><p>&lt;title&gt; = Title of recording. This will also be used as the
+                                filename of the resulting file. Note that the filename will always
+                                be converted to lower case.</p><p>&lt;@profile&gt; = Name of the profile(s) to be used to the
+                                recording. Up to 4 profiles can be specified for each
+                                recording.</p><p>The three main variants of the add command are:</p><p>
+                                </p><div class="variablelist"><dl><dt><span class="term"><span class="emphasis"><em>a &lt;ch&gt; &lt;starttime&gt; [&lt;title&gt;]
+                                                [&lt;@profile]</em></span></span></dt><dd><p>Specification of only start time. The end time
+                                                will match the default recording length as specified
+                                                in the ini-file.</p><p>If the start time is after the current time the
+                                                date will be assumed to be today. If the time is
+                                                earlier than the current time the date is assumed to
+                                                be tomorrow.</p><p>If no title is specified the title will be
+                                                constructed from the station/channel name and the
+                                                start date and time.</p><p>If no profile is specified then the default
+                                                profile specified in the ini-file will be
+                                                used.</p></dd><dt><span class="term"><span class="emphasis"><em>a &lt;ch&gt; &lt;starttime&gt; &lt;endtime&gt;
+                                                [&lt;title&gt;] [&lt;@profile]</em></span></span></dt><dd><p>Specification of both start and end time.</p><p>If the start time is after the current time the
+                                                date will be assumed to be today. If the time is
+                                                earlier than the current time the date is assumed to
+                                                be tomorrow.</p><p>If no title is specified the title will be
+                                                constructed from the station/channel name and the
+                                                start date and time.</p><p>If no profile is specified then the default
+                                                profile specified in the ini-file will be
+                                                used.</p></dd><dt><span class="term"><span class="emphasis"><em>a &lt;ch&gt; &lt;startdate&gt; &lt;starttime&gt;
+                                                &lt;endtime&gt; [&lt;title&gt;]
+                                            [&lt;@profile]</em></span></span></dt><dd><p>Full date and time specification. The date can be
+                                                specified as</p><p>
+                                                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="emphasis"><em>yyyy-mm-dd</em></span></p><p>Numerical date yyyy=year, mm=month [1-12],
+                                                  dd=day [1-31]</p></li><li class="listitem"><p>[<span class="emphasis"><em>today</em></span>|<span class="emphasis"><em>tomorrow</em></span>|<span class="emphasis"><em>mon</em></span>|<span class="emphasis"><em>tue</em></span>|<span class="emphasis"><em>wed</em></span>|<span class="emphasis"><em>thu</em></span>|<span class="emphasis"><em>fri</em></span>|<span class="emphasis"><em>sat</em></span>|<span class="emphasis"><em>sun</em></span>]</p><p>Relative date from today. The weekday name
+                                                  refers to the coming 7 days. If the same day as
+                                                  the current day is given then this refers to 7
+                                                  days in the future.</p></li></ul></div><p>
+                                            </p><p>If the start time is after the current time the
+                                                date will be assumed to be today. If the time is
+                                                earlier than the current time the date is assumed to
+                                                be tomorrow.</p><p>If no title is specified the title will be
+                                                constructed from the station/channel name and the
+                                                start date and time.</p><p>If no profile is specified then the default
+                                                profile specified in the ini-file will be
+                                                used.</p></dd></dl></div><p>
+                            </p><p><span class="bold"><strong>Examples</strong></span>:</p><pre class="screen">a bbc1 19:30</pre><p>Start a recording at 19:30 on station BBC1 which will have the
+                                default duration, default title and profile. </p><pre class="screen">a bbc1 tue 19:30 News</pre><p>Start a recording at 19:30 on station BBC1 the coming Tuesday
+                                which will have the default duration with title 'News' and profile. </p><pre class="screen">a bbc1 19:30 21:15 News </pre><p>Start a recording at 19:30 which will last until 21:15 on BBC1
+                                with title set to "News". The default profile will be used. </p><pre class="screen">a ch4 wed 22:00 23:45 The Movie </pre><p>Start a recording the coming Wednesday at 22:00 until 23:45 on CH4
+                                with title "The Movie". The default profile will be used. </p><pre class="screen">a bbc2 tomorrow 18 20 "World in Focus" @mobile </pre><p>Start a recording tomorrow at 18:00 until 20:00 on bbc2 with title
+                                "World in Focus". Using the mobile profile.</p><pre class="screen">a bbc2 tomorrow 18 20 "World in Focus" @mobile @normal</pre><p>Start a recording tomorrow at 18:00 until 20:00 on bbc2 with title
+                                "World in Focus". Using both the mobile and the normal profile.
+                            </p></dd><dt><span class="term">'<span class="command"><strong>q</strong></span>' - Quick recording command</span></dt><dd><p>Add new recording that will start immediately. This is basically
+                                the same as a simplified '<span class="emphasis"><em>a</em></span>' command where the
+                                start time and date is always the current date and time.</p><p>The format of the command are</p><p>
+                                </p><div class="variablelist"><dl><dt><span class="term"><span class="emphasis"><em>q &lt;ch&gt; [&lt;duration&gt;] [&lt;title&gt;]
+                                                [&lt;@profile]</em></span></span></dt><dd><p>The recording will start within a few seconds
+                                                (depending on the resolution time specified in the
+                                                ini-file) and will last for the duration specified.
+                                                If no duration is specified the default duration
+                                                time will be used. The duration is specified with
+                                                hours and minutes as</p><p><span class="emphasis"><em>hh:mm</em></span></p><p> If no title is specified the title will be
+                                                constructed from the station/channel name and the
+                                                start date and time. </p><p>If no profile is specified then the default
+                                                profile specified in the ini-file will be used.
+                                            </p></dd></dl></div><p>
+                            </p><p><span class="bold"><strong>Examples</strong></span>:</p><pre class="screen">q bbc2  </pre><p>Start a recording immediately on bbc2 using the default duration,
+                                title and profile.</p><pre class="screen">q bbc2 1:30 </pre><p>Start a recording immediately on bbc2 with duration 1 hour 30
+                                minutes, using default title and default profile. </p><pre class="screen">q bbc2 News </pre><p>Start a recording immediately on bbc2 with default duration using
+                                the title "News" and default profile.</p><pre class="screen">q ch4 1:45 Newsfocus @high  </pre><p>Start a new recording on station 'ch4' with title 'Newsfocus'
+                                using the 'high' profile. </p></dd><dt><span class="term">'<span class="command"><strong>ar</strong></span>' - Add repeated command</span></dt><dd><p>Add a new repeated recording . The syntax is identical to the
+                                normal add command with the exception of the first two arguments
+                                which indicates the type of recurrence and the number of repeated
+                                occurrences. The full syntax is:</p><p>
+                                </p><div class="variablelist"><dl><dt><span class="term"><span class="emphasis"><em>ar &lt;repeat-type&gt; &lt;repeat-count&gt;
+                                                &lt;normal add arguments&gt;</em></span></span></dt><dd><p> </p><p><span class="emphasis"><em>repeat-type</em></span></p><p>This specifies how often the repetition should be
+                                                done. This can be specified as one of the following
+                                                arguments:</p><p>
+                                                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>'d' - Repeat daily (can also be specified as
+                                                  '1')</p></li><li class="listitem"><p>'w' - Repeat weekly (can also be specified
+                                                  as '2')</p></li><li class="listitem"><p>'m' - Repeat monthly (can also be specified
+                                                  as '3')</p></li><li class="listitem"><p>'f' - Repeat Monday to Friday (can also be
+                                                  specified as '4')</p></li><li class="listitem"><p>'s' - Repeat every Saturday to Sunday (can
+                                                  also be specified as '5')</p></li></ul></div><p>
+                                            </p><p><span class="emphasis"><em>repeat-cnt</em></span></p><p>This specifies the number of repeated
+                                                recordings.</p></dd></dl></div><p>
+                            </p><p>Since only one title is given for multiple recording the titles
+                                will be mangled with the recording date and time. In the recording
+                                list the title will usually be shown as "Base title (xx/yy)" where
+                                xx is the sequence number and yy is the total number of recordings
+                                in this sequence.</p><p>Examples:</p><pre class="screen">ar f 10 bbc1 18 18:30 News</pre><p>Start recording every Mon-Tue at BBC1 between 18:00 and
+                                18:30</p><pre class="screen">ar w 20 tv1 tue 21:15 22:10 John Adams</pre><p>Start a recording once a week on Tuesday evening at 21:15 until
+                                22:10 with base title "John Adams". </p><pre class="screen">ar s 10 BBC1 01:00 02:30 Night movie </pre><p>Add a recording every weekend night between 01:00 and 02:30 with
+                                the base title "Night movie". The recording will be done for the
+                                next 5 weekends (2 recordings each weekend).</p></dd><dt><span class="term">'<span class="command"><strong>d</strong></span>
+                            <span class="emphasis"><em>nnn</em></span>' - Delete specified recording</span></dt><dd><p>Delete specified recording. <span class="emphasis"><em>nnn</em></span> is the
+                                recoding id shown when a recording is added or by the list command.
+                                If the identified recording is part of a recurrent sequence the
+                                other recordings in the same sequence are untouched.</p></dd><dt><span class="term">'<span class="command"><strong>dr</strong></span>
+                            <span class="emphasis"><em>nnn</em></span>' - Delete all repeated recordings</span></dt><dd><p>Delete all repeated recording that are part of the same repeating
+                                sequence as the id of the recording specified.</p></dd><dt><span class="term">'<span class="command"><strong>rp</strong></span>' - Refresh profiles command</span></dt><dd><p>This command will cause the profiles to be re-read from profile
+                                files. This can be used to refresh the profiles without having to
+                                restart the server.</p></dd><dt><span class="term">'<span class="command"><strong>sp</strong></span>
+                            <span class="emphasis"><em>nnn</em></span>
+                            <span class="emphasis"><em>@profile</em></span>' - Set profile command</span></dt><dd><p>Specify the profiles to be used on the specified recording. This
+                                will replace any previous defined profiles for this recording. Up to
+                                four profiles per recording can be defined.</p><p>Examples:</p><pre class="screen">sp 87 @normal @mobile</pre><p>Use profiles <span class="emphasis"><em>normal</em></span> and
+                                    <span class="emphasis"><em>mobile</em></span> for recording
+                                    <span class="emphasis"><em>#87</em></span></p></dd></dl></div><p>
+            </p>
+        </div><div class="refsect1" title="Files"><a name="tvpvrd.files"></a><h2>Files</h2>
+            
+            <p>Note: The system configuration directory to be used is a compile time settings and
+                specified with the '<span class="emphasis"><em>configuration</em></span>' argument '--sysconfdir'. </p>
+            <div class="variablelist"><dl><dt><span class="term">/etc/X11/xawtvrc</span></dt><dd><p>A list in ini-file format which maps the commonly known station name
+                            to a frequency channel. This is the default location used by the package
+                            xawtv</p></dd><dt><span class="term">&lt;log-directory&gt;/tvpvrd.log</span></dt><dd><p>The logfile. The log-directory is specified in the ini-file. It can
+                            also be specified as a command line argument (<code class="option">-l,
+                                --logfile</code>) which will then override the ini-file setting.
+                            By default the log file will be stored under
+                                <code class="filename">/tmp/tvpvrd.log</code> .(The reason not to use
+                                <code class="filename">/var/log/tvpvrd.log</code> is the fact that the server
+                            will not normally run as root and hence will not have write access to
+                            this directory.)</p></dd><dt><span class="term">/var/run/tvpvrd.pid</span></dt><dd><p>The pid of the started 'tvpvrd' server. This is used to easily find
+                            the pid in order to shutdown the server. This is used by the
+                                <span class="emphasis"><em>stop-tvpvrd</em></span> script. Note that in order to use
+                            this directory the daemon has to be started by the root user. </p></dd><dt><span class="term">/etc/tvpvrd/tvpvrd.conf</span></dt><dd><p>Default configuration file</p></dd><dt><span class="term">/etc/tvpvrd/profiles/</span></dt><dd><p>Directory with all profiles</p></dd><dt><span class="term">&lt;data-directory&gt;/</span></dt><dd><p>Directory where all recordings and temporary files are stored. The
+                            root directory is specified in the configuration file. </p></dd><dt><span class="term">&lt;data-directory&gt;/vtmp</span></dt><dd><p>Video temporary directory. Used to store ongoing recordings and as
+                            working directories while doing transcoding</p></dd><dt><span class="term">&lt;data-directory&gt;/mp2</span></dt><dd><p>If the profile specifies that the original mp2 files should be kept
+                            they are stored in this directory.</p></dd><dt><span class="term">&lt;data-directory&gt;/mp4</span></dt><dd><p>The transcoded files are stored under this folder in a subfolder with
+                            the name of the profile used for the transcoding.</p></dd><dt><span class="term">&lt;data-directory&gt;/xmldb</span></dt><dd><p>The database files are stored under this directory</p></dd><dt><span class="term">&lt;data-directory&gt;/stats</span></dt><dd><p>The statistics for each profile is stored in a file in XML format with
+                            the same name as the profile and with the suffix '.stats'.</p></dd></dl></div>
+        </div><div class="refsect1" title="Limitations"><a name="id3360939"></a><h2>Limitations</h2>
+            
+            <p>
+                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Numerical dates must be specified in European format,
+                            yyyy-mm-dd</p></li><li class="listitem"><p>Not all international defined frequency maps are included. As of this
+                            writing the following maps is not yet defined in the distribution.</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>us-cable-hrc</p></li><li class="listitem"><p>us-cable-irc</p></li><li class="listitem"><p>japan-bcast</p></li><li class="listitem"><p>japan-cable</p></li><li class="listitem"><p>china-bcast</p></li><li class="listitem"><p>southafrica</p></li><li class="listitem"><p>argentina</p></li><li class="listitem"><p>australia-optus</p></li></ul></div><p>Frequency maps are a simple vector defining the frequency as an
+                            integer and a string that defines the channel name. This is a compile
+                            time setting and adding new maps will require recompilation of the
+                            server. </p></li><li class="listitem"><p>The <code class="filename">/var/run/tvpvrd.pid</code> file is not removed after
+                            the program has shut down if the effective user is any other than
+                            'root', (by default the server will switch to the 'tvpvrd' user)</p></li><li class="listitem"><p>Maximum recording time is 4 hours (in order to keep maximum MP2 file
+                            size manageable). This can result in up to ~8GB MP2 files, of course
+                            depending on the HW bitrate defined.</p></li></ul></div><p>
+            </p>
+        </div><div class="refsect1" title="Bugs"><a name="id3361084"></a><h2>Bugs</h2>
+            
+            <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>The configuration file has too many settings. </p></li><li class="listitem"><p>All information and error messages are hard coded in English and cannot be
+                        easily localized.</p></li></ul></div>
+        </div><div class="refsect1" title="Notes"><a name="id3361113"></a><h2>Notes</h2>
+            
+            <p>There is currently no graphic client but writing a basic GUI (or WEB interface) is
+                fairly simple from a functional point of view since all necessary functionality is
+                available via the command language.</p>
+            <p>Any errors that are discovered in the startup phase before a logfile has been
+                established will be written to the default system log (normally
+                    <code class="filename">/var/log/messages</code>) </p>
+        </div><div class="refsect1" title="Resources"><a name="id3361138"></a><h2>Resources</h2>
+            
+            <p>
+                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>SourceForge: &lt;http://sourceforge.net/projects/tvpvrd/&gt;</p></li><li class="listitem"><p>ivtv-driver: &lt;http://ivtvdriver.org/&gt;</p></li><li class="listitem"><p>Video for Linux: &lt;http://linux.bytesex.org/v4l2/&gt;</p></li></ul></div><p>
+            </p>
+        </div><div class="refsect1" title="Author"><a name="id3361182"></a><h2>Author</h2>
+            
+            <p>Originally written by Johan Persson &lt;johan162@gmail.com&gt;, see the file AUTHORS
+                for more information</p>
+        </div><div class="refsect1" title="Copyright"><a name="id3361195"></a><h2>Copyright</h2>
+            
+            <p>Free use of this software is granted under the terms of the GNU General Public
+                License (GPL v3)., see the file COPYING included in the distribution archive for
+                details.</p>
+        </div><div class="refsect1" title="See also"><a name="tvpvrd.seealso"></a><h2>See also</h2>
+            
+            <p><span class="citerefentry"><span class="refentrytitle">tvpvrd</span>(5)</span>,
+                        <span class="citerefentry"><span class="refentrytitle">ffmpeg</span>(1)</span>,
+                        <span class="citerefentry"><span class="refentrytitle">scantv</span>(1)</span>,
+                        <span class="citerefentry"><span class="refentrytitle">v4l-info</span>(1)</span>,
+                        <span class="citerefentry"><span class="refentrytitle">v4l-conf</span>(1)</span>,
+                        <span class="citerefentry"><span class="refentrytitle">v4lctl</span>(1)</span>,
+                        <span class="citerefentry"><span class="refentrytitle">xawtv</span>(1)</span></p>
+        </div></div></div></body></html>
