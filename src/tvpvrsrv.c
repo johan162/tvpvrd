@@ -238,6 +238,11 @@ static char lockfilename[256] = {0};
 static int allow_profiles_adj_encoder = 0;
 
 /*
+ * What user should we run as
+ */
+char username[64];
+
+/*
  * Determine if we should kill any ongoing transcoding processes when we
  * kill this server.
  */
@@ -1739,7 +1744,6 @@ chkswitchuser(void) {
     struct passwd *pwe = getpwuid(getuid());
     
     if( strcmp(pwe->pw_name,"root") == 0 ) {
-        char username[64];
         strncpy( username, iniparser_getstring(dict, "config:username", DEFAULT_USERNAME), 63 );
         username[63] = '\0';
         if( strcmp(username,"root") != 0 ) {
