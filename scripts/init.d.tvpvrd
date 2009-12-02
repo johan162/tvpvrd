@@ -61,7 +61,7 @@ case "$1" in
 	;;
     stop)
 	echo -n "Shutting down tvpvrd"
-	killproc -G -TERM $TVPVRD_BIN
+	killproc -HUP -t10 $TVPVRD_BIN
 	rc_status -v
 	;;
     try-restart)
