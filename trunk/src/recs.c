@@ -98,36 +98,45 @@ isentryoverlapping(int video, struct recording_entry* entry) {
         // No recurrence
         for (int i = 0; i < num_entries[video]; ++i) {
             if (entry->ts_start >= recs[REC_IDX(video, i)]->ts_start &&
-                entry->ts_start <= recs[REC_IDX(video, i)]->ts_end)
+                entry->ts_start <= recs[REC_IDX(video, i)]->ts_end) {
+
+                logmsg(LOG_NOTICE,"New entry collides (type=%d) with: '%s'",1,recs[REC_IDX(video, i)]->title);
                 return 1;
+            }
 
             if (entry->ts_end >= recs[REC_IDX(video, i)]->ts_start &&
-                entry->ts_end <= recs[REC_IDX(video, i)]->ts_end)
-                return 1;
+                entry->ts_end <= recs[REC_IDX(video, i)]->ts_end) {
 
+                logmsg(LOG_NOTICE,"New entry collides (type=%d) with: '%s'",2,recs[REC_IDX(video, i)]->title);
+                return 1;
+            }
             if (entry->ts_start < recs[REC_IDX(video, i)]->ts_start &&
-                entry->ts_end > recs[REC_IDX(video, i)]->ts_end)
-                return 1;
+                entry->ts_end > recs[REC_IDX(video, i)]->ts_end) {
 
-            if (strcmp(recs[REC_IDX(video, i)]->filename, entry->filename) == 0)
+                logmsg(LOG_NOTICE,"New entry collides (type=%d) with: '%s'",3,recs[REC_IDX(video, i)]->title);
                 return 1;
+            }
         }
 
         if( ongoing_recs[video] ) {
             if (entry->ts_start >= ongoing_recs[video]->ts_start &&
-                entry->ts_start <= ongoing_recs[video]->ts_end)
-                return 1;
+                entry->ts_start <= ongoing_recs[video]->ts_end) {
 
+                logmsg(LOG_NOTICE,"New recurring entry collides (type=%d) with ongoing recording at video=%d",1,video);
+                return 1;
+            }
             if (entry->ts_end >= ongoing_recs[video]->ts_start &&
-                entry->ts_end <= ongoing_recs[video]->ts_end)
-                return 1;
+                entry->ts_end <= ongoing_recs[video]->ts_end) {
 
+                logmsg(LOG_NOTICE,"New recurring entry collides (type=%d) with ongoing recording at video=%d",2,video);
+                return 1;
+            }
             if (entry->ts_start < ongoing_recs[video]->ts_start &&
-                entry->ts_end > ongoing_recs[video]->ts_end)
-                return 1;
+                entry->ts_end > ongoing_recs[video]->ts_end) {
 
-            if (strcmp(ongoing_recs[video]->filename, entry->filename) == 0)
+                logmsg(LOG_NOTICE,"New recurring entry collides (type=%d) with ongoing recording at video=%d",3,video);
                 return 1;
+            }
         }
 
     } else {
@@ -145,30 +154,45 @@ isentryoverlapping(int video, struct recording_entry* entry) {
 
             for (int i = 0; i < num_entries[video]; ++i) {
                 if (ts_start >= recs[REC_IDX(video, i)]->ts_start &&
-                    ts_start <= recs[REC_IDX(video, i)]->ts_end)
-                    return 1;
+                    ts_start <= recs[REC_IDX(video, i)]->ts_end) {
 
+                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d (type=%d) with: '%s'",j,1,recs[REC_IDX(video, i)]->title);
+                    return 1;
+                }
                 if (ts_end >= recs[REC_IDX(video, i)]->ts_start &&
-                    ts_end <= recs[REC_IDX(video, i)]->ts_end)
-                    return 1;
+                    ts_end <= recs[REC_IDX(video, i)]->ts_end) {
 
-                if (ts_start < recs[REC_IDX(video, i)]->ts_start &&
-                    ts_end > recs[REC_IDX(video, i)]->ts_end)
+                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d (type=%d) with: '%s'",j,2,recs[REC_IDX(video, i)]->title);
                     return 1;
+                }
+                if (ts_start < recs[REC_IDX(video, i)]->ts_start &&
+                    ts_end > recs[REC_IDX(video, i)]->ts_end) {
+
+                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d (type=%d) with: '%s'",j,2,recs[REC_IDX(video, i)]->title);
+                    return 1;
+                }
             }
 
             if( ongoing_recs[video] ) {
                 if (ts_start >= ongoing_recs[video]->ts_start &&
-                    ts_start <= ongoing_recs[video]->ts_end)
-                    return 1;
+                    ts_start <= ongoing_recs[video]->ts_end) {
 
-                if (ts_end >= ongoing_recs[video]->ts_start &&
-                    ts_end <= ongoing_recs[video]->ts_end)
+                    logmsg(LOG_NOTICE,"New entry collides (type=%d) at occurrence %d with ongoing recording at video=%d",j,1,video);
                     return 1;
+                }
+                if (ts_end >= ongoing_recs[video]->ts_start &&
+                    ts_end <= ongoing_recs[video]->ts_end) {
+
+                    logmsg(LOG_NOTICE,"New entry collides (type=%d) at occurrence %d with ongoing recording at video=%d",j,2,video);
+                    return 1;
+                }
 
                 if (ts_start < ongoing_recs[video]->ts_start &&
-                    ts_end > ongoing_recs[video]->ts_end)
+                    ts_end > ongoing_recs[video]->ts_end) {
+
+                    logmsg(LOG_NOTICE,"New entry collides (type=%d) at occurrence %d with ongoing recording at video=%d",j,3,video);
                     return 1;
+                }
             }
 
             // Prepare to check next recurrency
