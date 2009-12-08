@@ -282,6 +282,18 @@ dump_transcoding_profile(char *name, char *buff, int size);
 void
 kill_all_ongoing_transcodings(void);
 
+/**
+ * Transcode the specified file using the optional profilename
+ * If wait is 0 the transcoding will start immediately without checking
+ * for server load.
+ * @param filename
+ * @param profilename
+ * @param wait
+ * @return
+ */
+int
+transcode_file(char *filename, char *profilename, int wait);
+
 #ifdef	__cplusplus
 }
 #endif
