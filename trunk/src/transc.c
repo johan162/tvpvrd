@@ -36,8 +36,12 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #include <sys/stat.h>
+#include <sys/time.h>
+
+#include <libgen.h> // Needed for dirname
 
 // Needed to get symbolic constants for v4l2 controls
 #include <linux/videodev2.h>
@@ -558,7 +562,8 @@ int
 wait_to_transcode(char *filename) {
     // We will not start transcoding until the 15 min load average is below max_load_for_transcoding
     int waiting_time = 0;
-    const int backoff_time = 5*60;
+    int backoff_time = 5*60;
+    int adj = 0 ;
     float avg1 = 0, avg5 = 0, avg15 = 0;
     getsysload(&avg1, &avg5, &avg15);
 
@@ -573,6 +578,16 @@ wait_to_transcode(char *filename) {
         if( avg5 > max_load_for_transcoding ) {
             logmsg(LOG_NOTICE, "Still waiting to to transcode '%s'. Current load %.2f > %d. Total waiting time: %d min",
                    filename, avg5, max_load_for_transcoding,waiting_time/60);
+        }
+        
+        // If the server is really busy we icrease the backoff_time in two steps for a maximum
+        // check time of every 30 min. This way we avoid to have an abundance of log entries
+        if( 0==adj && waiting_time > 30*60 ) {
+            backoff_time = 15*60 ;
+            adj = 1;
+        } else if (1==adj && waiting_time > 90*60) {
+            backoff_time = 30*60 ;
+            adj = 2;
         }
     }
     return waiting_time < max_waiting_time_to_transcode ? 0 : -1;
@@ -716,4 +731,163 @@ kill_all_ongoing_transcodings(void) {
         }
     }
 
+}
+/**
+ * Force a stranscode of the specified file using the named profile.
+ * If profile is the empty string then the default profile will be used.
+ * The transcoding will start immediately regardless of the server load
+ * if the argument wait is = 0
+ *
+ * @param filename
+ * @param profile
+ * @param wait
+ * @return
+ */
+int
+transcode_file(char *filename, char *profilename, int wait) {
+    struct transcoding_profile_entry *profile;
+    char cmdbuff[1024], cmd_ffmpeg[512], destfile[128];
+    int runningtime = 0;
+
+    if (wait) {
+        if (-1 == wait_to_transcode(filename)) {
+            logmsg(LOG_ERR, "Can not start transcoding of '%s'. Server too busy.", filename);
+            return -1;
+        }
+    }
+
+    char short_filename[64];
+    strncpy(short_filename, basename(filename), 63);
+    short_filename[63] = '\0';
+
+    char tmp[256];
+    strncpy(tmp, filename, 255);
+    tmp[255] = '\0';
+
+    char workingdir[256];
+    strncpy(workingdir, dirname(filename), 255);
+    workingdir[255] = '\0';
+
+    int transcoding_done = 0;
+
+    get_transcoding_profile(profilename, &profile);
+
+    logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, filename);
+
+    create_ffmpeg_cmdline(short_filename, profile, destfile, 128, cmd_ffmpeg, 512);
+
+    snprintf(cmdbuff, 1023, "cd %s;%s", workingdir, cmd_ffmpeg);
+
+#ifdef DEBUG_SIMULATE
+
+    snprintf(cmdbuff, 256, "%s/%s", workingdir, destfile);
+    int sfd = open(cmdbuff, O_WRONLY | O_CREAT | O_TRUNC);
+    logmsg(LOG_INFO, "Simulation mode: No real transcoding. Creating fake file '%s'", cmdbuff);
+    _writef(sfd, "Fake MP4 file created during simulation at ts=%u\n", time(NULL));
+    (void) close(sfd);
+    transcoding_done = 1;
+    CLEAR(usage);
+
+#else
+    pid_t pid;
+    if ((pid = fork()) == 0) {
+        // In the child process
+        // Make absolutely sure everything is cleaned up except the standard
+        // descriptors
+        for (int i = getdtablesize(); i > 2; --i) {
+            (void) close(i);
+        }
+
+        // Since the ffmpeg command is run as a child process (via the sh comamnd)
+        // we need to make sure all of this is in the same process group. This is
+        // done in order so that we can kill the ffmpeg command if the server
+        // is stopped by the user. The pid returned by the fork() will not be
+        // the same process as is running the 'ffmpeg' command !
+        setpgid(getpid(), 0); // This sets the PGID to be the same as the PID
+        if (-1 == nice(20)) {
+            logmsg(LOG_ERR, "Error when calling 'nice()' : (%d:%s)", errno, strerror(errno));
+            return -1;
+        }
+        execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0);
+    } else if (pid < 0) {
+        logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file \"%s\" (%d : %s)",
+                short_filename, errno, strerror(errno));
+        return -1;
+    } else {
+
+        logmsg(LOG_INFO, "Successfully started process pid=%d for transcoding '%s'.", pid, short_filename);
+
+        pthread_mutex_lock(&recs_mutex);
+        int tidx = record_ongoingtranscoding(workingdir, short_filename, cmd_ffmpeg, profile, pid);
+        pthread_mutex_unlock(&recs_mutex);
+
+        if (tidx != -1) {
+
+            // Now wait for the transcoding to finish and print the status of the
+            // transcoding to the log. We do this in a busy waiting loop for simplicity.
+            // since we can have such a long sleep period without really affecting the
+            // performance.
+            pid_t rpid;
+
+            // We only allow one transcoding to run for a maximum of 24 h
+            const int watchdog = 24 * 3600;
+            int ret;
+            struct rusage usage;
+            do {
+                // Transcoding usually takes hours so we don't bother
+                // waking up and check if we are done more often than once a minute
+                sleep(60);
+                runningtime += 60;
+                rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
+
+            } while (pid != rpid && runningtime < watchdog);
+
+            pthread_mutex_lock(&recs_mutex);
+            forget_ongoingtranscoding(tidx);
+            pthread_mutex_unlock(&recs_mutex);
+
+            if (runningtime >= watchdog) {
+                // Something is terrible wrong if the transcoding haven't
+                // finished after the watchdog timeout
+                logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung (have run for > %d hours). Killing process.",
+                        short_filename, watchdog / 3600);
+                (void) kill(pid, SIGKILL);
+                return -1;
+            } else {
+                if (WIFEXITED(ret)) {
+                    transcoding_done = (WEXITSTATUS(ret) == 0);
+                    if (WEXITSTATUS(ret) == 0) {
+                        if (runningtime < 60) {
+                            logmsg(LOG_ERR, "Error in transcoding process for file '%s'.",
+                                    short_filename, runningtime / 60);
+
+                        } else {
+                            logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %d:%d min of execution. (utime=%d s, stime=%d s))",
+                                    short_filename, runningtime / 60, runningtime % 60, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
+
+                        }
+                    } else {
+                        logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %d min of execution.",
+                                short_filename, runningtime / 60);
+                        return -1;
+                    }
+                } else {
+                    if (WIFSIGNALED(ret)) {
+                        logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly terminated by signal=%d .",
+                                short_filename, WTERMSIG(ret));
+                        return -1;
+                    } else {
+                        // Child must have been stopped. If so we have no choice than to kill it
+                        logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly stopped by signal=%d. Killing process.",
+                                short_filename, WSTOPSIG(ret));
+                        (void) kill(pid, SIGKILL);
+                        return -1;
+                    }
+
+                }
+            }
+        }
+    }
+#endif
+    return 0;
 }
