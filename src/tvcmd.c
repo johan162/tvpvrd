@@ -41,6 +41,7 @@
 #include <pcre.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 // Application specific includes
 #include "tvcmd.h"
@@ -81,8 +82,9 @@
 #define CMD_STATISTICS 22
 #define CMD_RESETSTATS 23
 #define CMD_KILLTRANSCODING 24
+#define CMD_TRANSCODEFILE 25
 
-#define CMD_UNDEFINED 25
+#define CMD_UNDEFINED 26
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -128,6 +130,7 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  h    - help\n"\
 			"  v    - print version\n"\
 			"  t    - print server time\n"\
+    			"  tf   - transcode specieid file\n"\
 			"  s    - print server status\n"\
                         "  st   - print profile statistics\n"\
                         "  rst  - reset all statistics\n"\
@@ -1683,7 +1686,44 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
     }
 }
 
+static void
+_cmd_transcodefile(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    char profile[32] ;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "tf <file> [@profile] - Transcode specified file using optional named profile\n"
+                );
+        return;
+    }
 
+    int ret = matchcmd("^tf" _PR_S _PR_AN _PR_PROFE, cmd, &field);
+    if( ret > 0 ) {
+
+        // Check that filename exists
+        struct stat sbuff;
+        if( -1 == stat(field[1], &sbuff) ) {
+            _writef(sockfd,"File does not exist '%s'.\n",field[1]);
+            return;
+        }
+
+        *profile = '\0';
+        if( ret > 2 ) {
+            if( !transcoding_profile_exist(&field[2][1]) ) {
+                _writef(sockfd,"Specified profile does not exist '%s'.\n",field[2]);
+                return;
+            }
+            strncpy(profile,field[2],31);
+            profile[31] = '\0';
+        }
+
+
+
+    } else {
+        _writef(sockfd,"Syntax error.\n");
+    }
+
+}
 /**
  * Reserved for future use
  */
@@ -1725,6 +1765,7 @@ cmdinit(void) {
     cmdtable[CMD_STATISTICS]        = _cmd_statistics;
     cmdtable[CMD_RESETSTATS]        = _cmd_resetstatistics;
     cmdtable[CMD_KILLTRANSCODING]   = _cmd_killtranscoding;
+    cmdtable[CMD_TRANSCODEFILE]     = _cmd_transcodefile;
 }
 
 /**
@@ -1752,6 +1793,7 @@ _getCmdPtr(const char *cmd) {
         {"l",  CMD_LIST},
         {"i",  CMD_INFO},
         {"d",  CMD_DELETE},
+        {"tf", CMD_TRANSCODEFILE},
         {"t",  CMD_TIME},
         {"x",  CMD_GETXML},
         {"u",  CMD_UPDATEXMLFILE},
