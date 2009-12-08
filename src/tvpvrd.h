@@ -421,6 +421,10 @@ extern int dokilltranscodings;
 // be changed at runtime.
 extern char frequencymap_name[];
 
+// Gloabl Mutex that must be called if the routine wants to access
+// any datastructure that modifies the recordings
+extern pthread_mutex_t recs_mutex;
+
 #ifdef	__cplusplus
 }
 #endif
