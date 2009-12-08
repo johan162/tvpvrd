@@ -187,7 +187,7 @@ time_t *client_tsconn; //[MAX_CLIENTS];
  * 1) The data structure when mutliple clients are connected
  * 2) The creation and killing of thread and thread counts
  */
-static pthread_mutex_t recs_mutex   = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t recs_mutex   = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t socks_mutex  = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t sig_mutex    = PTHREAD_MUTEX_INITIALIZER;
 
@@ -533,13 +533,14 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     // performance.
                     pid_t rpid;
 
-                    // We only allow one transcoding to run for a maximum of 12 h
-                    const int watchdog = 12 * 3600;
+                    // We only allow one transcoding to run for a maximum of 24 h
+                    const int watchdog = 24 * 3600;
                     int ret;
                     do {
-
-                        sleep(10);
-                        runningtime += 10;
+                        // Transcoding usually takes hours so we don't bother
+                        // waking up and check if we are done more often than once a minute
+                        sleep(60);
+                        runningtime += 60;
                         rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
 
                     } while (pid != rpid && runningtime < watchdog);
@@ -1747,9 +1748,10 @@ chkswitchuser(void) {
         strncpy( username, iniparser_getstring(dict, "config:username", DEFAULT_USERNAME), 63 );
         username[63] = '\0';
         if( strcmp(username,"root") != 0 ) {
+            errno=0;
             pwe = getpwnam(username);
             if( pwe == NULL ) {
-                logmsg(LOG_ERR,"** Specifed user to run as, '%s', does not exist. (%d : %s)  **",
+                logmsg(LOG_ERR,"Specified user to run as, '%s', does not exist. (%d : %s)",
                        username,errno,strerror(errno));
                 exit(EXIT_FAILURE);
             }
