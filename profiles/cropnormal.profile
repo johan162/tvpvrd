@@ -1,5 +1,5 @@
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-# NORMAL Profile   (default)
+# CROPNORMAL Profile   (default)
 # Profile setting for tvpvrd
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -39,7 +39,7 @@ keep_mp2file=no
 # Values must be in range 500,000 up to 10,000,000
 # Default values are 3.0Mbps, 3.7Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3400000
+video_bitrate=3600000
 video_peak_bitrate=4000000
 
 #----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ video_peak_bitrate=4000000
 #  3qmp4   = 480,352 ("3 quarter default size" optimized for ffmpeg MP4)
 #  half    = 360,288
 #----------------------------------------------------------------------------
-video_frame_size=vga
+video_frame_size=pal
 
 #----------------------------------------------------------------------------
 # AUDIO_SAMPLING integer
@@ -102,7 +102,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=9
+audio_bitrate=10
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -140,7 +140,7 @@ video_aspect=1
 # Note: If the bitrate is set to 0 then no transcoding will take place and
 # only the original MP2 file will be available.
 #----------------------------------------------------------------------------
-video_bitrate=700
+video_bitrate=800
 
 #----------------------------------------------------------------------------
 # VIDEO_PEAK_BITRATE integer [200,1800]
@@ -148,7 +148,7 @@ video_bitrate=700
 # doing one pass encoding. For two pass encoding this parameter has no
 # meaning.
 #----------------------------------------------------------------------------
-video_peak_bitrate=900
+video_peak_bitrate=1100
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -181,14 +181,14 @@ pass=1
 # file. Note on this note: Windows mediaplyer have problem decoding a copied
 # stream by ffmpeg. 
 #----------------------------------------------------------------------------
-acodec=copy
+acodec=aac
 
 #----------------------------------------------------------------------------
 # AUDIO_BITRATE integer [32,320]
 # Audio bitrate in kbps for the encoder specified above
 # Note: If "acodec" is set to "copy" this option will have no effect
 #----------------------------------------------------------------------------
-audio_bitrate=196
+audio_bitrate=128
 
 #----------------------------------------------------------------------------
 # VIDEO_SIZE string-menu
