@@ -30,17 +30,16 @@
 # KEEP_MP2FILE boolean
 # Keep the original MP2 file from the video card after transcoding
 #----------------------------------------------------------------------------
-keep_mp2file=no
+keep_mp2file=yes
 
 #----------------------------------------------------------------------------
 # DEFAULT_VIDEO_BITRATE integer [500 000, 10 000 000]
 # DEFAULT_VIDEO_PEAK_BITRATE integer
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
 # Values must be in range 500,000 up to 10,000,000
-# Default values are 3.4Mbps, 3.9Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3400000
-video_peak_bitrate=3900000
+video_bitrate=4600000
+video_peak_bitrate=5100000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -102,7 +101,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=10
+audio_bitrate=11
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -140,7 +139,7 @@ video_aspect=2
 # Note: If the bitrate is set to 0 then no transcoding will take place and
 # only the original MP2 file will be available.
 #----------------------------------------------------------------------------
-video_bitrate=700
+video_bitrate=1200
 
 #----------------------------------------------------------------------------
 # VIDEO_PEAK_BITRATE integer [200,1800]
@@ -148,7 +147,7 @@ video_bitrate=700
 # doing one pass encoding. For two pass encoding this parameter has no
 # meaning.
 #----------------------------------------------------------------------------
-video_peak_bitrate=1000
+video_peak_bitrate=1700
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -181,14 +180,14 @@ pass=2
 # file. Note on this note: Windows mediaplyer have problem decoding a copied
 # stream by ffmpeg. 
 #----------------------------------------------------------------------------
-acodec=copy
+acodec=aac
 
 #----------------------------------------------------------------------------
 # AUDIO_BITRATE integer [32,320]
 # Audio bitrate in kbps for the encoder specified above
 # Note: If "acodec" is set to "copy" this option will have no effect
 #----------------------------------------------------------------------------
-audio_bitrate=224
+audio_bitrate=160
 
 #----------------------------------------------------------------------------
 # VIDEO_SIZE string-menu
