@@ -593,28 +593,67 @@ video_get_controlbyid(int fd, int id, int *val) {
 /*
  * set the wanted bitrate fro the MP2 HW encoder
  * Both the normal and peak values must be specified, The values are
- * specified in BITS and normally have a value between 1000000 - 8000000
- * As aguide the peak bitrate should be ~500000 higher for good quality
+ * specified in BITS and normally have a value between 1,000,000 - 8,000,000
+ * As aguide the peak bitrate should be ~500,000 higher for good quality
+ *
+ * Note: The driver doesn't allow a bitrate to be set higher then the peak
+ * bitrate nor does it allow the peak bit rate to be set lower than the current
+ * bit rate. This means that we must read the current values and depending
+ * on these either set the peak or the normal bitrate first to make sure
+ * that the bitrate is never higher than than the peak bitrate. The rules
+ * will then be:
+ *
+ * B = New bitrate, PB = New peak bitrate, PB > B
+ * OB = Old bitrate , OPB Old peak bitrate, OPB > OB
+ *
+ * if( PB  < OB ) {
+ *     Set B; Set PB;
+ * } else {
+ *     Set PB; Set B;
+ * }
  */
 int
-video_set_video_bitrate(int fd, int bitrate,int peak_bitrate) {
-	if( bitrate < 500000 || peak_bitrate < 500000 ) {
-		logmsg(LOG_ERR,"Video bitrate specifed is out of range.");
-		return -1;
-	}
-	if( bitrate > 8000000 || peak_bitrate > 8000000 ) {
-		logmsg(LOG_ERR,"Video bitrate specifed is out of range.");
-		return -1;
-	}
-    int ret = video_set_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
-    if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set video bitrate fd=%d ( %d : %s )",fd,errno, strerror(errno));
+video_set_video_bitrate(int fd, int bitrate, int peak_bitrate) {
+
+    // First some sanity check on the parameters
+    if (bitrate < 500000 || peak_bitrate < 500000) {
+        logmsg(LOG_ERR, "Video bitrate or peak bitrate specifed is out of range < 500,000. values=(%d,%d)",bitrate,peak_bitrate);
         return -1;
     }
-    ret = video_set_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
-    if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set video bitrate fd=%d ( %d : %s )",fd,errno, strerror(errno));
+    if (bitrate > 8000000 || peak_bitrate > 8000000) {
+        logmsg(LOG_ERR, "Video bitrate or peak bitrate specifed is out of range > 8,000,000. values=(%d,%d)",bitrate,peak_bitrate);
         return -1;
+    }
+
+    int old_bitrate, old_peakbitrate;
+    int ret = video_get_video_bitrate(fd, &old_bitrate, &old_peakbitrate);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR, "Can not read old video bitrate before setting new fd=%d ( %d : %s )", fd, errno, strerror(errno));
+        return -1;
+    }
+
+    if( peak_bitrate < old_peakbitrate ) {
+        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
+        if (ret != 0) {
+            logmsg(LOG_ERR, "Can not set video bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
+            return -1;
+        }
+        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
+        if (ret != 0) {
+            logmsg(LOG_ERR, "Can not set video peak bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
+            return -1;
+        }
+    } else {
+        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
+        if (ret != 0) {
+            logmsg(LOG_ERR, "Can not set video peak bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
+            return -1;
+        }
+        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
+        if (ret != 0) {
+            logmsg(LOG_ERR, "Can not set video bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
+            return -1;
+        }
     }
     return 0;
 }
