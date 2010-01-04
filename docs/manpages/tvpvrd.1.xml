@@ -56,27 +56,22 @@
                 ) to a more efficient format. The specific details on both the initial HW encoder
                 settings as well as the transcoding options are bundled in a 'profile'. </para>
             <para>Each recording is done using one (or multiple) profiles. Each recording will
-                always have at least one profile. By default the distribution includes four profiles
-                'high', 'normal', 'low', 'mobile'. Additional profiles can easily be added by the
-                user. A profile is specified in a traditional ini-file text file stored under the
-                'profiles' directory. Each setting in the profile is well documented in the
-                profiles. The settings are also described in
-                        <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>5</manvolnum></citerefentry></para>
+                always have at least one profile, the primary profile. In this way it is possible to
+                create multiple transcoded versions of one recording, for example one high quality
+                version for viewing on a computer and one low quality versions for viewing on a
+                mobile device. By default the distribution includes four profiles 'high', 'normal',
+                'low', 'mobile'. Additional profiles can easily be added by the user. A profile is
+                specified in the traditional ini-file text file format and is stored under the
+                'profiles' directory which is a subdirectory to the settings directory (normally
+                    <filename>/etc/tvpvrd</filename>). Each setting in the profile is well
+                documented in the profiles. The settings are also described in
+                        <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+                man page.</para>
             <para>The primary interface to the server is via a TCP/IP connection to the server
                 running '<emphasis>tvpvrd</emphasis>' via a dedicated port (by default 9300). The
                 server is controlled via a simple (but efficient) command language which allows
                 manipulation of future recordings and various other administrative tasks. All
                 commands are extensively described in the section 'Command language' below. </para>
-            <para>Each recording is done using one (or multiple) profiles. Each recording will
-                always have at least one profile, the primary profile. In this way it is possible to
-                create multiple transcoded versions of one recording, for example one high quality
-                version for viewing on a computer and one low quality versions for viewing on a
-                mobile device.</para>
-            <para>Additional profiles can easily be added by the user. A profile is specified in a
-                traditional ini-file text file stored under the 'profiles' directory. For details on
-                the profile file settings see
-                        <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>5</manvolnum></citerefentry>
-            </para>
             <para>The recordings specified are stored in a database which is a plain text file in
                 XML format (UTF-8 encoded).</para>
             <para>Recorded and transcoded files are stored in a predefined directory structure. The
@@ -217,6 +212,17 @@
                 recordings up to the time the recording is shutdown will be left in the
                     '<filename>&lt;data-dir>/vtmp</filename>' directory and must be removed
                 manually.</para>
+            <para>Hint: If the server gives the error message : "Server can not be started. See
+                system log" then more information about the details of the problem can be found in
+                the system log, normally <filename>/var/log/messages</filename>. One common issue
+                might be stale lock files (in <filename>/var/run/tvpvrd.pid</filename>). This is a
+                result of the fact that in order to write these lock files the server must run as a
+                root. Since normally the server only runs as a root at the startup phase (and then
+                switches over to the selected user) the lock/pid file cannot be removed. This is not
+                a problem is the server is again started as root but if the server is started from
+                the command line as a non-root user it will complain that the lock file already
+                exists. The solution in this case is to manually remove the lockfile (as
+                root).</para>
         </refsect1>
         <refsect1>
             <title>Connecting to the server</title>
@@ -234,7 +240,7 @@
                     '<code>!TVPVRD!</code>'. The full returned information message at the connection
                 time is</para>
             <screen>!TVPVRD!
-Welcome to TVPVR-Server 1.0.0 (Nov 19 2009)
+Welcome to TVPVR-Server 1.0.3 (Jan 04 2010)
 You are user number 1 out of 2 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
@@ -246,7 +252,7 @@ Connection will be closed after 30 min of inactivity.</screen>
                 <screen>$> telnet localhost 9300
 Password:<emphasis role="bold">xxxxxxx</emphasis>
 !TVPVRD!
-Welcome to TVPVR-Server 1.0.0 (Nov 19 2009)
+Welcome to TVPVR-Server 1.0.3 (Jan 04 2010)
 You are user number 1 out of 2 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
@@ -494,7 +500,7 @@ channel = E8
                 command by giving the help command 'h' followed by the command, e.g. 'h l', will
                 give more detailed help on the 'list' command.</para>
             <para>The input and output has a format suitable for both human interactive use as well
-                as a programatically interfacing  in order to build a UI that interacts with the
+                as a programatically interfacing in order to build a UI that interacts with the
                 server.</para>
             <para>
                 <variablelist>
@@ -1291,6 +1297,13 @@ FFMPEG:
                 <listitem>
                     <para>All information and error messages are hard coded in English and cannot be
                         easily localized.</para>
+                </listitem>
+                <listitem>
+                    <para>Theoretically if the server is extremely busy some newer recorded files
+                        could be transcoded before older recordings. This is due to the fact that
+                        there is not a central queue for the transcodings but each recording just
+                        backs off and waits a (random) time until it tries to see if it can start
+                        the transcoding (when the server load is below the set threshold).</para>
                 </listitem>
             </itemizedlist>
         </refsect1>
