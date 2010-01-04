@@ -1,3 +1,17 @@
+2010-01-04  Johan Persson  <johan162@gmail.com>
+
+    * Make sure HW bitrates are set in the right order to avoid
+    setting a new bitrate higher than the old peak bitrate and
+    vice versa.
+
+2009-11-29  Johan Persson  <johan162@gmail.com>
+
+	* Added missing settings in list all settings command
+
+	* Maitenance release 1.0.2, Added startup/shutdown service cript
+	to be stored in the init.d/ service directory.
+	
+
 2009-11-26  Johan Persson  <johan162@gmail.com>
 
 	* Maintenance release 1.0.1
