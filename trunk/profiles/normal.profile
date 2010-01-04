@@ -36,10 +36,10 @@ keep_mp2file=no
 # DEFAULT_VIDEO_BITRATE integer [500 000, 10 000 000]
 # DEFAULT_VIDEO_PEAK_BITRATE integer
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
-# Values must be in range 500,000 up to 10,000,000
-# Default values are 3.5Mbps, 3.9Mbps
+# Values must be in range 500,000 up to 8,000,000
+# Default values are 3.0Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3600000
+video_bitrate=3000000
 video_peak_bitrate=4000000
 
 #----------------------------------------------------------------------------
