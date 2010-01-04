@@ -38,7 +38,7 @@ keep_mp2file=yes
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
 # Values must be in range 500,000 up to 10,000,000
 #----------------------------------------------------------------------------
-video_bitrate=4600000
+video_bitrate=4500000
 video_peak_bitrate=5100000
 
 #----------------------------------------------------------------------------

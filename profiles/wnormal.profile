@@ -39,7 +39,7 @@ keep_mp2file=yes
 # Values must be in range 500,000 up to 10,000,000
 # Default values are 3.2Mbps, 3.7Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3400000
+video_bitrate=3000000
 video_peak_bitrate=4000000
 
 #----------------------------------------------------------------------------
