@@ -864,11 +864,13 @@ startrec(void *arg) {
         if ( ! transcoding_problem ) {
                 char tmpbuff[256], newname[512];
                 // Move the original mp2 file if the user asked to keep it
+                int delete_workingdir = 1;
                 if (profile->encoder_keep_mp2file) {
                         snprintf(tmpbuff, 255, "%s/mp2/%s", datadir, short_filename);
                         tmpbuff[255] = '\0';
                         if ( mv_and_rename(full_filename, tmpbuff, newname, 512) ) {
                                 logmsg(LOG_ERR, "Could not move \"%s\" to \"%s\"", full_filename, newname);
+                                delete_workingdir = 0;
                         } else {
                                 logmsg(LOG_INFO, "Moved \"%s\" to \"%s\"", full_filename, newname);
                         }
@@ -876,7 +878,7 @@ startrec(void *arg) {
 
                 // Delete the temporary directory used while recording and transcoding
                 // unless there were a problem with the transcoding. 
-                if( !doabort  ) {
+                if( !doabort  && delete_workingdir ) {
                         if( removedir(workingdir) ) {
                                 logmsg(LOG_ERR, "Could not delete directory \"%s\".", workingdir);
                         } else {
@@ -1452,7 +1454,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'h':
                 fprintf(stdout,
-                        "'%s' (C) 2009 Johan Persson, (johan162@gmail.com) \n"
+                        "'%s' (C) 2009,2010 Johan Persson, (johan162@gmail.com) \n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 #ifdef DEBUG_SIMULATE

@@ -733,7 +733,7 @@ kill_all_ongoing_transcodings(void) {
 
 }
 /**
- * Force a stranscode of the specified file using the named profile.
+ * Force a transcode of the specified file using the named profile.
  * If profile is the empty string then the default profile will be used.
  * The transcoding will start immediately regardless of the server load
  * if the argument wait is = 0

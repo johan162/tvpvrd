@@ -1559,8 +1559,8 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
         _writef(sockfd,
                 "Start recording immediate.\n"\
-                "q <ch> [<title>]\n"
-                "q <ch> <duration> [<title>]\n"
+                "q <ch> [<title>] [@profile]\n"
+                "q <ch> <duration> [<title>] [@profile]\n"
                 "  - The recording will start immediate (<= 1 sec)\n"
                 "  - If no title is specified a title based on current time will be created\n"
                 "  - Duration is specified as h:mm\n"
