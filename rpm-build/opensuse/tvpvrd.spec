@@ -1,4 +1,4 @@
- # spec file for package tvpvrd (Version 1.0.2)
+ # spec file for package tvpvrd (Version 1.0.3)
  # Copyright Johan Persson <johan162@gmail.com> 
  #
  # All modifications and additions to the file contributed by third parties
@@ -14,13 +14,12 @@ BuildRequires:  v4l-tools glibc-devel libiniparser-devel libxml2-devel pcre-deve
 PreReq:         pwdutils coreutils
 Summary:        TV Personal Video Recorder Daemon
 Name:           tvpvrd
-Version:        1.0.2
-Release:        1.1
+Version:        1.0.3
+Release:        13.1
 License:        GPLv3
 Group:          Productivity/Multimedia/Other
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build  
 AutoReqProv:    on 
-Packager:       Johan Persson <johan162@gmail.com>
 
 # main source bundle
 Source0: %{name}-%{version}.tar.bz2
@@ -81,11 +80,10 @@ test -e /var/run/tvpvrd.pid  || rm -rf /var/run/tvpvrd.pid && :
 %stop_on_removal tvpvrd
 
 # ---------------------------------------------------------------------------------
-# Remove the user that normally will run tvpvrd
+# Cleanup after install
 # ---------------------------------------------------------------------------------
 %postun
 %insserv_cleanup
-/usr/sbin/userdel tvpvrd 2> /dev/null ||
 test -e /var/run/tvpvrd.pid  || rm -rf /var/run/tvpvrd.pid && : 
 
 # ---------------------------------------------------------------------------------
