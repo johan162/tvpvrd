@@ -259,14 +259,14 @@ _read_transcoding_profile(char *filename,int idx) {
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_bitrate",bufsize-1);
-    buffer[bufsize-1] = '\0';      
+    buffer[bufsize-1] = '\0'; 
     entry->encoder_video_bitrate = validate(500000,8000000,"video_bitrate",
-                                            iniparser_getint(profile, buffer, DEFAULT_VIDEO_BITRATE));
+                                                  iniparser_getint(profile, buffer, DEFAULT_VIDEO_BITRATE));
                             
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_peak_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';  
-    entry->encoder_video_peak_bitrate  = validate(500000,8000000,"video_peak_bitrate",
+    entry->encoder_video_peak_bitrate = validate(500000,8000000,"video_peak_bitrate",
                                                   iniparser_getint(profile, buffer, DEFAULT_VIDEO_PEAK_BITRATE));
                          
     strncpy(buffer,sname,bufsize-1);
@@ -298,6 +298,11 @@ _read_transcoding_profile(char *filename,int idx) {
      *--------------------------------------------------------------------------
      */
     strcpy(sname,"ffmpeg");
+
+    strncpy(buffer,sname,bufsize-1);
+    strncat(buffer,":use_transcoding",bufsize-1);
+    buffer[bufsize-1] = '\0';
+    entry->use_transcoding = iniparser_getboolean(profile, buffer, DEFAULT_USE_TRANSCODING);
     
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_bitrate",bufsize-1);
@@ -416,7 +421,7 @@ read_transcoding_profiles(void) {
     strcpy(dirbuff,"/etc/tvpvrd/profiles");
     if( -1 == stat(dirbuff,&fstat) ) {
         char cwd[256];
-        // Try curent working directory
+        // Try current working directory
         char *ret = getcwd(cwd,256);
         if( ret != NULL ) {
             snprintf(dirbuff,255,"%s/%s",ret,"profiles");
@@ -487,6 +492,7 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "FFMPEG:\n"
     "%25s: %d\n"
     "%25s: %d\n"
+    "%25s: %d\n"
     "%25s: %s\n"
     "%25s: %s\n"
     "%25s: %d\n"
@@ -504,7 +510,9 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "audio_bitrate", abps[profile->encoder_audio_bitrate-9],
     "aspect", aspect[profile->encoder_video_aspect],
     "size",profile->encoder_video_frame_size_name,
-
+    
+    /* FFMPEG Settings */
+    "use_transcoding", profile->use_transcoding,
     "video_bitrate", profile->video_bitrate,
     "video_peak_bitrate", profile->video_peak_bitrate,
     "vcodec",profile->vcodec,

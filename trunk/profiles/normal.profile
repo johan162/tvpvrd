@@ -30,17 +30,17 @@
 # KEEP_MP2FILE boolean
 # Keep the original MP2 file from the video card after transcoding
 #----------------------------------------------------------------------------
-keep_mp2file=no
+keep_mp2file=yes
 
 #----------------------------------------------------------------------------
 # DEFAULT_VIDEO_BITRATE integer [500 000, 10 000 000]
 # DEFAULT_VIDEO_PEAK_BITRATE integer
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
-# Values must be in range 500,000 up to 8,000,000
-# Default values are 3.0Mbps, 4.0Mbps
+# Values must be in range 500,000 up to 10,000,000
+# Default values are 3.2Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3000000
-video_peak_bitrate=4000000
+video_bitrate=2800000
+video_peak_bitrate=3500000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -102,7 +102,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=10
+audio_bitrate=9
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -135,10 +135,14 @@ video_aspect=1
 [ffmpeg]
 
 #----------------------------------------------------------------------------
+# USE_TRANSCODING boolean
+# Should transcoding be used at all for this profile
+#----------------------------------------------------------------------------
+use_transcoding=no
+
+#----------------------------------------------------------------------------
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
-# Note: If the bitrate is set to 0 then no transcoding will take place and
-# only the original MP2 file will be available.
 #----------------------------------------------------------------------------
 video_bitrate=800
 

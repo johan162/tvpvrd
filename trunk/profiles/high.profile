@@ -134,6 +134,12 @@ video_aspect=2
 [ffmpeg]
 
 #----------------------------------------------------------------------------
+# USE_TRANSCODING boolean
+# Should transcoding be used at all for this profile
+#----------------------------------------------------------------------------
+use_transcoding=yes
+
+#----------------------------------------------------------------------------
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
 # Note: If the bitrate is set to 0 then no transcoding will take place and
