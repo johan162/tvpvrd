@@ -1244,7 +1244,9 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "%24s: %s\n"
             "%24s: %d\n"
             "%24s: %s\n"
-            "%24s: %s\n"
+
+            "%24s: %d\n"
+
             "%24s: %s\n"
             "%24s: %s\n"
             "%24s: %d\n"
@@ -1263,7 +1265,9 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "logfile",logfile_name,
             "verbose_log",verbose_log,
             "inifile_name",inifile,
+
             "daemonize",daemonize,
+
             "username",username, 
             "xmldbfile_name",xmldbfile,
             "max_video",max_video,
@@ -1280,6 +1284,10 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             );
 }
 
+/**
+ * Command: _cmd_dump_tprofile
+ * Print all settings of the named profile
+ */
 static void
 _cmd_dump_tprofile(const char *cmd, int sockfd) {
     char msgbuff[1024];

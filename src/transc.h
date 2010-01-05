@@ -37,9 +37,15 @@ extern "C" {
 
 /*----------------------------------------------------------------------------------
  * The following defines specfies the default values used for a transcoding
- * profile when the value is not specified
+ * profile when the value is not specified in the profile fille.
  *----------------------------------------------------------------------------------
  */
+
+/*
+ * DEFAULT_USE_TRANSCODING boolean
+ * Should we use transcoding at all
+ */
+#define DEFAULT_USE_TRANSCODING 1
 
 /*
  * DEFAULT_VCODEC string
@@ -146,6 +152,7 @@ struct transcoding_profile_entry {
     char encoder_video_frame_size_name[32];
     
     /* ffmpeg entries */
+    unsigned use_transcoding;
     unsigned video_bitrate;
     unsigned video_peak_bitrate;
     unsigned pass;

@@ -453,22 +453,10 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
     // If the bitrate is set to < 10kbps then this indicates that no
     // transcoding should be done. We just move the MP2 file to the mp2 directory
     int transcoding_done=0;
-    if (profile->video_bitrate < 10) {
+    if ( !profile->use_transcoding || profile->video_bitrate == 0) {
 
         // Do nothing. The MP2 file will be moved by the calling
         // function.
-
-        /*
-        char newname[256], tmpbuff[256];
-        // Move the original mp2 file if the user asked to keep it
-        snprintf(tmpbuff, 256, "%s/mp2/%s", datadir, short_filename);
-        int ret = mv_and_rename(full_filename, tmpbuff, newname, 512);
-        if (ret) {
-            logmsg(LOG_ERR, "Could not move '%s' to '%s'", full_filename, newname);
-        } else {
-            logmsg(LOG_INFO, "Moved '%s' to '%s'", full_filename, newname);
-        }
-         */
 
     } else  {
         // If recording was successful then do the transcoding
@@ -836,6 +824,7 @@ startrec(void *arg) {
 
         // Now do the transcoding for each profile associated with this recording
         int transcoding_problem = 1 ;
+        int keep_mp2_file = 0 ;
 
         if( !doabort && (nread == nwrite) && (check_ffmpeg_bin()==0)) {
             transcoding_problem = 0;
@@ -845,6 +834,11 @@ startrec(void *arg) {
 
             for(int i=0; i < REC_MAX_TPROFILES && strlen(recording->transcoding_profiles[i]) > 0; i++) {
                 get_transcoding_profile(recording->transcoding_profiles[i],&profile);
+
+                // If any of the profiles used requries the mp2 file to be kept explicietely or
+                // that no transcoding will be done we keep the mp2 file.
+                keep_mp2_file |= profile->encoder_keep_mp2file | !profile->use_transcoding;
+
                 printf("Transcoding using profile: %s\n",profile->name);
                 time_t start = time(NULL);
                 int ret = transcode_and_move_file(datadir,workingdir,short_filename,
@@ -865,9 +859,11 @@ startrec(void *arg) {
                 char tmpbuff[256], newname[512];
                 // Move the original mp2 file if the user asked to keep it
                 int delete_workingdir = 1;
-                if (profile->encoder_keep_mp2file) {
-                        snprintf(tmpbuff, 255, "%s/mp2/%s", datadir, short_filename);
+                if ( keep_mp2_file ) {
+                        // Move MP2 file
+                        snprintf(tmpbuff, 255, "%s/mp2/%s/%s", datadir, profile->name,short_filename);
                         tmpbuff[255] = '\0';
+
                         if ( mv_and_rename(full_filename, tmpbuff, newname, 512) ) {
                                 logmsg(LOG_ERR, "Could not move \"%s\" to \"%s\"", full_filename, newname);
                                 delete_workingdir = 0;
@@ -1359,6 +1355,7 @@ _chkcreatedir(const char *basedir,char *dir) {
     
     snprintf(bdirbuff,511,"%s/%s",basedir,dir);
     bdirbuff[511] = '\0';
+    logmsg(LOG_NOTICE,"Checking directory '%s'",bdirbuff);
     if( -1 == stat(bdirbuff,&fstat) ) {
         if( -1 == mkdir(bdirbuff,mode) ) {
             logmsg(LOG_ERR,"FATAL: Cannot create directory %s (%d : %s).",
@@ -1391,11 +1388,13 @@ chkdirstructure(void) {
         _chkcreatedir(datadir,bdirbuff);
     }
 
-    // Create the profile directories under mp4
+    // Create the profile directories under mp4/mp2
     struct transcoding_profile_entry **profiles;
     int nprof = get_transcoding_profile_list(&profiles);
     for( int i=0; i < nprof; i++) {
         snprintf(bdirbuff,511,"mp4/%s",profiles[i]->name);
+        _chkcreatedir(datadir,bdirbuff);
+        snprintf(bdirbuff,511,"mp2/%s",profiles[i]->name);
         _chkcreatedir(datadir,bdirbuff);
     }
 }

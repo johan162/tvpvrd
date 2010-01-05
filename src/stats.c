@@ -101,20 +101,22 @@ stats_update(char *name,unsigned mp2size,unsigned recorded_time,unsigned mp4size
         entry->mp2size_1min /= 2;
     }
 
-    // MP4 size per recorded minute
-    if( entry->mp4size_1min == 0 ) {
-        entry->mp4size_1min = mp4size / (recorded_time/60);
-    } else {
-        entry->mp4size_1min += mp4size / (recorded_time/60);
-        entry->mp4size_1min /= 2;
-    }
+    if( mp4size > 0 && t2_min > 0) {
+        // MP4 size per recorded minute
+        if( entry->mp4size_1min == 0 ) {
+            entry->mp4size_1min = mp4size / (recorded_time/60);
+        } else {
+            entry->mp4size_1min += mp4size / (recorded_time/60);
+            entry->mp4size_1min /= 2;
+        }
 
-    // Number of seconds transcoded per running minute
-    if(entry->transcoding_speed==0) {
-        entry->transcoding_speed = recorded_time / t2_min ;
-    } else {
-        entry->transcoding_speed += recorded_time / t2_min;
-        entry->transcoding_speed /= 2;
+        // Number of seconds transcoded per running minute
+        if(entry->transcoding_speed==0) {
+            entry->transcoding_speed = recorded_time / t2_min ;
+        } else {
+            entry->transcoding_speed += recorded_time / t2_min;
+            entry->transcoding_speed /= 2;
+        }
     }
 
     entry->total_ttime += t2_min;

@@ -39,8 +39,8 @@ keep_mp2file=no
 # Values must be in range 500,000 up to 10,000,000
 # Default values are 3.0Mbps, 3.7Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3600000
-video_peak_bitrate=4000000
+video_bitrate=2800000
+video_peak_bitrate=3500000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -102,7 +102,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=10
+audio_bitrate=9
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -133,6 +133,12 @@ video_aspect=1
 #   tolerate lower quality video than low quality sound
 ############################################################################
 [ffmpeg]
+
+#----------------------------------------------------------------------------
+# USE_TRANSCODING boolean
+# Should transcoding be used at all for this profile
+#----------------------------------------------------------------------------
+use_transcoding=yes
 
 #----------------------------------------------------------------------------
 # VIDEO_BITRATE integer [100,1500]
@@ -166,7 +172,7 @@ vpre=normal
 # PASS integer [1,2]
 # Number of encoding pass. Must be 1 or 2
 #----------------------------------------------------------------------------
-pass=1
+pass=2
 
 #----------------------------------------------------------------------------
 # ACODEC string
