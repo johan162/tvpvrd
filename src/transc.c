@@ -568,7 +568,7 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
  */
 int
 wait_to_transcode(char *filename) {
-    // We will not start transcoding until the 15 min load average is below max_load_for_transcoding
+    // We will not start transcoding until the 5 min load average is below max_load_for_transcoding
     int waiting_time = 0;
     int backoff_time = 5*60;
     int adj = 0 ;
@@ -740,6 +740,19 @@ kill_all_ongoing_transcodings(void) {
     }
 
 }
+
+#define MAX_FILETRANSC_THREADS 10
+pthread_t filetransc_threads[MAX_FILETRANSC_THREADS];
+int nfiletransc_threads = 0;
+
+pthread_mutex_t filetransc_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+struct transc_param {
+    char *filename;
+    char *profilename;
+    int wait;
+};
+
 /**
  * Force a transcode of the specified file using the named profile.
  * If profile is the empty string then the default profile will be used.
@@ -751,52 +764,84 @@ kill_all_ongoing_transcodings(void) {
  * @param wait
  * @return
  */
-int
-transcode_file(char *filename, char *profilename, int wait) {
+void *
+_transcode_file(void *arg) {
     struct transcoding_profile_entry *profile;
     char cmdbuff[1024], cmd_ffmpeg[512], destfile[128];
     int runningtime = 0;
 
+    // Get arguments
+    struct transc_param *param = (struct transc_param *) arg;
+    char *filename    = param->filename;
+    char *profilename = param->profilename;
+    int   wait        = param->wait;
+
+    free(arg);
+
     if (wait) {
         if (-1 == wait_to_transcode(filename)) {
             logmsg(LOG_ERR, "Can not start transcoding of '%s'. Server too busy.", filename);
-            return -1;
+            pthread_mutex_lock(&filetransc_mutex);
+            nfiletransc_threads--;
+            pthread_mutex_unlock(&filetransc_mutex);
+
+            pthread_exit(NULL);
+            return (void *) 0;
         }
     }
 
-    char short_filename[64];
-    strncpy(short_filename, basename(filename), 63);
-    short_filename[63] = '\0';
 
-    char tmp[256];
-    strncpy(tmp, filename, 255);
-    tmp[255] = '\0';
+    // Create a temporary directory which we will use as working directory during
+    // the transcoding process. This is necessary sine ffmpeg always uses the same
+    // name for some property/log files which means that two or more transcodings
+    // can never run in the same directory.
+    char wdirname[128];
+    char suffix[10];
+    strncpy(wdirname, basename(filename), 127);
+    wdirname[127] = '\0';
+    strip_filesuffix(wdirname,suffix,10);
+
+    char wdirbuff[256];
+    snprintf(wdirbuff,255,"vtmp/%s",wdirname);
+
+    struct stat fstat;
+    if( 0 == stat(wdirbuff,&fstat) ) {
+        // Directory already exists. We play safe an bail out
+        logmsg(LOG_ERR,"Directory %s already exists. Cannot transcode. Please remove directory manually.");
+        pthread_mutex_lock(&filetransc_mutex);
+        nfiletransc_threads--;
+        pthread_mutex_unlock(&filetransc_mutex);
+
+        pthread_exit(NULL);
+        return (void *) 0;
+    } else {
+        chkcreatedir(datadir,wdirbuff);
+    }
 
     char workingdir[256];
-    strncpy(workingdir, dirname(filename), 255);
+    snprintf(workingdir,255, "%s/%s",datadir,wdirbuff);
     workingdir[255] = '\0';
 
+    // Link the file to transcode into this new working directory
+    snprintf(wdirbuff,255,"%s/%s",workingdir,basename(filename));
+    if( -1 == symlink(filename,wdirbuff) ) {
+        logmsg(LOG_ERR,"Cannot symlink file to transcode into working directory ( %d : %s )",errno,strerror(errno));
+        pthread_mutex_lock(&filetransc_mutex);
+        nfiletransc_threads--;
+        pthread_mutex_unlock(&filetransc_mutex);
+        pthread_exit(NULL);
+        return (void *) 0;
+    }
+    logmsg(LOG_INFO,"Linked file '%s' into temporary directory '%s' ",filename,wdirbuff);
+
     int transcoding_done = 0;
-
     get_transcoding_profile(profilename, &profile);
-
     logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, filename);
 
-    create_ffmpeg_cmdline(short_filename, profile, destfile, 128, cmd_ffmpeg, 512);
-
+    create_ffmpeg_cmdline(basename(filename), profile, destfile, 128, cmd_ffmpeg, 512);
     snprintf(cmdbuff, 1023, "cd %s;%s", workingdir, cmd_ffmpeg);
+    cmdbuff[1023] = '\0';
 
-#ifdef DEBUG_SIMULATE
-
-    snprintf(cmdbuff, 256, "%s/%s", workingdir, destfile);
-    int sfd = open(cmdbuff, O_WRONLY | O_CREAT | O_TRUNC);
-    logmsg(LOG_INFO, "Simulation mode: No real transcoding. Creating fake file '%s'", cmdbuff);
-    _writef(sfd, "Fake MP4 file created during simulation at ts=%u\n", time(NULL));
-    (void) close(sfd);
-    transcoding_done = 1;
-    CLEAR(usage);
-
-#else
     pid_t pid;
     if ((pid = fork()) == 0) {
         // In the child process
@@ -813,20 +858,27 @@ transcode_file(char *filename, char *profilename, int wait) {
         // the same process as is running the 'ffmpeg' command !
         setpgid(getpid(), 0); // This sets the PGID to be the same as the PID
         if (-1 == nice(20)) {
-            logmsg(LOG_ERR, "Error when calling 'nice()' : (%d:%s)", errno, strerror(errno));
-            return -1;
+            logmsg(LOG_ERR, "Error when calling 'nice()' : ( %d : %s )", errno, strerror(errno));
+            exit(EXIT_FAILURE);
         }
         execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0);
     } else if (pid < 0) {
         logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file \"%s\" (%d : %s)",
-                short_filename, errno, strerror(errno));
-        return -1;
+               basename(filename), errno, strerror(errno));
+
+        pthread_mutex_lock(&filetransc_mutex);
+        nfiletransc_threads--;
+        pthread_mutex_unlock(&filetransc_mutex);
+
+        pthread_exit(NULL);
+        return (void *) 0;
+        
     } else {
 
-        logmsg(LOG_INFO, "Successfully started process pid=%d for transcoding '%s'.", pid, short_filename);
+        logmsg(LOG_INFO, "Successfully started process pid=%d for transcoding '%s'.", pid, basename(filename));
 
         pthread_mutex_lock(&recs_mutex);
-        int tidx = record_ongoingtranscoding(workingdir, short_filename, cmd_ffmpeg, profile, pid);
+        int tidx = record_ongoingtranscoding(workingdir, basename(filename), cmd_ffmpeg, profile, pid);
         pthread_mutex_unlock(&recs_mutex);
 
         if (tidx != -1) {
@@ -858,44 +910,98 @@ transcode_file(char *filename, char *profilename, int wait) {
                 // Something is terrible wrong if the transcoding haven't
                 // finished after the watchdog timeout
                 logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung (have run for > %d hours). Killing process.",
-                        short_filename, watchdog / 3600);
+                        basename(filename), watchdog / 3600);
                 (void) kill(pid, SIGKILL);
-                return -1;
             } else {
                 if (WIFEXITED(ret)) {
                     transcoding_done = (WEXITSTATUS(ret) == 0);
                     if (WEXITSTATUS(ret) == 0) {
                         if (runningtime < 60) {
                             logmsg(LOG_ERR, "Error in transcoding process for file '%s'.",
-                                    short_filename, runningtime / 60);
+                                    basename(filename), runningtime / 60);
 
                         } else {
                             logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %d:%d min of execution. (utime=%d s, stime=%d s))",
-                                    short_filename, runningtime / 60, runningtime % 60, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
+                                    basename(filename), runningtime / 60, runningtime % 60, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
 
                         }
                     } else {
                         logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %d min of execution.",
-                                short_filename, runningtime / 60);
-                        return -1;
+                                basename(filename), runningtime / 60);
                     }
                 } else {
                     if (WIFSIGNALED(ret)) {
                         logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly terminated by signal=%d .",
-                                short_filename, WTERMSIG(ret));
-                        return -1;
+                                basename(filename), WTERMSIG(ret));
                     } else {
                         // Child must have been stopped. If so we have no choice than to kill it
                         logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly stopped by signal=%d. Killing process.",
-                                short_filename, WSTOPSIG(ret));
+                                basename(filename), WSTOPSIG(ret));
                         (void) kill(pid, SIGKILL);
-                        return -1;
                     }
+                }
 
+                if( transcoding_done ) {
+                    char newname[256], tmpbuff2[256], tmpbuff[256];
+
+                    // Move MP4 file
+                    snprintf(tmpbuff, 255, "%s/mp4/%s/%s", datadir, profile->name, destfile);
+                    tmpbuff[255] = '\0';
+                    snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
+                    tmpbuff2[255] = '\0';
+                    int ret = mv_and_rename(tmpbuff2, tmpbuff, newname, 256);
+                    if (ret) {
+                        logmsg(LOG_ERR, "Could not move '%s' to '%s'", tmpbuff2, newname);
+                    } else {
+                        logmsg(LOG_INFO, "Moved '%s' to '%s'", tmpbuff2, newname);
+                    }
                 }
             }
         }
     }
-#endif
+
+    pthread_mutex_lock(&filetransc_mutex);
+    nfiletransc_threads--;
+    pthread_mutex_unlock(&filetransc_mutex);
+
+    pthread_exit(NULL);
+    return (void *) 0;
+}
+
+
+/**
+ * Create a new thread and start a new transcoding of the named file
+ * @param filename
+ * @param profilename
+ * @param wait
+ * @return
+ */
+int
+transcode_file(char *filename, char *profilename, int wait) {
+
+    struct transc_param *param = calloc(1,sizeof(struct transc_param));
+
+    param->filename = filename;
+    param->profilename = profilename;
+    param->wait = wait;
+
+    // Start the thread that will actually do the recording to the file system
+    if( nfiletransc_threads >= MAX_FILETRANSC_THREADS ) {
+        logmsg(LOG_ERR, "Only %d number of concurrent transcodings are permitted. Transcoding not started.");
+        return -1;
+    }
+    pthread_mutex_lock(&filetransc_mutex);
+    int ret = pthread_create(&filetransc_threads[nfiletransc_threads], NULL, _transcode_file, (void *) param);
+    nfiletransc_threads++;
+    pthread_mutex_unlock(&filetransc_mutex);
+    if (ret != 0) {
+        logmsg(LOG_ERR, "Could not create thread for transcoding of file %s using profile @%s",filename,profilename);
+        pthread_mutex_lock(&filetransc_mutex);
+        nfiletransc_threads--;
+        pthread_mutex_unlock(&filetransc_mutex);
+        return -1;
+    } else {
+        logmsg(LOG_INFO, "Created thread for transcoding of file %s using profile @%s",filename,profilename);
+    }
     return 0;
 }
