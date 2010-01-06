@@ -1344,29 +1344,6 @@ void startdaemon(void) {
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
 }
 
-/*
- * Check and setup the assumed directory structure
- */
-static void
-_chkcreatedir(const char *basedir,char *dir) {
-    const mode_t mode =  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
-    char bdirbuff[512];
-    struct stat fstat ;
-    
-    snprintf(bdirbuff,511,"%s/%s",basedir,dir);
-    bdirbuff[511] = '\0';
-    logmsg(LOG_NOTICE,"Checking directory '%s'",bdirbuff);
-    if( -1 == stat(bdirbuff,&fstat) ) {
-        if( -1 == mkdir(bdirbuff,mode) ) {
-            logmsg(LOG_ERR,"FATAL: Cannot create directory %s (%d : %s).",
-                   bdirbuff,errno,strerror(errno));
-            exit(EXIT_FAILURE);
-        } else {
-	    logmsg(LOG_NOTICE,"Created directory '%s'",bdirbuff);
-	}
-    }
-}
-
 void
 chkdirstructure(void) {
     char bdirbuff[512];
@@ -1376,16 +1353,20 @@ chkdirstructure(void) {
         exit(EXIT_FAILURE);
     }
 
-    _chkcreatedir(datadir,"");
-    _chkcreatedir(datadir,"vtmp");
-    _chkcreatedir(datadir,"mp2");
-    _chkcreatedir(datadir,"xmldb");
-    _chkcreatedir(datadir,"mp4");
-    _chkcreatedir(datadir,STATS_DIR);
+    if( -1 == chkcreatedir(datadir,"") ||
+        -1 == chkcreatedir(datadir,"vtmp") ||
+        -1 == chkcreatedir(datadir,"mp2") ||
+        -1 == chkcreatedir(datadir,"xmldb") ||
+        -1 == chkcreatedir(datadir,"mp4") ||
+        -1 == chkcreatedir(datadir,STATS_DIR) ) {
+        exit(EXIT_FAILURE);
+    }
 
     for(int i=0; i < max_video; i++) {
         snprintf(bdirbuff,511,"vtmp/vid%d",i) ;
-        _chkcreatedir(datadir,bdirbuff);
+        if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+            exit(EXIT_FAILURE);
+        }
     }
 
     // Create the profile directories under mp4/mp2
@@ -1393,9 +1374,13 @@ chkdirstructure(void) {
     int nprof = get_transcoding_profile_list(&profiles);
     for( int i=0; i < nprof; i++) {
         snprintf(bdirbuff,511,"mp4/%s",profiles[i]->name);
-        _chkcreatedir(datadir,bdirbuff);
+        if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+            exit(EXIT_FAILURE);
+        }
         snprintf(bdirbuff,511,"mp2/%s",profiles[i]->name);
-        _chkcreatedir(datadir,bdirbuff);
+        if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+            exit(EXIT_FAILURE);
+        }
     }
 }
 

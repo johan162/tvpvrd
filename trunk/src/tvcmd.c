@@ -127,38 +127,38 @@ static void
 _cmd_help(const char *cmd, int sockfd) {
     static char msgbuff[2048] =
                         "Commands:\n"\
+			"  a    - Add recording\n"\
+			"  ar   - Add repeated recording\n"\
+			"  d    - delete single recording\n"\
+			"  dr   - delete all repeated recording\n"\
 			"  h    - help\n"\
-			"  v    - print version\n"\
-			"  t    - print server time\n"\
-    			"  tf   - transcode specieid file\n"\
-			"  s    - print server status\n"\
-                        "  st   - print profile statistics\n"\
-                        "  rst  - reset all statistics\n"\
-                        "  vc n - print information on TV-Cards(s)\n"\
+			"  i    - print detailed information on recording\n"\
+                        "  kt   - kill all ongoing transcoding(s)\n"\
+                        "  ktf  - set/unset kill transcoding flag at shutdown\n"\
 			"  l    - list all pending recordings\n"\
                         "  ls   - list all stations\n"\
                         "  lc   - list all controls for the capture card\n"\
-			"  d    - delete single recording\n"\
-			"  dr   - delete all repeated recording\n"\
-                        "  rp   - refresh transcoding profiles from file\n"\
-                        "  sp   - set transcoding profile for specified recording\n"\
-			"  i    - print detailed information on recording\n"\
-			"  a    - Add recording\n"\
-			"  ar   - Add repeated recording\n"\
-			"  u    - force update of database with recordings\n"\
-			"  x    - view database (in XML format) with recordings\n"\
 			"  n    - list the immediate next recording on each video\n"\
 			"  o    - list the ongoing recording(s)\n"\
                         "  ot   - list the ongoing transcoding(s)\n"\
-                        "  kt   - kill all ongoing transcoding(s)\n"\
-                        "  ktf  - set/unset kill transcoding flag at shutdown\n"\
 			"  q    - quick recording\n"\
-            "  z    - display all settings from ini-file\n"\
-            "  zp   - display all settings for specified profile\n"\
-            "  ! n  - cancel ongoing recording\n"\
+                        "  rst  - reset all statistics\n"\
+                        "  rp   - refresh transcoding profiles from file\n"\
+                        "  s    - print server status\n"\
+                        "  sp   - set transcoding profile for specified recording\n"\
+                        "  st   - print profile statistics\n"\
+			"  t    - print server time\n"\
+    			"  tf   - transcode specified file\n"\
+			"  u    - force update of database with recordings\n"\
+    			"  v    - print version\n"\
+                        "  vc <n> - print information on TV-Card <n>\n"\
+			"  x    - view database (in XML format) with recordings\n"\
+                        "  z    - display all settings from ini-file\n"\
+                        "  zp   - display all settings for specified profile\n"\
+                        "  ! <n>  - cancel ongoing recording\n"\
                         "Type h <cmd> for syntax of each command\n";
     char **field = (void *)NULL;
-    int ret = matchcmd("^h[\\p{Z}]+(v|t|kt|rst|s|sp|ls|lc|l|d|dr|i|a|ar|u|x|n|o|ot|q|zp|z|!)$", cmd, &field);
+    int ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|t|u|vc|v|x|zp|z|!)$", cmd, &field);
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
         if( field != (void *)NULL ) {
@@ -202,6 +202,9 @@ _cmd_undefined(const char *cmd, int sockfd) {
 // Required alphanumeric sequence
 #define _PR_AN "([\\p{L}\\p{N}]+)"
 
+// Required filepath
+#define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.]+)"
+
 // Required alphanumeric and punctuation sequence
 //#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
 #define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
@@ -244,7 +247,7 @@ _cmd_undefined(const char *cmd, int sockfd) {
 #define _PR_OPTITLE "(" _PR_S "(\\p{L}[\\p{L}\\p{N} _-]*))?"
 
 #define _PR_PROFN "(@[\\p{L}\\p{N}]+)?"
-#define _PR_PROFE "(" _PR_S _PR_PROFN ")?"
+#define _PR_PROFE "(" _PR_PROFN ")?"
 #define _PR_PROFILES "(" _PR_PROFN _PR_SO _PR_PROFN _PR_SO _PR_PROFN ")?"
 
 static void
@@ -1134,10 +1137,6 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
 static void
 _cmd_status(const char *cmd, int sockfd) {
     char tmpbuff[512], msgbuff[1024], currtime[32];
-    time_t ts_tmp;
-    int sh, smin, ssec;
-    time_t now;
-    float avg1, avg5, avg15;
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
@@ -1146,26 +1145,37 @@ _cmd_status(const char *cmd, int sockfd) {
         return;
     }
 
-    now = time(NULL);
+    time_t now = time(NULL);
     strncpy(currtime, ctime(&now),32);
     currtime[31] = '\0';
 
-    ts_tmp = now - ts_serverstart;
-    sh = ts_tmp / 3600;
-    smin = (ts_tmp - sh * 3600) / 60;
-    ssec = ts_tmp % 60;
+    time_t ts_tmp = now - ts_serverstart;
+    int sh = ts_tmp / 3600;
+    int sday = sh / 24 ;
+    int smin = (ts_tmp - sh * 3600) / 60;
+    sh = sh - sday*24;
     
+    float avg1, avg5, avg15;
     getsysload(&avg1, &avg5, &avg15);
+    
+    int totaluptime,totalidletime;
+    getuptime(&totaluptime, &totalidletime);
+    int uh = totaluptime / 3600;
+    int uday = uh / 24;
+    int umin = (totaluptime - uh*3600) / 60;
+    uh = uh - uday*24;    
 
     snprintf(msgbuff,511,
             "%15s: %s"
             "%15s: %s"
-            "%15s: %02d:%02d:%02d\n"
-            "%15s: %.1f %.1f %.1f\n",
+            "%15s: %02d days %02d hours %02d min\n"
+            "%15s: %.1f %.1f %.1f\n"
+            "%15s: %02d days %02d hours %02d min\n",
             "Current time", currtime,
-            "Started", ctime(&ts_serverstart),
-            "Uptime", sh, smin, ssec,
-            "Server load",avg1,avg5,avg15);
+            "tvpvrd' started", ctime(&ts_serverstart),
+            "'tvpvrd' uptime", sday, sh, smin,
+            "Server load",avg1,avg5,avg15,
+            "Server uptime",uday,uh,umin);
     msgbuff[511] = 0 ;
 
     _writef(sockfd, msgbuff);
@@ -1294,7 +1304,7 @@ _cmd_dump_tprofile(const char *cmd, int sockfd) {
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "h @profile\nPrint all the settings of the specified profile.\n",
+                "zp @profile\nPrint all the settings of the specified profile.\n",
                 xmldbfile
                 );
         return;
@@ -1321,7 +1331,7 @@ _cmd_updatexmlfile(const char *cmd, int sockfd) {
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "Force an update of XML database (%s).\n",
+                "u\nForce an update of XML database (%s).\n",
                 xmldbfile
                 );
         return;
@@ -1367,7 +1377,7 @@ _cmd_nextrec(const char *cmd, int sockfd) {
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "List the next recording for each video.\n"
+                "n\nList the next recording for each video.\n"
                 );
         return;
     }
@@ -1396,7 +1406,7 @@ static void
 _cmd_version(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "Print server version.\n"
+                "v\nPrint server version.\n"
                 );
         return;
     }
@@ -1705,7 +1715,8 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
         return;
     }
 
-    int ret = matchcmd("^tf" _PR_S _PR_AN _PR_PROFE, cmd, &field);
+    //int ret = matchcmd("^tf" _PR_S _PR_FILEPATH _PR_S _PR_PROFN _PR_E, cmd, &field);
+    int ret = matchcmd("^tf" _PR_S _PR_FILEPATH _PR_SO _PR_PROFN _PR_E, cmd, &field);
     if( ret > 0 ) {
 
         // Check that filename exists
@@ -1722,10 +1733,12 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
                 return;
             }
             strncpy(profile,field[2],31);
-            profile[31] = '\0';
+        } else {
+            strncpy(profile,default_transcoding_profile,31);
         }
-
-
+        profile[31] = '\0';
+        
+        (void)transcode_file(field[1], profile, 1);
 
     } else {
         _writef(sockfd,"Syntax error.\n");

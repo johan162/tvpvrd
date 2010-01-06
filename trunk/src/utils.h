@@ -171,6 +171,14 @@ void
 getsysload(float *avg1, float *avg5, float *avg15) ;
 
 /**
+ * Get the current server uptime
+ * @param totaltime
+ * @param idletime
+ */
+void
+getuptime(int *totaltime, int *idletime);
+
+/**
  * Set the FD_CLOEXEC flag on the specified file. This will cause the
  * file descriptor to automatically close when we do a process replacement
  * via a exec() family call.
@@ -195,6 +203,22 @@ set_cloexec_flag(int desc, int value);
  */
 int
 getreldatefromdayname(const char *wdayname, int *y, int *m, int *d);
+
+/**
+ * Check if a directory exists and if not then create it
+ * @param basedir Basedirectory where the new directory will be created
+ * @param dir The name of the directory to create
+ */
+int chkcreatedir(const char *basedir,char *dir);
+
+/**
+ * Strip the suffix by replacing the last '.' with a '\0'
+ * The found suffix is placed in the space pointed to by
+ * the suffix parameter
+ * @param filename
+ */
+int
+strip_filesuffix(char *filename,char *suffix, int slen);
 
 #ifdef	__cplusplus
 }

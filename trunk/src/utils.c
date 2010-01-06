@@ -45,6 +45,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <libgen.h>
+#include <math.h>
 
 // Local headers
 #include "tvpvrd.h"
@@ -544,11 +545,25 @@ getsysload(float *avg1, float *avg5, float *avg15) {
     char lbuff[24];
     int ld = open("/proc/loadavg", O_RDONLY);
     if( -1 == read(ld, lbuff, 24) ) {
-        logmsg(LOG_ERR,"FATAL: Cannot read '/proc/loadavg' (%d:%s)",errno,strerror(errno));
+        logmsg(LOG_ERR,"FATAL: Cannot read '/proc/loadavg' ( %d : %s )",errno,strerror(errno));
         *avg1=-1; *avg5=-1; *avg15=-1;
     }
     close(ld);
     sscanf(lbuff, "%f%f%f", avg1, avg5, avg15);
+}
+
+void
+getuptime(int *totaltime, int *idletime) {
+    char lbuff[24];
+    int ld = open("/proc/uptime", O_RDONLY);
+    if( -1 == read(ld, lbuff, 24) ) {
+        logmsg(LOG_ERR,"FATAL: Cannot read '/proc/uptime' ( %d : %s )",errno,strerror(errno));
+        *totaltime = 0; *idletime = 0;
+    }
+    close(ld);
+    float tmp1,tmp2;
+    sscanf(lbuff,"%f%f",&tmp1,&tmp2);
+    *totaltime = round(tmp1); *idletime = round(tmp2);
 }
 
 /* Set the FD_CLOEXEC flag of desc if value is nonzero,
@@ -632,3 +647,51 @@ getreldatefromdayname(const char *wdayname, int *y, int *m, int *d) {
     return 0;
 }
 
+/*
+ * Check if directory exists and if not create it
+ */
+int
+chkcreatedir(const char *basedir,char *dir) {
+    const mode_t mode =  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+    char bdirbuff[512];
+    struct stat fstat ;
+
+    snprintf(bdirbuff,511,"%s/%s",basedir,dir);
+    bdirbuff[511] = '\0';
+    logmsg(LOG_NOTICE,"Checking directory '%s'",bdirbuff);
+    if( -1 == stat(bdirbuff,&fstat) ) {
+        if( -1 == mkdir(bdirbuff,mode) ) {
+            logmsg(LOG_ERR,"FATAL: Cannot create directory %s (%d : %s).",
+                   bdirbuff,errno,strerror(errno));
+            return -1;
+        } else {
+	    logmsg(LOG_NOTICE,"Created directory '%s'",bdirbuff);
+	}
+    }
+    return 0;
+}
+
+/**
+ * Strip the suffix by replacing the last '.' with a '\0'
+ * The found suffix is placed in the space pointed to by
+ * the suffix parameter
+ * @param filename
+ */
+int
+strip_filesuffix(char *filename,char *suffix, int slen) {
+    int len = strnlen(filename,256);
+    if( len >= 256 ) {
+        logmsg(LOG_ERR,"FATAL: String too long to strip suffix");
+        return -1;
+    }
+    int k=len-1;
+    while(k>0 && filename[k] != '.' ) {
+        k--;
+    }
+    if( k > 0 ) {
+        strncpy(suffix,&filename[k+1],slen);
+        suffix[slen-1] = '\0';
+        filename[k] = '\0';
+    }
+    return 0;
+}

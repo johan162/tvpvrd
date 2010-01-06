@@ -1,5 +1,12 @@
 2010-01-04  Johan Persson  <johan162@gmail.com>
 
+    * Added 'tf' - transcode file command, improve status command
+    to include both system and tvpvrd uptime
+    * Released 1.0.6
+
+
+2010-01-04  Johan Persson  <johan162@gmail.com>
+
     * Make sure HW bitrates are set in the right order to avoid
     setting a new bitrate higher than the old peak bitrate and
     vice versa.
