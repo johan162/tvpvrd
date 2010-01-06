@@ -44,17 +44,20 @@
         <refsect1
             xml:id="tvpvrd.description">
             <title>Description</title>
-            <para>The
-                    <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>1</manvolnum></citerefentry>
-                command starts a video recording server that will make use of one or more installed
-                TV-Capture cards and, following a specified schedule, will record broadcasted and
-                encoded streams from the capture card to disk. In affect a digital version of a
-                programmable VHS.</para>
+            <para>The <citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry> command starts a video recording server that will make use of one or
+                more installed TV-Capture cards and, following a specified schedule, will record
+                broadcasted and encoded streams from the capture card to disk. In affect a digital
+                version of a programmable VHS.</para>
             <para>The original stored HW encoded file (from the capture card) can then be
-                automatically transcoded (using
-                        <citerefentry><refentrytitle>ffmpeg</refentrytitle><manvolnum>1</manvolnum></citerefentry>
-                ) to a more efficient format. The specific details on both the initial HW encoder
-                settings as well as the transcoding options are bundled in a 'profile'. </para>
+                automatically transcoded (using <citerefentry>
+                    <refentrytitle>ffmpeg</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry> ) to a more efficient format. The specific details on both the
+                initial HW encoder settings as well as the transcoding options are bundled in a
+                'profile'. </para>
             <para>Each recording is done using one (or multiple) profiles. Each recording will
                 always have at least one profile, the primary profile. In this way it is possible to
                 create multiple transcoded versions of one recording, for example one high quality
@@ -64,9 +67,10 @@
                 specified in the traditional ini-file text file format and is stored under the
                 'profiles' directory which is a subdirectory to the settings directory (normally
                     <filename>/etc/tvpvrd</filename>). Each setting in the profile is well
-                documented in the profiles. The settings are also described in
-                        <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>5</manvolnum></citerefentry>
-                man page.</para>
+                documented in the profiles. The settings are also described in <citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>5</manvolnum>
+                </citerefentry> man page.</para>
             <para>The primary interface to the server is via a TCP/IP connection to the server
                 running '<emphasis>tvpvrd</emphasis>' via a dedicated port (by default 9300). The
                 server is controlled via a simple (but efficient) command language which allows
@@ -361,8 +365,10 @@ Connection will be closed after 30 min of inactivity</screen>
                 considered strong security but rather a weak "stop-messing-with-my-recordings"
                 protection.</para>
             <para>The setting whether password should be used or not and the actual password is
-                specified in the ini-file. For more information on the ini-file see
-                        <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+                specified in the ini-file. For more information on the ini-file see <citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>5</manvolnum>
+                </citerefentry>
             </para>
             <para>After connecting to the server when the password has been enabled the first string
                 sent back from the server will be</para>
@@ -472,15 +478,16 @@ channel = E8
 </screen>
             </para>
             <para>In some Unix distributions there are automatic frequency scanning helper programs
-                (for example <citerefentry><refentrytitle>scantv</refentrytitle>
-                    <manvolnum>1</manvolnum></citerefentry>) which will search through a given
-                frequency map and list all channels where a broadcasting was find (this is
-                identified as a high enough signal strength). For example SuSE distribution have a
-                TV channel scanning setup in the yast2 configuration tool. The result of this
-                channel scan is usually stored in a file named 'xawtvrc'. This is usually stored in
-                either '/etc/X11/xawtvrc' or in you home directory, usually as
-                    '<filename>~/.awtvrc</filename>'. Of course even if the channel with
-                broadcastings can be found the station names must be manually given. </para>
+                (for example <citerefentry>
+                    <refentrytitle>scantv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>) which will search through a given frequency map and list all
+                channels where a broadcasting was find (this is identified as a high enough signal
+                strength). For example SuSE distribution have a TV channel scanning setup in the
+                yast2 configuration tool. The result of this channel scan is usually stored in a
+                file named 'xawtvrc'. This is usually stored in either '/etc/X11/xawtvrc' or in you
+                home directory, usually as '<filename>~/.awtvrc</filename>'. Of course even if the
+                channel with broadcastings can be found the station names must be manually given. </para>
             <para>The somewhat strange name of the map file comes from an ancient TV viewer program
                 under X11 which is called 'xawtv'. For historic reason this name has stayed.</para>
             <para>While it is possible to use either the station name or the channel name in a
@@ -781,6 +788,30 @@ killflag=n</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
+                        <term>'<command>tf</command>
+                            <emphasis>filename</emphasis> [<emphasis>@profile</emphasis>]' -
+                            Transcode specified file using the named optional profile</term>
+                        <listitem>
+                            <para>This command is used to transcode any file within the file system
+                                using a specified transcoding profile. If the profile name is not
+                                given the the system default transcoding profile will be
+                                used.</para>
+                            <para>filename is the full path to the (normally MP2) video file that
+                                should be encoded. The resulting transcoded file is stored in the
+                                    <filename>&lt;datadir>/mp4/&lt;profile>/</filename> directory.
+                                During the transcoding a temporary directory under
+                                    <filename>&lt;datadir>/vtmp/</filename> is created and used as a
+                                working directory. The original file is not chnaged in any ways.
+                                During the transcoding a symbolic link is created in the temporary
+                                directory which makes it in theory possible to have the original
+                                file on another file system.</para>
+                            <para>Example</para>
+                            <para>
+                                <screen>tf /data/pvr/mp2/normal/oldreccording.mpg @high</screen>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
                         <term>'<command>z</command>' - Display all ini-file settings command</term>
                         <listitem>
                             <para>This will list all settings made in the ini-file as well as the
@@ -848,9 +879,10 @@ FFMPEG:
                     <varlistentry>
                         <term>'<command>x</command>' - View XML database command</term>
                         <listitem>
-                            <para>View the current specified recordings in XML DB format. See
-                                        <citerefentry><refentrytitle>tvpvrd</refentrytitle><manvolnum>5</manvolnum></citerefentry>
-                                for details about the format.</para>
+                            <para>View the current specified recordings in XML DB format. See <citerefentry>
+                                    <refentrytitle>tvpvrd</refentrytitle>
+                                    <manvolnum>5</manvolnum>
+                                </citerefentry> for details about the format.</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -1346,20 +1378,28 @@ FFMPEG:
         <refsect1
             xml:id="tvpvrd.seealso">
             <title>See also</title>
-            <para><citerefentry><refentrytitle>tvpvrd</refentrytitle>
-                    <manvolnum>5</manvolnum></citerefentry>,
-                        <citerefentry><refentrytitle>ffmpeg</refentrytitle>
-                    <manvolnum>1</manvolnum></citerefentry>,
-                        <citerefentry><refentrytitle>scantv</refentrytitle>
-                    <manvolnum>1</manvolnum></citerefentry>,
-                        <citerefentry><refentrytitle>v4l-info</refentrytitle>
-                    <manvolnum>1</manvolnum></citerefentry>,
-                        <citerefentry><refentrytitle>v4l-conf</refentrytitle>
-                    <manvolnum>1</manvolnum></citerefentry>,
-                        <citerefentry><refentrytitle>v4lctl</refentrytitle>
-                    <manvolnum>1</manvolnum></citerefentry>,
-                        <citerefentry><refentrytitle>xawtv</refentrytitle>
-                    <manvolnum>1</manvolnum></citerefentry></para>
+            <para><citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>5</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>ffmpeg</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>scantv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4l-info</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4l-conf</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4lctl</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>xawtv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry></para>
         </refsect1>
     </refentry>
 </article>
