@@ -1,0 +1,17 @@
+$Id$
+
+NEWS file for tvpvrd
+
+
+Release: 1.0.1
+==============
+Release focus:
+    Build structure update to support building of RPMs. 
+    Fixed missing build file in tar ball 1.0.0
+
+Release: 1.0.0
+==============
+Release focus:
+    Initial release.
+    
+
