@@ -1,3 +1,7 @@
+2010-01-10  Johan Persson  <johan162@gmail.com>
+
+    * Added SO_REUSEADDR flag to main listening port
+
 2010-01-04  Johan Persson  <johan162@gmail.com>
 
     * Added 'tf' - transcode file command, improve status command
