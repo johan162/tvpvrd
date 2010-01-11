@@ -1131,20 +1131,31 @@ startupsrv(void) {
 
     // Create the socket (TCP)
     if ((sockd = socket(AF_INET, SOCK_STREAM, 0)) < 1) {
-        logmsg(LOG_ERR, "Unable to create socket.");
-        return EXIT_FAILURE;
+        logmsg(LOG_ERR, "Unable to create socket. (%d : %s)",errno,strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // To allow the server to be restarted quickly we set the SO_REUSEADDR flag
+    // Otherwise the server would give a "Port in use" error if the server were restarted
+    // within approx. 30s after it was shutown. This is due to the extra safey wait
+    // that Unix does after a socket has been shut down just to be really, really sure
+    // that there is no more data coming.
+    int so_flagval = 1;
+    if( -1 == setsockopt(sockd,SOL_SOCKET, SO_REUSEADDR, (char *)&so_flagval, sizeof(int)) ) {
+        logmsg(LOG_ERR, "Unable to set socket options. (%d : %s)",errno, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     // Bind socket to socketaddress
     if (bind(sockd, (struct sockaddr *) & socketaddress, sizeof (socketaddress)) != 0) {
         logmsg(LOG_ERR, "Unable to bind socket to port. Most likely som other application is using this port.");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     // Listen on socket, queue up to 5 connections
     if (listen(sockd, 5) != 0) {
         logmsg(LOG_ERR, "Unable to listen on socket ");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     // We don't want to risk that a child holds this descriptor
@@ -1208,7 +1219,7 @@ startupsrv(void) {
                 if (ret != 0) {
                     logmsg(LOG_ERR, "Could not create thread for client ( %d :  %s )",errno,strerror(errno));
                 } else {
-                    // Save some system resources by detaching his thread since
+                    // Save some system resources by detaching this thread since
                     // we will never do a join on threads
                     pthread_detach(cli_threads[i]);
                     ncli_threads++;
