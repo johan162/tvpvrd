@@ -259,7 +259,7 @@ extern "C" {
  * The maximum time in seconds we will wait to transcode while the
  * server load is above MAX_LOAD_FOR_TRANSCODING
  */
-#define MAX_WAITING_TIME_TO_TRANSCODE 6*60*60
+#define MAX_WAITING_TIME_TO_TRANSCODE 48*60*60
 
 /*
  * FFMPEG_BIN string

@@ -121,7 +121,7 @@ void logmsg(int priority, char *msg, ...) {
         vsnprintf(tmpbuff+erroffset,blen-1-erroffset,msg,ap);
         tmpbuff[blen-1] = 0 ;
 
-        if (strcmp(logfile_name, LOGFILE_SYSLOG) == 0) {
+        if ( *logfile_name == '\0' ||  strcmp(logfile_name, LOGFILE_SYSLOG) == 0 ) {
             if( !_loginit ) {
                 openlog(server_program_name, LOG_PID | LOG_CONS, LOG_DAEMON);
                 _loginit = 1;
@@ -536,7 +536,7 @@ int
 validate(const int min, const int max, const char *name, const int val) {
     if( val >= min && val <= max )
         return val;
-    syslog(LOG_ERR,"Value for \"%s\" in inifile is out of range [%d,%d]. Aborting. \n",name,min,max);
+    logmsg(LOG_ERR,"Value for \"%s\" in inifile is out of range [%d,%d]. Aborting. \n",name,min,max);
     (void)exit(EXIT_FAILURE);
 }
 

@@ -83,8 +83,10 @@
 #define CMD_RESETSTATS 23
 #define CMD_KILLTRANSCODING 24
 #define CMD_TRANSCODEFILE 25
+#define CMD_TRANSCODEFILELIST 26
+#define CMD_TRANSCODEDIR 27
 
-#define CMD_UNDEFINED 26
+#define CMD_UNDEFINED 28
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -149,6 +151,8 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  st   - print profile statistics\n"\
 			"  t    - print server time\n"\
     			"  tf   - transcode specified file\n"\
+    			"  tl   - read list of videos to transcode from file\n"\
+                        "  td   - transcode all videos in directory\n"\
 			"  u    - force update of database with recordings\n"\
     			"  v    - print version\n"\
                         "  vc <n> - print information on TV-Card <n>\n"\
@@ -158,7 +162,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  ! <n>  - cancel ongoing recording\n"\
                         "Type h <cmd> for syntax of each command\n";
     char **field = (void *)NULL;
-    int ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|t|u|vc|v|x|zp|z|!)$", cmd, &field);
+    int ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
         if( field != (void *)NULL ) {
@@ -1745,6 +1749,71 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
     }
 
 }
+
+static void
+_cmd_transcodefilelist(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    char profile[32] ;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "tl <filename> [@profile] - Read list of videos to transcode from file 'filename'\n"
+                );
+        return;
+    }
+
+    int ret = matchcmd("^tl" _PR_S _PR_FILEPATH _PR_SO _PR_PROFN _PR_E, cmd, &field);
+    if( ret > 0 ) {
+        *profile = '\0';
+        if( ret > 2 ) {
+            if( !transcoding_profile_exist(&field[2][1]) ) {
+                _writef(sockfd,"Specified profile does not exist '%s'.\n",field[2]);
+                return;
+            }
+            strncpy(profile,field[2],31);
+        } else {
+            strncpy(profile,default_transcoding_profile,31);
+        }
+        profile[31] = '\0';
+
+        (void)read_transcode_filelist(field[1],profile);
+
+    } else {
+        _writef(sockfd,"Syntax error.\n");
+    }
+}
+
+static void
+_cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    char profile[32] ;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "td <dirpath> [@profile] - Transcode all videos in named directory\n"
+                );
+        return;
+    }
+
+    int ret = matchcmd("^tl" _PR_S _PR_FILEPATH _PR_SO _PR_PROFN _PR_E, cmd, &field);
+    if( ret > 0 ) {
+        *profile = '\0';
+        if( ret > 2 ) {
+            if( !transcoding_profile_exist(&field[2][1]) ) {
+                _writef(sockfd,"Specified profile does not exist '%s'.\n",field[2]);
+                return;
+            }
+            strncpy(profile,field[2],31);
+        } else {
+            strncpy(profile,default_transcoding_profile,31);
+        }
+        profile[31] = '\0';
+
+        (void)transcode_whole_directory(field[1],profile);
+
+    } else {
+        _writef(sockfd,"Syntax error.\n");
+    }
+}
+
 /**
  * Reserved for future use
  */
@@ -1787,6 +1856,8 @@ cmdinit(void) {
     cmdtable[CMD_RESETSTATS]        = _cmd_resetstatistics;
     cmdtable[CMD_KILLTRANSCODING]   = _cmd_killtranscoding;
     cmdtable[CMD_TRANSCODEFILE]     = _cmd_transcodefile;
+    cmdtable[CMD_TRANSCODEFILELIST] = _cmd_transcodefilelist;
+    cmdtable[CMD_TRANSCODEDIR]      = _cmd_transcodefilesindirectory;
 }
 
 /**
@@ -1815,6 +1886,7 @@ _getCmdPtr(const char *cmd) {
         {"i",  CMD_INFO},
         {"d",  CMD_DELETE},
         {"tf", CMD_TRANSCODEFILE},
+        {"tl", CMD_TRANSCODEFILELIST},
         {"t",  CMD_TIME},
         {"x",  CMD_GETXML},
         {"u",  CMD_UPDATEXMLFILE},

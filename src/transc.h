@@ -301,6 +301,26 @@ kill_all_ongoing_transcodings(void);
 int
 transcode_file(char *filename, char *profilename, int wait);
 
+/**
+ * Read a list of filenames to transcode. The list of files are read from the
+ * named file. All files are encoded using the same profile.
+ * @param filename File with list of 
+ * @param profilename
+ * @return
+ */
+int
+read_transcode_filelist(char *filename, char *profilename);
+
+/**
+ * Transcode all videos in named directory
+ * @param dirpath
+ * @param profilename
+ * @return
+ */
+int
+transcode_whole_directory(char *dirpath, char *profilename);
+
+
 #ifdef	__cplusplus
 }
 #endif

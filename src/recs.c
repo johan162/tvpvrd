@@ -236,7 +236,7 @@ freerecs(void) {
     for (int i = 0; i < max_video; ++i) {
         for (int j = 0; j < num_entries[i]; ++j) {
             if( recs[REC_IDX(i,j)] ) {
-                freerec(recs[REC_IDX(i,j)],"freerecs()");
+                freerec(recs[REC_IDX(i,j)] ,"freerecs()" );
                 recs[REC_IDX(i,j)] = NULL ;
             }
         }
@@ -251,8 +251,8 @@ freerecs(void) {
     free(num_entries);    
 }
 
-void freerec(struct recording_entry *entry,char *caller) {
-    logmsg(LOG_DEBUG,"freerec() called from '%s'\n",caller);
+void freerec(struct recording_entry *entry ,char *caller) {
+    logmsg(LOG_DEBUG,"freerec() called from '%s'",caller);
     for(int i=0; i < REC_MAX_TPROFILES ; i++) {
         free(entry->transcoding_profiles[i]);
     }
