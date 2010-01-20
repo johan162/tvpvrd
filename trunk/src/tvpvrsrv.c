@@ -115,7 +115,7 @@ int defaultDurationHour, defaultDurationMin;
 int tcpip_port;
 // Logfile details
 int verbose_log;
-char logfile_name[256];
+char logfile_name[256] = {'\0'};
 // Time resolution for checks
 int time_resolution;
 // The size of the memory buffer used when reading video data from the device
@@ -484,7 +484,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
 #else
             pid_t pid;
-            if ((pid = fork()) == 0) {
+            if ((pid = vfork()) == 0) {
                 // In the child process
                 // Make absolutely sure everything is cleaned up except the standard
                 // descriptors
@@ -1294,7 +1294,7 @@ sighand_thread(void *ptr) {
 void startdaemon(void) {
 
     // Fork off the child
-    pid_t pid = fork();
+    pid_t pid = vfork();
     if( pid < 0 ) {
         syslog(LOG_ERR, "Cannot fork daemon.");
         exit(EXIT_FAILURE);
@@ -1322,7 +1322,7 @@ void startdaemon(void) {
 
     // Fork again to ensure we are not a session group leader
     // and hence can never regain a controlling terminal
-    pid = fork();
+    pid = vfork();
     if( pid < 0 ) {
 	syslog(LOG_ERR, "Cannot do second fork to create daemon.");
         exit(EXIT_FAILURE);
@@ -1398,7 +1398,7 @@ chkdirstructure(void) {
 #define INIFILE_BUFFERSIZE 4096
 static char inibuffer[INIFILE_BUFFERSIZE] = {0};
 
-static const char short_options [] = "d:f:hi:l:p:vx:";
+static const char short_options [] = "d:f:hi:l:p:vx:V:";
 static const struct option long_options [] = {
     { "daemon",  required_argument,     NULL, 'd'},
     { "xmldb",   required_argument,     NULL, 'f'},
@@ -1519,7 +1519,12 @@ parsecmdline(int argc, char **argv) {
                 break;
 
             case 'V':
-                verbose_log = *optarg == '1' ? 1 : 0;
+                if( *optarg == '1' || *optarg == '2' || *optarg == '3' )
+                    verbose_log = *optarg - '0' ;
+                else {
+                    logmsg(LOG_ERR,"Illegal verbose level specified. must be in range [1-3]. Aborting.");
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'l':
@@ -1726,14 +1731,17 @@ createlockfile(void) {
 
 void
 exithandler(void) {
-  
-  // The deletion of the lockile will only succeed if we are runnign as
-  // root since the lockfile resides in a directory owned by root
-  // no other uid can remove it.
-  // This is not a problem though since the startup will check that there
-  // pid in the lockfile really eists.
-  // deleteockfile();
-  
+
+    struct passwd *pwe = getpwuid(getuid());
+
+    // The deletion of the lockile will only succeed if we are running as
+    // root since the lockfile resides in a directory owned by root
+    // no other uid can remove it.
+    // This is not a problem though since the startup will check that there
+    // pid in the lockfile really exists.
+    if (strcmp(pwe->pw_name, "root") == 0) {
+        deleteockfile();
+    }
 }
 
 void
@@ -1896,7 +1904,7 @@ read_inisettings(void) {
 
     max_load_for_transcoding      = validate(1,10,"max_load_for_transcoding",
                                              iniparser_getint(dict, "ffmpeg:max_load_for_transcoding", MAX_LOAD_FOR_TRANSCODING));
-    max_waiting_time_to_transcode = validate(60,43200,"max_waiting_time_to_transcode",
+    max_waiting_time_to_transcode = validate(0,MAX_WAITING_TIME_TO_TRANSCODE,"max_waiting_time_to_transcode",
                                              iniparser_getint(dict, "ffmpeg:max_waiting_time_to_transcode", MAX_WAITING_TIME_TO_TRANSCODE));
 
     strncpy(ffmpeg_bin,
@@ -2029,6 +2037,14 @@ main(int argc, char *argv[]) {
         _exit(EXIT_FAILURE);
     }
 
+    // Setup MALLOC to dump in case of memory corruption, i.e. double free
+    // or overrun. This might be less efficient but this will be enabled
+    // until we are 101% sure there are no mistakes in the code.
+    static char *var = "MALLOC_CHECK";
+    static char *val = "2";
+    setenv(var,val,1);
+
+    // Setup exit() handler
     atexit(exithandler);
 
     // Remember the program name we are started as
@@ -2140,7 +2156,7 @@ main(int argc, char *argv[]) {
     // Initialize all the data structures that stores our recording
     init_globs();
 
-    // Read the initial recording DB from the specified file on either there
+    // Read the initial recording DB from the specified file on either the
     // command line or from the ini-file. The command line always override
     // setting sin the ini-file
     init_tvxmldb();

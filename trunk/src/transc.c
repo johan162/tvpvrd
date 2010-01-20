@@ -579,7 +579,8 @@ wait_to_transcode(char *filename) {
         logmsg(LOG_INFO, "Waiting to transcode '%s'. Current load %.2f. Must be < %d.",
                filename, avg5, max_load_for_transcoding);
     }
-    while (avg5 > max_load_for_transcoding && waiting_time < max_waiting_time_to_transcode) {
+
+    while (avg5 > max_load_for_transcoding && (max_waiting_time_to_transcode==0 || waiting_time < max_waiting_time_to_transcode)) {
         sleep(backoff_time);
         waiting_time += backoff_time;
         getsysload(&avg1, &avg5, &avg15);
@@ -589,16 +590,16 @@ wait_to_transcode(char *filename) {
         }
         
         // If the server is really busy we icrease the backoff_time in two steps for a maximum
-        // check time of every 30 min. This way we avoid to have an abundance of log entries
+        // check time of every 20 min. This way we avoid to have an abundance of log entries
         if( 0==adj && waiting_time > 30*60 ) {
-            backoff_time = 15*60 ;
+            backoff_time = 10*60 ;
             adj = 1;
         } else if (1==adj && waiting_time > 90*60) {
-            backoff_time = 30*60 ;
+            backoff_time = 20*60 ;
             adj = 2;
         }
     }
-    return waiting_time < max_waiting_time_to_transcode ? 0 : -1;
+    return waiting_time < max_waiting_time_to_transcode || max_waiting_time_to_transcode==0 ? 0 : -1;
 }
 
 /**
@@ -741,12 +742,16 @@ kill_all_ongoing_transcodings(void) {
 
 }
 
-#define MAX_FILETRANSC_THREADS 10
+// Keep track of all ongoing transcoding threads. In reality only 2-3 threads will ever be
+// running to avoid too high load on the server.
+#define MAX_FILETRANSC_THREADS 20
 pthread_t filetransc_threads[MAX_FILETRANSC_THREADS];
 int nfiletransc_threads = 0;
 
+// Mutex to protect the transcoding thread array and index variables
 pthread_mutex_t filetransc_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+// Structure used to pass arguments to the transcoding process
 struct transc_param {
     char *filename;
     char *profilename;
@@ -769,14 +774,17 @@ _transcode_file(void *arg) {
     struct transcoding_profile_entry *profile;
     char cmdbuff[1024], cmd_ffmpeg[512], destfile[128];
     int runningtime = 0;
+    char filename[512];
+    char profilename[512];
 
     // Get arguments
     struct transc_param *param = (struct transc_param *) arg;
-    char *filename    = param->filename;
-    char *profilename = param->profilename;
-    int   wait        = param->wait;
-
-    free(arg);
+    strncpy(filename,param->filename,511);
+    strncpy(profilename, param->profilename,511);
+    int wait = param->wait;
+    free(param->filename);
+    free(param->profilename);
+    free(param);
 
     if (wait) {
         if (-1 == wait_to_transcode(filename)) {
@@ -792,7 +800,7 @@ _transcode_file(void *arg) {
 
 
     // Create a temporary directory which we will use as working directory during
-    // the transcoding process. This is necessary sine ffmpeg always uses the same
+    // the transcoding process. This is necessary since ffmpeg always uses the same
     // name for some property/log files which means that two or more transcodings
     // can never run in the same directory.
     char wdirname[128];
@@ -825,10 +833,12 @@ _transcode_file(void *arg) {
     // Link the file to transcode into this new working directory
     snprintf(wdirbuff,255,"%s/%s",workingdir,basename(filename));
     if( -1 == symlink(filename,wdirbuff) ) {
-        logmsg(LOG_ERR,"Cannot symlink file to transcode into working directory ( %d : %s )",errno,strerror(errno));
+        logmsg(LOG_ERR,"Cannot symlink file '%s' to transcode into working directory '%s' ( %d : %s )",
+                filename,wdirbuff,errno,strerror(errno));
         pthread_mutex_lock(&filetransc_mutex);
         nfiletransc_threads--;
         pthread_mutex_unlock(&filetransc_mutex);
+
         pthread_exit(NULL);
         return (void *) 0;
     }
@@ -843,7 +853,7 @@ _transcode_file(void *arg) {
     cmdbuff[1023] = '\0';
 
     pid_t pid;
-    if ((pid = fork()) == 0) {
+    if ((pid = vfork()) == 0) {
         // In the child process
         // Make absolutely sure everything is cleaned up except the standard
         // descriptors
@@ -963,7 +973,7 @@ _transcode_file(void *arg) {
     pthread_mutex_lock(&filetransc_mutex);
     nfiletransc_threads--;
     pthread_mutex_unlock(&filetransc_mutex);
-
+    
     pthread_exit(NULL);
     return (void *) 0;
 }
@@ -981,8 +991,11 @@ transcode_file(char *filename, char *profilename, int wait) {
 
     struct transc_param *param = calloc(1,sizeof(struct transc_param));
 
-    param->filename = filename;
-    param->profilename = profilename;
+    // We must make our own local copy of the arguments since there is no
+    // guarantee that the thread will start before this function returns and the
+    // parent deletes the argument space
+    param->filename = strdup(filename);
+    param->profilename = strdup(profilename);
     param->wait = wait;
 
     // Start the thread that will actually do the recording to the file system
@@ -1003,5 +1016,324 @@ transcode_file(char *filename, char *profilename, int wait) {
     } else {
         logmsg(LOG_INFO, "Created thread for transcoding of file %s using profile @%s",filename,profilename);
     }
+    return 0;
+}
+
+#define MAX_FILELISTTRANSC_THREADS 10
+#define MAX_FILELIST_ENTRIES 150
+
+pthread_t filelisttransc_threads[MAX_FILELISTTRANSC_THREADS];
+int nfilelisttransc_threads = 0;
+
+struct transc_filelistparam {
+    char *dirpath;
+    char **filelist;
+    char *profilename;
+};
+
+void *
+_transcode_filelist(void *arg) {
+    
+    struct transc_filelistparam *param = (struct transc_filelistparam *) arg;
+
+    int idx=0;
+    char buffer[512] = {'\0'};
+    if( strnlen(param->dirpath,256) >= 256 ) {
+        logmsg(LOG_ERR,"Dirpath in specified filelist is too long > 256 characters. Aborting transcoding of filelist.");
+        pthread_exit(NULL);
+        return (void *) 0;
+    }
+    if( strnlen(param->dirpath,256) > 0 ) {
+        strncpy(buffer,param->dirpath,256);
+        strncat(buffer,"/",4);
+    } else {
+        *buffer = '\0';
+    }
+
+    if( *param->filelist[idx] ) {
+        strncat(buffer,param->filelist[idx++],511);
+    } else {
+        *buffer = '\0';
+    }
+
+    buffer[511] = '\0';
+    
+    // Loop through all the filenames
+    while( *buffer != '\0' ) {
+        logmsg(LOG_INFO, "Submitting '%s' for transcoding using @%s",buffer,param->profilename);
+        wait_to_transcode(buffer);
+        if( -1 == transcode_file(buffer, param->profilename, 1) ) {
+            logmsg(LOG_ERR,"Unable to start transcoding of file '%s'. Aborting filelist.",buffer);
+            break;
+        }
+
+        // Always take a minimum of 5 min break between trying to submit new files.
+        // This is done in order to make sure that the CPU load (to be tested in wait_to_transcode)
+        // will have a chance to build up. If we didn't do this it would be possible to submit
+        // 100 of vides for encoding on an idle server since it takes some time for the load
+        // to accurately reflect the servers work
+        sleep(5*60);
+
+        if( strnlen(param->dirpath,256) > 0 ) {
+            strncpy(buffer,param->dirpath,256);
+            strncat(buffer,"/",4);
+        } else {
+            *buffer = '\0';
+        }
+        if( *param->filelist[idx] ) {
+            strncat(buffer,param->filelist[idx++],511);
+        } else {
+            *buffer = '\0';
+        }
+
+        buffer[511] = '\0';
+    }
+
+    idx=0;
+    while(idx < MAX_FILELIST_ENTRIES && *param->filelist[idx]) {
+        free(param->filelist[idx++]);
+    }
+    if( idx < MAX_FILELIST_ENTRIES ) {
+        free(param->filelist[idx]);
+    }
+    free(param->filelist);
+    free(param->dirpath);
+    free(param->profilename);
+    free(param);
+
+    pthread_exit(NULL);
+    return (void *) 0;
+}
+
+
+/**
+ * Handle transcoding of a list of files. This is the wrapper functiin that just
+ * creates the thread that actually does all the work ni order to be responsive to the
+ * user right away
+ * @param dirpath Optional path that will be prepended to file names in the list
+ * @param filelist A NULL terminated array of string pointers to the file names to be
+ *        encoded
+ * @return 0 on sucess, -1 on failure
+ */
+int
+transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
+    
+    struct transc_filelistparam *param = calloc(1,sizeof(struct transc_filelistparam));
+
+    // Since these are used ina thread that will exist longer than this and parent
+    // function we must maker sure we have our own copies of the dirpath and profilename
+    // since they might be stack variables that goes out of scope.
+    // The filelist is not a problem since that is allocated dynamically.
+    param->dirpath = strdup(dirpath);
+    param->profilename = strdup(profilename);
+    param->filelist = filelist;
+
+    // Check for degenerate cases
+    if( filelist == NULL || filelist[0] == NULL || *filelist[0] == '\0' ) {
+        logmsg(LOG_ERR, "Internal error: Empty list submitted to transcode_filelist()");
+        return -1;
+    }
+
+    if( profilename == NULL || *profilename == '\0' ) {
+        logmsg(LOG_ERR, "Internal error: No profile specified in call to transcode_filelist()");
+        return -1;
+    }
+
+    // Start the thread that will actually do the recording to the file system
+    if( nfilelisttransc_threads >= MAX_FILELISTTRANSC_THREADS ) {
+        logmsg(LOG_ERR, "Only %d number of concurrent list transcodings are permitted. Transcoding not started.");
+        return -1;
+    }
+    pthread_mutex_lock(&filetransc_mutex);
+    int ret = pthread_create(&filelisttransc_threads[nfilelisttransc_threads], NULL, _transcode_filelist, (void *) param);
+    nfilelisttransc_threads++;
+    pthread_mutex_unlock(&filetransc_mutex);
+    if (ret != 0) {
+        logmsg(LOG_ERR, "Could not create thread for transcoding of file list");
+        pthread_mutex_lock(&filetransc_mutex);
+        nfilelisttransc_threads--;
+        pthread_mutex_unlock(&filetransc_mutex);
+        return -1;
+    } else {
+        logmsg(LOG_INFO, "Created thread for transcoding of file list");
+    }
+    
+    return 0;
+}
+
+/**
+ * Read a list of filenames from a file
+ * @param filename
+ * @return
+ */
+int
+read_filenamelist(char *filename, char *filenamelist[], int maxlen) {
+    struct stat statbuffer;
+    char linebuffer[512];
+
+    if( -1 == stat(filename,&statbuffer) ) {
+        logmsg(LOG_ERR, "File %s with list of movies to encode does not exist.",filename);
+        return -1;
+    }
+
+    FILE *fp = fopen(filename, "r");
+    if( NULL == fp ) {
+        logmsg(LOG_ERR, "Cannot open file %s (%d : %s).",filename,errno,strerror(errno));
+        return -1;
+    }
+
+    int i=0;
+    char *ptr;
+    char dirpath[256];
+    char filenamebuffer[512];
+    while( fgets(linebuffer,512,fp) && i<maxlen ) {
+
+        // Get rid of trailing newline
+        linebuffer[strlen(linebuffer)-1] = '\0';
+
+        // Is this a dirpath to use for the following files
+        if( *linebuffer == ':' ) {
+            strncpy(dirpath,linebuffer+1,255);
+
+            // remove any possible trailing '/'
+            if( dirpath[strlen(dirpath)-1] == '/' ) {
+                dirpath[strlen(dirpath)-1] = '\0';
+            }
+            dirpath[255] = '\0';
+            continue;
+        }
+
+        strncpy(filenamebuffer,dirpath,256);
+        strncat(filenamebuffer,"/",511);
+        strncat(filenamebuffer,linebuffer,511);
+        ptr = strdup(filenamebuffer);
+
+        logmsg(LOG_DEBUG, "Filename '%s' constructed.",ptr);
+
+        if( ptr == NULL ) {
+            logmsg(LOG_ERR, "Cannot allocate memory to store filename in filelist. (%d : %s)",errno,strerror(errno));
+            for(int k=0; k < i; i++)
+                free(filenamelist[k]);
+            return -1;
+        }
+        if( -1 == stat(ptr,&statbuffer) ) {
+            logmsg(LOG_ERR, "File '%s' in filelist does not exist. Aborting.",ptr);
+            for(int k=0; k < i; i++)
+                free(filenamelist[k]);
+            free(ptr);
+            return -1;
+        }
+        filenamelist[i++] = ptr;
+    }
+
+    // End of list marker;
+    filenamelist[i] = strdup("\0");
+
+    fclose(fp);
+    return 0;
+}
+
+/**
+ * Read video files to transcode from the list stored in the specified file
+ * @param filename Name of file with list of all videos to transcode
+ * @param profilename Profile to use for the transcoding. All videos will use the same transcoding
+ * @return 0 on sucess, -1 on failure
+ */
+int
+read_transcode_filelist(char *filename, char *profilename) {
+
+    char dirpath[256] = {'\0'};
+    char **filenamelist = calloc(MAX_FILELIST_ENTRIES,sizeof(char *));
+
+    if( filenamelist == NULL ) {
+        logmsg(LOG_ERR, "Cannot allocate memory for filelist. (%d : %s)",errno,strerror(errno));
+        return -1;
+    }
+
+    if( -1 == read_filenamelist(filename,filenamelist,MAX_FILELIST_ENTRIES) ) {
+        return -1;
+    }
+    
+    if( -1 == transcode_filelist(dirpath,filenamelist,profilename) ) {
+        return -1;
+    }   
+    
+    logmsg(LOG_INFO,"Videos from list file '%s' queued to transcoding.",filename);
+    return 0;
+}
+
+/**
+ * Transcode all files in the given directory
+ * @param dirpath
+ * @param profilename
+ * @return
+ */
+#define MAX_FILES_IN_DIR_TO_TRANSCODE 1024
+int
+transcode_whole_directory(char *dirpath, char *profilename) {
+    DIR *dp;
+    struct dirent *dirp;
+    struct stat statbuf;
+    char **filelist = calloc(MAX_FILES_IN_DIR_TO_TRANSCODE+1,sizeof(char *));
+    int idx=0;
+
+    // First check that this is really a directory that was specified
+    stat(dirpath, &statbuf);
+    if ( ! S_ISDIR(statbuf.st_mode) ) {
+        logmsg(LOG_ERR,"Specified path '%s' is not a directory.",dirpath);
+        return -1;
+    }
+
+    dp = opendir(dirpath);
+    if (dp == NULL) {
+        logmsg(LOG_ERR,"Cannot open directory. (%d : %s)",errno,strerror(errno));
+        return -1;
+    }
+
+    // Loop through the directory (ignoring '.' and '..' and subdirectories)
+    while ((dirp = readdir(dp)) != NULL) {
+
+        if ((strcmp(dirp->d_name, ".") != 0) && (strcmp(dirp->d_name, "..") != 0)) {
+
+            if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
+
+                // Check that the file ends in a recognized video format suffix
+                // .mpg, .mpeg, .mp2, .mp4, .rm, .avi, .flv,
+                int k = strlen(dirp->d_name)-1;
+                while( k >  0 && dirp->d_name[k] != '.' ) {
+                    k--;
+                }
+                if( dirp->d_name[k] == '.' ) {
+                    char *ptr = &dirp->d_name[k+1];
+                    if( strcmp(ptr,".mpg") && strcmp(ptr,".mpeg") && strcmp(ptr,".mp2") &&
+                        strcmp(ptr,".mp4") && strcmp(ptr,".rm") && strcmp(ptr,".avi") &&
+                        strcmp(ptr,".flv") ) {
+                        logmsg(LOG_NOTICE,"Ignoring file with unknown suffix '%s' when building filelist",dirp->d_name);
+                    } else {
+                        filelist[idx++] = strdup(dirp->d_name);
+                        logmsg(LOG_NOTICE,"Adding video file '%s' to transcoding list",dirp->d_name);
+                        if( idx >= MAX_FILES_IN_DIR_TO_TRANSCODE ) {
+                            logmsg(LOG_ERR,"Filelist truncated after %d video file was read from directory '%s'",idx,dirpath);
+                            break;
+                        }
+                    }
+                }
+
+            } else if (S_ISDIR(statbuf.st_mode)) {
+                logmsg(LOG_NOTICE,"Ignoring subdirectory '%s' when building transcoding list",dirp->d_name);
+            }
+            else {
+                logmsg(LOG_ERR,"Ignoring unknown file type '%s' when building transcoding list",dirp->d_name);
+            }
+        }
+    }
+
+    filelist[idx] = strdup("\0");
+
+    if( -1 == transcode_filelist(dirpath,filelist,profilename) ) {
+        return -1;
+    }
+
+    logmsg(LOG_INFO,"All %d video files from directory '%s' queued for transcoding.",idx,dirpath);
     return 0;
 }
