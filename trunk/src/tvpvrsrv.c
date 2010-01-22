@@ -120,6 +120,9 @@ char logfile_name[256] = {'\0'};
 int time_resolution;
 // The size of the memory buffer used when reading video data from the device
 int video_bufsize;
+// The video buffer (used when reading the video stream from the capture card)
+// One buffer for each video card. We support up to 4 simultaneous cards
+char *video_buffer[MAX_VIDEO];
 // The default base data diectory
 char datadir[256];
 // Names of the ini file and the db file used
@@ -270,12 +273,20 @@ init_globs(void) {
     video_idx       =       (int *) calloc(max_video,   sizeof (int));
     abort_video     =       (int *) calloc(max_video,   sizeof (int));
 
+    for(int i=0; i < max_video; ++i) {
+        video_buffer[i] = calloc(video_bufsize, sizeof(char *));
+        if( video_buffer[i] == NULL ) {
+            fprintf(stderr,"Cannot allocate video buffer memory. (%d : %s)",errno,strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    }
+
     if (rec_threads   == NULL || cli_threads   == NULL ||
         client_ipadr  == NULL || client_tsconn == NULL ||
         client_socket == NULL || video_idx     == NULL ||
         abort_video   == NULL) {
 
-        fprintf(stderr, "FATAL: Out of memory. Aorting program.");
+        fprintf(stderr, "FATAL: Out of memory. Aborting server.");
         exit(EXIT_FAILURE);
     }
 
@@ -311,6 +322,7 @@ free_globs(void) {
     for(int i=0; i < max_clients; i++) {
         if( client_ipadr[i] )
             free(client_ipadr[i]);
+        free(video_buffer[i]);
     }
     free(client_ipadr);
 
@@ -484,8 +496,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
 #else
             pid_t pid;
-            if ((pid = vfork()) == 0) {
-                // In the child process
+            if ((pid = fork()) == 0) {
+                // In thevfor child process
                 // Make absolutely sure everything is cleaned up except the standard
                 // descriptors
                 for (int i = getdtablesize(); i > 2; --i) {
@@ -498,12 +510,17 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                 // is stopped by the user. The pid returned by the fork() will not be
                 // the same process as is running the 'ffmpeg' command !
                 setpgid(getpid(),0); // This sets the PGID to be the same as the PID
-                if( -1 == nice(20) ) {
-                    logmsg(LOG_ERR, "Error when calling 'nice()' : (%d:%s)",errno,strerror(errno));
+                if ( -1 == nice(20) ) {
+                    logmsg(LOG_ERR, "Error when calling 'nice()' : (%d : %s)",errno,strerror(errno));
+                    _exit(EXIT_FAILURE);
                 }
-                execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0);
+
+                if ( -1 == execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0) ) {
+                    logmsg(LOG_ERR, "Error when calling execl() '/bin/sh/%s' : ( %d : %s )", cmdbuff, errno, strerror(errno));
+                    _exit(EXIT_FAILURE);
+                }
             } else if (pid < 0) {
-                logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file \"%s\" (%d : %s)",
+                logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file '%s' (%d : %s)",
                         short_filename, errno, strerror(errno));
             } else {
 
@@ -596,13 +613,13 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
             tmpbuff2[255] = '\0';
             int ret = mv_and_rename(tmpbuff2, tmpbuff, newname, 256);
             if (ret) {
-                logmsg(LOG_ERR, "Could not move \"%s\" to \"%s\"", tmpbuff2, newname);
+                logmsg(LOG_ERR, "Could not move '%s' to '%s'", tmpbuff2, newname);
                 return -1;
             } else {
-                logmsg(LOG_INFO, "Moved \"%s\" to \"%s\"", tmpbuff2, newname);
+                logmsg(LOG_INFO, "Moved '%s' to '%s'", tmpbuff2, newname);
                 struct stat fstat;
                 // Find out the size of the transcoded file
-                if( stat(newname,&fstat) != -1 ) {
+                if( 0 == stat(newname,&fstat) ) {
                     
                     *filesize = fstat.st_size;
                     transcode_time->rtime.tv_sec = runningtime ;
@@ -634,26 +651,30 @@ startrec(void *arg) {
     int mp2size = 0;
     volatile int doabort = 0 ;
 
+    // To avoid reserving ~8MB after the thread terminates we
+    // detach it. Without doing this the pthreads library would keep
+    // the exit status until the thread is joined (or detached) which would mean
+    // loosing 8MB for exah created thread
+    pthread_detach(pthread_self());
+
     int video = *(int *) arg;
     struct recording_entry *recording = ongoing_recs[video];
     struct transcoding_profile_entry *profile;
     
     // Get primary profile
     get_transcoding_profile(recording->transcoding_profiles[0],&profile);
-
-#ifndef DEBUG_SIMULATE
-    int *buffer = calloc(video_bufsize, sizeof (unsigned char));
-#endif
     int vh = setup_video(video,profile);
+
     abort_video[video] = 0;
             
     if (vh == -1) {
 
-       logmsg(LOG_ERR, "Cannot open video stream %02d. '%s' recording aborted ( %d : %s ). ",video,recording->title,errno,strerror(errno));
+       logmsg(LOG_ERR, "Cannot open video stream %02d. '%s' recording aborted ( %d : %s )",video,recording->title,errno,strerror(errno));
        pthread_mutex_lock(&recs_mutex);
        free(recording);
        ongoing_recs[video] = (struct recording_entry *)NULL;
        pthread_mutex_unlock(&recs_mutex);
+
        pthread_exit(NULL);
        return (void *)NULL;
 
@@ -671,6 +692,7 @@ startrec(void *arg) {
             free(recording);
             ongoing_recs[video] = (struct recording_entry *)NULL;
             pthread_mutex_unlock(&recs_mutex);
+
             pthread_exit(NULL);
             return (void *)NULL;
         }
@@ -686,6 +708,7 @@ startrec(void *arg) {
             free(recording);
             ongoing_recs[video] = (struct recording_entry *)NULL;
             pthread_mutex_unlock(&recs_mutex);
+
             pthread_exit(NULL);
             return (void *)NULL;
         }
@@ -705,6 +728,7 @@ startrec(void *arg) {
             pthread_mutex_lock(&recs_mutex);
             free(recording);
             ongoing_recs[video] = (struct recording_entry *)NULL;
+
             pthread_mutex_unlock(&recs_mutex);
             pthread_exit(NULL);
 
@@ -714,6 +738,23 @@ startrec(void *arg) {
 
             // Do the actual recording by reading chunks of data from the
             // MP2 stream and store it in the recording file
+            
+            /*
+            int *buffer = calloc(video_bufsize, sizeof (unsigned char));
+            if (buffer == NULL) {
+
+               logmsg(LOG_ERR,"Unable to allocate video buffer. '%s' recording aborted ( %d : %s )",recording->title,errno,strerror(errno));
+               pthread_mutex_lock(&recs_mutex);
+               free(recording);
+               ongoing_recs[video] = (struct recording_entry *)NULL;
+               pthread_mutex_unlock(&recs_mutex);
+
+               pthread_exit(NULL);
+               return (void *)NULL;
+
+            }
+            */
+
             logmsg(LOG_INFO,"Started recording using video card #%02d, fd=%d to '%s'.", video,vh, full_filename);
             fd_set fds;
             struct timeval tv;
@@ -755,7 +796,7 @@ startrec(void *arg) {
                 } else {      
 #endif
                     logmsg(LOG_DEBUG,"    -- [%02d] Trying to read bytes from fd=%d '%s'",video,vh, recording->title);
-                    nread = read(vh, buffer, video_bufsize);
+                    nread = read(vh, video_buffer[video], video_bufsize);
                     logmsg(LOG_DEBUG,"    -- [%02d] DONE. Read %05d bytes from fd=%d '%s'",video,nread,vh,recording->title);
 
                     if (-1 == nread ) {
@@ -772,7 +813,7 @@ startrec(void *arg) {
                             }
                     } else {
 
-                        nwrite = write(fh, buffer, nread);
+                        nwrite = write(fh, video_buffer[video], nread);
                         logmsg(LOG_DEBUG,"    -- [%02d] nwrite=%d after writing to '%s'",video,nwrite,full_filename);
 
                         if( nwrite == -1 ) {
@@ -787,6 +828,9 @@ startrec(void *arg) {
                     } 
                 }
             } while (recording->ts_end > time(NULL) && !doabort);
+
+            // Release video buffer
+            // free(buffer);
 #else
             logmsg(LOG_INFO,"Started simulated recording to file \"%s\".", full_filename);
             _writef(fh, "Simulated writing at ts=%u\n", (unsigned)time(NULL));
@@ -855,34 +899,35 @@ startrec(void *arg) {
             }
         }
 
-        if ( ! transcoding_problem ) {
-                char tmpbuff[256], newname[512];
-                // Move the original mp2 file if the user asked to keep it
-                int delete_workingdir = 1;
-                if ( keep_mp2_file ) {
-                        // Move MP2 file
-                        snprintf(tmpbuff, 255, "%s/mp2/%s/%s", datadir, profile->name,short_filename);
-                        tmpbuff[255] = '\0';
+        if (!transcoding_problem) {
+            char tmpbuff[256], newname[512];
+            // Move the original mp2 file if the user asked to keep it
+            int delete_workingdir = 1;
+            if (keep_mp2_file) {
+                // Move MP2 file
+                snprintf(tmpbuff, 255, "%s/mp2/%s/%s", datadir, profile->name, short_filename);
+                tmpbuff[255] = '\0';
 
-                        if ( mv_and_rename(full_filename, tmpbuff, newname, 512) ) {
-                                logmsg(LOG_ERR, "Could not move \"%s\" to \"%s\"", full_filename, newname);
-                                delete_workingdir = 0;
-                        } else {
-                                logmsg(LOG_INFO, "Moved \"%s\" to \"%s\"", full_filename, newname);
-                        }
+                if (mv_and_rename(full_filename, tmpbuff, newname, 512)) {
+                    logmsg(LOG_ERR, "Could not move \"%s\" to \"%s\"", full_filename, newname);
+                    delete_workingdir = 0;
+                } else {
+                    logmsg(LOG_INFO, "Moved \"%s\" to \"%s\"", full_filename, newname);
                 }
+            }
 
-                // Delete the temporary directory used while recording and transcoding
-                // unless there were a problem with the transcoding. 
-                if( !doabort  && delete_workingdir ) {
-                        if( removedir(workingdir) ) {
-                                logmsg(LOG_ERR, "Could not delete directory \"%s\".", workingdir);
-                        } else {
-                                logmsg(LOG_INFO, "Deleted directory \"%s\".", workingdir);
-                        }
+            // Delete the temporary directory used while recording and transcoding
+            // unless there were a problem with the transcoding.
+            if (!doabort && delete_workingdir) {
+                if (removedir(workingdir)) {
+                    logmsg(LOG_ERR, "Could not delete directory \"%s\".", workingdir);
+                } else {
+                    logmsg(LOG_INFO, "Deleted directory \"%s\".", workingdir);
                 }
+            }
         }
     }
+
     free(recording);
     pthread_exit(NULL);
     return (void *) 0;
@@ -897,6 +942,12 @@ chkrec(void *arg) {
     time_t now;
     int diff, ret;
     volatile int video;
+
+    // To avoid reserving ~8MB after the thread terminates we
+    // detach it. Without doing this the pthreads library would keep
+    // the exit status until the thread is joined (or detached) which would mean
+    // loosing 8MB for exah created thread
+    pthread_detach(pthread_self());
 
     // Do some sanity checks of time_resolution
     time_resolution = MIN(MAX(time_resolution,1),10);
@@ -980,13 +1031,19 @@ chkrec(void *arg) {
  * connects to us. It is run as its own thread
  */
 void *
-clientsrv(void *client_socket_ptr) {
+clientsrv(void *arg) {
     int numreads, i, ret;
-    int my_socket = *(int *) client_socket_ptr;
+    int my_socket = *(int *) arg;
     char buffer[1024];
     fd_set read_fdset;
     struct timeval timeout;
     int idle_time=0;
+
+    // To avoid reserving ~8MB after the thread terminates we
+    // detach it. Without doing this the pthreads library would keep
+    // the exit status until the thread is joined (or detached) which would mean
+    // loosing 8MB for exah created thread
+    pthread_detach(pthread_self());
 
     bzero(buffer, 1024);
     
@@ -1219,9 +1276,6 @@ startupsrv(void) {
                 if (ret != 0) {
                     logmsg(LOG_ERR, "Could not create thread for client ( %d :  %s )",errno,strerror(errno));
                 } else {
-                    // Save some system resources by detaching this thread since
-                    // we will never do a join on threads
-                    pthread_detach(cli_threads[i]);
                     ncli_threads++;
                 }
             } else {
@@ -1294,7 +1348,7 @@ sighand_thread(void *ptr) {
 void startdaemon(void) {
 
     // Fork off the child
-    pid_t pid = vfork();
+    pid_t pid = fork();
     if( pid < 0 ) {
         syslog(LOG_ERR, "Cannot fork daemon.");
         exit(EXIT_FAILURE);
@@ -1322,7 +1376,7 @@ void startdaemon(void) {
 
     // Fork again to ensure we are not a session group leader
     // and hence can never regain a controlling terminal
-    pid = vfork();
+    pid = fork();
     if( pid < 0 ) {
 	syslog(LOG_ERR, "Cannot do second fork to create daemon.");
         exit(EXIT_FAILURE);

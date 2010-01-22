@@ -570,8 +570,8 @@ int
 wait_to_transcode(char *filename) {
     // We will not start transcoding until the 5 min load average is below max_load_for_transcoding
     int waiting_time = 0;
-    int backoff_time = 5*60;
-    int adj = 0 ;
+    int backoff_time = 7*60;
+    int logcnt=0;
     float avg1 = 0, avg5 = 0, avg15 = 0;
     getsysload(&avg1, &avg5, &avg15);
 
@@ -584,20 +584,15 @@ wait_to_transcode(char *filename) {
         sleep(backoff_time);
         waiting_time += backoff_time;
         getsysload(&avg1, &avg5, &avg15);
-        if( avg5 > max_load_for_transcoding ) {
+
+        // Only write the waiting message to the logs every 4:th cycle to avoid
+        // too much noise in the logflie
+        if( ++logcnt > 3 && avg5 > max_load_for_transcoding ) {
             logmsg(LOG_NOTICE, "Still waiting to to transcode '%s'. Current load %.2f > %d. Total waiting time: %d min",
                    filename, avg5, max_load_for_transcoding,waiting_time/60);
+            logcnt=0;
         }
         
-        // If the server is really busy we icrease the backoff_time in two steps for a maximum
-        // check time of every 20 min. This way we avoid to have an abundance of log entries
-        if( 0==adj && waiting_time > 30*60 ) {
-            backoff_time = 10*60 ;
-            adj = 1;
-        } else if (1==adj && waiting_time > 90*60) {
-            backoff_time = 20*60 ;
-            adj = 2;
-        }
     }
     return waiting_time < max_waiting_time_to_transcode || max_waiting_time_to_transcode==0 ? 0 : -1;
 }
@@ -728,7 +723,7 @@ kill_all_ongoing_transcodings(void) {
     }
 
     // Wait a bit
-    usleep(600);
+    usleep(800);
 
     // Then not so nicely, kill every process
     for (int i = 0; i < max_ongoing_transcoding; i++) {
@@ -742,10 +737,7 @@ kill_all_ongoing_transcodings(void) {
 
 }
 
-// Keep track of all ongoing transcoding threads. In reality only 2-3 threads will ever be
-// running to avoid too high load on the server.
-#define MAX_FILETRANSC_THREADS 20
-pthread_t filetransc_threads[MAX_FILETRANSC_THREADS];
+// Number of ongoing file transcoding threads
 int nfiletransc_threads = 0;
 
 // Mutex to protect the transcoding thread array and index variables
@@ -776,9 +768,14 @@ _transcode_file(void *arg) {
     int runningtime = 0;
     char filename[512];
     char profilename[512];
-
-    // Get arguments
     struct transc_param *param = (struct transc_param *) arg;
+
+    // To avoid reserving ~8MB after the thread terminates we
+    // detach it. Without doing this the pthreads library would keep
+    // the exit status until the thread is joined (or detached) which would mean
+    // loosing 8MB for exah created thread
+    pthread_detach(pthread_self());
+
     strncpy(filename,param->filename,511);
     strncpy(profilename, param->profilename,511);
     int wait = param->wait;
@@ -812,10 +809,14 @@ _transcode_file(void *arg) {
     char wdirbuff[256];
     snprintf(wdirbuff,255,"vtmp/%s",wdirname);
 
+    char workingdir[256];
+    snprintf(workingdir,255, "%s/%s",datadir,wdirbuff);
+    workingdir[255] = '\0';
+
     struct stat fstat;
-    if( 0 == stat(wdirbuff,&fstat) ) {
+    if( 0 == stat(workingdir,&fstat) ) {
         // Directory already exists. We play safe an bail out
-        logmsg(LOG_ERR,"Directory %s already exists. Cannot transcode. Please remove directory manually.");
+        logmsg(LOG_ERR,"Directory '%s' already exists. Cannot transcode. Please remove directory manually.");
         pthread_mutex_lock(&filetransc_mutex);
         nfiletransc_threads--;
         pthread_mutex_unlock(&filetransc_mutex);
@@ -823,12 +824,9 @@ _transcode_file(void *arg) {
         pthread_exit(NULL);
         return (void *) 0;
     } else {
+        logmsg(LOG_NOTICE,"Failed stat() on '%s' (%d : %s)",workingdir,errno,strerror(errno));
         chkcreatedir(datadir,wdirbuff);
     }
-
-    char workingdir[256];
-    snprintf(workingdir,255, "%s/%s",datadir,wdirbuff);
-    workingdir[255] = '\0';
 
     // Link the file to transcode into this new working directory
     snprintf(wdirbuff,255,"%s/%s",workingdir,basename(filename));
@@ -853,7 +851,7 @@ _transcode_file(void *arg) {
     cmdbuff[1023] = '\0';
 
     pid_t pid;
-    if ((pid = vfork()) == 0) {
+    if ((pid = fork()) == 0) {
         // In the child process
         // Make absolutely sure everything is cleaned up except the standard
         // descriptors
@@ -869,9 +867,12 @@ _transcode_file(void *arg) {
         setpgid(getpid(), 0); // This sets the PGID to be the same as the PID
         if (-1 == nice(20)) {
             logmsg(LOG_ERR, "Error when calling 'nice()' : ( %d : %s )", errno, strerror(errno));
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         }
-        execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0);
+        if ( -1 == execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0) ) {
+            logmsg(LOG_ERR, "Error when calling execl() '/bin/sh/%s' : ( %d : %s )", cmdbuff,errno, strerror(errno));
+            _exit(EXIT_FAILURE);
+        }
     } else if (pid < 0) {
         logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file \"%s\" (%d : %s)",
                basename(filename), errno, strerror(errno));
@@ -965,7 +966,18 @@ _transcode_file(void *arg) {
                     } else {
                         logmsg(LOG_INFO, "Moved '%s' to '%s'", tmpbuff2, newname);
                     }
+
+                    // Remove temporary directory
+                    if (removedir(workingdir)) {
+                        logmsg(LOG_ERR, "Could not delete working directory '%s'.", workingdir);
+                    } else {
+                        logmsg(LOG_INFO, "Deleted working directory '%s'.", workingdir);
+                    }
+
+                } else {
+                    logmsg(LOG_NOTICE,"Transcoding was not successfull. Working directory '%s' not removed.",workingdir);
                 }
+
             }
         }
     }
@@ -999,30 +1011,32 @@ transcode_file(char *filename, char *profilename, int wait) {
     param->wait = wait;
 
     // Start the thread that will actually do the recording to the file system
+/*
     if( nfiletransc_threads >= MAX_FILETRANSC_THREADS ) {
         logmsg(LOG_ERR, "Only %d number of concurrent transcodings are permitted. Transcoding not started.");
         return -1;
     }
     pthread_mutex_lock(&filetransc_mutex);
-    int ret = pthread_create(&filetransc_threads[nfiletransc_threads], NULL, _transcode_file, (void *) param);
+*/
+
+    pthread_t thread_id;
+    int ret = pthread_create(&thread_id, NULL, _transcode_file, (void *) param);
     nfiletransc_threads++;
     pthread_mutex_unlock(&filetransc_mutex);
+
     if (ret != 0) {
-        logmsg(LOG_ERR, "Could not create thread for transcoding of file %s using profile @%s",filename,profilename);
+        logmsg(LOG_ERR, "Could not create thread for transcoding of file '%s' using profile @%s",filename,profilename);
         pthread_mutex_lock(&filetransc_mutex);
         nfiletransc_threads--;
         pthread_mutex_unlock(&filetransc_mutex);
         return -1;
     } else {
-        logmsg(LOG_INFO, "Created thread for transcoding of file %s using profile @%s",filename,profilename);
+        logmsg(LOG_INFO, "Created thread for transcoding of file '%s' using profile @%s",filename,profilename);
     }
     return 0;
 }
 
-#define MAX_FILELISTTRANSC_THREADS 10
 #define MAX_FILELIST_ENTRIES 150
-
-pthread_t filelisttransc_threads[MAX_FILELISTTRANSC_THREADS];
 int nfilelisttransc_threads = 0;
 
 struct transc_filelistparam {
@@ -1032,12 +1046,17 @@ struct transc_filelistparam {
 };
 
 void *
-_transcode_filelist(void *arg) {
-    
+_transcode_filelist(void *arg) {   
     struct transc_filelistparam *param = (struct transc_filelistparam *) arg;
-
     int idx=0;
     char buffer[512] = {'\0'};
+
+    // To avoid reserving ~8MB after the thread terminates we
+    // detach it. Without doing this the pthreads library would keep
+    // the exit status until the thread is joined (or detached) which would mean
+    // loosing 8MB for exah created thread
+    pthread_detach(pthread_self());
+
     if( strnlen(param->dirpath,256) >= 256 ) {
         logmsg(LOG_ERR,"Dirpath in specified filelist is too long > 256 characters. Aborting transcoding of filelist.");
         pthread_exit(NULL);
@@ -1101,6 +1120,10 @@ _transcode_filelist(void *arg) {
     free(param->profilename);
     free(param);
 
+    pthread_mutex_lock(&filetransc_mutex);
+    nfilelisttransc_threads++;
+    pthread_mutex_unlock(&filetransc_mutex);
+
     pthread_exit(NULL);
     return (void *) 0;
 }
@@ -1140,14 +1163,19 @@ transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
     }
 
     // Start the thread that will actually do the recording to the file system
+/*
     if( nfilelisttransc_threads >= MAX_FILELISTTRANSC_THREADS ) {
         logmsg(LOG_ERR, "Only %d number of concurrent list transcodings are permitted. Transcoding not started.");
         return -1;
     }
+*/
     pthread_mutex_lock(&filetransc_mutex);
-    int ret = pthread_create(&filelisttransc_threads[nfilelisttransc_threads], NULL, _transcode_filelist, (void *) param);
+    pthread_t thread_id;
+    int ret = pthread_create(&thread_id, NULL, _transcode_filelist, (void *) param);
     nfilelisttransc_threads++;
     pthread_mutex_unlock(&filetransc_mutex);
+
+
     if (ret != 0) {
         logmsg(LOG_ERR, "Could not create thread for transcoding of file list");
         pthread_mutex_lock(&filetransc_mutex);
