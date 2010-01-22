@@ -256,10 +256,14 @@ extern "C" {
 
 /*
  * MAX_WAITING_TIME_TO_TRANSCODE integer
- * The maximum time in seconds we will wait to transcode while the
- * server load is above MAX_LOAD_FOR_TRANSCODING
+ * The maximum time in seconds that can be set to wait for the
+ * server load to fall below MAX_LOAD_FOR_TRANSCODING
+ * Note: In the default conf file this is set to 0 which means
+ * we can wait indefinitely. The value here just indicates the
+ * maximum deterministic time that can be set.
+ * (Default value is 7 days)
  */
-#define MAX_WAITING_TIME_TO_TRANSCODE 48*60*60
+#define MAX_WAITING_TIME_TO_TRANSCODE 7*24*60*60
 
 /*
  * FFMPEG_BIN string
@@ -404,6 +408,9 @@ extern int time_resolution;
 
 // The size of the memory buffer used when reading video data from the device
 extern int video_bufsize;
+
+// The video buffers (one for each capture card)
+extern char *video_buffer[];
 
 // The default base data diectory
 extern char datadir[];
