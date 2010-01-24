@@ -934,8 +934,10 @@ startrec(void *arg) {
 }
 
 /*
- * This function get called regulary and checks if there is a pending recording that
- * should be started.
+ * This is the main thread to watch for starting new recordings. It is started at the beginning
+ * of the server and run until the server is shut down. It will loop and check every 'time_resolution'
+ * second if a queued recoding is due to be started.
+ * There is no argument passed to this thread.
  */
 void *
 chkrec(void *arg) {
@@ -959,6 +961,8 @@ chkrec(void *arg) {
         now = time(NULL);
 
         pthread_mutex_lock(&recs_mutex);
+
+        // Each video has it's own queue which we check
 
         // Recordings are always kept sorted sorted by start time
         // so that any record to be started will be available
@@ -998,11 +1002,11 @@ chkrec(void *arg) {
                         // until a few seconds after 14:00.
                         // To make things worse this new recording could potentially start at
                         // 14:00 - time_resolution, and this will not work. So, we check if there is an
-                        // existing recording ongoing and it it is we give a wanring message
+                        // existing recording ongoing and it it is we give a warning message
                         // and try again
 
                         if ( active != NULL) {
-                            logmsg(LOG_ERR, "Can not start, '%s' using stream %02d. Previous recording (%s) has not yet stopped.",
+                            logmsg(LOG_ERR, "Can not start, '%s' using stream %02d. Previous recording (%s) has not yet stopped. Will try again.",
                                    recs[REC_IDX(video, 0)]->title,video,ongoing_recs[video]->title);
                         } else {
                             // Remember what recording is currently taking place for this video stream
@@ -1049,7 +1053,26 @@ clientsrv(void *arg) {
     
     i = 0;
     while (i < max_clients && client_socket[i] != my_socket)
-        i++;    
+        i++;
+
+    if( i >= max_clients ) {
+        logmsg(LOG_ERR,"Internal error. Socket (%d) for new client is invalid! ", my_socket);
+        pthread_mutex_lock(&socks_mutex);
+
+        client_socket[i] = 0;
+        free(client_ipadr[i]);
+        client_ipadr[i] = 0;
+        client_tsconn[i] = 0;
+        cli_threads[i] = 0;
+        if( -1 == _dbg_close(my_socket) ) {
+            logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
+                        my_socket,client_ipadr[i],errno,strerror(errno));
+        }
+        ncli_threads--;
+        pthread_mutex_unlock(&socks_mutex);
+        pthread_exit(NULL);
+        return (void *) 0;
+    }
     
     if( require_password ) {
         int tries = 3;
@@ -1148,7 +1171,6 @@ clientsrv(void *arg) {
     logmsg(LOG_INFO,"Connection from %s on socket %d closed.", client_ipadr[i], my_socket);
 
     pthread_mutex_lock(&socks_mutex);
-
     client_socket[i] = 0;
     free(client_ipadr[i]);
     client_ipadr[i] = 0;
@@ -1159,7 +1181,6 @@ clientsrv(void *arg) {
                     my_socket,client_ipadr[i],errno,strerror(errno));
     }
     ncli_threads--;
-
     pthread_mutex_unlock(&socks_mutex);
 
     pthread_exit(NULL);
@@ -1256,11 +1277,8 @@ startupsrv(void) {
         } else {
 
             set_cloexec_flag(newsocket,1);
-
             dotaddr = inet_ntoa(socketaddress.sin_addr);
-
             pthread_mutex_lock(&socks_mutex);
-
             logmsg(LOG_INFO, "Client number %d have connected from IP: %s on socket %d", ncli_threads + 1, dotaddr, newsocket);
 
             // Find the first empty slot for storing the client thread id
@@ -1270,7 +1288,7 @@ startupsrv(void) {
 
             if (i < max_clients) {
                 client_socket[i] = newsocket;
-                client_ipadr[i] = strdup(dotaddr);
+                client_ipadr[i] = strdup(dotaddr); // Released in clisrv()
                 client_tsconn[i] = time(NULL);
                 ret = pthread_create(&cli_threads[i], NULL, clientsrv, (void *) & client_socket[i]);
                 if (ret != 0) {

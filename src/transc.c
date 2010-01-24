@@ -900,8 +900,12 @@ _transcode_file(void *arg) {
             // performance.
             pid_t rpid;
 
-            // We only allow one transcoding to run for a maximum of 24 h
-            const int watchdog = 24 * 3600;
+            // We only allow one transcoding to run for a maximum of 48 h
+            // This will easily allow (even on a weak CPU) the transcoding two 4h
+            // videos in high quality which could take up to 4-5 hours per hour recorded
+            // for a single running transcoding. This means that two simulataneous running
+            // jobs would require ~8 hour per recorded hour to complete.
+            const int watchdog = 48 * 3600;
             int ret;
             struct rusage usage;
             do {
@@ -1112,6 +1116,8 @@ _transcode_filelist(void *arg) {
     while(idx < MAX_FILELIST_ENTRIES && *param->filelist[idx]) {
         free(param->filelist[idx++]);
     }
+
+    // Free the final "0" string that is used as sentinel
     if( idx < MAX_FILELIST_ENTRIES ) {
         free(param->filelist[idx]);
     }
@@ -1147,8 +1153,8 @@ transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
     // function we must maker sure we have our own copies of the dirpath and profilename
     // since they might be stack variables that goes out of scope.
     // The filelist is not a problem since that is allocated dynamically.
-    param->dirpath = strdup(dirpath);
-    param->profilename = strdup(profilename);
+    param->dirpath = strdup(dirpath); // Released in _transcode_file
+    param->profilename = strdup(profilename); // Released in _transcode_file
     param->filelist = filelist;
 
     // Check for degenerate cases
@@ -1174,7 +1180,6 @@ transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
     int ret = pthread_create(&thread_id, NULL, _transcode_filelist, (void *) param);
     nfilelisttransc_threads++;
     pthread_mutex_unlock(&filetransc_mutex);
-
 
     if (ret != 0) {
         logmsg(LOG_ERR, "Could not create thread for transcoding of file list");
