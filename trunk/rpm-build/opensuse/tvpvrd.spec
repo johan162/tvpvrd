@@ -14,7 +14,7 @@ BuildRequires:  v4l-tools glibc-devel libiniparser-devel libxml2-devel pcre-deve
 PreReq:         pwdutils coreutils
 Summary:        TV Personal Video Recorder Daemon
 Name:           tvpvrd
-Version:        1.0.7
+Version:        1.1.1
 Release:        1.1
 License:        GPLv3
 Group:          Productivity/Multimedia/Other
