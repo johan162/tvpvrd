@@ -176,7 +176,6 @@ _cmd_help(const char *cmd, int sockfd) {
     }
 }
 
-
 /**
  * Command: _cmd_undefined
  * Default action when the command is not recognized
@@ -344,7 +343,6 @@ _cmd_delete(const char *cmd, int sockfd) {
     if( field != (void *)NULL ) {
         pcre_free_substring_list((const char **)field);
     }
-
 }
 
 /**
@@ -1055,7 +1053,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
 
 /**
  * Command: _cmd_info
- * Give detailed inform ation about specified recording
+ * Give detailed information about specified recording
  * Syntax:
  * i <id>
  */
@@ -1063,7 +1061,7 @@ static void
 _cmd_info(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "Give detailed information on specified recording.\n"\
+                "(Not implemented) Give detailed information on specified recording.\n"\
                 "i <id>\n"
                 );
         return;
@@ -1071,6 +1069,12 @@ _cmd_info(const char *cmd, int sockfd) {
     // TODO: Finish this function
 }
 
+/**
+ * Command: _cmd_ongoingtrans
+ * List all ongoing transcodings
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_ongoingtrans(const char *cmd, int sockfd) {
     char msgbuff[2048];
@@ -1087,6 +1091,12 @@ _cmd_ongoingtrans(const char *cmd, int sockfd) {
     _writef(sockfd, msgbuff);
 }
 
+/**
+ * Command: _cmd_refresh_profiles
+ * Re-read all specified profiles from disk
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_refresh_profiles(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
@@ -1428,6 +1438,12 @@ _cmd_version(const char *cmd, int sockfd) {
             "\n",server_program_name, server_version, server_build_date);
 }
 
+/**
+ * Command: _cmd_statistics
+ * Print statistic information for all existing profiles
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_statistics(const char *cmd, int sockfd) {
     char buff[2048];
@@ -1442,6 +1458,12 @@ _cmd_statistics(const char *cmd, int sockfd) {
     _writef(sockfd,buff);
 }
 
+/**
+ * Command: _cmd_resetstatistics
+ * Reset all statistics
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_resetstatistics(const char *cmd, int sockfd) {
     char buff[512];
@@ -1503,12 +1525,11 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
                     }
                 }
             }
+
         } else {
             _cmd_undefined(cmd,sockfd);
         }
     }
-
-
 }
 
 
@@ -1679,6 +1700,12 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
     }
 }
 
+/**
+ * Command: _cmd_killtranscoding
+ * Kill all ongoing transcodings
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_killtranscoding(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
@@ -1710,6 +1737,12 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
     }
 }
 
+/**
+ * Command: _cmd_transcodefile
+ * Transcode a specified file
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_transcodefile(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
@@ -1752,6 +1785,12 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
 
 }
 
+/**
+ * Command: _cmd_transcodefilelist
+ * Transcode a number of files stored in a file
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_transcodefilelist(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
@@ -1784,6 +1823,12 @@ _cmd_transcodefilelist(const char *cmd, int sockfd) {
     }
 }
 
+/**
+ * Command: _cmd_transcodefilesindirectory
+ * Transcode all files in the specified directory
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
@@ -1816,6 +1861,12 @@ _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
     }
 }
 
+/**
+ * Command: _cmd_list_queued_transcodings
+ * List information on the specified list of transcodings
+ * @param cmd
+ * @param sockfd
+ */
 static void
 _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
@@ -1823,8 +1874,7 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "lq <num> - List inofmration on queded file list <num>\n"
-                );
+                "lq <num> - List information on specified queued file list <num>\n");
         return;
     }
 
@@ -1832,15 +1882,16 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
     if( ret > 1 ) {
 
         if( -1 == get_queued_transc_filelists_info( atoi(field[1]), buffer ,4095, 1) ) {
-            _writef(sockfd,"Syntax error. Selected file list does not exist.\n");
+            _writef(sockfd,"Syntax error. Perhaps the selected file list does not exist.\n");
         }
         _writef(sockfd,buffer);
 
     } else {
+
         _writef(sockfd,"Syntax error.\n");
+        
     }
 }
-
 
 /**
  * Reserved for future use
@@ -1886,7 +1937,7 @@ cmdinit(void) {
     cmdtable[CMD_TRANSCODEFILE]     = _cmd_transcodefile;
     cmdtable[CMD_TRANSCODEFILELIST] = _cmd_transcodefilelist;
     cmdtable[CMD_TRANSCODEDIR]      = _cmd_transcodefilesindirectory;
-    cmdtable[CMD_LIST_QUEUEDTRANSC]      = _cmd_list_queued_transcodings;
+    cmdtable[CMD_LIST_QUEUEDTRANSC] = _cmd_list_queued_transcodings;
 }
 
 /**

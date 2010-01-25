@@ -1020,11 +1020,13 @@ transcode_file(char *filename, char *profilename, int wait) {
         logmsg(LOG_ERR, "Only %d number of concurrent transcodings are permitted. Transcoding not started.");
         return -1;
     }
-    pthread_mutex_lock(&filetransc_mutex);
 */
+
+    pthread_mutex_lock(&filetransc_mutex);
 
     pthread_t thread_id;
     int ret = pthread_create(&thread_id, NULL, _transcode_file, (void *) param);
+
     nfiletransc_threads++;
     pthread_mutex_unlock(&filetransc_mutex);
 
@@ -1413,13 +1415,14 @@ read_filenamelist(char *filename, char *filenamelist[], int maxlen) {
     char *ptr;
     char dirpath[256];
     char filenamebuffer[512];
+
     while( fgets(linebuffer,512,fp) && i<maxlen ) {
 
         // Get rid of trailing newline
         linebuffer[strlen(linebuffer)-1] = '\0';
 
         if( strlen(linebuffer) < 6 ) {
-            logmsg(LOG_NOTICE,"Invalid file name on row=%d in filelist. Skipping.");
+            logmsg(LOG_NOTICE,"Invalid file name on row=%d in filelist. Skipping.",i+1);
             continue;
         }
 
