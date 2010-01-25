@@ -85,8 +85,9 @@
 #define CMD_TRANSCODEFILE 25
 #define CMD_TRANSCODEFILELIST 26
 #define CMD_TRANSCODEDIR 27
+#define CMD_LIST_QUEUEDTRANSC 28
 
-#define CMD_UNDEFINED 28
+#define CMD_UNDEFINED 29
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -140,6 +141,7 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  l    - list all pending recordings\n"\
                         "  ls   - list all stations\n"\
                         "  lc   - list all controls for the capture card\n"\
+                        "  lq n - list queued transcodings\n"\
 			"  n    - list the immediate next recording on each video\n"\
 			"  o    - list the ongoing recording(s)\n"\
                         "  ot   - list the ongoing transcoding(s)\n"\
@@ -162,7 +164,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  ! <n>  - cancel ongoing recording\n"\
                         "Type h <cmd> for syntax of each command\n";
     char **field = (void *)NULL;
-    int ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
+    int ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
         if( field != (void *)NULL ) {
@@ -1814,6 +1816,32 @@ _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
     }
 }
 
+static void
+_cmd_list_queued_transcodings(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    char buffer[4096];
+
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "lq <num> - List inofmration on queded file list <num>\n"
+                );
+        return;
+    }
+
+    int ret = matchcmd("^lq" _PR_S _PR_ID _PR_E, cmd, &field);
+    if( ret > 1 ) {
+
+        if( -1 == get_queued_transc_filelists_info( atoi(field[1]), buffer ,4095, 1) ) {
+            _writef(sockfd,"Syntax error. Selected file list does not exist.\n");
+        }
+        _writef(sockfd,buffer);
+
+    } else {
+        _writef(sockfd,"Syntax error.\n");
+    }
+}
+
+
 /**
  * Reserved for future use
  */
@@ -1858,6 +1886,7 @@ cmdinit(void) {
     cmdtable[CMD_TRANSCODEFILE]     = _cmd_transcodefile;
     cmdtable[CMD_TRANSCODEFILELIST] = _cmd_transcodefilelist;
     cmdtable[CMD_TRANSCODEDIR]      = _cmd_transcodefilesindirectory;
+    cmdtable[CMD_LIST_QUEUEDTRANSC]      = _cmd_list_queued_transcodings;
 }
 
 /**
@@ -1880,6 +1909,7 @@ _getCmdPtr(const char *cmd) {
     // rest of the command string.
     static struct cmd_entry cmdfunc[] = {
         {"h",  CMD_HELP},
+        {"lq", CMD_LIST_QUEUEDTRANSC},
         {"lc", CMD_LIST_CONTROLS},
         {"ls", CMD_LIST_STATIONS},
         {"l",  CMD_LIST},
@@ -1912,10 +1942,25 @@ _getCmdPtr(const char *cmd) {
 
     int cmdlen = sizeof (cmdfunc) / sizeof(struct cmd_entry);
     int i = 0;
+    int inhelp=0;
 
-    while (i < cmdlen && strncmp(cmd,cmdfunc[i].cmd_name,strlen(cmdfunc[i].cmd_name)) )
+    if( cmd[0] == 'h' && cmd[1] != '\0' ) {
+        inhelp=1;
+        cmd += 2;
+    }
+
+    while (i < cmdlen ) {
+        int len = strlen(cmdfunc[i].cmd_name);
+        if( 0 == strncmp(cmd,cmdfunc[i].cmd_name,len) ) {
+            if( cmd[len] == ' ' || cmd[len]=='\0' )
+                break;
+        }
         i++;
+    }
 
+    if( inhelp )
+        cmd -= 2;
+    
     if (i < cmdlen) {
         return cmdtable[cmdfunc[i].cmd_idx];
     } else {

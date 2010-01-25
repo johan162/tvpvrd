@@ -1040,14 +1040,200 @@ transcode_file(char *filename, char *profilename, int wait) {
     return 0;
 }
 
-#define MAX_FILELIST_ENTRIES 150
+// Protection of the filelist queue
+pthread_mutex_t filelist_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+// Each filelist can contain at most this many video files
+#define MAX_FILELIST_ENTRIES 200
 int nfilelisttransc_threads = 0;
 
+// The parameter structure which is passed to the transcode filelist working thread
 struct transc_filelistparam {
     char *dirpath;
     char **filelist;
     char *profilename;
 };
+
+// The maximun number of simultaneous ongoing list transcodings
+#define MAX_FILELISTS 5
+struct filelist_queue {
+    struct transc_filelistparam *filelist_param;
+    int idx;
+    int nentries;
+    time_t start;
+};
+struct filelist_queue *ongoing_filelist_transcodings[MAX_FILELISTS] = {NULL};
+static int num_filelists=0;
+
+int
+enqueue_filelist(struct transc_filelistparam *filelist) {
+    int i;
+
+    pthread_mutex_lock(&filelist_mutex);
+    // Find the first empty slot
+    for(i=0; i<MAX_FILELISTS; ++i) {
+        if( ongoing_filelist_transcodings[i] == NULL ) {
+            ongoing_filelist_transcodings[i] = calloc(1,sizeof(struct filelist_queue));
+            ongoing_filelist_transcodings[i]->filelist_param = filelist;
+            ongoing_filelist_transcodings[i]->idx = 0;
+            ongoing_filelist_transcodings[i]->start = time(NULL);
+            num_filelists++;
+
+            logmsg(LOG_NOTICE,"Enqueued filelist in slot [%d]",i);
+
+            int count=0;
+            while( count < MAX_FILELIST_ENTRIES && *filelist->filelist[count] ) {
+                ++count;
+            }
+            ongoing_filelist_transcodings[i]->nentries = count;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&filelist_mutex);
+
+    if( i >= MAX_FILELISTS ) {
+        logmsg(LOG_ERR,"No free filelist slots. Can only add a maximum of %d filelists.", MAX_FILELISTS);
+        return -1;
+    }
+
+    return 0;
+}
+
+int
+dequeue_filelist(struct transc_filelistparam *filelist) {
+    int i;
+
+    pthread_mutex_lock(&filelist_mutex);
+    // Find the slot where this is stored
+    for(i=0; i<MAX_FILELISTS; ++i) {
+        if( ongoing_filelist_transcodings[i] && ongoing_filelist_transcodings[i]->filelist_param == filelist ) {
+            free(ongoing_filelist_transcodings[i]);
+            ongoing_filelist_transcodings[i] = NULL;
+            num_filelists--;
+
+            logmsg(LOG_NOTICE,"Dequeued filelist in slot [%d]",i);
+            break;
+        }
+    }
+    pthread_mutex_unlock(&filelist_mutex);
+
+    if( i >= MAX_FILELISTS ) {
+        logmsg(LOG_ERR,"Internal error. Can not dequeue non existing filelist.");
+        return -1;
+    }
+
+    return 0;
+}
+
+int
+incidx_fillist(struct transc_filelistparam *filelist) {
+    int i;
+
+    pthread_mutex_lock(&filelist_mutex);
+    // Find the slot where this is stored
+    for(i=0; i<MAX_FILELISTS; ++i) {
+        if( ongoing_filelist_transcodings[i] && ongoing_filelist_transcodings[i]->filelist_param == filelist ) {
+            ongoing_filelist_transcodings[i]->idx++;
+            logmsg(LOG_NOTICE,"Updated filelist in slot [%d] to idx=%d",i,ongoing_filelist_transcodings[i]->idx);
+            if( ongoing_filelist_transcodings[i]->idx > ongoing_filelist_transcodings[i]->nentries ) {
+                logmsg(LOG_ERR,"Internal error. Current filelist index is larger than the total number of entries in the list.");
+                return -1;
+            }
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&filelist_mutex);
+
+    if( i >= MAX_FILELISTS ) {
+        logmsg(LOG_ERR,"Internal error. Can not increase index on non existing filelist.");
+        return -1;
+    }
+    return 0;
+}
+
+int
+get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
+    char tmpbuff[512];
+    // Return information on transcoding filelist with ordinal numebr num
+    // in the supplied buffer as a string
+    if( len < 200 )
+        return -1;
+
+    // Locate the 'num' fillist
+    int idx=0;
+    int nfound=0;
+    while( idx < MAX_FILELISTS ) {
+        if( ongoing_filelist_transcodings[idx] ) {
+            nfound++;
+        }
+        if( nfound==num )
+            break;
+        idx++;
+    }
+
+    if( idx >= MAX_FILELISTS )
+        return -1;
+
+    time_t ts_tmp = time(NULL) - ongoing_filelist_transcodings[idx]->start;
+    int sh = ts_tmp / 3600;
+    int sday = sh / 24 ;
+    int smin = (ts_tmp - sh * 3600) / 60;
+    sh = sh - sday*24;
+
+    // Try to estimate the remaining time (very roughly)
+    time_t ts_left = 0;
+    int lh=-1;
+    int lday = -1;
+    if( ongoing_filelist_transcodings[idx]->idx > 2 ) {
+        ts_left = ts_tmp/(ongoing_filelist_transcodings[idx]->idx-1) *
+                    (ongoing_filelist_transcodings[idx]->nentries-ongoing_filelist_transcodings[idx]->idx+1);
+        lh = ts_left / 3600;
+        lday = sh / 24 ;
+        lh = sh-24*3600+1;
+    }
+
+
+    *buffer=0;
+    snprintf(tmpbuff,511,
+        "%15s: #%02d\n"
+        "%15s: %02d videos in list\n"
+        "%15s: %02d (%d%%) files\n"
+        "%15s: %s"
+        "%15s: %02d days %02d:%02d h\n"
+        "%15s: %02d days ~%02d h (approx.)\n",
+
+        "Filelist",num,
+        "Total",ongoing_filelist_transcodings[idx]->nentries,
+        "Processed",ongoing_filelist_transcodings[idx]->idx, (100*ongoing_filelist_transcodings[idx]->idx)/ongoing_filelist_transcodings[idx]->nentries,
+        "Job started",ctime(&ongoing_filelist_transcodings[idx]->start),
+        "Running time",sday,sh,smin,
+        "Est. time left",lday,lh);
+
+    strncpy(buffer,tmpbuff,len-1);
+    buffer[len-1]='\0';
+    if( incfiles ) {
+       snprintf(tmpbuff,511,"\nProcessed:\n");
+       strncat(buffer,tmpbuff,len-1);
+       buffer[len-1]='\0';
+       for(int i=0; i < ongoing_filelist_transcodings[idx]->idx; i++ ) {
+           snprintf(tmpbuff,511,"  * %s\n",ongoing_filelist_transcodings[idx]->filelist_param->filelist[i]);
+           strncat(buffer,tmpbuff,len-1);
+           buffer[len-1]='\0';
+       }
+
+       snprintf(tmpbuff,511,"\nNot processed:\n");
+       strncat(buffer,tmpbuff,len-1);
+       buffer[len-1]='\0';
+       for(int i=ongoing_filelist_transcodings[idx]->idx; i < ongoing_filelist_transcodings[idx]->nentries; i++ ) {
+           snprintf(tmpbuff,511,"  + %s\n",ongoing_filelist_transcodings[idx]->filelist_param->filelist[i]);
+           strncat(buffer,tmpbuff,len-1);
+           buffer[len-1]='\0';
+       }
+    }
+
+    return 0;
+}
 
 void *
 _transcode_filelist(void *arg) {   
@@ -1066,6 +1252,9 @@ _transcode_filelist(void *arg) {
         pthread_exit(NULL);
         return (void *) 0;
     }
+
+    enqueue_filelist(param);
+
     if( strnlen(param->dirpath,256) > 0 ) {
         strncpy(buffer,param->dirpath,256);
         strncat(buffer,"/",4);
@@ -1081,7 +1270,7 @@ _transcode_filelist(void *arg) {
 
     buffer[511] = '\0';
     
-    // Loop through all the filenames
+    // Loop through all the filenames and transcode them one, by one
     while( *buffer != '\0' ) {
         logmsg(LOG_INFO, "Submitting '%s' for transcoding using @%s",buffer,param->profilename);
         wait_to_transcode(buffer);
@@ -1090,12 +1279,14 @@ _transcode_filelist(void *arg) {
             break;
         }
 
-        // Always take a minimum of 5 min break between trying to submit new files.
+        incidx_fillist(param);
+
+        // Always take a minimum of 3 min break between trying to submit new files.
         // This is done in order to make sure that the CPU load (to be tested in wait_to_transcode)
         // will have a chance to build up. If we didn't do this it would be possible to submit
-        // 100 of vides for encoding on an idle server since it takes some time for the load
+        // 100's of videos for encoding on an idle server since it takes some time for the load
         // to accurately reflect the servers work
-        sleep(5*60);
+        sleep(3*60);
 
         if( strnlen(param->dirpath,256) > 0 ) {
             strncpy(buffer,param->dirpath,256);
@@ -1112,6 +1303,8 @@ _transcode_filelist(void *arg) {
         buffer[511] = '\0';
     }
 
+    dequeue_filelist(param);
+    
     idx=0;
     while(idx < MAX_FILELIST_ENTRIES && *param->filelist[idx]) {
         free(param->filelist[idx++]);
@@ -1175,6 +1368,7 @@ transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
         return -1;
     }
 */
+
     pthread_mutex_lock(&filetransc_mutex);
     pthread_t thread_id;
     int ret = pthread_create(&thread_id, NULL, _transcode_filelist, (void *) param);
@@ -1223,6 +1417,11 @@ read_filenamelist(char *filename, char *filenamelist[], int maxlen) {
 
         // Get rid of trailing newline
         linebuffer[strlen(linebuffer)-1] = '\0';
+
+        if( strlen(linebuffer) < 6 ) {
+            logmsg(LOG_NOTICE,"Invalid file name on row=%d in filelist. Skipping.");
+            continue;
+        }
 
         // Is this a dirpath to use for the following files
         if( *linebuffer == ':' ) {
