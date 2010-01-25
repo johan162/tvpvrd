@@ -320,6 +320,18 @@ read_transcode_filelist(char *filename, char *profilename);
 int
 transcode_whole_directory(char *dirpath, char *profilename);
 
+/**
+ * Return information on the currently queued files for transcoding from the chosen
+ * file list
+ * @param num The number of the filelist to show
+ * @param buffer String buffer where the informatoin will be written
+ * @param len Length of buffer
+ * @param incfiles 1=include files names in information
+ * @return -1 on error 0 otherwise
+ */
+int
+get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles);
+
 
 #ifdef	__cplusplus
 }
