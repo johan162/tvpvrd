@@ -695,3 +695,47 @@ strip_filesuffix(char *filename,char *suffix, int slen) {
     }
     return 0;
 }
+
+/**
+ * Find out the size of the working set for the specified process id
+ * and the current number of running threads.
+ * This corresponds to the allocated virtual memory for this process.
+ * @param pid process id
+ * @param unit string with the unit for the size (normally kB)
+ * @param threads Number of running threads
+ * @return 0 on success -1 on failure
+ */
+int
+getwsetsize(int pid, int *size, char *unit, int *threads) {
+    char buffer[256];
+    char linebuffer[1024];
+
+    sprintf(buffer,"/proc/%d/status",pid);
+
+    FILE *fp = fopen(buffer,"r");
+    if( fp == NULL ) {
+        logmsg(LOG_ERR,"Cannot open '%s' (%d : %s)\n",buffer,errno,strerror(errno));
+        return -1;
+    }
+
+    char tmpbuff[64];
+    while( NULL != fgets(linebuffer,1023,fp) ) {
+        strncpy(tmpbuff,linebuffer,6);
+        tmpbuff[6] = '\0';
+        if( strcmp(tmpbuff,"VmSize") == 0  ) {
+            sscanf(linebuffer,"%s %d %s",tmpbuff,size,unit);
+        }
+        if( strcmp(tmpbuff,"Thread") == 0  ) {
+            sscanf(linebuffer,"%s %d",tmpbuff,threads);
+            break;
+        }
+    }
+
+    fclose(fp);
+
+    if( *size == 0 )
+        return -1;
+
+    return 0;
+
+}

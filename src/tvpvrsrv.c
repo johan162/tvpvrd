@@ -111,6 +111,8 @@ int daemonize=-1;
 int max_entries, max_video, max_clients, max_idle_time;
 // Default recording length if nothing else is specified
 int defaultDurationHour, defaultDurationMin;
+// Record if we are master or slave
+int is_master_server;
 // TVP/IP Port to listen to
 int tcpip_port;
 // Logfile details
@@ -265,36 +267,45 @@ init_globs(void) {
     initrecs();
     cmdinit();
 
-    rec_threads     = (pthread_t *) calloc(max_video,   sizeof (pthread_t));
+    if( is_master_server ) {
+        rec_threads     = (pthread_t *) calloc(max_video,   sizeof (pthread_t));
+        video_idx       =       (int *) calloc(max_video,   sizeof (int));
+        abort_video     =       (int *) calloc(max_video,   sizeof (int));
+
+        for (int i = 0; i < max_video; ++i) {
+            // Index of video stream. Used to avoid local stack based variables
+            // to be sent in the pthread_create() call
+            video_idx[i] = i;
+        }
+    }
+
     cli_threads     = (pthread_t *) calloc(max_clients, sizeof (pthread_t));
     client_ipadr    =     (char **) calloc(max_clients, sizeof (char *));
     client_tsconn   =    (time_t *) calloc(max_clients, sizeof (time_t));
     client_socket   =       (int *) calloc(max_clients, sizeof (int));
-    video_idx       =       (int *) calloc(max_video,   sizeof (int));
-    abort_video     =       (int *) calloc(max_video,   sizeof (int));
 
-    for(int i=0; i < max_video; ++i) {
-        video_buffer[i] = calloc(video_bufsize, sizeof(char *));
-        if( video_buffer[i] == NULL ) {
-            fprintf(stderr,"Cannot allocate video buffer memory. (%d : %s)",errno,strerror(errno));
+    if( is_master_server ) {
+        for(int i=0; i < max_video; ++i) {
+            video_buffer[i] = calloc(video_bufsize, sizeof(char *));
+            if( video_buffer[i] == NULL ) {
+                fprintf(stderr,"Cannot allocate video buffer memory. (%d : %s)",errno,strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    if ( is_master_server ) {
+        if (rec_threads   == NULL || video_idx == NULL ||  abort_video   == NULL) {
+            fprintf(stderr, "FATAL: Out of memory running as master. Aborting server.");
             exit(EXIT_FAILURE);
         }
     }
 
-    if (rec_threads   == NULL || cli_threads   == NULL ||
-        client_ipadr  == NULL || client_tsconn == NULL ||
-        client_socket == NULL || video_idx     == NULL ||
-        abort_video   == NULL) {
-
+    if (cli_threads == NULL || client_ipadr == NULL || client_tsconn == NULL || client_socket == NULL ) {
         fprintf(stderr, "FATAL: Out of memory. Aborting server.");
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < max_video; ++i) {
-        // Index of video stream. Used to avoid local stack based variables
-        // to be sent in the pthread_create() call
-        video_idx[i] = i;
-    }
 }
 
 #ifdef DEBUG_SIMULATE
@@ -1099,7 +1110,8 @@ clientsrv(void *arg) {
                 }
             }
             --tries;
-        } 
+        }
+
         if( !authenticated ) {
             logmsg(LOG_INFO,"Authentication failed. Connection from %s on socket %d closed.", client_ipadr[i], my_socket);
 
@@ -1127,7 +1139,9 @@ clientsrv(void *arg) {
 
     // We must mutex this call since we are accessing the nclient_thread
     pthread_mutex_lock(&socks_mutex);
-    snprintf(buffer,1023, WELCOM_MSG, server_version, server_build_date, ncli_threads, max_clients, max_idle_time/60);
+    snprintf(buffer,1023, WELCOM_MSG, server_version, 
+            is_master_server ? "Server" : "Client",
+            server_build_date, ncli_threads, max_clients, max_idle_time/60);
     buffer[1023] = '\0';
     pthread_mutex_unlock(&socks_mutex);
 
@@ -1146,9 +1160,9 @@ clientsrv(void *arg) {
             if (idle_time >= max_idle_time) {
                 numreads = -1; // Force a disconnect
                 logmsg(LOG_INFO, "Client disconnected after being idle for %d seconds.", max_idle_time);
-            }
-            else
+            } else {
                 numreads = 1;
+            }
         } else {
             idle_time = 0;
             numreads = read(my_socket, buffer, 1023);
@@ -1470,7 +1484,7 @@ chkdirstructure(void) {
 #define INIFILE_BUFFERSIZE 4096
 static char inibuffer[INIFILE_BUFFERSIZE] = {0};
 
-static const char short_options [] = "d:f:hi:l:p:vx:V:";
+static const char short_options [] = "d:f:hi:l:p:vx:V:s";
 static const struct option long_options [] = {
     { "daemon",  required_argument,     NULL, 'd'},
     { "xmldb",   required_argument,     NULL, 'f'},
@@ -1481,6 +1495,7 @@ static const struct option long_options [] = {
     { "port",    required_argument,     NULL, 'p'},
     { "verbose", required_argument,     NULL, 'V'},
     { "xawtvrc", required_argument,     NULL, 'x'},
+    { "slave",   no_argument,           NULL, 's'},
     { 0, 0, 0, 0}
 };
 
@@ -1495,6 +1510,7 @@ parsecmdline(int argc, char **argv) {
     *xawtv_channel_file='\0';
     verbose_log = -1;
     tcpip_port = -1;
+    is_master_server = -1;
     opterr = 0; // Supress error string from getopt_long()
     if( argc > 8 ) {
         fprintf(stderr,"Too many arguments. Try '-h'.");
@@ -1539,8 +1555,9 @@ parsecmdline(int argc, char **argv) {
                         " -l file, --logfile=file    Override logfile setting in inifile and use file as logfile\n"
                         " -V n,    --verbose=n       Override inifile and set verbose level\n"
                         " -p n,    --port=n          Override inifile and set TCP/IP listen port\n"
-                        " -x file, --xawtvrc=file    Override inifile and set station file\n",
-                        server_program_name,server_program_name);
+                        " -x file, --xawtvrc=file    Override inifile and set station file\n"
+                        " -s,      --slave           Run with slave configuration\n",
+                        server_program_name, server_program_name);
                 exit(EXIT_SUCCESS);
                 break;
 
@@ -1614,6 +1631,10 @@ parsecmdline(int argc, char **argv) {
                 if( optarg != NULL ) {
                     tcpip_port = validate(0,99999,"TCP/IP port on command line",atoi(optarg));
                 }
+                break;
+
+            case 's':
+                is_master_server = 0;
                 break;
 
             case 'x':
@@ -1839,29 +1860,30 @@ chkswitchuser(void) {
                 exit(EXIT_FAILURE);
             } else {
              */
-            
-            // Make sure the data directory belongs to this new user
-            char cmdbuff[64];
 
-            logmsg(LOG_NOTICE,"Adjusting permission and owner on file structure (%s).",datadir);
-            snprintf(cmdbuff,63,"chown -R %s %s",username,datadir);
-            FILE *fp = popen(cmdbuff,"r");
-            pclose(fp);
+            if( is_master_server ) {
+                // Make sure the data directory belongs to this new user
+                char cmdbuff[64];
 
-            snprintf(cmdbuff,63,"chgrp -R %d %s",pwe->pw_gid,datadir);
-            fp = popen(cmdbuff,"r");
-            pclose(fp);
-
-            if( strcmp(logfile_name,"syslog") && strcmp(logfile_name,"stdout") ) {
-                snprintf(cmdbuff,63,"chown %s %s",username,logfile_name);
+                logmsg(LOG_NOTICE,"Adjusting permission and owner on file structure (%s).",datadir);
+                snprintf(cmdbuff,63,"chown -R %s %s",username,datadir);
                 FILE *fp = popen(cmdbuff,"r");
                 pclose(fp);
 
-                snprintf(cmdbuff,63,"chgrp %d %s",pwe->pw_gid,logfile_name);
+                snprintf(cmdbuff,63,"chgrp -R %d %s",pwe->pw_gid,datadir);
                 fp = popen(cmdbuff,"r");
                 pclose(fp);
-            }
 
+                if( strcmp(logfile_name,"syslog") && strcmp(logfile_name,"stdout") ) {
+                    snprintf(cmdbuff,63,"chown %s %s",username,logfile_name);
+                    FILE *fp = popen(cmdbuff,"r");
+                    pclose(fp);
+
+                    snprintf(cmdbuff,63,"chgrp %d %s",pwe->pw_gid,logfile_name);
+                    fp = popen(cmdbuff,"r");
+                    pclose(fp);
+                }
+            }
             // Make sure we run as belonging to the video group
             struct group *gre = getgrnam("video");
             if( gre == NULL ) {
@@ -1900,6 +1922,11 @@ read_inisettings(void) {
      * CONFIG Section
      *--------------------------------------------------------------------------
      */
+    if( is_master_server == -1 ) {
+        // Not specified on the command line
+        is_master_server    = iniparser_getboolean(dict,"config:master",MASTER_SERVER);
+    }
+
     max_video           = validate(1, 4,"max_video",
                                     iniparser_getint(dict, "config:max_video", MAX_VIDEO));
     max_entries         = validate(1,4096,"max_entries",
@@ -1913,6 +1940,7 @@ read_inisettings(void) {
                                     iniparser_getint(dict, "config:recording_timemin", DEFAULT_DURATIONMIN));    
 
     if( tcpip_port == -1 ) {
+        // Not specified on the command line
         tcpip_port          = validate(1025,99999,"port",
                                         iniparser_getint(dict, "config:port", PORT));
     }
@@ -1942,21 +1970,23 @@ read_inisettings(void) {
         xawtv_channel_file[255] = '\0';
     }
 
-    if( -1 == read_xawtvfile(xawtv_channel_file) ) {
-        logmsg(LOG_ERR,
-                "FATAL error. "
-                "Could not read specified xawtv station file '%s'",xawtv_channel_file);
-        exit(EXIT_FAILURE);
-    }
-    strncpy(frequencymap_name,
-            iniparser_getstring(dict, "config:frequency_map", DEFAULT_FREQUENCY_MAP),
-            MAX_FMAPNAME_LENGTH-1);
-    frequencymap_name[MAX_FMAPNAME_LENGTH-1] = '\0';
-    if( -1 == set_current_freqmap(frequencymap_name) ) {
-        logmsg(LOG_ERR,
-                "FATAL error. "
-                "Invalid frequency map specified (%s).\n",frequencymap_name);
-        exit(EXIT_FAILURE);
+    if( is_master_server ) {
+        if( -1 == read_xawtvfile(xawtv_channel_file) ) {
+            logmsg(LOG_ERR,
+                    "FATAL error. "
+                    "Could not read specified xawtv station file '%s'",xawtv_channel_file);
+            exit(EXIT_FAILURE);
+        }
+        strncpy(frequencymap_name,
+                iniparser_getstring(dict, "config:frequency_map", DEFAULT_FREQUENCY_MAP),
+                MAX_FMAPNAME_LENGTH-1);
+        frequencymap_name[MAX_FMAPNAME_LENGTH-1] = '\0';
+        if( -1 == set_current_freqmap(frequencymap_name) ) {
+            logmsg(LOG_ERR,
+                    "FATAL error. "
+                    "Invalid frequency map specified (%s).\n",frequencymap_name);
+            exit(EXIT_FAILURE);
+        }
     }
 
     strncpy(datadir,
@@ -1996,17 +2026,19 @@ read_inisettings(void) {
     }
 
 #ifndef DEBUG_SIMULATE
-    // Verify that we can really open all the videos we are requsted to use
-    for( int i=0; i < max_video; i++ ) {
-        int vh = video_open(i);
-        if( vh == -1 ) {
-            logmsg(LOG_ERR,
-                    "** FATAL error. "
-                    "Cannot open video device '/dev/video%d' (%d : %s).\n",
-                    i,errno,strerror(errno));
-            exit(EXIT_FAILURE);
+    if( is_master_server ) {
+        // Verify that we can really open all the videos we are requsted to use
+        for( int i=0; i < max_video; i++ ) {
+            int vh = video_open(i);
+            if( vh == -1 ) {
+                logmsg(LOG_ERR,
+                        "** FATAL error. "
+                        "Cannot open video device '/dev/video%d' (%d : %s).\n",
+                        i,errno,strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            video_close(vh);
         }
-        video_close(vh);
     }
 #endif
 
@@ -2209,7 +2241,15 @@ main(int argc, char *argv[]) {
     // Get the overall settings from the ini-file
     read_inisettings();
 
+    if( is_master_server ) {
+        logmsg(LOG_NOTICE,"Starting server as MASTER");
+    } else {
+        logmsg(LOG_NOTICE,"Starting server as CLIENT");
+    }
+
     // Check and create the necessary directory structure if it doesn't already exist
+    // even if the daemon is running as a client the data directory should be a local
+    // directory to avoid all kind of permission problem that occurs when having
     chkdirstructure();
 
     // Check if we should run as another user if we are started as root.
@@ -2231,11 +2271,15 @@ main(int argc, char *argv[]) {
     // Read the initial recording DB from the specified file on either the
     // command line or from the ini-file. The command line always override
     // setting sin the ini-file
-    init_tvxmldb();
+    if( is_master_server ) {
+        init_tvxmldb();
+    }
 
 #ifndef DEBUG_SIMULATE
     // Initialize the Capture card(2)
-    init_capture_cards();
+    if( is_master_server ) {
+        init_capture_cards();
+    }
 #endif
     
     // We use a separate thread to receive all the signals so we must
@@ -2246,7 +2290,9 @@ main(int argc, char *argv[]) {
     
     // Start the thread that will be monitoring the recording list and
     // in turn setup a new thread to do a recording when the time has come
-    (void) pthread_create(&chkrec_thread, NULL, chkrec, (void *) NULL);
+    if( is_master_server ) {
+        (void) pthread_create(&chkrec_thread, NULL, chkrec, (void *) NULL);
+    }
 
     // Startup the main socket server listener. 
     if( EXIT_FAILURE == startupsrv() ) {
@@ -2258,12 +2304,14 @@ main(int argc, char *argv[]) {
     
     pthread_mutex_lock(&recs_mutex);
     // Shutdown all ongoing recordings
-    for(int i=0; i < max_video; i++) {
-        if( ongoing_recs[i] && abort_video[i] == 0 ) {
-            abort_video[i] = 1;
-            logmsg(LOG_INFO,"  -- Aborting recording on video %d",i);
-        } else {
-            abort_video[i] = 0;
+    if( is_master_server ) {
+        for(int i=0; i < max_video; i++) {
+            if( ongoing_recs[i] && abort_video[i] == 0 ) {
+                abort_video[i] = 1;
+                logmsg(LOG_INFO,"  -- Aborting recording on video %d",i);
+            } else {
+                abort_video[i] = 0;
+            }
         }
     }
 
@@ -2276,27 +2324,31 @@ main(int argc, char *argv[]) {
     }        
     pthread_mutex_unlock(&recs_mutex);
 			
-    // Refresh DB file after a clean exit.    
-    UPDATE_DB();
+    // Refresh DB file after a clean exit.
+    if( is_master_server ) {
+        UPDATE_DB();
+    }
 
     // Store the calculated statistics
     (void)write_stats();
 
-    // Wait until all recordings have stopped or we have waited more than 15s        
-    int watchdog = 15;
-    volatile int ongoing = 0;
-    for(int i=0; i < max_video; i++) {
-        ongoing |= abort_video[i];
-    }
-    while( ongoing && watchdog > 0 ) {            
-        ongoing=0;
+    if( is_master_server ) {
+        // Wait until all recordings have stopped or we have waited more than 15s
+        int watchdog = 15;
+        volatile int ongoing = 0;
         for(int i=0; i < max_video; i++) {
-            ongoing |= abort_video[i];                
-        }             
-        sleep(1);
-        logmsg(LOG_INFO,"Waiting for video to stop [%d] ...",
-            watchdog);
-        watchdog--;
+            ongoing |= abort_video[i];
+        }
+        while( ongoing && watchdog > 0 ) {
+            ongoing=0;
+            for(int i=0; i < max_video; i++) {
+                ongoing |= abort_video[i];
+            }
+            sleep(1);
+            logmsg(LOG_INFO,"Waiting for video to stop [%d] ...",
+                watchdog);
+            watchdog--;
+        }
     }
 
     if( dokilltranscodings ) {

@@ -1191,8 +1191,8 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
         ts_left = ts_tmp/(ongoing_filelist_transcodings[idx]->idx-1) *
                     (ongoing_filelist_transcodings[idx]->nentries-ongoing_filelist_transcodings[idx]->idx+1);
         lh = ts_left / 3600;
-        lday = sh / 24 ;
-        lh = sh-24*3600+1;
+        lday = lh / 24 ;
+        lh = lday-24*3600+1;
     }
 
 

@@ -128,7 +128,7 @@ static ptrcmd _getCmdPtr(const char *cmd);
  */
 static void
 _cmd_help(const char *cmd, int sockfd) {
-    static char msgbuff[2048] =
+    static char msgbuff_master[2048] =
                         "Commands:\n"\
 			"  a    - Add recording\n"\
 			"  ar   - Add repeated recording\n"\
@@ -163,8 +163,36 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  zp   - display all settings for specified profile\n"\
                         "  ! <n>  - cancel ongoing recording\n"\
                         "Type h <cmd> for syntax of each command\n";
+
+    static char msgbuff_slave[2048] =
+                        "Commands:\n"\
+			"  h    - help\n"\
+                        "  kt   - kill all ongoing transcoding(s)\n"\
+                        "  ktf  - set/unset kill transcoding flag at shutdown\n"\
+                        "  lq n - list queued transcodings\n"\
+                        "  ot   - list the ongoing transcoding(s)\n"\
+                        "  rst  - reset all statistics\n"\
+                        "  rp   - refresh transcoding profiles from file\n"\
+                        "  s    - print server status\n"\
+			"  t    - print server time\n"\
+    			"  tf   - transcode specified file\n"\
+    			"  tl   - read list of videos to transcode from file\n"\
+                        "  td   - transcode all videos in directory\n"\
+    			"  v    - print version\n"\
+                        "  z    - display all settings from ini-file\n"\
+                        "  ! <n>  - cancel ongoing recording\n"\
+                        "Type h <cmd> for syntax of each command\n";
+
     char **field = (void *)NULL;
-    int ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
+    int ret;
+    char *msgbuff;
+    if( is_master_server ) {
+        msgbuff = msgbuff_master;
+        ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
+    } else {
+        msgbuff = msgbuff_slave;
+        ret = matchcmd("^h[\\p{Z}]+(h|ktf|kt|lq|ot|rst|rp|st|s|tf|tl|td|t|v|z)$", cmd, &field);
+    }
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
         if( field != (void *)NULL ) {
@@ -208,7 +236,7 @@ _cmd_undefined(const char *cmd, int sockfd) {
 #define _PR_AN "([\\p{L}\\p{N}]+)"
 
 // Required filepath
-#define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.]+)"
+#define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_]+)"
 
 // Required alphanumeric and punctuation sequence
 //#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
@@ -1179,19 +1207,29 @@ _cmd_status(const char *cmd, int sockfd) {
     int uh = totaluptime / 3600;
     int uday = uh / 24;
     int umin = (totaluptime - uh*3600) / 60;
-    uh = uh - uday*24;    
+    uh = uh - uday*24;
+
+    int wsize;
+    char unit[256];
+    int nthreads;
+    getwsetsize(getpid(), &wsize, unit, &nthreads);
 
     snprintf(msgbuff,511,
             "%15s: %s"
             "%15s: %s"
             "%15s: %02d days %02d hours %02d min\n"
             "%15s: %.1f %.1f %.1f\n"
-            "%15s: %02d days %02d hours %02d min\n",
+            "%15s: %02d days %02d hours %02d min\n"
+            "%15s: %d %s\n"
+            "%15s: %d\n",
             "Current time", currtime,
             "tvpvrd' started", ctime(&ts_serverstart),
             "'tvpvrd' uptime", sday, sh, smin,
             "Server load",avg1,avg5,avg15,
-            "Server uptime",uday,uh,umin);
+            "Server uptime",uday,uh,umin,
+            "Virtual memory",wsize,unit,
+            "Threads",nthreads);
+
     msgbuff[511] = 0 ;
 
     _writef(sockfd, msgbuff);
@@ -1427,7 +1465,7 @@ _cmd_version(const char *cmd, int sockfd) {
         return;
     }
     _writef(sockfd, 
-            "%s %s (%s)"
+            "%s %s [%s] (%s)"
 #ifdef _LARGEFILE64_SOURCE
                         "\nCompiled with Large File Support (files > 2GB)."
 #endif
@@ -1435,7 +1473,8 @@ _cmd_version(const char *cmd, int sockfd) {
                         "\n *** DEBUG BUILD *** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY A DEBUG BUILD.\n"
 #endif
 
-            "\n",server_program_name, server_version, server_build_date);
+            "\n",server_program_name, server_version,
+            is_master_server ? "master" : "client", server_build_date);
 }
 
 /**
@@ -1958,7 +1997,7 @@ _getCmdPtr(const char *cmd) {
     // We dispatch to command handler based on the first character
     // value. It is then up to the command handler to verify the
     // rest of the command string.
-    static struct cmd_entry cmdfunc[] = {
+    static struct cmd_entry cmdfunc_master[] = {
         {"h",  CMD_HELP},
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"lc", CMD_LIST_CONTROLS},
@@ -1991,7 +2030,35 @@ _getCmdPtr(const char *cmd) {
         {"!",  CMD_ABORT}
     };
 
-    int cmdlen = sizeof (cmdfunc) / sizeof(struct cmd_entry);
+    static struct cmd_entry cmdfunc_slave[] = {
+        {"h",  CMD_HELP},
+        {"lq", CMD_LIST_QUEUEDTRANSC},
+        {"tf", CMD_TRANSCODEFILE},
+        {"tl", CMD_TRANSCODEFILELIST},
+        {"t",  CMD_TIME},
+        {"st", CMD_STATISTICS},
+        {"rst",CMD_RESETSTATS},
+        {"s",  CMD_STATUS},
+        {"otl",CMD_ONGOINGTRANS},
+        {"ot", CMD_ONGOINGTRANS},
+        {"ktf",CMD_KILLTRANSCODING},
+        {"kt", CMD_KILLTRANSCODING},
+        {"v",  CMD_VERSION},
+        {"z",  CMD_GETSETTINGS},
+        {"!",  CMD_ABORT}
+    };
+
+    static struct cmd_entry *cmdfunc;
+    int cmdlen;
+
+    if( is_master_server ) {
+        cmdfunc = cmdfunc_master;
+        cmdlen = sizeof (cmdfunc_master) / sizeof(struct cmd_entry);
+    } else {
+        cmdfunc = cmdfunc_slave;
+        cmdlen = sizeof (cmdfunc_slave) / sizeof(struct cmd_entry);
+    }
+    
     int i = 0;
     int inhelp=0;
 

@@ -148,6 +148,14 @@
                     </listitem>
                 </varlistentry>
                 <varlistentry>
+                    <term><option>-s</option>, <option>--slave</option></term>
+                    <listitem>
+                        <para>Run the server in slave configuration. This will allow the server to
+                            be running on a machine with no video cards and be restricted to only do
+                            video transcodings.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
                     <term><option>-V</option>, <option>--verbose</option>
                             [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>]</term>
                     <listitem>
@@ -174,6 +182,10 @@
                     </listitem>
                 </varlistentry>
             </variablelist>
+            <para>The default arguments corresponds to starting the server with</para>
+            <para>
+                <programlisting>tvpvrd -d y -f tvpvrd_db.xml -i /etc/tvpvrd/tvpvrd.conf -p 9300 -V 1 -x /etc/X11/xawtvrc</programlisting>
+            </para>
         </refsect1>
         <refsect1>
             <title>Starting and stopping the server</title>
@@ -229,6 +241,30 @@
                 root).</para>
         </refsect1>
         <refsect1>
+            <title>Running as master or slave</title>
+            <para>Normally the daemon will do necessary checks to verify that one or several video
+                cards are present in order to startup. If no video cards are found the server will
+                print an error message and terminate. However it is still possible to run the daemon
+                on a server with no video cards by running the server in <emphasis
+                    role="italic">slave</emphasis> mode. This will restrict the functionality of the
+                server to only transcoding and status information commands.</para>
+            <para>The primary purpose of running the server in slave configuration is to make it
+                possible to use several servers to transcode video files. There are three commands "<emphasis
+                    role="bold">tf</emphasis>" (<emphasis
+                    role="italic">transcode file</emphasis>), "<emphasis
+                    role="bold">tl</emphasis>" (<emphasis
+                    role="italic">transcode list</emphasis>) and "<emphasis
+                    role="bold">td</emphasis>" (<emphasis
+                    role="italic">transcode directory</emphasis>) that can be used to transcode one
+                or more files in slave mode (see the command section below for details).</para>
+            <para>In future version of the server there will be possibility to configure a load
+                balancing setup among several servers for the transcoding but as of version 1.x this
+                has to be done manually.</para>
+            <para>The server can be run in slave mode by either giving the "<option>-s</option>"
+                option when starting the server or by setting the configuration alternative
+                    "<option>master=no</option>" in the configuration file.</para>
+        </refsect1>
+        <refsect1>
             <title>Connecting to the server</title>
             <para>Once the server is running the easiest way to connect to the server is by using
                 the '<emphasis>telnet</emphasis>' program. Assuming that the
@@ -244,11 +280,12 @@
                     '<code>!TVPVRD!</code>'. The full returned information message at the connection
                 time is</para>
             <screen>!TVPVRD!
-Welcome to TVPVR-Server 1.0.3 (Jan 04 2010)
+Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
 You are user number 1 out of 2 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
-Connection will be closed after 30 min of inactivity.</screen>
+Connection will be closed after 30 min of inactivity.
+</screen>
             <para>If password protection (see section "Security" below) the welcome message is not
                 be shown until the correct password has been specified. Instead when password
                 protection is enabled the connection sequence looks like this</para>
@@ -256,11 +293,12 @@ Connection will be closed after 30 min of inactivity.</screen>
                 <screen>$> telnet localhost 9300
 Password:<emphasis role="bold">xxxxxxx</emphasis>
 !TVPVRD!
-Welcome to TVPVR-Server 1.0.3 (Jan 04 2010)
+Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
 You are user number 1 out of 2 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
-Connection will be closed after 30 min of inactivity</screen>
+Connection will be closed after 30 min of inactivity.
+</screen>
             </para>
             <para>This means that the correct server password has to be given before the welcome
                 message is seen. The server is now ready to accept commands on this
@@ -500,393 +538,20 @@ channel = E8
                 ini-file.</para>
         </refsect1>
         <refsect1>
-            <title>Commands</title>
+            <title>Commands (in alphabetic order)</title>
             <para>The following is a list and detailed explanation of the commands that are
                 recognized by the server. Commands are specified by 1 to 3 letters followed by any
                 necessary arguments. It is possible to get more detailed help/information for each
                 command by giving the help command 'h' followed by the command, e.g. 'h l', will
                 give more detailed help on the 'list' command.</para>
             <para>The input and output has a format suitable for both human interactive use as well
-                as a programatically interfacing in order to build a UI that interacts with the
-                server.</para>
+                as a programatically interfacing the server in order to build a UI that interacts
+                with the server.</para>
             <para>
                 <variablelist>
                     <varlistentry>
-                        <term>'<command>h</command>' - Help command</term>
-                        <listitem>
-                            <para>Print a summary of all commands available.</para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>v</command>' - Version command</term>
-                        <listitem>
-                            <para>Print program version and name as well as the build date. The
-                                following lines will give information on how the server was
-                                compiled.</para>
-                            <para>Output example:</para>
-                            <screen>tvpvrd 1.0.0 (Nov 19 2009)
-Compiled with Large File Support (files > 2GB).</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>t</command>' - Current Time and Date command</term>
-                        <listitem>
-                            <para>Print current time and date on the server where 'tvpvrd' is
-                                running</para>
-                            <para>Output example:</para>
-                            <screen>Fri Nov 20 15:51:20 2009</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>s</command>' - Server status command</term>
-                        <listitem>
-                            <para>Print a summary of the server status. This includes when the
-                                tvpvrd was started, how long it has been running for, the current
-                                server load, current server time and a list of the clients currently
-                                connected to the server.</para>
-                            <para>Output example:</para>
-                            <screen>   Current time: Fri Nov 20 15:45:04 2009
-        Started: Thu Nov 19 14:00:19 2009
-         Uptime: 25:44:45
-    Server load: 0.0 0.0 0.3
-        Clients: #01: 127.0.0.1, Fri Nov 20 15:44:52 2009</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>st</command>' - Print profile statistics</term>
-                        <listitem>
-                            <para>Print transcoding statistics for the defined profiles. This
-                                statistics is gathered for every transcoding made. The statistics
-                                includes among other things the running time and average size per
-                                minute of the original MP2 and the transcoded file. The statistics
-                                for the transcoding can be used to predict how long time a
-                                transcoding will take. However since it is highly dependent on the
-                                load on the server it can be difficult to accurately predict the
-                                needed transcoding time.</para>
-                            <para>Output example:</para>
-                            <screen>profile_name            : 'normal'
-transcoding_speed       : 44 s transcoded / min
-mp2size_1min            : 27.5 Mb/min
-mp4size_1min            : 6.4 Mb/min
-comp_ratio              : 4.3
-total_ttime             : 3481 min
-total_mp2time           : 1779 min
-total_mp2files          : 31
-total_mp4files          : 31</screen>
-                            <para>The different fields have the following meaning</para>
-                            <para>
-                                <variablelist>
-                                    <varlistentry>
-                                        <term><emphasis>profile_name</emphasis></term>
-                                        <listitem>
-                                            <para>The name of the profile that this statistics apply
-                                                to.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>transcoding_speed</emphasis></term>
-                                        <listitem>
-                                            <para>How much play time the server on average can
-                                                transcode per minute run time of 'ffmpeg'.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>mp2size_1min</emphasis></term>
-                                        <listitem>
-                                            <para>The average size of 1 minute play time in the
-                                                original MP2 file.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>mp4size_1min</emphasis></term>
-                                        <listitem>
-                                            <para>The average size of 1 minute of play time in the
-                                                resulting transcoded MP4 size.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>comp_ratio</emphasis></term>
-                                        <listitem>
-                                            <para>The compression ration between the original MP2
-                                                size and the MP4 transcoded file.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>total_ttime</emphasis></term>
-                                        <listitem>
-                                            <para>Total running time that has been spent transcoding
-                                                files.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>total_mp2time</emphasis></term>
-                                        <listitem>
-                                            <para>Total recorded original MP2 time.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>total_mp2files</emphasis></term>
-                                        <listitem>
-                                            <para>Total number of mp2files recorded with this
-                                                profile.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><emphasis>total_mp4files</emphasis></term>
-                                        <listitem>
-                                            <para>Total number of transcoded MP4 files with this
-                                                profile.</para>
-                                        </listitem>
-                                    </varlistentry>
-                                </variablelist>
-                            </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>rst</command>' - Reset statistics command</term>
-                        <listitem>
-                            <para>Reset all statistics, i.e. set all statistics to 0.</para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>vc</command>
-                                [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>|<emphasis>3</emphasis>|<emphasis>4</emphasis>]'
-                            - Video Card information command</term>
-                        <listitem>
-                            <para>Print information on the specified video/capture cards. The
-                                command will print information of all available cards if no specific
-                                card number is specified. The information shown is the name of the
-                                card, driver and driver version.</para>
-                            <para>Output example:</para>
-                            <screen>Card 00: Hauppauge WinTV PVR-350, driver=ivtv v1.4.1
-Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>l</command>' - List command</term>
-                        <listitem>
-                            <para>List all upcoming recordings.</para>
-                            <para>Each record is listed with 7 fields. Each record starts with a '['
-                                and ends with a ']' character. Each field is separated with a bar
-                                '|'. The order of fields are</para>
-                            <para>
-                                <screen>&lt;id#> &lt;station/channel name> &lt;start-date> &lt;start-time> &lt;end-time> &lt;title> &lt;profile></screen>
-                            </para>
-                            <para>Output example:</para>
-                            <screen>[160|tv4    |2010-03-09|21:00|21:59|House (16/20)                 |@normal]
-[135|kanal5 |2010-03-11|21:00|21:59|Criminal minds (16/20)        |@normal]
-[038|kanal5 |2010-03-11|22:00|22:59|Fringe (17/20)                |@normal]
-[088|kanal5 |2010-03-14|22:25|23:19|Supernatural (18/21)          |@normal]
-[161|tv4    |2010-03-16|21:00|21:59|House (17/20)                 |@normal]
-[136|kanal5 |2010-03-18|21:00|21:59|Criminal minds (17/20)        |@normal]
-[039|kanal5 |2010-03-18|22:00|22:59|Fringe (18/20)                |@normal]</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>ls</command>' - List stations command</term>
-                        <listitem>
-                            <para>List all defined station names. The stations are specified in the
-                                    <filename>xawtvrc</filename> file and maps station names to
-                                channel names. When defining the frequency for a recording either
-                                the defined station name or channel (frequency) name can be
-                                used.</para>
-                            <para>Output example:</para>
-                            <screen>  SE11: kanal5
-    57: kanal8
-   S36: kanal9
-  SE16: mtv
-   E10: svt24
-  SE13: svtb/kunsk
-    E5: tv1
-    E7: tv2
-   E11: tv3
-    E6: tv4
-  SE14: tv4+
-    E8: tv6</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>lc</command> [<emphasis>#card</emphasis>]' - List all video
-                            capture card controls command</term>
-                        <listitem>
-                            <para>This can be considered a low level command of limited use for an
-                                end user. This command will list all user controllable controls that
-                                can be adjusted on the specified video card. This is directly
-                                related to the discovered 'v4l2' interfaces. Since the output is
-                                quite long we do not include any example output here.</para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>n</command>' - Next recording command</term>
-                        <listitem>
-                            <para>List the immediate next recording(sw) scheduled for the available
-                                video card(s). The first number in parenthesis is how long time
-                                until the recording will start.</para>
-                            <para>Output example:</para>
-                            <screen>(01:37) : [002|tv3    |2009-11-20|18:00|18:59|NCIS_18 (02/20)               |@normal]
-(52:37) : [143|tv4    |2009-11-22|21:00|22:00|Shooter 1                     |@normal]</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>o</command>' - Ongoing recordings command</term>
-                        <listitem>
-                            <para>List all ongoing recording in ordinary list format for all video
-                                cards. If no recordings are ongoing the output will show
-                                "None"</para>
-                            <para>Output example:</para>
-                            <screen>Video #0: [175|tv1    |2009-11-20|16:26|16:27|tv1_20091120_1626             |@normal]
-Video #1: None.</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>ot</command>' - Ongoing transcodings command</term>
-                        <listitem>
-                            <para>List all ongoing transcodings. The output format is</para>
-                            <para>
-                                <screen>&lt;#id> &lt;start-time> &lt;(duration)> &lt;filename> &lt;profile></screen>
-                            </para>
-                            <para>The start time identifies when the transcoding was started and
-                                duration shows for how long the transcoding has been running.</para>
-                            <para>Output example:</para>
-                            <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>otl</command>' - Ongoing transcoding long command</term>
-                        <listitem>
-                            <para>List all ongoing transcoding in long format which includes the
-                                detailed 'ffmpeg' command used which is printed on the second
-                                line.</para>
-                            <para>Output example:</para>
-                            <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]
-(cmd: /usr/bin/ffmpeg -v 0 -i tv1_20091120_1626.mpg -threads 0 
--vcodec libx264 -vpre normal -b 700k -bt 1000k  -croptop 8 -cropbottom 8 
--cropleft 2 -cropright 2  -acodec copy -ab 196k  -y  
-tv1_20091120_1626.mp4 > /dev/null 2>&amp;1)</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>kt</command>' - Kill allgoing transcoding command</term>
-                        <listitem>
-                            <para>Stop all ongoing transcodings.</para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>ktf</command>
-                            [<emphasis>y</emphasis>|<emphasis>n</emphasis>]' - Kill transcoding flag
-                            set/unset command</term>
-                        <listitem>
-                            <para>The kill transcoding flag determines whether or not the
-                                transcoding processes should be killed when the server is stopped.
-                                By default all transcoding processes are killed when the tvpvrd
-                                server is killed. By setting this flag to 'n' (No) the transcoding
-                                processes will be allowed to keep running after the server is
-                                stopped.</para>
-                            <para>Output example:</para>
-                            <screen>ktf n
-killflag=n</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>tf</command>
-                            <emphasis>filename</emphasis> [<emphasis>@profile</emphasis>]' -
-                            Transcode specified file using the named optional profile</term>
-                        <listitem>
-                            <para>This command is used to transcode any file within the file system
-                                using a specified transcoding profile. If the profile name is not
-                                given the the system default transcoding profile will be
-                                used.</para>
-                            <para>filename is the full path to the (normally MP2) video file that
-                                should be encoded. The resulting transcoded file is stored in the
-                                    <filename>&lt;datadir>/mp4/&lt;profile>/</filename> directory.
-                                During the transcoding a temporary directory under
-                                    <filename>&lt;datadir>/vtmp/</filename> is created and used as a
-                                working directory. The original file is not chnaged in any ways.
-                                During the transcoding a symbolic link is created in the temporary
-                                directory which makes it in theory possible to have the original
-                                file on another file system.</para>
-                            <para>Example</para>
-                            <para>
-                                <screen>tf /data/pvr/mp2/normal/oldreccording.mpg @high</screen>
-                            </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>z</command>' - Display all ini-file settings command</term>
-                        <listitem>
-                            <para>This will list all settings made in the ini-file as well as the
-                                location of the used ini file.</para>
-                            <para>Output example:</para>
-                            <screen>datadir                 : /data/pvr
-logfile                 : /tmp/tvpvrd.log
-inifile_name            : /etc/tvpvrd/tvpvrd.conf
-xmldbfile_name          : /data/pvr/xmldb/tvpvrd_db.xml
-max_video               : 2
-max_entries             : 1024
-max_clients             : 2
-client_idle_time        : 1800s
-port                    : 9300
-time_resolution         : 3s
-video_buffer_size       : 200000 (0.2MB)
-default_recording_time  : 00:59 (h:min)
-xawtv_station file      : /etc/X11/xawtvrc
-default_profile         : normal</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>zp</command> [<emphasis>@profile</emphasis>]' - Display
-                            profile information command</term>
-                        <listitem>
-                            <para>Display information on the settings of the specified profile. </para>
-                            <para>Output example:</para>
-                            <screen>                     name: normal
-ENCODER:
-            video_bitrate: 3400000
-       video_peak_bitrate: 4000000
-           audio_sampling: 44.1
-            audio_bitrate: 192
-                   aspect: 4x3
-                     size: vga
-FFMPEG:
-            video_bitrate: 700
-       video_peak_bitrate: 1000
-                   vcodec: libx264
-                     vpre: normal
-                     pass: 1
-                   acodec: copy
-            audio_bitrate: 196
-               video_size:
-                     crop: (l=2, r=2, t=8, b=8)
-     ffmpeg_extra_options:
-           file_extension: .mp4</screen>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>!</command> [<emphasis>#videocard</emphasis>]' - Stop
-                            recording on specified video card</term>
-                        <listitem>
-                            <para>Stop the recording on the specified video card. The aborted
-                                recording will be left in the '&lt;data-dir>/vtmp/vid&lt;n>/'
-                                directory and must be manually removed. </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>u</command>' - Update database file command</term>
-                        <listitem>
-                            <para>Force update of the database file from memory.</para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>x</command>' - View XML database command</term>
-                        <listitem>
-                            <para>View the current specified recordings in XML DB format. See <citerefentry>
-                                    <refentrytitle>tvpvrd</refentrytitle>
-                                    <manvolnum>5</manvolnum>
-                                </citerefentry> for details about the format.</para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>a</command>' - Add recording command</term>
+                        <term>'<command>a</command>' - <emphasis
+                                role="bold">Add recording command</emphasis></term>
                         <listitem>
                             <para>Add new recording. The date/time logic is fairly complete and will
                                 for example correctly handle date crossings when recording starts
@@ -1019,53 +684,8 @@ FFMPEG:
                         </listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term>'<command>q</command>' - Quick recording command</term>
-                        <listitem>
-                            <para>Add new recording that will start immediately. This is basically
-                                the same as a simplified '<emphasis>a</emphasis>' command where the
-                                start time and date is always the current date and time.</para>
-                            <para>The format of the command are</para>
-                            <para>
-                                <variablelist>
-                                    <varlistentry>
-                                        <term><emphasis>q &lt;ch> [&lt;duration>] [&lt;title>]
-                                                [&lt;@profile]</emphasis></term>
-                                        <listitem>
-                                            <para>The recording will start within a few seconds
-                                                (depending on the resolution time specified in the
-                                                ini-file) and will last for the duration specified.
-                                                If no duration is specified the default duration
-                                                time will be used. The duration is specified with
-                                                hours and minutes as</para>
-                                            <para><emphasis>hh:mm</emphasis></para>
-                                            <para> If no title is specified the title will be
-                                                constructed from the station/channel name and the
-                                                start date and time. </para>
-                                            <para>If no profile is specified then the default
-                                                profile specified in the ini-file will be used.
-                                            </para>
-                                        </listitem>
-                                    </varlistentry>
-                                </variablelist>
-                            </para>
-                            <para><emphasis
-                                    role="bold">Examples</emphasis>:</para>
-                            <screen>q bbc2  </screen>
-                            <para>Start a recording immediately on bbc2 using the default duration,
-                                title and profile.</para>
-                            <screen>q bbc2 1:30 </screen>
-                            <para>Start a recording immediately on bbc2 with duration 1 hour 30
-                                minutes, using default title and default profile. </para>
-                            <screen>q bbc2 News </screen>
-                            <para>Start a recording immediately on bbc2 with default duration using
-                                the title "News" and default profile.</para>
-                            <screen>q ch4 1:45 Newsfocus @high  </screen>
-                            <para>Start a new recording on station 'ch4' with title 'Newsfocus'
-                                using the 'high' profile. </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>'<command>ar</command>' - Add repeated command</term>
+                        <term>'<command>ar</command>' - <emphasis
+                                role="bold">Add recurring recording command</emphasis></term>
                         <listitem>
                             <para>Add a new repeated recording . The syntax is identical to the
                                 normal add command with the exception of the first two arguments
@@ -1133,7 +753,8 @@ FFMPEG:
                     </varlistentry>
                     <varlistentry>
                         <term>'<command>d</command>
-                            <emphasis>nnn</emphasis>' - Delete specified recording</term>
+                            <emphasis>nnn</emphasis>' - <emphasis
+                                role="bold">Delete specified recording</emphasis></term>
                         <listitem>
                             <para>Delete specified recording. <emphasis>nnn</emphasis> is the
                                 recoding id shown when a recording is added or by the list command.
@@ -1143,14 +764,274 @@ FFMPEG:
                     </varlistentry>
                     <varlistentry>
                         <term>'<command>dr</command>
-                            <emphasis>nnn</emphasis>' - Delete all repeated recordings</term>
+                            <emphasis>nnn</emphasis>' - <emphasis
+                                role="bold">Delete all repeated recordings</emphasis></term>
                         <listitem>
                             <para>Delete all repeated recording that are part of the same repeating
                                 sequence as the id of the recording specified.</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term>'<command>rp</command>' - Refresh profiles command</term>
+                        <term>'<command>h</command>' - <emphasis
+                                role="bold">Help command</emphasis></term>
+                        <listitem>
+                            <para>Print a summary of all commands available.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>kt</command>' - <emphasis
+                                role="bold">Kill all ongoing transcoding command</emphasis></term>
+                        <listitem>
+                            <para>Stop all ongoing transcoding processes.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>ktf</command>
+                            [<emphasis>y</emphasis>|<emphasis>n</emphasis>]' - <emphasis
+                                role="bold">Kill transcoding flag set/unset
+                            command</emphasis></term>
+                        <listitem>
+                            <para>The kill transcoding flag determines whether or not the
+                                transcoding processes should be killed when the server is stopped.
+                                By default all transcoding processes are killed when the tvpvrd
+                                server is killed. By setting this flag to 'n' (No) the transcoding
+                                processes will be allowed to keep running after the server is
+                                stopped.</para>
+                            <para>Output example:</para>
+                            <screen>ktf n
+killflag=n</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>l</command>' - <emphasis
+                                role="bold">List command</emphasis></term>
+                        <listitem>
+                            <para>List all upcoming recordings.</para>
+                            <para>Each record is listed with 7 fields. Each record starts with a '['
+                                and ends with a ']' character. Each field is separated with a bar
+                                '|'. The order of fields are</para>
+                            <para>
+                                <screen>&lt;id#> &lt;station/channel name> &lt;start-date> &lt;start-time> &lt;end-time> &lt;title> &lt;profile></screen>
+                            </para>
+                            <para>Output example:</para>
+                            <screen>[160|tv4    |2010-03-09|21:00|21:59|House (16/20)                 |@normal]
+[135|kanal5 |2010-03-11|21:00|21:59|Criminal minds (16/20)        |@normal]
+[038|kanal5 |2010-03-11|22:00|22:59|Fringe (17/20)                |@normal]
+[088|kanal5 |2010-03-14|22:25|23:19|Supernatural (18/21)          |@normal]
+[161|tv4    |2010-03-16|21:00|21:59|House (17/20)                 |@normal]
+[136|kanal5 |2010-03-18|21:00|21:59|Criminal minds (17/20)        |@normal]
+[039|kanal5 |2010-03-18|22:00|22:59|Fringe (18/20)                |@normal]</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>ls</command>' - <emphasis
+                                role="bold">List stations command</emphasis></term>
+                        <listitem>
+                            <para>List all defined station names. The stations are specified in the
+                                    <filename>xawtvrc</filename> file and maps station names to
+                                channel names. When defining the frequency for a recording either
+                                the defined station name or channel (frequency) name can be
+                                used.</para>
+                            <para>Output example:</para>
+                            <screen>SE11: kanal5
+  57: kanal8
+ S36: kanal9
+SE16: mtv
+ E10: svt24
+SE13: svtb/kunsk
+  E5: tv1
+  E7: tv2
+ E11: tv3
+  E6: tv4
+SE14: tv4+
+  E8: tv6</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>lc</command> [<emphasis>#card</emphasis>]' - <emphasis
+                                role="bold">List all video capture card controls
+                            command</emphasis></term>
+                        <listitem>
+                            <para>This can be considered a low level command of limited use for an
+                                end user. This command will list all user controllable controls that
+                                can be adjusted on the specified video card. This is directly
+                                related to the discovered 'v4l2' interfaces. Since the output is
+                                quite long we do not include any example output here.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>lq</command> [<emphasis>#filelist</emphasis>]' - <emphasis
+                                role="bold">List information on the ongoing transcoding of file list <emphasis
+                                    role="italic">#filelist</emphasis></emphasis></term>
+                        <listitem>
+                            <para>List some useful information on the specified transcoding file
+                                list. The transcoding file list is a list with filenames that are
+                                queued up for transcoding. A transcoding file list is added with the <emphasis
+                                    role="bold">tr</emphasis> command. Up to five simultaneous lists
+                                may be added. However, since transcoding is such a heavy job there
+                                is little real reason to add more than one lists at a time since a
+                                list with, say 20 video files, can easily take up to two days to
+                                transcode.</para>
+                            <para>Output example:</para>
+                            <para>
+                                <screen>       Filelist: #01                                
+          Total: 17 videos in list                  
+      Processed: 02 (11%) files                     
+    Job started: Mon Jan 25 16:29:53 2010           
+   Running time: 00 days 00:14 h                    
+ Est. time left: -1 days ~-1 h (approx.)            
+                                    
+Processed:
+  * /data/pvr/mp2/normal/svu_001.mpg
+  * /data/pvr/mp2/normal/svu_2010-01-20_00.40.mpg
+                                    
+Not processed:
+  + /data/pvr/mp2/normal/svu_2010-01-21_00.40.mpg
+  + /data/pvr/mp2/normal/svu_2010-01-22_00.40.mpg
+  + /data/pvr/mp2/normal/svu2ggr.mpg             
+  + /data/pvr/mp2/normal/svu_k9_001.mpg          
+  + /data/pvr/mp2/normal/svu-k9_2010-01-21_00.05.mpg
+  + /data/pvr/mp2/normal/svu-k9_2010-01-22_00.05.mpg
+  + /data/pvr/mp2/normal/svu.mpg                    
+  + /data/pvr/mp2/normal/two_and_half_men_001.mpg   
+  + /data/pvr/mp2/normal/two_and_half_men_002.mpg   
+  + /data/pvr/mp2/normal/two_and_half_men.mpg       
+  + /data/pvr/mp2/normal/världens_undergång.mpg     
+  + /data/pvr/mp2/normal/vita_huset_001.mpg         
+  + /data/pvr/mp2/normal/vita_huset.mpg             
+  + /data/pvr/mp2/normal/white_noise.mpg            
+  + /data/pvr/mp2/normal/WildThings.mpg  </screen>
+                            </para>
+                            <para>The fist set of information gives general information about the
+                                chosen file list. The last line of the first information block gives
+                                a rough estimate of the remaining time left needed to transcode the
+                                list. This is a very approximate estimation based on the time it has
+                                taken to transcode the files in the list up to now. In the example
+                                above the estimate is shown as -1 indicating that there are too few
+                                completed transcodings for any estimate to be done. At least 2
+                                transcoding must have been completed in order for the estimate to be
+                                shown.</para>
+                            <para>The next set of information is the "Processed:" files. This is the
+                                files that have been processed, meaning it has been submitted for
+                                transcoding. This means that they have either been completely
+                                transcoded or is in the process of being transcoded.</para>
+                            <para>The final block of information is the remainder of the files which
+                                are still waiting to be processed. No files are submitted for
+                                processing until the system load has fallen below the maximum limit
+                                for transcoding to start as specified in the
+                                    <filename>tvpvrd.conf</filename> file.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>n</command>' - <emphasis
+                                role="bold">Next recording command</emphasis></term>
+                        <listitem>
+                            <para>List the immediate next recording(sw) scheduled for the available
+                                video card(s). The first number in parenthesis is how long time
+                                until the recording will start.</para>
+                            <para>Output example:</para>
+                            <screen>(01:37) : [002|tv3    |2009-11-20|18:00|18:59|NCIS_18 (02/20)               |@normal]
+(52:37) : [143|tv4    |2009-11-22|21:00|22:00|Shooter 1                     |@normal]</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>o</command>' - <emphasis
+                                role="bold">Ongoing recordings command</emphasis></term>
+                        <listitem>
+                            <para>List all ongoing recording in ordinary list format for all video
+                                cards. If no recordings are ongoing the output will show
+                                "None"</para>
+                            <para>Output example:</para>
+                            <screen>Video #0: [175|tv1    |2009-11-20|16:26|16:27|tv1_20091120_1626             |@normal]
+Video #1: None.</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>ot</command>' - <emphasis
+                                role="bold">Ongoing transcodings command</emphasis></term>
+                        <listitem>
+                            <para>List all ongoing transcodings. The output format is</para>
+                            <para>
+                                <screen>&lt;#id> &lt;start-time> &lt;(duration)> &lt;filename> &lt;profile></screen>
+                            </para>
+                            <para>The start time identifies when the transcoding was started and
+                                duration shows for how long the transcoding has been running.</para>
+                            <para>Output example:</para>
+                            <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>otl</command>' - <emphasis
+                                role="bold">Ongoing transcoding long command</emphasis></term>
+                        <listitem>
+                            <para>List all ongoing transcoding in long format which includes the
+                                detailed 'ffmpeg' command used which is printed on the second
+                                line.</para>
+                            <para>Output example:</para>
+                            <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]
+(cmd: /usr/bin/ffmpeg -v 0 -i tv1_20091120_1626.mpg -threads 0 
+-vcodec libx264 -vpre normal -b 700k -bt 1000k  -croptop 8 -cropbottom 8 
+-cropleft 2 -cropright 2  -acodec copy -ab 196k  -y  
+tv1_20091120_1626.mp4 > /dev/null 2>&amp;1)</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>q</command>' - <emphasis
+                                role="bold">Quick recording command</emphasis></term>
+                        <listitem>
+                            <para>Add new recording that will start immediately. This is basically
+                                the same as a simplified '<emphasis>a</emphasis>' command where the
+                                start time and date is always the current date and time.</para>
+                            <para>The format of the command are</para>
+                            <para>
+                                <variablelist>
+                                    <varlistentry>
+                                        <term><emphasis>q &lt;ch> [&lt;duration>] [&lt;title>]
+                                                [&lt;@profile]</emphasis></term>
+                                        <listitem>
+                                            <para>The recording will start within a few seconds
+                                                (depending on the resolution time specified in the
+                                                ini-file) and will last for the duration specified.
+                                                If no duration is specified the default duration
+                                                time will be used. The duration is specified with
+                                                hours and minutes as</para>
+                                            <para><emphasis>hh:mm</emphasis></para>
+                                            <para> If no title is specified the title will be
+                                                constructed from the station/channel name and the
+                                                start date and time. </para>
+                                            <para>If no profile is specified then the default
+                                                profile specified in the ini-file will be used.
+                                            </para>
+                                        </listitem>
+                                    </varlistentry>
+                                </variablelist>
+                            </para>
+                            <para><emphasis
+                                    role="bold">Examples</emphasis>:</para>
+                            <screen>q bbc2  </screen>
+                            <para>Start a recording immediately on bbc2 using the default duration,
+                                title and profile.</para>
+                            <screen>q bbc2 1:30 </screen>
+                            <para>Start a recording immediately on bbc2 with duration 1 hour 30
+                                minutes, using default title and default profile. </para>
+                            <screen>q bbc2 News </screen>
+                            <para>Start a recording immediately on bbc2 with default duration using
+                                the title "News" and default profile.</para>
+                            <screen>q ch4 1:45 Newsfocus @high  </screen>
+                            <para>Start a new recording on station 'ch4' with title 'Newsfocus'
+                                using the 'high' profile. </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>rst</command>' - <emphasis
+                                role="bold">Reset statistics command</emphasis></term>
+                        <listitem>
+                            <para>Reset all statistics, i.e. set all statistics to 0.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>rp</command>' - <emphasis
+                                role="bold">Refresh profiles command</emphasis></term>
                         <listitem>
                             <para>This command will cause the profiles to be re-read from profile
                                 files. This can be used to refresh the profiles without having to
@@ -1160,16 +1041,327 @@ FFMPEG:
                     <varlistentry>
                         <term>'<command>sp</command>
                             <emphasis>nnn</emphasis>
-                            <emphasis>@profile</emphasis>' - Set profile command</term>
+                            <emphasis>@profile</emphasis>' - <emphasis
+                                role="bold">Set profile command</emphasis></term>
                         <listitem>
                             <para>Specify the profiles to be used on the specified recording. This
                                 will replace any previous defined profiles for this recording. Up to
                                 four profiles per recording can be defined.</para>
-                            <para>Examples:</para>
+                            <para><emphasis
+                                    role="bold">Examples:</emphasis></para>
                             <screen>sp 87 @normal @mobile</screen>
                             <para>Use profiles <emphasis>normal</emphasis> and
                                     <emphasis>mobile</emphasis> for recording
                                     <emphasis>#87</emphasis></para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>s</command>' - <emphasis
+                                role="bold">Server status command</emphasis></term>
+                        <listitem>
+                            <para>Print a summary of the server status. This includes information on
+                                when the tvpvrd was started, how long it has been running for, the
+                                current server load, current server time, allocated virtual memory,
+                                number of running threads in the server and finally a list of
+                                clients currently connected to the server.</para>
+                            <para>Output example:</para>
+                            <screen>   Current time: Tue Jan 26 15:28:26 2010
+tvpvrd' started: Tue Jan 26 15:03:39 2010
+'tvpvrd' uptime: 00 days 00 hours 24 min
+    Server load: 0.1 0.8 2.0
+  Server uptime: 46 days 01 hours 59 min
+ Virtual memory: 29040 kB
+        Threads: 3
+        Clients: #01: 127.0.0.1, Tue Jan 26 15:28:24 2010</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>st</command>' - <emphasis
+                                role="bold">Print profile statistics</emphasis></term>
+                        <listitem>
+                            <para>Print transcoding statistics for the defined profiles. This
+                                statistics is gathered for every transcoding made. The statistics
+                                includes among other things the running time and average size per
+                                minute of the original MP2 and the transcoded file. The statistics
+                                for the transcoding can be used to predict how long time a
+                                transcoding will take. However since it is highly dependent on the
+                                load on the server it can be difficult to accurately predict the
+                                needed transcoding time.</para>
+                            <para>Output example:</para>
+                            <screen>profile_name            : 'normal'
+transcoding_speed       : 44 s transcoded / min
+mp2size_1min            : 27.5 Mb/min
+mp4size_1min            : 6.4 Mb/min
+comp_ratio              : 4.3
+total_ttime             : 3481 min
+total_mp2time           : 1779 min
+total_mp2files          : 31
+total_mp4files          : 31</screen>
+                            <para>The different fields have the following meaning</para>
+                            <para>
+                                <variablelist>
+                                    <varlistentry>
+                                        <term><emphasis>profile_name</emphasis></term>
+                                        <listitem>
+                                            <para>The name of the profile that this statistics apply
+                                                to.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>transcoding_speed</emphasis></term>
+                                        <listitem>
+                                            <para>How much play time the server on average can
+                                                transcode per minute run time of 'ffmpeg'.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>mp2size_1min</emphasis></term>
+                                        <listitem>
+                                            <para>The average size of 1 minute play time in the
+                                                original MP2 file.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>mp4size_1min</emphasis></term>
+                                        <listitem>
+                                            <para>The average size of 1 minute of play time in the
+                                                resulting transcoded MP4 size.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>comp_ratio</emphasis></term>
+                                        <listitem>
+                                            <para>The compression ration between the original MP2
+                                                size and the MP4 transcoded file.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_ttime</emphasis></term>
+                                        <listitem>
+                                            <para>Total running time that has been spent transcoding
+                                                files.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_mp2time</emphasis></term>
+                                        <listitem>
+                                            <para>Total recorded original MP2 time.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_mp2files</emphasis></term>
+                                        <listitem>
+                                            <para>Total number of mp2files recorded with this
+                                                profile.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_mp4files</emphasis></term>
+                                        <listitem>
+                                            <para>Total number of transcoded MP4 files with this
+                                                profile.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                </variablelist>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>t</command>' - <emphasis
+                                role="bold">Current Time and Date command</emphasis></term>
+                        <listitem>
+                            <para>Print current time and date on the server where 'tvpvrd' is
+                                running</para>
+                            <para>Output example:</para>
+                            <screen>Fri Nov 20 15:51:20 2009</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>tf</command>
+                            <emphasis>filename</emphasis> [<emphasis>@profile</emphasis>]' - <emphasis
+                                role="bold">Transcode specified file using the named optional
+                                profile</emphasis></term>
+                        <listitem>
+                            <para>This command is used to transcode any file within the file system
+                                using a specified transcoding profile. If the profile name is not
+                                given the the system default transcoding profile will be
+                                used.</para>
+                            <para>filename is the full path to the (normally MP2) video file that
+                                should be encoded. The resulting transcoded file is stored in the
+                                    <filename>&lt;datadir>/mp4/&lt;profile>/</filename> directory.
+                                During the transcoding a temporary directory under
+                                    <filename>&lt;datadir>/vtmp/</filename> is created and used as a
+                                working directory. The original file is not chnaged in any ways.
+                                During the transcoding a symbolic link is created in the temporary
+                                directory which makes it in theory possible to have the original
+                                file on another file system.</para>
+                            <para>Example</para>
+                            <para>
+                                <screen>tf /data/pvr/mp2/normal/oldreccording.mpg @high</screen>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>tl</command>
+                            <emphasis>filename</emphasis> [<emphasis>@profile</emphasis>]' - <emphasis
+                                role="bold">Queue all files listed in file <emphasis
+                                    role="italic">filename</emphasis> for transcoding using the
+                                named optional profile</emphasis></term>
+                        <listitem>
+                            <para>This commands will queue all (video) files listed in the file
+                                specified in the command for transcoding. </para>
+                            <para>The list file consists of a number of lines (each line ending with
+                                a newline) with either<itemizedlist>
+                                    <listitem>
+                                        <para>a fully specified video file name or</para>
+                                    </listitem>
+                                    <listitem>
+                                        <para>a filepath which will be used for the following files
+                                            as prefix until the next filepath is specified. A
+                                            filepath is identified by having the first character on
+                                            the row being a ':' (colon) character.</para>
+                                    </listitem>
+                                </itemizedlist></para>
+                            <para>Example input file:</para>
+                            <para>
+                                <programlisting>:/data/pvr/mp2/normal
+svu_001.mpg
+svu_2010-01-20_00.40.mpg
+svu_2010-01-21_00.40.mpg
+svu_2010-01-22_00.40.mpg
+svu2ggr.mpg
+svu_k9_001.mpg
+svu-k9_2010-01-21_00.05.mpg
+svu-k9_2010-01-22_00.05.mpg
+svu.mpg
+two_and_half_men_001.mpg
+two_and_half_men_002.mpg
+two_and_half_men.mpg
+vita_huset_001.mpg
+vita_huset.mpg
+white_noise.mpg
+WildThings.mpg </programlisting>
+                            </para>
+                            <para>In the above file all the video files will be read from the
+                                directory <filename>/data/pvr/mp2/normal</filename>. The result of
+                                the transcoding will (as usual) be stored under the corresponding
+                                mp4 profile directory. Up to 5 different file lists can be added
+                                simultaneous. There is no guarantee that files from all queued file
+                                lists will be fairly processed, i.e. one file from the first list,
+                                and when that is done, a file from the second file lists and so on.
+                                This is completely random. The only thing that is guaranteed is that
+                                the video files in each file lists will be processed
+                                sequentially.</para>
+                            <para>Remember that transcoding multiple files can take a long time. For
+                                example a file list with 10 video files can easily take ~2 days (~4
+                                hours transcoding time per video).</para>
+                            <para>To view the status of ongoing list transcodings the "<emphasis
+                                    role="bold">lq</emphasis>" (list-queue) command can be
+                                used.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>u</command>' - <emphasis
+                                role="bold">Update database file command</emphasis></term>
+                        <listitem>
+                            <para>Force update of the database file from memory. Normally this is
+                                only done when the server is shut down.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>v</command>' - <emphasis
+                                role="bold">Version command</emphasis></term>
+                        <listitem>
+                            <para>Print program version and name as well as the build date. The
+                                following lines will give information on how the server was
+                                compiled.</para>
+                            <para>Output example:</para>
+                            <screen>tvpvrd 1.1.2 [client] (Jan 26 2010)
+Compiled with Large File Support (files > 2GB).</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>vc</command>
+                                [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>|<emphasis>3</emphasis>|<emphasis>4</emphasis>]'
+                            - <emphasis
+                                role="bold">Video Card information command</emphasis></term>
+                        <listitem>
+                            <para>Print information on the specified video/capture cards. The
+                                command will print information of all available cards if no specific
+                                card number is specified. The information shown is the name of the
+                                card, driver and driver version.</para>
+                            <para>Output example:</para>
+                            <screen>Card 00: Hauppauge WinTV PVR-350, driver=ivtv v1.4.1
+Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>x</command>' - <emphasis
+                                role="bold">View XML database command</emphasis></term>
+                        <listitem>
+                            <para>View the current specified recordings in raw XML DB format. See <citerefentry>
+                                    <refentrytitle>tvpvrd</refentrytitle>
+                                    <manvolnum>5</manvolnum>
+                                </citerefentry> for details about the format.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>z</command>' - Display all ini-file settings command</term>
+                        <listitem>
+                            <para>This will list all settings made in the ini-file as well as the
+                                location of the used ini file.</para>
+                            <para>Output example:</para>
+                            <screen>datadir                 : /data/pvr
+logfile                 : /tmp/tvpvrd.log
+inifile_name            : /etc/tvpvrd/tvpvrd.conf
+xmldbfile_name          : /data/pvr/xmldb/tvpvrd_db.xml
+max_video               : 2
+max_entries             : 1024
+max_clients             : 2
+client_idle_time        : 1800s
+port                    : 9300
+time_resolution         : 3s
+video_buffer_size       : 200000 (0.2MB)
+default_recording_time  : 00:59 (h:min)
+xawtv_station file      : /etc/X11/xawtvrc
+default_profile         : normal</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>zp</command> [<emphasis>@profile</emphasis>]' - Display
+                            profile information command</term>
+                        <listitem>
+                            <para>Display information on the settings of the specified profile. </para>
+                            <para>Output example:</para>
+                            <screen>                     name: normal
+ENCODER:
+            video_bitrate: 3400000
+       video_peak_bitrate: 4000000
+           audio_sampling: 44.1
+            audio_bitrate: 192
+                   aspect: 4x3
+                     size: vga
+FFMPEG:
+            video_bitrate: 700
+       video_peak_bitrate: 1000
+                   vcodec: libx264
+                     vpre: normal
+                     pass: 1
+                   acodec: copy
+            audio_bitrate: 196
+               video_size:
+                     crop: (l=2, r=2, t=8, b=8)
+     ffmpeg_extra_options:
+           file_extension: .mp4</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>!</command> [<emphasis>#videocard</emphasis>]' - Stop
+                            recording on specified video card</term>
+                        <listitem>
+                            <para>Stop the recording on the specified video card. The aborted
+                                recording will be left in the '&lt;data-dir>/vtmp/vid&lt;n>/'
+                                directory and must be manually removed. </para>
                         </listitem>
                     </varlistentry>
                 </variablelist>

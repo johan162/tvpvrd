@@ -92,6 +92,12 @@ extern "C" {
 #define DEFAULT_USERNAME "tvpvrd"
 
 /*
+ * MASTER_SERVER boolean
+ * Should the server run as a master or slave by default
+ */
+#define MASTER_SERVER 1
+
+/*
  * PORT integer
  * The port used to communicate with the server unless otherwise specified
  * in the main configuration.
@@ -283,7 +289,7 @@ extern "C" {
  */
 #define WELCOM_MSG \
         "!TVPVRD!\n"\
-	"Welcome to TVPVR-Server %s (%s)\n"\
+	"Welcome to TVPVR-%s [%s] (%s)\n"\
 	"You are user number %d out of %d allowed.\n"\
 	"Type 'exit' to disconnect.\n"\
 	"Type 'h' to list available commands.\n"\
@@ -383,6 +389,9 @@ extern char **client_ipadr; //[MAX_CLIENTS];
  * Keep track of timestamps when the client connected
  */
 extern time_t *client_tsconn; //[MAX_CLIENTS];
+
+// Are we running as master or slave
+extern int is_master_server;
 
 // Maximum sizes
 extern int max_entries, max_video, max_clients, max_idle_time;
