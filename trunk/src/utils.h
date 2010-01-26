@@ -220,6 +220,18 @@ int chkcreatedir(const char *basedir,char *dir);
 int
 strip_filesuffix(char *filename,char *suffix, int slen);
 
+/**
+ * Return the size of the virtual memory used by the specified
+ * process id as well as the number of running threads in the process.
+ * @param pid
+ * @param size
+ * @param unit
+ * @param threads
+ * @return
+ */
+int
+getwsetsize(int pid, int *size, char *unit, int *threads);
+
 #ifdef	__cplusplus
 }
 #endif
