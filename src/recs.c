@@ -317,7 +317,7 @@ newrec(const char *title, const char *filename, const time_t start,
     // Recurrence 0=No, 1=Yes
     ptr->recurrence = recurrence;
 
-    // Type: 0=Single, 1=day, 2=week, 3=month
+    // Type: 0=Single, 1=day, 2=week, 3=month, 4=mon-fri, 5=sat-sun, 6=mon-thu
     ptr->recurrence_type = recurrence_type;
 
     // Number: num = Number of recurrences
@@ -421,7 +421,7 @@ insertrec(int video, struct recording_entry * entry) {
         // The we need to make sure that the start date also
         // obeys this. If this is not the case we move the start
         // day forward until the condition is met.
-        if( entry->recurrence_type == 4 ) {
+        if( entry->recurrence_type == 4 || entry->recurrence_type == 6 ) {
             // Mon Fri
             struct tm tm_start;
             tm_start.tm_sec = ssec;
@@ -438,6 +438,11 @@ insertrec(int video, struct recording_entry * entry) {
             } else if( tm_start.tm_wday == 0 ) {
                 sd++;
                 ed++;
+            }
+            if( entry->recurrence_type == 6 && tm_start.tm_wday == 5 ) {
+                // Mon - Thu so skip a friday+weekend
+                sd += 3;
+                ed += 3;
             }
         } else if( entry->recurrence_type == 5 ) {
             // Sat-Sun

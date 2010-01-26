@@ -464,7 +464,7 @@ _cmd_add(const char *cmd, int sockfd) {
 
         // Repeated variant 1
         // ar <type> <id> <...>
-        ret = matchcmd("^ar" _PR_S "([1-5]|d|w|m|f|s)" _PR_S _PR_ID _PR_S _PR_ANY, cmd, &field);
+        ret = matchcmd("^ar" _PR_S "([1-6]|d|w|m|f|s|t)" _PR_S _PR_ID _PR_S _PR_ANY, cmd, &field);
         if( ret == 4 ) {
             if( isdigit(*field[1]) ) {
                 repeat_type = atoi(field[1]);
@@ -475,6 +475,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     case 'm': repeat_type = 3; break;
                     case 'f': repeat_type = 4; break;
                     case 's': repeat_type = 5; break;
+                    case 't': repeat_type = 6; break;
                 }
             }
             repeat_nbr = atoi(field[2]);
@@ -1209,10 +1210,10 @@ _cmd_status(const char *cmd, int sockfd) {
     int umin = (totaluptime - uh*3600) / 60;
     uh = uh - uday*24;
 
-    int wsize;
-    char unit[256];
-    int nthreads;
-    getwsetsize(getpid(), &wsize, unit, &nthreads);
+    int wsize=-1;
+    char unit[256]={'\0'};
+    int nthreads=-1;
+    (void)getwsetsize(getpid(), &wsize, unit, &nthreads);
 
     snprintf(msgbuff,511,
             "%15s: %s"
