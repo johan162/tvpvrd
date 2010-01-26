@@ -278,7 +278,7 @@
             <para>After a successful connection the server will reply with a short information
                 message. To help identify the server the first line returned is always
                     '<code>!TVPVRD!</code>'. The full returned information message at the connection
-                time is</para>
+                time should look something similar to the following:</para>
             <screen>!TVPVRD!
 Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
 You are user number 1 out of 2 allowed.
@@ -313,13 +313,13 @@ Connection will be closed after 30 min of inactivity.
                 default in the distributed profiles). Depending on the quality settings it is common
                 to see reduction in original file size with 75%</para>
             <para>Unfortunately the transcoding process is extremely CPU-intensive and with the
-                default settings in the distribution the normal profile will require roughly the
-                same time to transcode as the original play time on a high end machine (as of 2009)
-                . In order not to make the machine totally unresponsive the ini-file specifies a
-                maximum load for a transcoding to start in order not to load the server with too
-                many parallel transcoding processes. If the load is too high the transcoding
-                processes will be put in a queue waiting for the load to become acceptable.</para>
-            <para>Each transcoding process is run with a 'nice' value of 20.</para>
+                default settings in the distribution the normal profile will require roughly 1.5
+                times to transcode as the original play time on a high end machine (as of 2009) . In
+                order not to make the machine totally unresponsive the ini-file specifies a maximum
+                load for a transcoding to start in order not to load the server with too many
+                parallel transcoding processes. If the load is too high the transcoding processes
+                will be put in a queue waiting for the load to become acceptable.</para>
+            <para>Each transcoding is run as its own process with a 'nice' value of 20. </para>
             <para>When a recording is started a temporary directory will be created under
                     '<filename>&lt;data-dir>/vtmp/vid&lt;n>/</filename>' where &lt;n> is the number
                 of the video card used. The name of the temporary directory will be the same as the
@@ -327,7 +327,8 @@ Connection will be closed after 30 min of inactivity.
                 in a file in the temporary directory with the same name as the title (converted to
                 lower case) with the suffix ".mpg".</para>
             <para>The hardware capture card settings to be used (bitrate, frame size etc.) is read
-                from the primary profile (i.e. the first profile).</para>
+                from the primary profile (i.e. the first profile if multiple profiles are
+                specified).</para>
             <para>When the recording has stopped the transcoding profile(s) is read and the
                 transcoding is started after a check that the server load is not higher than the
                 maximum allowed load in order to start a transcoding. If the load is too high the
@@ -343,13 +344,23 @@ Connection will be closed after 30 min of inactivity.
             <para>When all the transcodings have been done and if the profile defines that the
                 original MP2 video stream should be kept it is moved to the directory
                     '<filename>&lt;data-dir>/mp2/</filename>'. After that the temporary directory
-                (and the original MP2 file) is deleted. </para>
+                (and the original MP2 file) is deleted.</para>
+            <para>Another possibility is to do the recording first and later decide to transcode one
+                or several video files. This is done by giving a separate transcode command to the
+                server and specify the full file path to the file to be transcoded. In order to make
+                this as convenient as possible there are three variants of this. One variant is to
+                transcode one video file, the other is to specify a directory where all the files
+                will be transcoded. The final way is to store a number of video file names in a text
+                file and use that text file as an input list of the files to transcode. See the
+                command description below for the commands "<option>tf</option>",
+                    "<option>td</option>" and "<option>tl</option>".</para>
         </refsect1>
         <refsect1>
             <title>Directory structure</title>
             <para>The root directory for where the video files (recordings) are stored is specified
-                in the ini-file (e.g. /etc/tvpvrd/tvpvrd.conf). Under this root directory the
-                following subdirectories and files are automatically created by the server:</para>
+                in the ini-file (e.g. <filename>/etc/tvpvrd/tvpvrd.conf</filename>). Under this root
+                directory the following subdirectories and files are automatically created by the
+                server:</para>
             <para>
                 <variablelist>
                     <varlistentry>
@@ -575,14 +586,21 @@ channel = E8
                                 the file size manageable.</para>
                             <para>The primary formats are described below. The syntactic element
                                 used have the following meaning:</para>
-                            <para>&lt;ch> = Channel or station name</para>
-                            <para>&lt;starttime> = Time for recording start</para>
-                            <para>&lt;endtime> = Time for recording end</para>
-                            <para>&lt;title> = Title of recording. This will also be used as the
-                                filename of the resulting file. Note that the filename will always
-                                be converted to lower case.</para>
-                            <para>&lt;@profile> = Name of the profile(s) to be used to the
-                                recording. Up to 4 profiles can be specified for each
+                            <para>&lt;<emphasis
+                                    role="italic">ch</emphasis>> = Channel or station name</para>
+                            <para>&lt;<emphasis
+                                    role="italic">starttime</emphasis>> = Time for recording
+                                start</para>
+                            <para>&lt;<emphasis
+                                    role="italic">endtime</emphasis>> = Time for recording
+                                end</para>
+                            <para>&lt;<emphasis
+                                    role="italic">title</emphasis>> = Title of recording. This will
+                                also be used as the filename of the resulting file. Note that the
+                                filename will always be converted to lower case.</para>
+                            <para>&lt;<emphasis
+                                    role="italic">@profile</emphasis>> = Name of the profile(s) to
+                                be used to the recording. Up to 4 profiles can be specified for each
                                 recording.</para>
                             <para>The three main variants of the add command are:</para>
                             <para>
@@ -705,24 +723,28 @@ channel = E8
                                             <para>
                                                 <itemizedlist>
                                                   <listitem>
-                                                  <para>'d' - Repeat daily (can also be specified as
-                                                  '1')</para>
+                                                  <para>'<option>d</option>' - Repeat daily (can
+                                                  also be specified as '1')</para>
                                                   </listitem>
                                                   <listitem>
-                                                  <para>'w' - Repeat weekly (can also be specified
-                                                  as '2')</para>
+                                                  <para>'<option>w</option>' - Repeat weekly (can
+                                                  also be specified as '2')</para>
                                                   </listitem>
                                                   <listitem>
-                                                  <para>'m' - Repeat monthly (can also be specified
-                                                  as '3')</para>
+                                                  <para>'<option>m</option>' - Repeat monthly (can
+                                                  also be specified as '3')</para>
                                                   </listitem>
                                                   <listitem>
-                                                  <para>'f' - Repeat Monday to Friday (can also be
-                                                  specified as '4')</para>
+                                                  <para>'<option>f</option>' - Repeat Monday to
+                                                  Friday (can also be specified as '4')</para>
                                                   </listitem>
                                                   <listitem>
-                                                  <para>'s' - Repeat every Saturday to Sunday (can
-                                                  also be specified as '5')</para>
+                                                  <para>'<option>s</option>' - Repeat every Saturday
+                                                  to Sunday (can also be specified as '5')</para>
+                                                  </listitem>
+                                                  <listitem>
+                                                  <para>'<option>t</option>' - Repeat every Monday
+                                                  to Thursday (can also be specified as '6')</para>
                                                   </listitem>
                                                 </itemizedlist>
                                             </para>
@@ -738,7 +760,8 @@ channel = E8
                                 list the title will usually be shown as "Base title (xx/yy)" where
                                 xx is the sequence number and yy is the total number of recordings
                                 in this sequence.</para>
-                            <para>Examples:</para>
+                            <para><emphasis
+                                    role="bold">Examples:</emphasis></para>
                             <screen>ar f 10 bbc1 18 18:30 News</screen>
                             <para>Start recording every Mon-Tue at BBC1 between 18:00 and
                                 18:30</para>
@@ -857,6 +880,8 @@ SE14: tv4+
                                 can be adjusted on the specified video card. This is directly
                                 related to the discovered 'v4l2' interfaces. Since the output is
                                 quite long we do not include any example output here.</para>
+                            <para>(This command is probably of little use for anything else than
+                                troubleshooting a video card and driver.)</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -870,8 +895,8 @@ SE14: tv4+
                                     role="bold">tr</emphasis> command. Up to five simultaneous lists
                                 may be added. However, since transcoding is such a heavy job there
                                 is little real reason to add more than one lists at a time since a
-                                list with, say 20 video files, can easily take up to two days to
-                                transcode.</para>
+                                list with, say 20 full length movie video files, can easily take up
+                                more than two days to transcode.</para>
                             <para>Output example:</para>
                             <para>
                                 <screen>       Filelist: #01                                
@@ -911,15 +936,16 @@ Not processed:
                                 completed transcodings for any estimate to be done. At least 2
                                 transcoding must have been completed in order for the estimate to be
                                 shown.</para>
-                            <para>The next set of information is the "Processed:" files. This is the
-                                files that have been processed, meaning it has been submitted for
-                                transcoding. This means that they have either been completely
-                                transcoded or is in the process of being transcoded.</para>
-                            <para>The final block of information is the remainder of the files which
-                                are still waiting to be processed. No files are submitted for
-                                processing until the system load has fallen below the maximum limit
-                                for transcoding to start as specified in the
-                                    <filename>tvpvrd.conf</filename> file.</para>
+                            <para>The next set of information is the "<code>Processed:</code>"
+                                files. This is the files that have been processed, meaning it has
+                                been submitted for transcoding. This means that they have either
+                                been completely transcoded or is in the process of being
+                                transcoded.</para>
+                            <para>The final block of information, the "<code>Not processed:</code>"
+                                block is the remainder of the files which are still waiting to be
+                                processed. No files are submitted for processing until the system
+                                load has fallen below the maximum limit for transcoding to start as
+                                specified in the <filename>tvpvrd.conf</filename> file.</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -1258,6 +1284,17 @@ WildThings.mpg </programlisting>
                             <para>To view the status of ongoing list transcodings the "<emphasis
                                     role="bold">lq</emphasis>" (list-queue) command can be
                                 used.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>td</command>
+                            <emphasis>directory</emphasis> [<emphasis>@profile</emphasis>]' - <emphasis
+                                role="bold">Transcode all files in the specified
+                                directory</emphasis></term>
+                        <listitem>
+                            <para>This command will search the specified directory for files with
+                                recognized video suffix and submit all found files to
+                                transcoding.</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
