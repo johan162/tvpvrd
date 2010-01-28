@@ -232,6 +232,18 @@ strip_filesuffix(char *filename,char *suffix, int slen);
 int
 getwsetsize(int pid, int *size, char *unit, int *threads);
 
+
+/**
+ * Show the last n line of the logfile
+ * @param n
+ * @param buffer
+ * @param maxlen
+ * @return
+ */
+int
+tail_logfile(int n, char *buffer, int maxlen);
+
+
 #ifdef	__cplusplus
 }
 #endif

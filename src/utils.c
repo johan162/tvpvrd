@@ -58,14 +58,20 @@
  */
 int
 _writef(int fd, const char *buf, ...) {
-    static const int blen = 2048;
     if( fd >= 0 ) {
-        char tmpbuff[blen];
+        const int blen = MAX(4096,strlen(buf)+1);
+        char *tmpbuff = calloc(blen,sizeof(char));
+        if( tmpbuff == NULL ) {
+            logmsg(LOG_ERR,"Cannot allocate buffer in _writef()");
+            return -1;
+        }
         va_list ap;
         va_start(ap, buf);
-        vsnprintf(tmpbuff, blen-1, buf, ap);
+        vsnprintf(tmpbuff, blen, buf, ap);
         tmpbuff[blen-1] = 0;
-        return write(fd, tmpbuff, strnlen(tmpbuff,blen));
+        int ret = write(fd, tmpbuff, strnlen(tmpbuff,blen));
+        free(tmpbuff);
+        return ret;
     }
     return -1;
 }
@@ -738,4 +744,38 @@ getwsetsize(int pid, int *size, char *unit, int *threads) {
 
     return 0;
 
+}
+
+int
+tail_logfile(int n, char *buffer, int maxlen) {
+    if( n < 1 || n > 999 )
+        return -1;
+
+    // We can only show the logfile if a proper file has been specified
+    // and not stdout or the system logger
+    if( strcmp(logfile_name,"stdout") == 0 || strcmp(logfile_name,LOGFILE_SYSLOG) == 0) {
+        logmsg(LOG_ERR,"Trying to view logfile when logfile is not a file.");
+        return -1;
+    }
+
+    char cmd[512];
+    snprintf(cmd,512,"tail -n %d %s",n,logfile_name);
+    FILE *fp = popen(cmd, "r");
+    if( fp == NULL ) {
+        logmsg(LOG_ERR,"Failed popen() in tail_logfile(). (%d : %s)",errno,strerror(errno));
+        return -1;
+    }
+    const int maxbuff=256;
+    char linebuffer[maxbuff];
+    *buffer = '\0';
+    while( maxlen > 1024 && NULL != fgets(linebuffer,maxbuff,fp) ) {
+        strncat(buffer,linebuffer,maxlen);
+        maxlen -= strlen(linebuffer);
+    }
+    if( maxlen <= maxbuff ) {
+        *buffer = '\0';
+        return -1;
+    }
+    pclose(fp);
+    return 0;
 }
