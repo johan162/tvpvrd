@@ -86,8 +86,9 @@
 #define CMD_TRANSCODEFILELIST 26
 #define CMD_TRANSCODEDIR 27
 #define CMD_LIST_QUEUEDTRANSC 28
+#define CMD_SHOW_LASTLOG 29
 
-#define CMD_UNDEFINED 29
+#define CMD_UNDEFINED 30
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -139,8 +140,9 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
 			"  l    - list all pending recordings\n"\
-                        "  ls   - list all stations\n"\
                         "  lc   - list all controls for the capture card\n"\
+                        "  log n -show the last n lines of the logfile\n"\
+                        "  ls   - list all stations\n"\
                         "  lq n - list queued transcodings\n"\
 			"  n    - list the immediate next recording on each video\n"\
 			"  o    - list the ongoing recording(s)\n"\
@@ -169,6 +171,7 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  h    - help\n"\
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
+                        "  log n -show the last n lines of the logfile\n"\
                         "  lq n - list queued transcodings\n"\
                         "  ot   - list the ongoing transcoding(s)\n"\
                         "  rst  - reset all statistics\n"\
@@ -188,10 +191,10 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|log|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
-        ret = matchcmd("^h[\\p{Z}]+(h|ktf|kt|lq|ot|rst|rp|st|s|tf|tl|td|t|v|z)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(h|ktf|kt|log|lq|ot|rst|rp|st|s|tf|tl|td|t|v|z)$", cmd, &field);
     }
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
@@ -255,6 +258,10 @@ _cmd_undefined(const char *cmd, int sockfd) {
  */
 // Recording ID
 #define _PR_ID "([\\p{N}]{1,3})"
+
+
+// Optional ID (three digit number)
+#define _PR_OPID "([\\p{N}]{1,3})?"
 
 // Required full time (h:m)
 #define _PR_TIME "([0-1][0-9]|2[0-3]):([0-5][0-9])"
@@ -1933,6 +1940,52 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
     }
 }
 
+static void
+_cmd_show_last_log(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "log n - Show the last n lines of the log file\n");
+        return;
+    }
+
+    int ret = matchcmd("^log" _PR_SO _PR_OPID _PR_E, cmd, &field);
+    int n;
+    if( ret > 1 ) {
+
+        n = atoi(field[1]);
+        if( n < 1 || n > 999 ) {
+            _writef(sockfd,"Error. Number of lines must be in range [1,999]\n");
+            return;
+        }
+
+    } else if ( ret == 1 ) {
+
+        n = 10; // Default to the last 10 lines
+
+    } else {
+
+        _writef(sockfd,"Error. Syntax error (ret=%d).\n",ret);
+        return;        
+        
+    }
+
+    int len = 1024*(n+1);
+    char *buffer = calloc(1,len*sizeof(char));
+    if( buffer == NULL ) {
+        logmsg(LOG_ERR,"Out of memory. Cannot allocate buffer to view logfile.");
+        return;
+    }
+    if( -1 == tail_logfile(n,buffer,len) ) {
+        _writef(sockfd,"Error. Can not show logfile.\n");
+    } else {
+        _writef(sockfd,"Last %d lines of logfile:\n",n);
+        _writef(sockfd,buffer);
+    }
+    free(buffer);
+}
+
 /**
  * Reserved for future use
  */
@@ -1978,6 +2031,7 @@ cmdinit(void) {
     cmdtable[CMD_TRANSCODEFILELIST] = _cmd_transcodefilelist;
     cmdtable[CMD_TRANSCODEDIR]      = _cmd_transcodefilesindirectory;
     cmdtable[CMD_LIST_QUEUEDTRANSC] = _cmd_list_queued_transcodings;
+    cmdtable[CMD_SHOW_LASTLOG]      = _cmd_show_last_log;
 }
 
 /**
@@ -2003,6 +2057,7 @@ _getCmdPtr(const char *cmd) {
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"lc", CMD_LIST_CONTROLS},
         {"ls", CMD_LIST_STATIONS},
+        {"log", CMD_SHOW_LASTLOG},
         {"l",  CMD_LIST},
         {"i",  CMD_INFO},
         {"d",  CMD_DELETE},
@@ -2036,6 +2091,7 @@ _getCmdPtr(const char *cmd) {
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"tf", CMD_TRANSCODEFILE},
         {"tl", CMD_TRANSCODEFILELIST},
+        {"log",CMD_SHOW_LASTLOG},
         {"t",  CMD_TIME},
         {"st", CMD_STATISTICS},
         {"rst",CMD_RESETSTATS},

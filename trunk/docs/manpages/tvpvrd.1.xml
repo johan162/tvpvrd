@@ -847,6 +847,16 @@ killflag=n</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
+                        <term>'<command>log</command>' [<emphasis>n</emphasis>] - <emphasis
+                                role="bold">Show last n lines of the log file</emphasis></term>
+                        <listitem>
+                            <para>If the logfile has been specified as a file (in
+                                    <filename>tvpvrd.conf</filename>) then this command will show
+                                the last n lines of the log. If no number is given it will default
+                                to show the last 10 lines. </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
                         <term>'<command>ls</command>' - <emphasis
                                 role="bold">List stations command</emphasis></term>
                         <listitem>
