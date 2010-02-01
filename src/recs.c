@@ -508,10 +508,13 @@ insertrec(int video, struct recording_entry * entry) {
             (void)_insertrec(video, newentry);
 
             // Find out the new date for the next recording in sequence
-            increcdays(entry->recurrence_type,
+            if( -1 == increcdays(entry->recurrence_type,
                     &ts_start, &ts_end,
                     &sy, &sm, &sd, &sh, &smin, &ssec,
-                    &ey, &em, &ed, &eh, &emin, &esec);
+                    &ey, &em, &ed, &eh, &emin, &esec) )  {
+                return 0;
+            }
+
         }
         recurrence_id++;
         freerec(entry,"insertrec()");

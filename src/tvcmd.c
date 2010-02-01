@@ -1521,7 +1521,7 @@ _cmd_resetstatistics(const char *cmd, int sockfd) {
         return;
     }
     clear_stats();
-    strncpy(buff,"Statistics reset.\n",511);
+    strncpy(buff,"Ok. Statistics reset.\n",511);
     buff[511] = '\0';
     _writef(sockfd,buff);
 }
@@ -1826,6 +1826,8 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
         
         (void)transcode_file(field[1], profile, 1);
 
+        _writef(sockfd,"Ok. Transcoding started.\n");
+
     } else {
         _writef(sockfd,"Syntax error.\n");
     }
@@ -1864,6 +1866,7 @@ _cmd_transcodefilelist(const char *cmd, int sockfd) {
         profile[31] = '\0';
 
         (void)read_transcode_filelist(field[1],profile);
+        _writef(sockfd,"Ok. Transcoding of filelist started.\n");
 
     } else {
         _writef(sockfd,"Syntax error.\n");
@@ -1902,6 +1905,7 @@ _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
         profile[31] = '\0';
 
         (void)transcode_whole_directory(field[1],profile);
+        _writef(sockfd,"Ok. Transcoding of directory.\n");
 
     } else {
         _writef(sockfd,"Syntax error.\n");
