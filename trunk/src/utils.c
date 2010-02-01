@@ -227,7 +227,7 @@ fromtimestamp(const time_t timestamp, int* year, int* month, int* day,
  * time according to the recurrence type, day, week, monnth
  * and so on
  */
-void
+int
 increcdays(int rectype,
         time_t *ts_start, time_t *ts_end,
         int *sy, int *sm, int *sd, int *sh, int *smin, int *ssec,
@@ -290,8 +290,25 @@ increcdays(int rectype,
             } while (tm_start.tm_wday != 6 && tm_start.tm_wday != 0);
             break;
 
+        case 6:
+            // Mon-Thu
+            do {
+                *sd += 1;
+                *ed += 1;
+                tm_start.tm_sec = *ssec;
+                tm_start.tm_min = *smin;
+                tm_start.tm_hour = *sh;
+                tm_start.tm_mday = *sd;
+                tm_start.tm_mon = *sm - 1;
+                tm_start.tm_year = *sy - 1900;
+                tm_start.tm_isdst = -1;
+                mktime(&tm_start);
+            } while (tm_start.tm_wday >= 5 || tm_start.tm_wday == 0 );
+            break;
+
         default:
             logmsg(LOG_ERR, "Unknown type of repeat specified for record.");
+            return -1;
             break;
     }
 
@@ -302,6 +319,8 @@ increcdays(int rectype,
 
     *ts_end = totimestamp(*ey, *em, *ed, *eh, *emin, *esec);
     fromtimestamp(*ts_end, ey, em, ed, eh, emin, esec);
+
+    return 0;
 }
 
 

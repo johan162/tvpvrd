@@ -71,7 +71,7 @@ fromtimestamp(const time_t timestamp, int* year, int* month, int* day,
  * time according to the recurrence type, day, week, monnth
  * and so on
  */
-void
+int 
 increcdays(int rectype, time_t *ts_start, time_t *ts_end,
            int *sy, int *sm, int *sd, int *sh, int *smin, int *ssec,
            int *ey, int *em, int *ed, int *eh, int *emin, int *esec);
