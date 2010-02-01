@@ -2055,6 +2055,7 @@ _getCmdPtr(const char *cmd) {
     static struct cmd_entry cmdfunc_master[] = {
         {"ar", CMD_ADD},
         {"a",  CMD_ADD},
+        {"dr", CMD_DELETE},
         {"d",  CMD_DELETE},
         {"h",  CMD_HELP},
         {"i",  CMD_INFO},
