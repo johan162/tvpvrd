@@ -321,6 +321,8 @@ newrec(const char *title, const char *filename, const time_t start,
     ptr->recurrence_type = recurrence_type;
 
     // Number: num = Number of recurrences
+    // Note: If this is a negative number then instead it is the timestamp
+    // for the last date when this recurrance should stop
     ptr->recurrence_num = recurrence_num;
 
     // Mangling type: 0=Recurrence seq, 1=Date
@@ -374,6 +376,83 @@ _insertrec(int video, struct recording_entry* entry) {
     return 1;
 }
 
+int
+adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
+    int sy, sm, sd, sh, smin, ssec;
+    int ey, em, ed, eh, emin, esec;
+
+    if( recurrence_type < 0 || recurrence_type > 6 ) {
+        logmsg(LOG_ERR, "FATAL: Internal error. Unknown recurrence type %d in adjust_initital_repeat_date()",recurrence_type);
+        return -1;
+    }
+
+    fromtimestamp(*start, &sy, &sm, &sd, &sh, &smin, &ssec);
+    fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);
+
+    // If we have a recurrence on Mod-Fri (or possible Sat-Sun)
+    // The we need to make sure that the start date also
+    // obeys this. If this is not the case we move the start
+    // day forward until the condition is met.
+    if( recurrence_type == 4 || recurrence_type == 6 ) {
+        // Mon Fri
+        struct tm tm_start;
+        tm_start.tm_sec = ssec;
+        tm_start.tm_min = smin;
+        tm_start.tm_hour = sh;
+        tm_start.tm_mday = sd;
+        tm_start.tm_mon = sm - 1;
+        tm_start.tm_year = sy - 1900;
+        tm_start.tm_isdst = -1;
+        mktime(&tm_start);
+
+        if( recurrence_type == 4  ) {
+            if( tm_start.tm_wday == 6 ) {
+                sd += 2;
+                ed += 2;
+            } else if( tm_start.tm_wday == 0 ) {
+                sd++;
+                ed++;
+            }
+        } else if( recurrence_type == 6  ) {
+            // Type must be 6 (Mon-Thu)
+            if (tm_start.tm_wday == 6) {
+                // Mon - Thu so skip a sat+sun
+                sd += 2;
+                ed += 2;
+            } else if (tm_start.tm_wday == 0) {
+                // Mon - Thu so skip a sun
+                sd++;
+                ed++;
+            } else if (tm_start.tm_wday == 5) {
+                // Mon - Thu so skip a friday+weekend
+                sd += 3;
+                ed += 3;
+            }
+        }
+
+    } else if( recurrence_type == 5 ) {
+        // Sat-Sun
+        struct tm tm_start;
+        tm_start.tm_sec = ssec;
+        tm_start.tm_min = smin;
+        tm_start.tm_hour = sh;
+        tm_start.tm_mday = sd;
+        tm_start.tm_mon = sm - 1;
+        tm_start.tm_year = sy - 1900;
+        tm_start.tm_isdst = -1;
+        mktime(&tm_start);
+        if( tm_start.tm_wday < 6 && tm_start.tm_wday > 0) {
+            sd += 6-tm_start.tm_wday;
+            ed += 6-tm_start.tm_wday;
+        }
+    }
+
+    *start = totimestamp(sy, sm, sd, sh, smin, ssec);
+    *end = totimestamp(ey, em, ed, eh, emin, esec);
+
+    return 0;
+}
+
 /*
  * Insert a new recording in the list after checking that it doesn't
  * collide with an existing recording
@@ -413,63 +492,14 @@ insertrec(int video, struct recording_entry * entry) {
         strncpy(bnamecore, bname, len);
         bnamecore[len] = 0;
 
-        fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
-        fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);
+        (void)adjust_initital_repeat_date(&entry->ts_start, &entry->ts_end, entry->recurrence_type);
 
-
-        // If we have a recurrence on Mod-Fri (or possible Sat-Sun)
-        // The we need to make sure that the start date also
-        // obeys this. If this is not the case we move the start
-        // day forward until the condition is met.
-        if( entry->recurrence_type == 4 || entry->recurrence_type == 6 ) {
-            // Mon Fri
-            struct tm tm_start;
-            tm_start.tm_sec = ssec;
-            tm_start.tm_min = smin;
-            tm_start.tm_hour = sh;
-            tm_start.tm_mday = sd;
-            tm_start.tm_mon = sm - 1;
-            tm_start.tm_year = sy - 1900;
-            tm_start.tm_isdst = -1;
-            mktime(&tm_start);
-            if( tm_start.tm_wday == 6 ) {
-                sd += 2;
-                ed += 2;
-            } else if( tm_start.tm_wday == 0 ) {
-                sd++;
-                ed++;
-            }
-            if( entry->recurrence_type == 6 && tm_start.tm_wday == 5 ) {
-                // Mon - Thu so skip a friday+weekend
-                sd += 3;
-                ed += 3;
-            }
-        } else if( entry->recurrence_type == 5 ) {
-            // Sat-Sun
-            struct tm tm_start;
-            tm_start.tm_sec = ssec;
-            tm_start.tm_min = smin;
-            tm_start.tm_hour = sh;
-            tm_start.tm_mday = sd;
-            tm_start.tm_mon = sm - 1;
-            tm_start.tm_year = sy - 1900;
-            tm_start.tm_isdst = -1;
-            mktime(&tm_start);
-            if( tm_start.tm_wday < 6 && tm_start.tm_wday > 0) {
-                sd += 6-tm_start.tm_wday;
-                ed += 6-tm_start.tm_wday;
-            }
-        }
-
-        entry->ts_start = totimestamp(sy, sm, sd, sh, smin, ssec);
-        entry->ts_end = totimestamp(ey, em, ed, eh, emin, esec);
         fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
         fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);
         ts_start = entry->ts_start;
         ts_end = entry->ts_end;
 
         assert(entry->recurrence_num > 0);
-
 
         for (int i = 0; i < entry->recurrence_num; i++) {
 

@@ -239,7 +239,7 @@ _cmd_undefined(const char *cmd, int sockfd) {
 #define _PR_AN "([\\p{L}\\p{N}]+)"
 
 // Required filepath
-#define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_]+)"
+#define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
 
 // Required alphanumeric and punctuation sequence
 //#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
@@ -490,7 +490,56 @@ _cmd_add(const char *cmd, int sockfd) {
             cmdbuff[255] = 0;
         }
         else {
-            err = 1;
+            // See if numvber of instances was specified with an end date instead
+            ret = matchcmd("^ar" _PR_S "([1-6]|d|w|m|f|s|t)" _PR_S _PR_FULLDATE _PR_S _PR_ANY, cmd, &field);
+            if( ret == 4 ) {
+
+                if( isdigit(*field[1]) ) {
+                    repeat_type = atoi(field[1]);
+                } else {
+                    switch( *field[1] ) {
+                        case 'd': repeat_type = 1; break;
+                        case 'w': repeat_type = 2; break;
+                        case 'm': repeat_type = 3; break;
+                        case 'f': repeat_type = 4; break;
+                        case 's': repeat_type = 5; break;
+                        case 't': repeat_type = 6; break;
+                    }
+                }
+
+                // Extract year-mon-day from date and cconvert to a timestamp
+                char datebuff[16];
+                strcpy(datebuff,field[2]);
+                datebuff[4] = '\0';
+                int year = atoi(datebuff);
+                datebuff[7] = '\0';
+                int month = atoi(datebuff+5);
+                int day = atoi(datebuff+8);
+                time_t end_time = totimestamp(year,month,day,23,59,59);
+
+                // Find out how many repeats are required to reach the end date
+                time_t t1time = time(NULL);
+                time_t t2time = t1time;
+                (void)adjust_initital_repeat_date(&t1time, &t2time, repeat_type);
+                
+                int t1y,t1m,t1d,t1h,t1min,t1sec;
+                int t2y,t2m,t2d,t2h,t2min,t2sec;
+                fromtimestamp(t1time,&t1y, &t1m, &t1d, &t1h, &t1min, &t1sec);
+                fromtimestamp(t2time,&t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
+                repeat_nbr = 0 ;
+                while( t1time <= end_time ) {
+                    ++repeat_nbr;
+                    increcdays(repeat_type,&t1time,&t2time,
+                               &t1y, &t1m, &t1d, &t1h, &t1min, &t1sec,
+                               &t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
+
+                }
+                snprintf(cmdbuff,255, "a %s", field[3]);
+                cmdbuff[255] = 0;
+
+            } else {
+                err = 1;
+            }            
         }
     }
     else {
@@ -1800,8 +1849,7 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
                 );
         return;
     }
-
-    //int ret = matchcmd("^tf" _PR_S _PR_FILEPATH _PR_S _PR_PROFN _PR_E, cmd, &field);
+    
     int ret = matchcmd("^tf" _PR_S _PR_FILEPATH _PR_SO _PR_PROFN _PR_E, cmd, &field);
     if( ret > 0 ) {
 

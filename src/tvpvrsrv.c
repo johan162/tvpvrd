@@ -311,7 +311,7 @@ init_globs(void) {
 #ifdef DEBUG_SIMULATE
 #define _dbg_close(fd) _x_dbg_close(fd)
 #else
-#define _dbg_close(fd) close(fd)
+#define _dbg_close(fd) _x_dbg_close(fd)
 #endif
 
 
@@ -480,6 +480,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
         // Do nothing. The MP2 file will be moved by the calling
         // function.
+        logmsg(LOG_NOTICE,"Transcoding disabled in profile '%s' for file '%s'",profile->name,short_filename);
+        return 0;
 
     } else  {
         // If recording was successful then do the transcoding
@@ -861,7 +863,9 @@ startrec(void *arg) {
 
 #endif
 
-            _dbg_close(fh);
+            if( -1 == _dbg_close(fh) ) {
+                logmsg(LOG_ERR,"Failed to close file handle of recorded file. ( % d : % s )",errno,strerror(errno));
+            }
             if( doabort ) {
                 logmsg(LOG_ERR, "Aborted recording to '%s' due to error. (%d : %s) ",full_filename,errno,strerror(errno));
             } else {
@@ -881,7 +885,9 @@ startrec(void *arg) {
         int transcoding_problem = 1 ;
         int keep_mp2_file = 0 ;
 
+
         if( !doabort && (nread == nwrite) && (check_ffmpeg_bin()==0)) {
+
             transcoding_problem = 0;
             int mp4size=0;
             struct timeall transcode_time;
@@ -894,13 +900,13 @@ startrec(void *arg) {
                 // that no transcoding will be done we keep the mp2 file.
                 keep_mp2_file |= profile->encoder_keep_mp2file | !profile->use_transcoding;
 
-                printf("Transcoding using profile: %s\n",profile->name);
+                logmsg(LOG_NOTICE,"Transcoding using profile: %s",profile->name);
                 time_t start = time(NULL);
                 int ret = transcode_and_move_file(datadir,workingdir,short_filename,
                                                   full_filename,profile,
                                                   &mp4size,&transcode_time);
                 transcoding_problem |= ret;
-                if( ret > -1 ) {
+                if( 0 == ret ) {
                     stats_update(recording->transcoding_profiles[i],
                                  mp2size,
                                  recording->ts_end - recording->ts_start,
@@ -1150,18 +1156,21 @@ clientsrv(void *arg) {
     do  {
 
         FD_SET(my_socket, &read_fdset);
-        timeout.tv_sec = 1;
+        timeout.tv_sec = 60;
         timeout.tv_usec = 0;
 
         ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
         if (ret == 0) {
             //Timeout
-            idle_time++;
+            idle_time += 60;
             if (idle_time >= max_idle_time) {
                 numreads = -1; // Force a disconnect
-                logmsg(LOG_INFO, "Client disconnected after being idle for %d seconds.", max_idle_time);
+                logmsg(LOG_INFO, "Client disconnected after being idle for more than %d seconds.", max_idle_time);
             } else {
-                numreads = 1;
+                if( idle_time % 300 == 0 ) {
+                    logmsg(LOG_NOTICE, "Client %d idle the last 5 min.", i);
+                }
+                numreads = 1; // To keep the loop going
             }
         } else {
             idle_time = 0;

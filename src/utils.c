@@ -397,12 +397,11 @@ stricmp(const char *s1, const char *s2) {
  */
 int
 removedir(const char *dir) {
-    DIR *dp;
     struct dirent *dirp;
     struct stat statbuf;
     char tmpbuff[512];
 
-    dp = opendir(dir);
+    DIR *dp = opendir(dir);
     if (dp == NULL) {
         return errno;
     }
@@ -425,7 +424,9 @@ removedir(const char *dir) {
             }
         }
     }
-    return rmdir(dir);
+    int ret = rmdir(dir);
+    (void)closedir(dp);
+    return ret;
 }
 
 /**
@@ -499,7 +500,7 @@ mv_and_rename(char *from, char *to, char *newname, int size) {
         return -1;
     }
     int ret = rename(from, buff1);
-    if( ret == -1 ) {
+    if( -1 == ret ) {
         logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' (%d : %s)",
               from,buff1,errno,strerror(errno));
     }
