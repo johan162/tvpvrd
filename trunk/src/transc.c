@@ -1139,6 +1139,7 @@ incidx_fillist(struct transc_filelistparam *filelist) {
             logmsg(LOG_NOTICE,"Updated filelist in slot [%d] to idx=%d",i,ongoing_filelist_transcodings[i]->idx);
             if( ongoing_filelist_transcodings[i]->idx > ongoing_filelist_transcodings[i]->nentries ) {
                 logmsg(LOG_ERR,"Internal error. Current filelist index is larger than the total number of entries in the list.");
+                pthread_mutex_unlock(&filelist_mutex);
                 return -1;
             }
             break;
@@ -1156,7 +1157,7 @@ incidx_fillist(struct transc_filelistparam *filelist) {
 
 int
 get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
-    char tmpbuff[512];
+    char tmpbuff[512] = {'\0'};
     // Return information on transcoding filelist with ordinal numebr num
     // in the supplied buffer as a string
     if( len < 200 )
@@ -1178,21 +1179,27 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
         return -1;
 
     time_t ts_tmp = time(NULL) - ongoing_filelist_transcodings[idx]->start;
-    int sh = ts_tmp / 3600;
-    int sday = sh / 24 ;
-    int smin = (ts_tmp - sh * 3600) / 60;
-    sh = sh - sday*24;
+    int sday = ts_tmp / (24*3600) ;
+    int sh = (ts_tmp - sday*24*3600)/ 3600;
+    int smin = (ts_tmp - sday*24*3600 - sh*3600 ) / 60;
 
-    // Try to estimate the remaining time (very roughly)
+    logmsg(LOG_NOTICE,"Filelist transcoding has been running for %d day(s) %02d:%02d (%d s)",sday,sh,smin,ts_tmp);
+
+    // Try to estimate the remaining time (very, very roughly)
     time_t ts_left = 0;
     int lh=-1;
     int lday = -1;
     if( ongoing_filelist_transcodings[idx]->idx > 2 ) {
-        ts_left = ts_tmp/(ongoing_filelist_transcodings[idx]->idx-1) *
-                    (ongoing_filelist_transcodings[idx]->nentries-ongoing_filelist_transcodings[idx]->idx+1);
-        lh = ts_left / 3600;
-        lday = lh / 24 ;
-        lh = lday-24*3600+1;
+
+        // Number of files left to process
+        int nleft = ongoing_filelist_transcodings[idx]->nentries - ongoing_filelist_transcodings[idx]->idx -1;
+
+        // ts_left = (time for one file) * (number of files left)
+        ts_left = ts_tmp / (ongoing_filelist_transcodings[idx]->idx+1);
+        ts_left *= nleft;
+
+        lday = ts_left / (24*3600) ;
+        lh = (ts_left-lday*24*3600)/3600+1;
     }
 
 
@@ -1203,7 +1210,7 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
         "%15s: %02d (%d%%) files\n"
         "%15s: %s"
         "%15s: %02d days %02d:%02d h\n"
-        "%15s: %02d days ~%02d h (approx.)\n",
+        "%15s: %02d days %02d h (approx.)\n",
 
         "Filelist",num,
         "Total",ongoing_filelist_transcodings[idx]->nentries,
@@ -1283,12 +1290,12 @@ _transcode_filelist(void *arg) {
 
         incidx_fillist(param);
 
-        // Always take a minimum of 3 min break between trying to submit new files.
+        // Always take a minimum of 4 min break between trying to submit new files.
         // This is done in order to make sure that the CPU load (to be tested in wait_to_transcode)
         // will have a chance to build up. If we didn't do this it would be possible to submit
         // 100's of videos for encoding on an idle server since it takes some time for the load
         // to accurately reflect the servers work
-        sleep(3*60);
+        sleep(4*60);
 
         if( strnlen(param->dirpath,256) > 0 ) {
             strncpy(buffer,param->dirpath,256);

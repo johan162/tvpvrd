@@ -257,6 +257,19 @@ deleterecid(int seqnbr, int allrecurrences);
 int
 updateprofile(int seqnbr, char *profile);
 
+/**
+ * Adjust the given start and end date for a recording so that it actually starts
+ * on a day that is allowed according to the repeat type. For example if the repeat
+ * is onlye said to be on weekebds and the start date is on a wed we need to adjust
+ * it by three days.
+ * @param start
+ * @param end
+ * @param recurrence_type
+ * @return
+ */
+int
+adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type);
+
 #ifdef	__cplusplus
 }
 #endif
