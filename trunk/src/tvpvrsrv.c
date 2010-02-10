@@ -311,14 +311,14 @@ init_globs(void) {
 #ifdef DEBUG_SIMULATE
 #define _dbg_close(fd) _x_dbg_close(fd)
 #else
-#define _dbg_close(fd) _x_dbg_close(fd)
+#define _dbg_close(fd) close(fd)
 #endif
 
 
 int
 _x_dbg_close(int fd) {
 
-    logmsg(LOG_INFO,"dbg_close() : fd=%d",fd);
+    logmsg(LOG_NOTICE,"dbg_close() : fd=%d",fd);
     return close(fd);
     
 }
@@ -792,9 +792,9 @@ startrec(void *arg) {
                 // frames the the data read vay in size from  ~8k to ~80k in size.
                 // ---------------------------------------------------------------------------------------
 
-                logmsg(LOG_DEBUG,"    -- [%02d] select WAITING %d (%s)",video,vh,full_filename);
+                //logmsg(LOG_DEBUG,"    -- [%02d] select WAITING %d (%s)",video,vh,full_filename);
                 ret = select (vh + 1, &fds, NULL, NULL, &tv);
-                logmsg(LOG_DEBUG,"    -- [%02d] select WAITING %d READY ret=%d, errno=%d (%s)",video,vh,ret,errno,full_filename);
+                //logmsg(LOG_DEBUG,"    -- [%02d] select WAITING %d READY ret=%d, errno=%d (%s)",video,vh,ret,errno,full_filename);
 
                 if (-1 == ret && EINTR == errno) {
                     continue;
@@ -808,9 +808,9 @@ startrec(void *arg) {
                     doabort = 1;
                 } else {      
 #endif
-                    logmsg(LOG_DEBUG,"    -- [%02d] Trying to read bytes from fd=%d '%s'",video,vh, recording->title);
+                    //logmsg(LOG_DEBUG,"    -- [%02d] Trying to read bytes from fd=%d '%s'",video,vh, recording->title);
                     nread = read(vh, video_buffer[video], video_bufsize);
-                    logmsg(LOG_DEBUG,"    -- [%02d] DONE. Read %05d bytes from fd=%d '%s'",video,nread,vh,recording->title);
+                    //logmsg(LOG_DEBUG,"    -- [%02d] DONE. Read %05d bytes from fd=%d '%s'",video,nread,vh,recording->title);
 
                     if (-1 == nread ) {
                             switch (errno) {
@@ -827,7 +827,7 @@ startrec(void *arg) {
                     } else {
 
                         nwrite = write(fh, video_buffer[video], nread);
-                        logmsg(LOG_DEBUG,"    -- [%02d] nwrite=%d after writing to '%s'",video,nwrite,full_filename);
+                        //logmsg(LOG_DEBUG,"    -- [%02d] nwrite=%d after writing to '%s'",video,nwrite,full_filename);
 
                         if( nwrite == -1 ) {
                             logmsg(LOG_ERR, "Error while writing to '%s' while recording. (%d : %s) ",
@@ -1058,7 +1058,6 @@ clientsrv(void *arg) {
     char buffer[1024];
     fd_set read_fdset;
     struct timeval timeout;
-    int idle_time=0;
 
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
@@ -1094,15 +1093,20 @@ clientsrv(void *arg) {
     if( require_password ) {
         int tries = 3;
         int authenticated = 0;
+
         while( tries > 0 && !authenticated) {
             _writef(my_socket, "Password: ");
-            FD_SET(my_socket, &read_fdset);
-            timeout.tv_sec = 60;
-            timeout.tv_usec = 0;
 
+            FD_ZERO(&read_fdset);
+            FD_SET(my_socket, &read_fdset);
+
+            timerclear(&timeout);
+            timeout.tv_sec = 120; // 2 min timeout to give a password
+            
             ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);   
-            if( ret == 0 ) {
+            if( 0 == ret ) {
                 // Timeout
+                logmsg(LOG_INFO,"Timeout for password query from %s on socket %d", client_ipadr[i], my_socket);
                 break;
             } else {
                 numreads = read(my_socket, buffer, 1023);
@@ -1130,7 +1134,7 @@ clientsrv(void *arg) {
             cli_threads[i] = 0;
             if( -1 == _dbg_close(my_socket) ) {
                 logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
-                            my_socket,client_ipadr[i],errno,strerror(errno));
+                       my_socket,client_ipadr[i],errno,strerror(errno));
             }
             ncli_threads--;
 
@@ -1153,16 +1157,24 @@ clientsrv(void *arg) {
 
     _writef(my_socket, buffer);
 
+    // Keep track of client idle time
+    int idle_time=0;
+
     do  {
 
+        FD_ZERO(&read_fdset);
         FD_SET(my_socket, &read_fdset);
+
+        timerclear(&timeout);
         timeout.tv_sec = 60;
-        timeout.tv_usec = 0;
 
         ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
         if (ret == 0) {
+
             //Timeout
             idle_time += 60;
+            logmsg(LOG_DEBUG, "Client %d terminal timeout. Idle for a total of %d seconds",i,idle_time);
+
             if (idle_time >= max_idle_time) {
                 numreads = -1; // Force a disconnect
                 logmsg(LOG_INFO, "Client disconnected after being idle for more than %d seconds.", max_idle_time);
@@ -1320,8 +1332,8 @@ startupsrv(void) {
                     ncli_threads++;
                 }
             } else {
-                logmsg(LOG_ERR, "Client connection not allowed. Too many clients connected.");
-                strcpy(tmpbuff, "Too many connections.");
+                logmsg(LOG_ERR, "Client connection not allowed. Maximum number of clients (%d) already connected.",max_clients);
+                strcpy(tmpbuff, "Too many client connections.\n");
                 _writef(newsocket, tmpbuff);
                 _dbg_close(newsocket);
             }
@@ -1876,21 +1888,17 @@ chkswitchuser(void) {
 
                 logmsg(LOG_NOTICE,"Adjusting permission and owner on file structure (%s).",datadir);
                 snprintf(cmdbuff,63,"chown -R %s %s",username,datadir);
-                FILE *fp = popen(cmdbuff,"r");
-                pclose(fp);
+                int dummyret = system(cmdbuff);
 
                 snprintf(cmdbuff,63,"chgrp -R %d %s",pwe->pw_gid,datadir);
-                fp = popen(cmdbuff,"r");
-                pclose(fp);
+                dummyret = system(cmdbuff);
 
                 if( strcmp(logfile_name,"syslog") && strcmp(logfile_name,"stdout") ) {
                     snprintf(cmdbuff,63,"chown %s %s",username,logfile_name);
-                    FILE *fp = popen(cmdbuff,"r");
-                    pclose(fp);
+                    dummyret = system(cmdbuff);
 
                     snprintf(cmdbuff,63,"chgrp %d %s",pwe->pw_gid,logfile_name);
-                    fp = popen(cmdbuff,"r");
-                    pclose(fp);
+                    dummyret = system(cmdbuff);
                 }
             }
             // Make sure we run as belonging to the video group
@@ -2303,7 +2311,8 @@ main(int argc, char *argv[]) {
         (void) pthread_create(&chkrec_thread, NULL, chkrec, (void *) NULL);
     }
 
-    // Startup the main socket server listener. 
+    // Startup the main socket server listener. The call to startupsrv() will
+    // not return until the daemon is terminated.
     if( EXIT_FAILURE == startupsrv() ) {
         logmsg(LOG_ERR,"Unable to start '%s' server.",program_invocation_short_name);
 	exit(EXIT_FAILURE);
