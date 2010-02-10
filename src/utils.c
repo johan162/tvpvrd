@@ -62,7 +62,7 @@ _writef(int fd, const char *buf, ...) {
         const int blen = MAX(4096,strlen(buf)+1);
         char *tmpbuff = calloc(blen,sizeof(char));
         if( tmpbuff == NULL ) {
-            logmsg(LOG_ERR,"Cannot allocate buffer in _writef()");
+            logmsg(LOG_ERR,"FATAL: Cannot allocate buffer in _writef()");
             return -1;
         }
         va_list ap;
@@ -78,7 +78,7 @@ _writef(int fd, const char *buf, ...) {
 
 void
 _vsyslogf(int priority, char *msg, ...) {
-    static const int blen = 2048;
+    static const int blen = 4096;
     char tmpbuff[blen];
 
     va_list ap;
@@ -193,8 +193,9 @@ totimestamp(const int year, const int month, const int day,
     timestamp = mktime(&time_struc);
 
     if (timestamp == -1) {
-        logmsg(LOG_ERR, "INTERNAL ERROR: Cannot convert tm to timestamp.");
-        exit(EXIT_FAILURE);
+        logmsg(LOG_ERR, "totimestamp() : Cannot convert tm to timestamp (%d : %s)",
+               errno,strerror(errno));
+        return -1;
     }
 
     return timestamp;
@@ -208,17 +209,21 @@ int
 fromtimestamp(const time_t timestamp, int* year, int* month, int* day,
         int* hour, int* min, int* sec) {
 
-    struct tm *time_struc;
-    time_struc = localtime(&timestamp);
+    struct tm time_struc;
+    if( NULL == localtime_r(&timestamp,&time_struc) ) {
+        logmsg(LOG_ERR,"fromtimestamp() : Cannot convert timestamp (%d : %s)",
+               errno,strerror(errno));
+        return -1;
+    }
 
-    *year = time_struc->tm_year + 1900;
-    *month = time_struc->tm_mon + 1;
-    *day = time_struc->tm_mday;
-    *hour = time_struc->tm_hour;
-    *min = time_struc->tm_min;
-    *sec = time_struc->tm_sec;
+    *year = time_struc.tm_year + 1900;
+    *month = time_struc.tm_mon + 1;
+    *day = time_struc.tm_mday;
+    *hour = time_struc.tm_hour;
+    *min = time_struc.tm_min;
+    *sec = time_struc.tm_sec;
 
-    return 1;
+    return 0;
 }
 
 /*
@@ -315,11 +320,22 @@ increcdays(int rectype,
     // We need to do a full cycle to adjust the values in case
     // one of the values has wrapped
     *ts_start = totimestamp(*sy, *sm, *sd, *sh, *smin, *ssec);
-    fromtimestamp(*ts_start, sy, sm, sd, sh, smin, ssec);
+    if( *ts_start >= 0 ) {
+        fromtimestamp(*ts_start, sy, sm, sd, sh, smin, ssec);
+    } else {
+        logmsg(LOG_ERR,"increcdays() : FATAL Corrupt timeconversion. Cannot continue.");
+        (void)exit(EXIT_FAILURE);
+        return -1;
+    }
 
     *ts_end = totimestamp(*ey, *em, *ed, *eh, *emin, *esec);
-    fromtimestamp(*ts_end, ey, em, ed, eh, emin, esec);
-
+    if( *ts_end >= 0 ) {
+        fromtimestamp(*ts_end, ey, em, ed, eh, emin, esec);
+    } else {
+        logmsg(LOG_ERR,"increcdays() : FATAL Corrupt timeconversion. Cannot continue.");
+        (void)exit(EXIT_FAILURE);
+        return -1;
+    }
     return 0;
 }
 
@@ -349,26 +365,31 @@ matchcmd(const char *regex, const char *cmd, char ***field) {
 
 
 /*
- * Return a pointer to a statically allocated string which are filled with
- * 'num' repeats of character 'c'. NOTE: Not thread safe since it uses a
- * statically allocated buffer which will be the same for all threads
+ * Fill the supplied buffer with 'num' repeats of character 'c'
  */
-char *rptchr_r(char c, unsigned int num, char *buf) {
+char *
+rptchr_r(char c, unsigned int num, char *buf) {
     num = MIN(255, num);
     for (int i = 0; i < num; i++)
         buf[i] = c;
-    buf[num] = 0;
+    buf[num] = '\0';
     return buf;
 }
 
 
 /*
- * Utility function. Convert string to lower case
+ * Utility function. Convert string of maximum 4095 characters to lower case
  */
 void
 strtolower(char *s) {
-    while ((*s = tolower(*s)))
+    int safetylimit = 4096;
+    while ( --safetylimit > 0 && (*s = tolower(*s)) ) {
         s++;
+    }
+    if( safetylimit <= 0 ) {
+        logmsg(LOG_ERR,"FATAL : strtolower() : Failed safetylimit !");
+        (void)exit(EXIT_FAILURE);
+    }
 }
 
 /**
@@ -378,19 +399,27 @@ strtolower(char *s) {
  */
 int
 stricmp(const char *s1, const char *s2) {
+    const int safetylimit = 4096;
+    int len1 = strnlen(s1,safetylimit);
+    int len2 = strnlen(s2,safetylimit);
+    if( len1 >= safetylimit || len2 >= safetylimit ) {
+        logmsg(LOG_ERR,"FATAL : stricmp() safetylimit exceedded !");
+        (void)exit(EXIT_FAILURE);
+    }
     char *b1=strdup(s1);
     char *b2=strdup(s2);
     if( b1 == NULL || b2 == NULL ) {
-        logmsg(LOG_ERR,"FATAL: Out of memory in stricmp().");
-        exit(EXIT_FAILURE);
+        logmsg(LOG_ERR,"FATAL: stricmp() Out of memory ! ( %d : %s )",errno,strerror(errno));
+        (void)exit(EXIT_FAILURE);
     }
     strtolower(b1);
     strtolower(b2);
-    int ret=strcmp(b1,b2);
+    int ret=strncmp(b1,b2,safetylimit);
     free(b1);
     free(b2);
     return ret;
 }
+
 /*
  * Remove specified directory and all files and directories under it
  * It behaves similar to "rm -rf dir"
@@ -412,20 +441,23 @@ removedir(const char *dir) {
             lstat(tmpbuff, &statbuf);
 
             if (S_ISDIR(statbuf.st_mode)) {
-                if( removedir(tmpbuff) < 0 )
+                if (removedir(tmpbuff) < 0) {
+                    (void) closedir(dp);
                     return -1;
-            }
-            else if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
-               if( remove(tmpbuff) )
-                   return -1;
-            }
-            else {
+                }
+            } else if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
+                if (remove(tmpbuff)) {
+                    (void) closedir(dp);
+                    return -1;
+                }
+            } else {
+                (void) closedir(dp);
                 return -1;
             }
         }
     }
     int ret = rmdir(dir);
-    (void)closedir(dp);
+    (void) closedir(dp);
     return ret;
 }
 
@@ -548,21 +580,11 @@ xstrlcat(char *dst, const char *src, size_t size) {
     return strnlen(dst,size);
 }
 
-
-/**
- * Validate an integer value read form the inifile. If outside the limits
- * terminate program and print error message to log
- * @param min
- * @param max
- * @param errstr
- * @param val
- * @return val if it passes validation
- */
 int
 validate(const int min, const int max, const char *name, const int val) {
     if( val >= min && val <= max )
         return val;
-    logmsg(LOG_ERR,"Value for \"%s\" in inifile is out of range [%d,%d]. Aborting. \n",name,min,max);
+    logmsg(LOG_ERR,"Value for '%s' is out of range [%d,%d]. Aborting. \n",name,min,max);
     (void)exit(EXIT_FAILURE);
 }
 
@@ -580,34 +602,35 @@ getsysload(float *avg1, float *avg5, float *avg15) {
 
 void
 getuptime(int *totaltime, int *idletime) {
-    char lbuff[24];
     int ld = open("/proc/uptime", O_RDONLY);
+
+    char lbuff[24];
     if( -1 == read(ld, lbuff, 24) ) {
         logmsg(LOG_ERR,"FATAL: Cannot read '/proc/uptime' ( %d : %s )",errno,strerror(errno));
-        *totaltime = 0; *idletime = 0;
+        *totaltime = 0;
+        *idletime = 0;
     }
     close(ld);
+
     float tmp1,tmp2;
     sscanf(lbuff,"%f%f",&tmp1,&tmp2);
-    *totaltime = round(tmp1); *idletime = round(tmp2);
+    *totaltime = round(tmp1);
+    *idletime = round(tmp2);
 }
-
-/* Set the FD_CLOEXEC flag of desc if value is nonzero,
-   or clear the flag if value is 0.
-   Return 0 on success, or -1 on error with errno set. */
 
 int
 set_cloexec_flag(int desc, int value) {
     int oldflags = fcntl(desc, F_GETFD, 0);
-    /* If reading the flags failed, return error indication now. */
+
     if (oldflags < 0)
         return oldflags;
-    /* Set just the flag we want to set. */
-    if (value != 0)
+
+    if (value != 0) {
         oldflags |= FD_CLOEXEC;
-    else
+    } else {
         oldflags &= ~FD_CLOEXEC;
-    /* Store modified flag word in the descriptor. */
+    }
+    
     return fcntl(desc, F_SETFD, oldflags);
 }
 
@@ -660,7 +683,9 @@ getreldatefromdayname(const char *wdayname, int *y, int *m, int *d) {
             break;
         }
     }
+
     if( i >= 7 ) {
+        logmsg(LOG_ERR,"getreldatefromdayname() : Unknown dayname '%s'",wdayname);
         return -1;
     }
 
@@ -736,6 +761,10 @@ getwsetsize(int pid, int *size, char *unit, int *threads) {
     char buffer[256];
     char linebuffer[1024];
 
+    *size = -1;
+    *unit = '\0';
+    *threads = -1;
+
     sprintf(buffer,"/proc/%d/status",pid);
 
     FILE *fp = fopen(buffer,"r");
@@ -759,8 +788,10 @@ getwsetsize(int pid, int *size, char *unit, int *threads) {
 
     fclose(fp);
 
-    if( *size == 0 )
+    if( -1 == *size || -1 == *threads || '\0' == *unit ) {
+        logmsg(LOG_ERR,"getwsetsize() : Failed to read process information.");
         return -1;
+    }
 
     return 0;
 
@@ -780,11 +811,13 @@ tail_logfile(int n, char *buffer, int maxlen) {
 
     char cmd[512];
     snprintf(cmd,512,"tail -n %d %s",n,logfile_name);
+
     FILE *fp = popen(cmd, "r");
     if( fp == NULL ) {
         logmsg(LOG_ERR,"Failed popen() in tail_logfile(). (%d : %s)",errno,strerror(errno));
         return -1;
     }
+
     const int maxbuff=256;
     char linebuffer[maxbuff];
     *buffer = '\0';
@@ -792,10 +825,13 @@ tail_logfile(int n, char *buffer, int maxlen) {
         strncat(buffer,linebuffer,maxlen);
         maxlen -= strlen(linebuffer);
     }
+
     if( maxlen <= maxbuff ) {
         *buffer = '\0';
+        pclose(fp);
         return -1;
     }
     pclose(fp);
+
     return 0;
 }

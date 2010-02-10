@@ -453,16 +453,17 @@ read_transcoding_profiles(void) {
                 if( num_transcoding_profiles >= MAX_TRANS_PROFILES ) {
                     logmsg(LOG_ERR,"Maximum number of transcoding profiles (%d) exceeded.",
                            MAX_TRANS_PROFILES);
+                    closedir(dp);
                     return -1;
                 }
-               logmsg(LOG_INFO,"Reading transcoding profile file '%s'",tmpbuff);
+                logmsg(LOG_INFO,"Reading transcoding profile file '%s'",tmpbuff);
                 
                 (void)_read_transcoding_profile(tmpbuff,num_transcoding_profiles++);
 
             }
         }
     }
-
+    closedir(dp);
     return 0;
 }
 
@@ -1186,7 +1187,7 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
     logmsg(LOG_NOTICE,"Filelist transcoding has been running for %d day(s) %02d:%02d (%d s)",sday,sh,smin,ts_tmp);
 
     // Try to estimate the remaining time (very, very roughly)
-    time_t ts_left = 0;
+    float ts_left = 0.0;
     int lh=-1;
     int lday = -1;
     if( ongoing_filelist_transcodings[idx]->idx > 2 ) {
@@ -1195,7 +1196,7 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
         int nleft = ongoing_filelist_transcodings[idx]->nentries - ongoing_filelist_transcodings[idx]->idx -1;
 
         // ts_left = (time for one file) * (number of files left)
-        ts_left = ts_tmp / (ongoing_filelist_transcodings[idx]->idx+1);
+        ts_left = ts_tmp / (ongoing_filelist_transcodings[idx]->idx) * 1.0;
         ts_left *= nleft;
 
         lday = ts_left / (24*3600) ;

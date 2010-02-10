@@ -252,7 +252,7 @@ freerecs(void) {
 }
 
 void freerec(struct recording_entry *entry ,char *caller) {
-    logmsg(LOG_DEBUG,"freerec() called from '%s'",caller);
+    //logmsg(LOG_DEBUG,"freerec() called from '%s'",caller);
     for(int i=0; i < REC_MAX_TPROFILES ; i++) {
         free(entry->transcoding_profiles[i]);
     }
@@ -562,15 +562,16 @@ insertrec(int video, struct recording_entry * entry) {
  * enout to hold at least 12 bytes.
  * @return 1 on success, 0 on failure
  */
-int getrectypestr(const int rectype, char *buff, int size) {
+int
+getrectypestr(const int rectype, char *buff, int size) {
     static char *sn[] = {"None.", "Daily", "Weekly", "Monthly", "Mon-Fri", "Sat-Sun"};
 
     if (rectype >= 0 && rectype <= 5) {
         strncpy(buff, sn[rectype],size);
-        return 1;
+        return 0;
     } else {
         strncpy(buff, "(Unknown)",size);
-        return 0;
+        return -1;
     }
 }
 
@@ -584,21 +585,22 @@ void
 dumprecord_header(int style, char *buffer, int bufflen) {
     char tmpbuff[512];
     char r[256];
+    const int header_length=65;
 
-    snprintf(tmpbuff, 511, "%s\n", rptchr_r('-', 65,r));
+    snprintf(tmpbuff, 511, "%s\n", rptchr_r('-', header_length,r));
     strncpy(buffer, tmpbuff, bufflen);
     buffer[bufflen-1] = '\0';
 
     if (style == 0) {
         snprintf(tmpbuff, 511, "%-3s| %-17s| %-6s| %-31s\n",
-                "#", "Start", "End", "Title");
+                 "#", "Start", "End", "Title");
         strncat(buffer, tmpbuff, bufflen);
     } else {
         snprintf(tmpbuff, 511, "List of recordings\n");
         strncat(buffer, tmpbuff,bufflen);
     }
 
-    snprintf(tmpbuff, 511, "%s\n", rptchr_r('-', 65,r));
+    snprintf(tmpbuff, 511, "%s\n", rptchr_r('-', header_length,r));
     strncat(buffer, tmpbuff, bufflen);
     buffer[bufflen-1] = '\0';
 }
@@ -621,7 +623,7 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
 
     fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
     fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emi, &es);
-    getrectypestr(entry->recurrence_type, rectype,16);
+    (void)getrectypestr(entry->recurrence_type, rectype,16);
 
     if (style == 0) {
         char profbuff[256], profile[REC_MAX_TPROFILE_LEN+1];

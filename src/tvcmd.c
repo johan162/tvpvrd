@@ -1969,7 +1969,7 @@ _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
 static void
 _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
-    char buffer[4096];
+    char buffer[4096] = {'\0'};
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
@@ -1981,14 +1981,13 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
     if( ret > 1 ) {
 
         if( -1 == get_queued_transc_filelists_info( atoi(field[1]), buffer ,4095, 1) ) {
-            _writef(sockfd,"Syntax error. Perhaps the selected file list does not exist.\n");
+            _writef(sockfd,"Unknown file list. Perhaps the selected file list does not exist?\n");
+        } else {
+            _writef(sockfd,buffer);
         }
-        _writef(sockfd,buffer);
 
     } else {
-
-        _writef(sockfd,"Syntax error.\n");
-        
+        _writef(sockfd,"Syntax error.\n");        
     }
 }
 
