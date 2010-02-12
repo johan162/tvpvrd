@@ -332,6 +332,13 @@ transcode_whole_directory(char *dirpath, char *profilename);
 int
 get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles);
 
+/**
+ * Return a comma separated list of all defined profiles
+ * @param buff
+ * @param maxlen
+ */
+void
+list_profile_names(char *buff,int maxlen);
 
 #ifdef	__cplusplus
 }

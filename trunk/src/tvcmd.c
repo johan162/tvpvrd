@@ -87,8 +87,9 @@
 #define CMD_TRANSCODEDIR 27
 #define CMD_LIST_QUEUEDTRANSC 28
 #define CMD_SHOW_LASTLOG 29
+#define CMD_LIST_PROFILES 30
 
-#define CMD_UNDEFINED 30
+#define CMD_UNDEFINED 31
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -134,6 +135,7 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  a    - Add recording\n"\
 			"  ar   - Add repeated recording\n"\
 			"  d    - delete single recording\n"\
+                        "  dp   - display all settings for specified profile\n"\
 			"  dr   - delete all repeated recording\n"\
 			"  h    - help\n"\
 			"  i    - print detailed information on recording\n"\
@@ -143,6 +145,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  lc   - list all controls for the capture card\n"\
                         "  log n -show the last n lines of the logfile\n"\
                         "  ls   - list all stations\n"\
+                        "  lp   - list all profiles\n"\
                         "  lq n - list queued transcodings\n"\
 			"  n    - list the immediate next recording on each video\n"\
 			"  o    - list the ongoing recording(s)\n"\
@@ -162,16 +165,17 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  vc <n> - print information on TV-Card <n>\n"\
 			"  x    - view database (in XML format) with recordings\n"\
                         "  z    - display all settings from ini-file\n"\
-                        "  zp   - display all settings for specified profile\n"\
                         "  ! <n>  - cancel ongoing recording\n"\
                         "Type h <cmd> for syntax of each command\n";
 
     static char msgbuff_slave[2048] =
                         "Commands:\n"\
+                        "  dp   - display all settings for specified profile\n"\
 			"  h    - help\n"\
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
                         "  log n -show the last n lines of the logfile\n"\
+                        "  lp   - list all profiles\n"\
                         "  lq n - list queued transcodings\n"\
                         "  ot   - list the ongoing transcoding(s)\n"\
                         "  rst  - reset all statistics\n"\
@@ -191,10 +195,10 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(ar|a|dr|d|h|i|ktf|kt|log|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|zp|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
-        ret = matchcmd("^h[\\p{Z}]+(h|ktf|kt|log|lq|ot|rst|rp|st|s|tf|tl|td|t|v|z)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|z)$", cmd, &field);
     }
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
@@ -445,8 +449,8 @@ _cmd_add(const char *cmd, int sockfd) {
                     "ar <type> <nbr> <ch> <s.time> [<title>] [@profile, @profile, ...]\n"\
                     "ar <type> <nbr> <ch> <s.time> <e.time> <title> [@profile, @profile, ...]\n"\
                     "ar <type> <nbr> <ch> <s.date> <s.time> <e.time> <title> [@profile, @profile, ...]\n"\
-                    "    type: 1=daily, 2=weekly, 3=monthly, 4=Mon-Fri, 5=Sat-Sun\n"
-                    "      or: d=daily, w=weekly, m=monthly, f=Mon-Fri, s=Sat-Sun\n"
+                    "    type: 1=daily, 2=weekly, 3=monthly, 4=Mon-Fri, 5=Sat-Sun, 6=Mon-Thu\n"
+                    "      or: d=daily, w=weekly, m=monthly, f=Mon-Fri, s=Sat-Sun, t=Mon-Thu\n"
                     "     nbr: Number of repeats\n"
                     );
         } else {
@@ -1144,6 +1148,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
  */
 static void
 _cmd_info(const char *cmd, int sockfd) {
+    char msgbuff[2048];
     if (cmd[0] == 'h') {
         _writef(sockfd,
                 "(Not implemented) Give detailed information on specified recording.\n"\
@@ -1152,6 +1157,8 @@ _cmd_info(const char *cmd, int sockfd) {
         return;
     }
     // TODO: Finish this function
+    snprintf(msgbuff,2048,"Not (yet) implmented.\n");
+    _writef(sockfd, msgbuff);
 }
 
 /**
@@ -1415,18 +1422,19 @@ _cmd_dump_tprofile(const char *cmd, int sockfd) {
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "zp @profile\nPrint all the settings of the specified profile.\n",
+                "dp @profile\nPrint all the settings of the specified profile.\n",
                 xmldbfile
                 );
         return;
     }
     char **field;
-    int ret = matchcmd("^zp" _PR_S _PR_PROFN _PR_E, cmd, &field);
+    int ret = matchcmd("^dp" _PR_S _PR_PROFN _PR_E, cmd, &field);
     if( ret == 2 ) {
         dump_transcoding_profile(&field[1][1], msgbuff, 1024);
-		_writef(sockfd,msgbuff);
+	_writef(sockfd,msgbuff);
     } else {
-        _cmd_undefined(cmd,sockfd);
+        snprintf(msgbuff,1024,"Syntax error. Please specify '@profile' to display.\n");
+        _writef(sockfd,msgbuff);
     }
 }
 
@@ -1866,7 +1874,7 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
                 _writef(sockfd,"Specified profile does not exist '%s'.\n",field[2]);
                 return;
             }
-            strncpy(profile,field[2],31);
+            strncpy(profile,&field[2][1],31);
         } else {
             strncpy(profile,default_transcoding_profile,31);
         }
@@ -1874,10 +1882,12 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
         
         (void)transcode_file(field[1], profile, 1);
 
-        _writef(sockfd,"Ok. Transcoding started.\n");
+        _writef(sockfd,"Ok. Transcoding of '%s' using profile '%s' queued.\n",basename(field[1]),profile);
 
     } else {
+
         _writef(sockfd,"Syntax error.\n");
+
     }
 
 }
@@ -1981,13 +1991,25 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
     if( ret > 1 ) {
 
         if( -1 == get_queued_transc_filelists_info( atoi(field[1]), buffer ,4095, 1) ) {
-            _writef(sockfd,"Unknown file list. Perhaps the selected file list does not exist?\n");
+            _writef(sockfd,"Filelist does not exist\n");
         } else {
             _writef(sockfd,buffer);
         }
 
     } else {
-        _writef(sockfd,"Syntax error.\n");        
+
+        int ret = matchcmd("^lq" _PR_E, cmd, &field);
+        if( ret > 0 ) {
+            // Assume that num==1 if no number was specified
+            if( -1 == get_queued_transc_filelists_info( 1, buffer ,4095, 1) ) {
+                _writef(sockfd,"Filelist does not exist\n");
+            } else {
+                _writef(sockfd,buffer);
+            }
+
+        } else {
+            _writef(sockfd,"Syntax error.\n");
+        }
     }
 }
 
@@ -2037,6 +2059,21 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
     free(buffer);
 }
 
+static void
+_cmd_list_profiles(const char *cmd, int sockfd) {
+    char buff[2048];
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Return a list with names of all defined profiles.\n"
+                );
+        return;
+    }
+    list_profile_names(buff,2048);
+    buff[2047] = '\0';
+    _writef(sockfd,buff);
+}
+
+
 /**
  * Reserved for future use
  */
@@ -2057,6 +2094,7 @@ cmdinit(void) {
     cmdtable[CMD_LIST]              = _cmd_list;
     cmdtable[CMD_LIST_CONTROLS]     = _cmd_list_controls;
     cmdtable[CMD_LIST_STATIONS]     = _cmd_list_stations;
+    cmdtable[CMD_LIST_PROFILES]     = _cmd_list_profiles;
     cmdtable[CMD_STATUS]            = _cmd_status;
     cmdtable[CMD_HELP]              = _cmd_help;
     cmdtable[CMD_TIME]              = _cmd_time;
@@ -2106,6 +2144,7 @@ _getCmdPtr(const char *cmd) {
     static struct cmd_entry cmdfunc_master[] = {
         {"ar", CMD_ADD},
         {"a",  CMD_ADD},
+        {"dp", CMD_PRINTPROFILE},
         {"dr", CMD_DELETE},
         {"d",  CMD_DELETE},
         {"h",  CMD_HELP},
@@ -2115,6 +2154,7 @@ _getCmdPtr(const char *cmd) {
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"lc", CMD_LIST_CONTROLS},
         {"ls", CMD_LIST_STATIONS},
+        {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},
         {"l",  CMD_LIST},
         {"n",  CMD_NEXTREC},
@@ -2134,15 +2174,16 @@ _getCmdPtr(const char *cmd) {
         {"vc", CMD_CARDINFO},
         {"v",  CMD_VERSION},
         {"x",  CMD_GETXML},
-        {"zp", CMD_PRINTPROFILE},
         {"z",  CMD_GETSETTINGS},
         {"!",  CMD_ABORT}
     };
 
     static struct cmd_entry cmdfunc_slave[] = {
+        {"dp", CMD_PRINTPROFILE},
         {"h",  CMD_HELP},
         {"ktf",CMD_KILLTRANSCODING},
         {"kt", CMD_KILLTRANSCODING},
+        {"lp", CMD_LIST_PROFILES},
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"log",CMD_SHOW_LASTLOG},
         {"otl",CMD_ONGOINGTRANS},

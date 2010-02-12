@@ -708,14 +708,14 @@ channel = E8
                             <para>Add a new repeated recording . The syntax is identical to the
                                 normal add command with the exception of the first two arguments
                                 which indicates the type of recurrence and the number of repeated
-                                occurrences. The full syntax is:</para>
+                                occurrences or the end date. The full syntax is</para>
                             <para>
                                 <variablelist>
                                     <varlistentry>
-                                        <term><emphasis>ar &lt;repeat-type> &lt;repeat-count>
-                                                &lt;normal add arguments></emphasis></term>
+                                        <term><emphasis>ar &lt;repeat-type> &lt;repeat-count |
+                                                end-date> &lt;normal add
+                                            arguments></emphasis></term>
                                         <listitem>
-                                            <para> </para>
                                             <para><emphasis>repeat-type</emphasis></para>
                                             <para>This specifies how often the repetition should be
                                                 done. This can be specified as one of the following
@@ -748,9 +748,12 @@ channel = E8
                                                   </listitem>
                                                 </itemizedlist>
                                             </para>
-                                            <para><emphasis>repeat-cnt</emphasis></para>
-                                            <para>This specifies the number of repeated
-                                                recordings.</para>
+                                            <para><emphasis>repeat-cnt | end-date</emphasis></para>
+                                            <para>This specifies the number of repeated recordings
+                                                by either specifying the number of repeats (as an
+                                                integer) or by specifying the end date. If an end
+                                                date is specified this includes the full final day
+                                                up to 23:59:59</para>
                                         </listitem>
                                     </varlistentry>
                                 </variablelist>
@@ -772,6 +775,9 @@ channel = E8
                             <para>Add a recording every weekend night between 01:00 and 02:30 with
                                 the base title "Night movie". The recording will be done for the
                                 next 5 weekends (2 recordings each weekend).</para>
+                            <para>ar t 2010-05-10 channel3 19:00 19:59 House</para>
+                            <para>This will make recordings every Mon-Thur at 19:00 until the 10:th
+                                of May 2010</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -783,6 +789,34 @@ channel = E8
                                 recoding id shown when a recording is added or by the list command.
                                 If the identified recording is part of a recurrent sequence the
                                 other recordings in the same sequence are untouched.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>dp</command> [<emphasis>@profile</emphasis>]' - Display
+                            profile information command</term>
+                        <listitem>
+                            <para>Display information on the settings of the specified profile. </para>
+                            <para>Output example:</para>
+                            <screen>                     name: normal
+ENCODER:
+            video_bitrate: 3400000
+       video_peak_bitrate: 4000000
+           audio_sampling: 44.1
+            audio_bitrate: 192
+                   aspect: 4x3
+                     size: vga
+FFMPEG:
+            video_bitrate: 700
+       video_peak_bitrate: 1000
+                   vcodec: libx264
+                     vpre: normal
+                     pass: 1
+                   acodec: copy
+            audio_bitrate: 196
+               video_size:
+                     crop: (l=2, r=2, t=8, b=8)
+     ffmpeg_extra_options:
+           file_extension: .mp4</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -854,6 +888,15 @@ killflag=n</screen>
                                     <filename>tvpvrd.conf</filename>) then this command will show
                                 the last n lines of the log. If no number is given it will default
                                 to show the last 10 lines. </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>lp</command>' - <emphasis
+                                role="bold">List profiles command</emphasis></term>
+                        <listitem>
+                            <para>Print a comma separated list of all defined transcoding profiles
+                                (use '<command>dp</command>' command to display details of a
+                                specified profile)</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -1374,34 +1417,7 @@ xawtv_station file      : /etc/X11/xawtvrc
 default_profile         : normal</screen>
                         </listitem>
                     </varlistentry>
-                    <varlistentry>
-                        <term>'<command>zp</command> [<emphasis>@profile</emphasis>]' - Display
-                            profile information command</term>
-                        <listitem>
-                            <para>Display information on the settings of the specified profile. </para>
-                            <para>Output example:</para>
-                            <screen>                     name: normal
-ENCODER:
-            video_bitrate: 3400000
-       video_peak_bitrate: 4000000
-           audio_sampling: 44.1
-            audio_bitrate: 192
-                   aspect: 4x3
-                     size: vga
-FFMPEG:
-            video_bitrate: 700
-       video_peak_bitrate: 1000
-                   vcodec: libx264
-                     vpre: normal
-                     pass: 1
-                   acodec: copy
-            audio_bitrate: 196
-               video_size:
-                     crop: (l=2, r=2, t=8, b=8)
-     ffmpeg_extra_options:
-           file_extension: .mp4</screen>
-                        </listitem>
-                    </varlistentry>
+                    <varlistentry/>
                     <varlistentry>
                         <term>'<command>!</command> [<emphasis>#videocard</emphasis>]' - Stop
                             recording on specified video card</term>
