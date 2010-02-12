@@ -544,6 +544,8 @@ dump_transcoding_profile(char *name, char *buff, int size) {
 void
 get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
 
+    logmsg(LOG_DEBUG,"get_transcoding_profile() : name='%s'",name);
+
     int i=0;
     while( i < num_transcoding_profiles && strcmp(name,profiles[i]->name) )
         i++;
@@ -551,7 +553,7 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
         logmsg(LOG_ERR,"Cannot find requested transcoding profile '%s' falling back on default profile '%s'",
                 name,DEFAULT_TRANSCODING_PROFILE);
         i=0;
-        while( i < num_transcoding_profiles && strcmp(name,DEFAULT_TRANSCODING_PROFILE) )
+        while( i < num_transcoding_profiles && strcmp(profiles[i]->name,DEFAULT_TRANSCODING_PROFILE) )
             i++;
         if( i >= num_transcoding_profiles ) {
             logmsg(LOG_ERR,"FATAL: Default transcoding profile '%s' does not exist. Falling back on the first profile '%s'",
@@ -559,7 +561,27 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
             i=0;
         }
     }
+
+    logmsg(LOG_DEBUG,"get_transcoding_profile() : Found 'name' as index=%d",i);
+
     *entry = profiles[i];
+}
+
+void
+list_profile_names(char *buff,int maxlen) {
+    int i=0,len=maxlen-1;
+    *buff = '\0';
+    while( len > 1 && i < num_transcoding_profiles ) {
+        strncat(buff,profiles[i]->name,len);
+        len -= strnlen(profiles[i]->name,32);
+        if( i < num_transcoding_profiles -1 ) {
+            strncat(buff,", ",len);
+            len -= 2;
+        }
+        ++i;
+    }
+    strncat(buff,"\n",len);
+    buff[maxlen-1] = '\0'; // Paranoid always end with a '\0'
 }
 
 /*
@@ -768,7 +790,7 @@ _transcode_file(void *arg) {
     char cmdbuff[1024], cmd_ffmpeg[512], destfile[128];
     int runningtime = 0;
     char filename[512];
-    char profilename[512];
+    char profilename[128];
     struct transc_param *param = (struct transc_param *) arg;
 
     // To avoid reserving ~8MB after the thread terminates we
@@ -778,7 +800,10 @@ _transcode_file(void *arg) {
     pthread_detach(pthread_self());
 
     strncpy(filename,param->filename,511);
-    strncpy(profilename, param->profilename,511);
+    strncpy(profilename, param->profilename,128);
+
+    logmsg(LOG_DEBUG,"_transcode_file() : profilename='%s'",profilename);
+
     int wait = param->wait;
     free(param->filename);
     free(param->profilename);
@@ -795,7 +820,6 @@ _transcode_file(void *arg) {
             return (void *) 0;
         }
     }
-
 
     // Create a temporary directory which we will use as working directory during
     // the transcoding process. This is necessary since ffmpeg always uses the same
@@ -1159,10 +1183,12 @@ incidx_fillist(struct transc_filelistparam *filelist) {
 int
 get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
     char tmpbuff[512] = {'\0'};
-    // Return information on transcoding filelist with ordinal numebr num
+    // Return information on transcoding filelist with ordinal number 'num'
     // in the supplied buffer as a string
-    if( len < 200 )
+    if( len < 200 || num == 0 ) {
+        logmsg(LOG_DEBUG,"get_queued_transc_filelists_info() : Illegal argument len=%d, num=%d",len,num);
         return -1;
+    }
 
     // Locate the 'num' fillist
     int idx=0;
@@ -1176,8 +1202,15 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
         idx++;
     }
 
-    if( idx >= MAX_FILELISTS )
+    if( idx >= MAX_FILELISTS ) {
+        logmsg(LOG_DEBUG,"get_queued_transc_filelists_info() : idx=%d doesn't exist",idx);
         return -1;
+    }
+
+    if( ongoing_filelist_transcodings[idx] == NULL ) {
+        logmsg(LOG_DEBUG,"get_queued_transc_filelists_info() : NULL pointer at idx=%d",idx);
+        return -1;
+    }
 
     time_t ts_tmp = time(NULL) - ongoing_filelist_transcodings[idx]->start;
     int sday = ts_tmp / (24*3600) ;
