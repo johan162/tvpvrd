@@ -303,6 +303,7 @@ Connection will be closed after 30 min of inactivity.
             <para>This means that the correct server password has to be given before the welcome
                 message is seen. The server is now ready to accept commands on this
                 connection.</para>
+            <para>To disconnect to the server just type '<command>exit</command>'</para>
         </refsect1>
         <refsect1>
             <title>The recording and transcoding process</title>
@@ -826,6 +827,15 @@ FFMPEG:
                         <listitem>
                             <para>Delete all repeated recording that are part of the same repeating
                                 sequence as the id of the recording specified.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>exit</command> - <emphasis
+                                role="bold">Disconnect from the server</emphasis></term>
+                        <listitem>
+                            <para>This command terminates the client connection to the server. It
+                                will not affect any of the ongoing recordings or
+                                transcodings.</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>

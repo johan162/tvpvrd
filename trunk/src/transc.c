@@ -50,6 +50,8 @@
 #include "transc.h"
 #include "utils.h"
 #include "stats.h"
+#include "confpath.h"
+
 
 struct ongoing_transcoding {
     time_t start_ts;
@@ -416,15 +418,15 @@ read_transcoding_profiles(void) {
     struct stat fstat;
 
     // Search for the profile directory in
-    // 1) /etc/tvpvrd/profiles
+    // 1) <CONFDIR>/tvpvrd/profiles
     // 2) <cwd>/profiles
-    strcpy(dirbuff,"/etc/tvpvrd/profiles");
+    snprintf(dirbuff,255,"%s/tvpvrd/profiles",CONFDIR);
     if( -1 == stat(dirbuff,&fstat) ) {
         char cwd[256];
         // Try current working directory
         char *ret = getcwd(cwd,256);
         if( ret != NULL ) {
-            snprintf(dirbuff,255,"%s/%s",ret,"profiles");
+            snprintf(dirbuff,255,"%s/profiles",ret);
             if( -1 == stat(dirbuff,&fstat) ) {
                 logmsg(LOG_ERR,"Cannot find any transcoding profiles. Aborting.");
                 return -1;
@@ -432,7 +434,7 @@ read_transcoding_profiles(void) {
         }
     }
 
-    // Now loop through all files in 'dirbuff' directory
+    // Now loop through all profile files in 'dirbuff' directory
     DIR *dp;
     struct dirent *dirp;
     char tmpbuff[512];
@@ -445,22 +447,32 @@ read_transcoding_profiles(void) {
 
     while ((dirp = readdir(dp)) != NULL) {
         if ((strcmp(dirp->d_name, ".") != 0) && (strcmp(dirp->d_name, "..") != 0)) {
-            snprintf(tmpbuff, 512, "%s/%s", dirbuff, dirp->d_name);
-            lstat(tmpbuff, &fstat);
 
-            if (S_ISREG(fstat.st_mode) || S_ISLNK(fstat.st_mode)) {
+            // Only read files with suffix ".profile"
+            int len = strnlen(dirp->d_name,512);
+            if( len > 8 && (strncmp(".profile",dirp->d_name+len-8,9) == 0) ) {
 
-                if( num_transcoding_profiles >= MAX_TRANS_PROFILES ) {
-                    logmsg(LOG_ERR,"Maximum number of transcoding profiles (%d) exceeded.",
-                           MAX_TRANS_PROFILES);
-                    closedir(dp);
-                    return -1;
+                snprintf(tmpbuff, 512, "%s/%s", dirbuff, dirp->d_name);
+                lstat(tmpbuff, &fstat);
+
+                if (S_ISREG(fstat.st_mode) || S_ISLNK(fstat.st_mode)) {
+
+                    if( num_transcoding_profiles >= MAX_TRANS_PROFILES ) {
+                        logmsg(LOG_ERR,"Maximum number of transcoding profiles (%d) exceeded.",
+                               MAX_TRANS_PROFILES);
+                        closedir(dp);
+                        return -1;
+                    }
+                    logmsg(LOG_INFO,"Reading transcoding profile file '%s'",tmpbuff);
+
+                    (void)_read_transcoding_profile(tmpbuff,num_transcoding_profiles++);
+
                 }
-                logmsg(LOG_INFO,"Reading transcoding profile file '%s'",tmpbuff);
                 
-                (void)_read_transcoding_profile(tmpbuff,num_transcoding_profiles++);
-
+            } else {
+                logmsg(LOG_INFO,"WARNING. Profile directory contains non profile file '%s'. Editor backup file?",dirp->d_name);
             }
+
         }
     }
     closedir(dp);
