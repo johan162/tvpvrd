@@ -413,8 +413,7 @@ _cmd_delete(const char *cmd, int sockfd) {
 static void
 _cmd_add(const char *cmd, int sockfd) {
     char msgbuff[2048],cmdbuff[256];
-    int err, ret;
-    int repeat_type, repeat_nbr;
+    int ret;
     int sy, sm, sd, sh, smin, ssec;
     int ey, em, ed, eh, emin, esec;
     char title[128], channel[64], filename[256];
@@ -430,12 +429,13 @@ _cmd_add(const char *cmd, int sockfd) {
       "Start time is in the past",
       "No free video resource at specified time",
       "Unknown profile specified",
-      "Unknown relative date specification"
+      "Unknown relative date specification",
+      "Incoherent date specification"
     };
-
-    repeat_type = 0;
-    repeat_nbr = 0;
-    err = 0;
+    time_t end_repeat_time = 0;
+    int repeat_type = 0, repeat_with_enddate=0;
+    int repeat_nbr = 0;
+    int err = 0;
 
     for(int i=0; i < REC_MAX_TPROFILES; i++) {
         profiles[i] = calloc(1,16);
@@ -494,9 +494,10 @@ _cmd_add(const char *cmd, int sockfd) {
             cmdbuff[255] = 0;
         }
         else {
-            // See if numvber of instances was specified with an end date instead
+            // See if number of instances was specified with an end date instead
             ret = matchcmd("^ar" _PR_S "([1-6]|d|w|m|f|s|t)" _PR_S _PR_FULLDATE _PR_S _PR_ANY, cmd, &field);
-            if( ret == 4 ) {
+            logmsg(LOG_DEBUG,"ret=%d after 'ar' command",ret);
+            if( ret == 6 ) {
 
                 if( isdigit(*field[1]) ) {
                     repeat_type = atoi(field[1]);
@@ -511,36 +512,54 @@ _cmd_add(const char *cmd, int sockfd) {
                     }
                 }
 
-                // Extract year-mon-day from date and cconvert to a timestamp
-                char datebuff[16];
-                strcpy(datebuff,field[2]);
-                datebuff[4] = '\0';
-                int year = atoi(datebuff);
-                datebuff[7] = '\0';
-                int month = atoi(datebuff+5);
-                int day = atoi(datebuff+8);
-                time_t end_time = totimestamp(year,month,day,23,59,59);
+                // We should remember that an end date was specified since we
+                // need to recalculate the number in case a start date was specified
+                // in the normal add command that follows. In the calculation below we
+                // assume that the earliest start is the current date/time
+                repeat_with_enddate = 1;
+
+                // Extract the end date in components
+                int year = atoi(field[2]);
+                int month = atoi(field[3]);
+                int day = atoi(field[4]);
+
+                logmsg(LOG_DEBUG,"year=%d, month=%d, day=%d",year,month,day);
+                
+                end_repeat_time = totimestamp(year,month,day,23,59,59);
 
                 // Find out how many repeats are required to reach the end date
+                // from todays date. If a startdate is given then this will
+                // be recalculated below in the case for 'a'
                 time_t t1time = time(NULL);
                 time_t t2time = t1time;
-                (void)adjust_initital_repeat_date(&t1time, &t2time, repeat_type);
-                
-                int t1y,t1m,t1d,t1h,t1min,t1sec;
-                int t2y,t2m,t2d,t2h,t2min,t2sec;
-                fromtimestamp(t1time,&t1y, &t1m, &t1d, &t1h, &t1min, &t1sec);
-                fromtimestamp(t2time,&t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
-                repeat_nbr = 0 ;
-                while( t1time <= end_time ) {
-                    ++repeat_nbr;
-                    increcdays(repeat_type,&t1time,&t2time,
-                               &t1y, &t1m, &t1d, &t1h, &t1min, &t1sec,
-                               &t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
+
+                // Sanity check of end date
+                if( end_repeat_time < t1time ) {
+                    err=8;
+                    logmsg(LOG_ERR,"End date cannnot be earlier than current date/time.");
+                } else {
+
+                    (void)adjust_initital_repeat_date(&t1time, &t2time, repeat_type);
+
+                    int t1y,t1m,t1d,t1h,t1min,t1sec;
+                    int t2y,t2m,t2d,t2h,t2min,t2sec;
+                    fromtimestamp(t1time,&t1y, &t1m, &t1d, &t1h, &t1min, &t1sec);
+                    fromtimestamp(t2time,&t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
+                    repeat_nbr = 0 ;
+                    while( t1time <= end_repeat_time ) {
+                        ++repeat_nbr;
+                        increcdays(repeat_type,&t1time,&t2time,
+                                   &t1y, &t1m, &t1d, &t1h, &t1min, &t1sec,
+                                   &t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
+
+                    }
+
+                    logmsg(LOG_DEBUG,"repeat_nbr = %d",repeat_nbr);
+
+                    snprintf(cmdbuff,255, "a %s", field[5]);
+                    cmdbuff[255] = 0;
 
                 }
-                snprintf(cmdbuff,255, "a %s", field[3]);
-                cmdbuff[255] = 0;
-
             } else {
                 err = 1;
             }            
@@ -784,6 +803,41 @@ _cmd_add(const char *cmd, int sockfd) {
                         sm = em = atoi(field[5]);
                         sd = ed = atoi(field[6]);
                     }
+
+                    // Adjust a potential recurring count in cease an end date was specified
+                    if( repeat_with_enddate ) {
+
+
+
+                       // Find out how many repeats are required to reach the end date
+                        // from todays date. If a startdate is given then this will
+                        // be recalculated below in the case for 'a'
+                        time_t t1time = totimestamp(sy,sm,sd,0,0,0);
+
+                        if( t1time > end_repeat_time ) {
+                            err=8;
+                            logmsg(LOG_ERR,"Start date is after specified end date for recurring recording.");
+                        } else {
+                            time_t t2time = t1time;
+                            (void)adjust_initital_repeat_date(&t1time, &t2time, repeat_type);
+
+                            int t1y,t1m,t1d,t1h,t1min,t1sec;
+                            int t2y,t2m,t2d,t2h,t2min,t2sec;
+                            fromtimestamp(t1time,&t1y, &t1m, &t1d, &t1h, &t1min, &t1sec);
+                            fromtimestamp(t2time,&t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
+                            repeat_nbr = 0 ;
+                            while( t1time <= end_repeat_time ) {
+                                ++repeat_nbr;
+                                increcdays(repeat_type,&t1time,&t2time,
+                                           &t1y, &t1m, &t1d, &t1h, &t1min, &t1sec,
+                                           &t2y, &t2m, &t2d, &t2h, &t2min, &t2sec);
+                            }
+
+                            logmsg(LOG_DEBUG,"Re-calculated repeat count to %d",repeat_nbr);
+
+                        }
+                    }
+
 
                     if (!err) {
                         int pos = 7;
@@ -1051,7 +1105,7 @@ _cmd_add(const char *cmd, int sockfd) {
     }
 
     if (err) {
-        sprintf(msgbuff, "Error:%d:%s\n", err,add_errstr[err]);
+        sprintf(msgbuff, "Error:%d:%s:%s", err,add_errstr[err],last_logmsg+26);
         logmsg(LOG_ERR,"Can not add record. ( %d : %s )", err,add_errstr[err]);
     }
 

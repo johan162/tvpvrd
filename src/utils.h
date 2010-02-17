@@ -31,6 +31,11 @@ extern "C" {
 
 
 /*
+ * Always holds a copy of the last log message printed to log
+ */
+extern char last_logmsg[];
+
+/*
  * Utility function to do formatted write simple to a file descriptor
  */
 int

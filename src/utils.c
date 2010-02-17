@@ -51,6 +51,10 @@
 #include "tvpvrd.h"
 #include "utils.h"
 
+// Last logmessage
+#define MAX_LASTLOGMSG 1024
+char last_logmsg[MAX_LASTLOGMSG] = {'\0'};
+
 /*
  * _writef
  * Utility function
@@ -165,6 +169,8 @@ void logmsg(int priority, char *msg, ...) {
                 if( fd != STDOUT_FILENO ) {
                     close(fd);
                 }
+                strncpy(last_logmsg,msgbuff,MAX_LASTLOGMSG-1);
+                last_logmsg[MAX_LASTLOGMSG-1]='\0';
             }
         }
         va_end(ap);

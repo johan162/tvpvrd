@@ -41,6 +41,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <assert.h>
+#include <wchar.h>
 
 #include "tvpvrd.h"
 #include "utils.h"
@@ -100,20 +101,20 @@ isentryoverlapping(int video, struct recording_entry* entry) {
             if (entry->ts_start >= recs[REC_IDX(video, i)]->ts_start &&
                 entry->ts_start <= recs[REC_IDX(video, i)]->ts_end) {
 
-                logmsg(LOG_NOTICE,"New entry collides (type=%d) with: '%s'",1,recs[REC_IDX(video, i)]->title);
+                logmsg(LOG_NOTICE,"New entry collides with: '%s'",recs[REC_IDX(video, i)]->title);
                 return 1;
             }
 
             if (entry->ts_end >= recs[REC_IDX(video, i)]->ts_start &&
                 entry->ts_end <= recs[REC_IDX(video, i)]->ts_end) {
 
-                logmsg(LOG_NOTICE,"New entry collides (type=%d) with: '%s'",2,recs[REC_IDX(video, i)]->title);
+                logmsg(LOG_NOTICE,"New entry collides with: '%s'",recs[REC_IDX(video, i)]->title);
                 return 1;
             }
             if (entry->ts_start < recs[REC_IDX(video, i)]->ts_start &&
                 entry->ts_end > recs[REC_IDX(video, i)]->ts_end) {
 
-                logmsg(LOG_NOTICE,"New entry collides (type=%d) with: '%s'",3,recs[REC_IDX(video, i)]->title);
+                logmsg(LOG_NOTICE,"New entry collides with: '%s'",recs[REC_IDX(video, i)]->title);
                 return 1;
             }
         }
@@ -122,19 +123,19 @@ isentryoverlapping(int video, struct recording_entry* entry) {
             if (entry->ts_start >= ongoing_recs[video]->ts_start &&
                 entry->ts_start <= ongoing_recs[video]->ts_end) {
 
-                logmsg(LOG_NOTICE,"New recurring entry collides (type=%d) with ongoing recording at video=%d",1,video);
+                logmsg(LOG_NOTICE,"New recurring entry collides with ongoing recording at video=%d",video);
                 return 1;
             }
             if (entry->ts_end >= ongoing_recs[video]->ts_start &&
                 entry->ts_end <= ongoing_recs[video]->ts_end) {
 
-                logmsg(LOG_NOTICE,"New recurring entry collides (type=%d) with ongoing recording at video=%d",2,video);
+                logmsg(LOG_NOTICE,"New recurring entry collides with ongoing recording at video=%d",video);
                 return 1;
             }
             if (entry->ts_start < ongoing_recs[video]->ts_start &&
                 entry->ts_end > ongoing_recs[video]->ts_end) {
 
-                logmsg(LOG_NOTICE,"New recurring entry collides (type=%d) with ongoing recording at video=%d",3,video);
+                logmsg(LOG_NOTICE,"New recurring entry collides with ongoing recording at video=%d",video);
                 return 1;
             }
         }
@@ -156,19 +157,19 @@ isentryoverlapping(int video, struct recording_entry* entry) {
                 if (ts_start >= recs[REC_IDX(video, i)]->ts_start &&
                     ts_start <= recs[REC_IDX(video, i)]->ts_end) {
 
-                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d (type=%d) with: '%s'",j,1,recs[REC_IDX(video, i)]->title);
+                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d with: '%s'",j,recs[REC_IDX(video, i)]->title);
                     return 1;
                 }
                 if (ts_end >= recs[REC_IDX(video, i)]->ts_start &&
                     ts_end <= recs[REC_IDX(video, i)]->ts_end) {
 
-                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d (type=%d) with: '%s'",j,2,recs[REC_IDX(video, i)]->title);
+                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d with: '%s'",j,recs[REC_IDX(video, i)]->title);
                     return 1;
                 }
                 if (ts_start < recs[REC_IDX(video, i)]->ts_start &&
                     ts_end > recs[REC_IDX(video, i)]->ts_end) {
 
-                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d (type=%d) with: '%s'",j,2,recs[REC_IDX(video, i)]->title);
+                    logmsg(LOG_NOTICE,"New recurring entry collides at occurence %d with: '%s'",j,recs[REC_IDX(video, i)]->title);
                     return 1;
                 }
             }
@@ -177,20 +178,20 @@ isentryoverlapping(int video, struct recording_entry* entry) {
                 if (ts_start >= ongoing_recs[video]->ts_start &&
                     ts_start <= ongoing_recs[video]->ts_end) {
 
-                    logmsg(LOG_NOTICE,"New entry collides (type=%d) at occurrence %d with ongoing recording at video=%d",j,1,video);
+                    logmsg(LOG_NOTICE,"New entry collides at occurrence %d with ongoing recording at video=%d",j,video);
                     return 1;
                 }
                 if (ts_end >= ongoing_recs[video]->ts_start &&
                     ts_end <= ongoing_recs[video]->ts_end) {
 
-                    logmsg(LOG_NOTICE,"New entry collides (type=%d) at occurrence %d with ongoing recording at video=%d",j,2,video);
+                    logmsg(LOG_NOTICE,"New entry collides at occurrence %d with ongoing recording at video=%d",j,video);
                     return 1;
                 }
 
                 if (ts_start < ongoing_recs[video]->ts_start &&
                     ts_end > ongoing_recs[video]->ts_end) {
 
-                    logmsg(LOG_NOTICE,"New entry collides (type=%d) at occurrence %d with ongoing recording at video=%d",j,3,video);
+                    logmsg(LOG_NOTICE,"New entry collides at occurrence %d with ongoing recording at video=%d",j,video);
                     return 1;
                 }
             }
@@ -620,10 +621,17 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
     int sy, sm, sd, sh, smi, ss;
     int ey, em, ed, eh, emi, es;
     char rectype[16];
+    struct tm result;
+    static char wday_name[7][3] = {
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
 
     fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
     fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emi, &es);
     (void)getrectypestr(entry->recurrence_type, rectype,16);
+
+    // We need localtime to find the day of week for the start
+    (void)localtime_r(&entry->ts_start, &result);
 
     if (style == 0) {
         char profbuff[256], profile[REC_MAX_TPROFILE_LEN+1];
@@ -640,10 +648,12 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
         }
         profbuff[255] = '\0';
 
-        snprintf(buffer, bufflen, "[%03d|%-7.7s|%04d-%02d-%02d|%02d:%02d|%02d:%02d|%-30s|%s]\n",
+        snprintf(buffer, bufflen, "[%03d|%-8.8s|%04d-%02d-%02d|%.3s|%02d:%02d|%02d:%02d|%-30s|%s]\n",
                 entry->seqnbr,
                 entry->channel,
-                sy, sm, sd, sh, smi, eh, emi, entry->title,profbuff);
+                sy, sm, sd, 
+                wday_name[result.tm_wday],
+                sh, smi, eh, emi, entry->title,profbuff);
 
     } else {
         if (entry->recurrence) {
