@@ -470,7 +470,7 @@ read_transcoding_profiles(void) {
                 }
                 
             } else {
-                logmsg(LOG_INFO,"WARNING. Profile directory contains non profile file '%s'. Editor backup file?",dirp->d_name);
+                logmsg(LOG_ERR,"Ignoring non profile file '%s' in profile directory.",dirp->d_name);
             }
 
         }

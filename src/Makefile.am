@@ -13,7 +13,9 @@ CLEANFILES = *~
 
 tvpvrsrv.c : confpath.h
 
-confpath.h: Makefile
+transc.c : confpath.h
+
+confpath.h: Makefile.in Makefile
 	echo '#define CONFDIR "$(sysconfdir)"' >$@
 
 install-data-local: 
