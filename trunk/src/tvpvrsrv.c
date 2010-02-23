@@ -107,43 +107,63 @@ char server_program_name[32] = {0};
  */
 // Should we run as a daemon or nothing
 int daemonize=-1;
+
 // Maximum sizes
 int max_entries, max_video, max_clients, max_idle_time;
+
 // Default recording length if nothing else is specified
 int defaultDurationHour, defaultDurationMin;
+
 // Record if we are master or slave
 int is_master_server;
+
 // TVP/IP Port to listen to
 int tcpip_port;
+
 // Logfile details
 int verbose_log;
 char logfile_name[256] = {'\0'};
+
 // Time resolution for checks
 int time_resolution;
+
 // The size of the memory buffer used when reading video data from the device
 int video_bufsize;
+
 // The video buffer (used when reading the video stream from the capture card)
 // One buffer for each video card. We support up to 4 simultaneous cards
 char *video_buffer[MAX_VIDEO];
+
 // The default base data diectory
 char datadir[256];
+
 // Names of the ini file and the db file used
 char inifile[256], xmldbfile[256];
+
 // Base name of video device ("/dev/video")
 char device_basename[128];
+
 // Name of the currently used frequency map
 char frequencymap_name[MAX_FMAPNAME_LENGTH];
+
 // The name of the xawtv channel file used
 char xawtv_channel_file[256];
 
+
 /*
- * Global variable for MP4 encoding
+ * Global variables for MP4 encoding
  */
 
+// Full path of ffmpeg bin. Read from ini-file
 char ffmpeg_bin[64];
-char vpre[32];
+
+// Default transcoding profile. Read from ini-file
 char default_transcoding_profile[32];
+
+// Maximum average load on server to start a new transcoding process. Read from ini-file
 int max_load_for_transcoding ;
+
+// Maximum waiting time to start a new transcoding process. Read from ini-file
 int max_waiting_time_to_transcode ;
 
 /*
@@ -403,8 +423,8 @@ set_enc_parameters(int fd, struct transcoding_profile_entry *profile) {
             "HW parameters for video descriptor %d set. Profile='%s' ["
             "vcodec:(%.1f Mbps,%.1f Mbps), "
             "acodec:(%.1f kHz,%d kbps), "
-            "aspect:(\"%s\"), "
-            "framesize:(\"%s\"=%dx%d) ]",
+            "aspect:('%s'), "
+            "framesize:('%s'=%dx%d) ]",
             fd,profile->name,
             profile->encoder_video_bitrate/1000000.0,profile->encoder_video_peak_bitrate/1000000.0,
             sampling[profile->encoder_audio_sampling], abps[MAX(profile->encoder_audio_bitrate-9,0)],
@@ -484,6 +504,13 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
         return 0;
 
     } else  {
+
+        // Check that we can access ffmpeg binary
+        if( -1 == check_ffmpeg_bin() ) {
+            logmsg(LOG_ERR,"Profile '%s' specifies transcoding but 'ffmpeg' executable can not be found.",profile->name);
+            return -1;
+        }
+
         // If recording was successful then do the transcoding
         // tiny 32, xsmall 128, small 256, med 512, large 1024, xlarge 2048, huge 4096
         char cmdbuff[1024], cmd_ffmpeg[512], destfile[128] ;
@@ -567,39 +594,44 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     forget_ongoingtranscoding(tidx);
                     pthread_mutex_unlock(&recs_mutex);
 
+                    int rh = runningtime / 3600;
+                    int rm = (runningtime - rh*3600)/60;
+                    int rs = runningtime % 60;
+
                     if (runningtime >= watchdog) {
                         // Something is terrible wrong if the transcoding haven't
                         // finished after the watchdog timeout
-                        logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung (have run for > %d hours). Killing process.",
-                                short_filename, watchdog / 3600);
+                        logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung. Have run more than %02d:%02d:%02d h",
+                                short_filename, rh,rm,rs);
                         (void) kill(pid, SIGKILL);
                     } else {
+
                         if (WIFEXITED(ret)) {
                             transcoding_done = (WEXITSTATUS(ret) == 0);
                             if (WEXITSTATUS(ret) == 0) {
                                 if( runningtime < 60 ) {
-                                    logmsg(LOG_ERR, "Error in transcoding process for file '%s'.",
-                                        short_filename, runningtime / 60);
+                                    logmsg(LOG_ERR, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
+                                        short_filename, rh,rm,rs);
 
                                 } else {
-                                    logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %d:%d min of execution. (utime=%d s, stime=%d s))",
-                                        short_filename, runningtime / 60, runningtime%60, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
+                                    logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
+                                        short_filename, rh,rm,rs, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
 
                                 }
                             } else {
-                                logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %d min of execution.",
-                                        short_filename, runningtime / 60);
+                                logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
+                                        short_filename, rh,rm,rs);
                                 return -1;
                             }
                         } else {
                             if (WIFSIGNALED(ret)) {
-                                logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly terminated by signal=%d .",
-                                        short_filename, WTERMSIG(ret));
+                                logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly terminated by signal=%d after %02d:%02d:%02d h",
+                                        short_filename, WTERMSIG(ret),rh,rm,rs);
                                 return -1;
                             } else {
                                 // Child must have been stopped. If so we have no choice than to kill it
-                                logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly stopped by signal=%d. Killing process.",
-                                        short_filename, WSTOPSIG(ret));
+                                logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
+                                        short_filename, WSTOPSIG(ret),rh,rm,rs);
                                 (void) kill(pid, SIGKILL);
                                 return -1;
                             }
@@ -610,7 +642,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
             }
 #endif
         } else {
-            logmsg(LOG_ERR, "Can not start transcoding of \"%s\". Server too busy.", short_filename);
+            logmsg(LOG_ERR, "Can not start transcoding of '%s'. Server too busy.", short_filename);
             return -1;
         }
 
@@ -845,7 +877,7 @@ startrec(void *arg) {
             // Release video buffer
             // free(buffer);
 #else
-            logmsg(LOG_INFO,"Started simulated recording to file \"%s\".", full_filename);
+            logmsg(LOG_INFO,"Started simulated recording to file '%s'.", full_filename);
             _writef(fh, "Simulated writing at ts=%u\n", (unsigned)time(NULL));
             int used_time=0;
             time_t now;
@@ -885,8 +917,7 @@ startrec(void *arg) {
         int transcoding_problem = 1 ;
         int keep_mp2_file = 0 ;
 
-
-        if( !doabort && (nread == nwrite) && (check_ffmpeg_bin()==0)) {
+        if( !doabort && (nread == nwrite) ) {
 
             transcoding_problem = 0;
             int mp4size=0;
@@ -926,10 +957,10 @@ startrec(void *arg) {
                 tmpbuff[255] = '\0';
 
                 if (mv_and_rename(full_filename, tmpbuff, newname, 512)) {
-                    logmsg(LOG_ERR, "Could not move \"%s\" to \"%s\"", full_filename, newname);
+                    logmsg(LOG_ERR, "Could not move '%s' to '%s'", full_filename, newname);
                     delete_workingdir = 0;
                 } else {
-                    logmsg(LOG_INFO, "Moved \"%s\" to \"%s\"", full_filename, newname);
+                    logmsg(LOG_INFO, "Moved '%s' to '%s'", full_filename, newname);
                 }
             }
 
@@ -937,11 +968,13 @@ startrec(void *arg) {
             // unless there were a problem with the transcoding.
             if (!doabort && delete_workingdir) {
                 if (removedir(workingdir)) {
-                    logmsg(LOG_ERR, "Could not delete directory \"%s\".", workingdir);
+                    logmsg(LOG_ERR, "Could not delete directory '%s'.", workingdir);
                 } else {
-                    logmsg(LOG_INFO, "Deleted directory \"%s\".", workingdir);
+                    logmsg(LOG_INFO, "Deleted directory '%s'.", workingdir);
                 }
             }
+        } else {
+            logmsg(LOG_ERR,"Transcoding error. Leaving original MP2 file under '%s'",full_filename);
         }
     }
 
@@ -2074,7 +2107,7 @@ read_inisettings(void) {
     if( strcmp("stdout",logfile_name) == 0 && daemonize ) {
         logmsg(LOG_ERR,
                 "** FATAL error. "
-                "\"stdout\" is not a valid logfile when started in daemon mode.");
+                "'stdout' is not a valid logfile when started in daemon mode.");
         exit(EXIT_FAILURE);
     }
 }
@@ -2084,7 +2117,7 @@ init_tvxmldb(void) {
     // If an XML DB file was given as an argument use this location as the xml db file
     // Otherwise use the XMLDB file specified in the ini-file
     if( strlen(xmldbfile) > 0 ) {
-        logmsg(LOG_INFO,"Reading initial XML DB from: \"%s\".", xmldbfile);
+        logmsg(LOG_INFO,"Reading initial XML DB from: '%s'.", xmldbfile);
         if( -1 == readXMLFile(xmldbfile) ) {
         logmsg(LOG_ERR,
                 "FATAL error. "
@@ -2112,7 +2145,7 @@ init_tvxmldb(void) {
                 exit(EXIT_FAILURE);
             }
         }
-        logmsg(LOG_INFO,"Reading initial XML DB from: \"%s\".", xmldbfile);
+        logmsg(LOG_INFO,"Reading initial XML DB from: '%s'.", xmldbfile);
         if( -1 == readXMLFile(xmldbfile) ) {
             logmsg(LOG_INFO,
                 "No DB file found. Will be created in '%s' when saved.",

@@ -982,7 +982,7 @@ read_xawtvfile(const char *name) {
 
     dict = iniparser_load(name);
     if( dict == NULL ) {
-        logmsg(LOG_ERR,"Could not read xawtv channel file \"%s\" (%d ; %s). ",name,errno,strerror(errno));
+        logmsg(LOG_ERR,"Could not read xawtv channel file '%s' (%d ; %s). ",name,errno,strerror(errno));
         return -1;
     }
 
@@ -1003,7 +1003,7 @@ read_xawtvfile(const char *name) {
             num_stations++;
         }
     }
-    logmsg(LOG_NOTICE,"Read xawtv channel file \"%s\". Found %d stations.",name,num_stations);
+    logmsg(LOG_NOTICE,"Read xawtv channel file '%s'. Found %d stations.",name,num_stations);
     return 0;
 }
 
@@ -1044,7 +1044,7 @@ set_current_freqmap(const char *name) {
     if( idx == -1 )
         return idx;
     curr_fmap = idx;
-    logmsg(LOG_NOTICE,"Frequency map set to \"%s\"",name);
+    logmsg(LOG_NOTICE,"Frequency map set to '%s'",name);
     return idx;
 }
 

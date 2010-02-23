@@ -145,7 +145,7 @@ _vctrl_openvideo(unsigned int video) {
     int fd = open(vdevice, O_RDONLY | O_NONBLOCK , 0);
 
     if (fd == -1) {
-        logmsg(LOG_ERR, "Cannot open video stream \"%s\" ( %d : %s )",
+        logmsg(LOG_ERR, "Cannot open video stream '%s' ( %d : %s )",
                vdevice, errno, strerror(errno));
         return -1;
     }
@@ -442,7 +442,7 @@ _vctrl_getcontrols(int fd, struct vidcontrol vctl[], int size) {
                     vctl[vci].type = VCTRL_BOOLEAN;
                 }
             } else {
-                logmsg(LOG_ERR, "(VIDIOC_G_CTRL) Cannot read value from control \"%s\" (id=%d) %d : %s",qctl.name, qctl.id, errno, strerror(errno));
+                logmsg(LOG_ERR, "(VIDIOC_G_CTRL) Cannot read value from control '%s' (id=%d) %d : %s",qctl.name, qctl.id, errno, strerror(errno));
                 return -1;
             }
             vci++;

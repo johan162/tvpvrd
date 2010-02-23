@@ -68,16 +68,16 @@ static struct transcoding_profile_entry *profiles[MAX_TRANS_PROFILES];
 static int num_transcoding_profiles=0;
 
 /**
- * Check if ffmpeg bianries can be found at the specified location
+ * Check if ffmpeg binaries can be found at the specified location
  * @return -1 on failure, 0 on success
  */
 int
 check_ffmpeg_bin(void) {
     struct stat bstat;
-    if( stat(FFMPEG_BIN,&bstat) == 0 ) {
+    if( stat(ffmpeg_bin,&bstat) == 0 ) {
         return 0;
     } else {
-        logmsg(LOG_ERR,"Can not find '%s' executable. Transcoding is not available.",FFMPEG_BIN);
+        logmsg(LOG_ERR,"Can not find '%s' executable. Transcoding is not available.",ffmpeg_bin);
         return -1;
     }
 }
@@ -406,7 +406,7 @@ _read_transcoding_profile(char *filename,int idx) {
     entry->filename[255] = '\0';
 
     profiles[idx] = entry;
-    logmsg(LOG_NOTICE,"  -- read profile \"%s\"", entry->name);
+    logmsg(LOG_NOTICE,"  -- read profile '%s'", entry->name);
 
     iniparser_freedict(profile);
     return 0;
@@ -911,7 +911,7 @@ _transcode_file(void *arg) {
             _exit(EXIT_FAILURE);
         }
     } else if (pid < 0) {
-        logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file \"%s\" (%d : %s)",
+        logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file '%s' (%d : %s)",
                basename(filename), errno, strerror(errno));
 
         pthread_mutex_lock(&filetransc_mutex);
@@ -958,37 +958,41 @@ _transcode_file(void *arg) {
             forget_ongoingtranscoding(tidx);
             pthread_mutex_unlock(&recs_mutex);
 
+            int rh = runningtime / 3600;
+            int rm = (runningtime - rh*3600)/60;
+            int rs = runningtime % 60;
+
             if (runningtime >= watchdog) {
                 // Something is terrible wrong if the transcoding haven't
                 // finished after the watchdog timeout
-                logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung (have run for > %d hours). Killing process.",
-                        basename(filename), watchdog / 3600);
+                logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung. Have run more than %02d:%02d:%02d h",
+                        basename(filename), rh,rm,rs);
                 (void) kill(pid, SIGKILL);
             } else {
                 if (WIFEXITED(ret)) {
                     transcoding_done = (WEXITSTATUS(ret) == 0);
                     if (WEXITSTATUS(ret) == 0) {
                         if (runningtime < 60) {
-                            logmsg(LOG_ERR, "Error in transcoding process for file '%s'.",
-                                    basename(filename), runningtime / 60);
+                            logmsg(LOG_ERR, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
+                                    basename(filename), rh, rm, rs);
 
                         } else {
-                            logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %d:%d min of execution. (utime=%d s, stime=%d s))",
-                                    basename(filename), runningtime / 60, runningtime % 60, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
+                            logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
+                                    basename(filename), rh, rm, rs, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
 
                         }
                     } else {
-                        logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %d min of execution.",
-                                basename(filename), runningtime / 60);
+                        logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
+                                basename(filename), rh, rm, rs);
                     }
                 } else {
                     if (WIFSIGNALED(ret)) {
-                        logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly terminated by signal=%d .",
-                                basename(filename), WTERMSIG(ret));
+                        logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly terminated by signal=%d after %02d:%02d:%02d h",
+                                basename(filename), WTERMSIG(ret),rh,rm,rs);
                     } else {
                         // Child must have been stopped. If so we have no choice than to kill it
-                        logmsg(LOG_ERR, "Transcoding process for file \"%s\" was unexpectedly stopped by signal=%d. Killing process.",
-                                basename(filename), WSTOPSIG(ret));
+                        logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
+                                basename(filename), WSTOPSIG(ret),rh,rm,rs);
                         (void) kill(pid, SIGKILL);
                     }
                 }
