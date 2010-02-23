@@ -1030,8 +1030,8 @@ _cmd_add(const char *cmd, int sockfd) {
         unsigned tmp;
         strtolower(channel);
         if( -1 == getfreqfromstr(&tmp, channel) ) {
-            sprintf(msgbuff, "Specified station/channel \"%s\" is not recognized.\n", channel);
-            logmsg(LOG_ERR, "Specified station/channel \"%s\" is not recognized.", channel);
+            sprintf(msgbuff, "Specified station/channel '%s' is not recognized.\n", channel);
+            logmsg(LOG_ERR, "Specified station/channel '%s' is not recognized.", channel);
             err = 1;
         }
     }
@@ -1714,7 +1714,7 @@ _cmd_abort(const char *cmd, int sockfd) {
         int video = atoi(field[1]);
         if( video >= 0 && video < max_video ) {
             if( ongoing_recs[video] ) {
-                _writef(sockfd, "Cancelling recording to \"%s\" on video %d\n",
+                _writef(sockfd, "Cancelling recording to '%s' on video %d on user request\n",
                         ongoing_recs[video]->filename,video);
                 abort_video[video] = 1;
             }

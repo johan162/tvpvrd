@@ -131,13 +131,13 @@ int
 read_profile_stats(char *profilename) {
     char filename[256];
 
-    // First check atht this stats doesnä't already exist. This could happen if we try to re-read
+    // First check tht this stats doesn't already exist. This could happen if we try to re-read
     // the stats and we don't want that since it would erase all updated stats in the memory.
     int i;
     for (i = 0; i < num_stats && strncmp(profilename, profile_stats[i]->profile_name, 32); i++)
         ;
     if (i < num_stats) {
-        logmsg(LOG_NOTICE, "  -- statistics for profile '%s' already exists, skpping.", profilename);
+        logmsg(LOG_NOTICE, "  -- statistics for profile '%s' already exists, skipping.", profilename);
         return -1;
     }
 
@@ -164,10 +164,15 @@ read_profile_stats(char *profilename) {
         entry->total_mp4files = iniparser_getint(stats, "stats:total_mp4files", 0);
         iniparser_freedict(stats);
         profile_stats[num_stats++] = entry;
+
         logmsg(LOG_NOTICE, "  -- read statistics for profile %s", profilename);
 
     } else {
-        logmsg(LOG_NOTICE, "  -- no existing statistics for profile %s.", profilename);
+
+        profile_stats[num_stats++] = entry;
+
+        logmsg(LOG_NOTICE, "  -- innitializing new statistics for profile %s.", profilename);
+
     }
 
     return 0;

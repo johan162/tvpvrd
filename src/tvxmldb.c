@@ -294,7 +294,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
     strncpy(filename, basename(bname_buffer), REC_MAX_NFILENAME);
 
     if( video >= max_video || video < 0 ) {
-        logmsg(LOG_ERR, "Cannot insert record: \"%s\" invalid video card specified (%d)", title,video);
+        logmsg(LOG_ERR, "Cannot insert record: '%s' invalid video card specified (%d)", title,video);
     }
     else {
         // Create a new recording. This means that a recurrent recording is expanded with
@@ -330,7 +330,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
         }
 
         if (insertrec(video, entry) == 0) {
-            snprintf(tmpbuff, 512, "Cannot insert record \"%s\" since it collides with existing recordings.", entry->title);
+            snprintf(tmpbuff, 512, "Cannot insert record '%s' since it collides with existing recordings.", entry->title);
             tmpbuff[512-1] = '\0';
             logmsg(LOG_ERR, tmpbuff);
             freerec(entry,"processRecording()");
@@ -372,14 +372,14 @@ readXMLFile(const char *filename) {
     // Parse the XML file
     doc = xmlParseFile(filename);
     if (doc == NULL) {
-        logmsg(LOG_ERR, "Unable to open XML Database file: \"%s\"", filename);
+        logmsg(LOG_ERR, "Unable to open XML Database file: '%s'", filename);
         return -1;
     }
 
     node = xmlDocGetRootElement(doc);
 
     if (xmlStrcmp(node->name, xmldb_root)) {
-        logmsg(LOG_ERR, "XML file is not a proper recording database file. Wrong root element. Found \"%s\" when expecting \"%s\"",
+        logmsg(LOG_ERR, "XML file is not a proper recording database file. Wrong root element. Found '%s' when expecting '%s'",
                 node->name,xmldb_root);
         xmlFreeDoc(doc);
         return -1;
@@ -388,7 +388,7 @@ readXMLFile(const char *filename) {
     // Check that the version of the file is the expected
     xmlver = xmlGetProp(node, xmldb_nameVersion);
     if (xmlStrcmp(xmlver, xmldb_version)) {
-        logmsg(LOG_ERR, "XML file is not a proper recording database file. Wrong version. Found \"%s\" when expecting \"%s\"",
+        logmsg(LOG_ERR, "XML file is not a proper recording database file. Wrong version. Found '%s' when expecting '%s'",
                 xmlver,xmldb_version);
         xmlFreeDoc(doc);
         return -1;
