@@ -14,7 +14,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009 Johan Persson
+ * Copyright (C) 2009,2010 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@
 #include "freqmap.h"
 
 /*
- * Common name to standard video sizes. This is primariliy used to allow
+ * Common name to standard video sizes. This is primarily used to allow
  * the user to set a standard format of the original MP2 encoder from
  * the TV card.
  */
@@ -80,15 +80,15 @@ static const int num_named_sizes = sizeof(named_size)/sizeof(struct framesize);
 
 /*
  * A global vector that is used to store the name and values
- * if video constrols that we read from the card and present to
- * the user as information. Each constrol has a name, default value
+ * of video controls that we read from the card and present to
+ * the user as information. Each control has a name, default value
  * actual value, min/max  range and type.
  */
 static struct vidcontrol vidcontrols[32];
 
 
 /**
- * Special version of ioctl() that can handle an interrup in the middle
+ * Special version of ioctl() that can handle an interrupt in the middle
  * of a call
  * @return 0 on successs, -1 otherwise 
  */
@@ -133,7 +133,7 @@ _vctrl_openvideo(unsigned int video) {
     sprintf(vdevice, "%s%d", "/dev/video", video);
 
     if (stat(vdevice, &st) == -1) {
-        logmsg(LOG_ERR, "Cannot identify '%s': %d, %s", vdevice, errno, strerror(errno));
+        logmsg(LOG_ERR, "Cannot identify device '%s'. ( %d : %s )", vdevice, errno, strerror(errno));
         return -1;
     }
 
@@ -150,7 +150,7 @@ _vctrl_openvideo(unsigned int video) {
         return -1;
     }
 
-    logmsg(LOG_NOTICE,"Opened video stream '%s' as fd=%d",vdevice,fd);
+    logmsg(LOG_NOTICE,"Opened video stream '%s' as handle fd=%d",vdevice,fd);
 
     return fd;
 }
@@ -164,13 +164,14 @@ int
 _vctrl_closevideo(int fd) {
     int ret = close(fd);
     if(ret == -1 ) {
-       logmsg(LOG_ERR, "Cannot close video stream fd=%d ( %d : %s )",
-		   fd, errno, strerror(errno));
-	    return -1;
+        logmsg(LOG_ERR, "Cannot close video stream fd=%d ( %d : %s )", fd, errno, strerror(errno));
+        return -1;
     }
+
     // Give the driver some "breathing" time so we cannot open it
     // too fast again.
-    usleep(500);
+    usleep(300);
+
     logmsg(LOG_NOTICE, "Closed video stream fd=%d.",fd);
     return 0;
 }
@@ -190,14 +191,14 @@ _vctrl_size(int set, int fd, int *width, int *height) {
     CLEAR(vfmt);
     vfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_G_FMT, &vfmt) == -1) {
-        logmsg(LOG_ERR, "(VIDIOC_G_FMT) Cannot get video format. %d : %s", errno, strerror(errno));
+        logmsg(LOG_ERR, "(VIDIOC_G_FMT) Cannot get video format. (%d : %s)", errno, strerror(errno));
         return errno;
     } else {
         if (set) {
             vfmt.fmt.pix.width = *width;
             vfmt.fmt.pix.height = *height;
             if (xioctl(fd, VIDIOC_S_FMT, &vfmt) == -1) {
-                logmsg(LOG_ERR, "(VIDIOC_S_FMT) Cannot set video format. %d : %s", errno, strerror(errno));
+                logmsg(LOG_ERR, "(VIDIOC_S_FMT) Cannot set video format. (%d : %s)", errno, strerror(errno));
                 return errno;
             }
         } else {
@@ -220,7 +221,7 @@ _vctrl_tuner(const int set, const int fd,  struct v4l2_tuner *vtun) {
         return -1;
     }
     if (xioctl(fd, VIDIOC_G_TUNER, vtun) == -1) {
-        logmsg(LOG_ERR, "(VIDIOC_G_TUNER) Cannot get information on video tuner. %d : %s", errno, strerror(errno));
+        logmsg(LOG_ERR, "(VIDIOC_G_TUNER) Cannot get information on video tuner. (%d : %s)", errno, strerror(errno));
         return -1;
     }
     return 0;
@@ -253,8 +254,9 @@ _vctrl_gettunerinfo(const int fd, double *frequnits,
 
         return 0;
     }
-    else
+    else {
         return -1;
+    }
 }
 
 /**
@@ -312,7 +314,7 @@ _vctrl_channel(const int set, const int fd, char *ch, int size) {
             // Translate frequency to frequency units
             vfreq.frequency = floor(freq / frequnits);
             if (xioctl(fd, VIDIOC_S_FREQUENCY, &vfreq) == -1) {
-                logmsg(LOG_ERR, "(VIDIOC_S_FREQUENCY) Cannot set video tuner frequency. %d : %s",
+                logmsg(LOG_ERR, "(VIDIOC_S_FREQUENCY) Cannot set video tuner frequency. (%d : %s)",
                        errno, strerror(errno));
                 return errno;
             }
@@ -337,7 +339,7 @@ _vctrl_get_cardinfo(int fd, char **driver, char **card, char **version, unsigned
     CLEAR(version_string);
 
     if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) {
-        logmsg(LOG_ERR, "Cannot query capabilities. %d : %s", errno, strerror(errno));
+        logmsg(LOG_ERR, "(VIDIOC_QUERYCAP) Cannot query capabilities. (%d : %s)", errno, strerror(errno));
         return -1;
     } else {
         *driver = (char *)cap.driver;
@@ -442,7 +444,8 @@ _vctrl_getcontrols(int fd, struct vidcontrol vctl[], int size) {
                     vctl[vci].type = VCTRL_BOOLEAN;
                 }
             } else {
-                logmsg(LOG_ERR, "(VIDIOC_G_CTRL) Cannot read value from control '%s' (id=%d) %d : %s",qctl.name, qctl.id, errno, strerror(errno));
+                logmsg(LOG_ERR, "(VIDIOC_G_CTRL) Cannot read value from control '%s', id=%d (%d : %s)",
+                       qctl.name, qctl.id, errno, strerror(errno));
                 return -1;
             }
             vci++;
@@ -467,8 +470,10 @@ _vctrl_get_controlvaluebyname(const char *name,int *val,int *type,struct vidcont
         *val = controls[i].value;
         *type = controls[i].type;
         return controls[i].id;
+    } else {
+        logmsg(LOG_ERR,"Cannot get control id. Unknown control name '%s'.",name);
+        return -1;
     }
-    return -1;
 }
 
 /**
@@ -747,7 +752,7 @@ int
 video_set_channel(const int fd, char *ch) {
     int ret = _vctrl_channel(VCTRL_SET, fd, ch, strlen(ch)+1);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not video channel fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        logmsg(LOG_ERR,"Can not set video channel fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
     }
     return 0;
