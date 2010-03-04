@@ -22,7 +22,7 @@
  * giving the command to the command interpretator for parsing and
  * execution.
  *
- * Copyright (C) 2009 Johan Persson
+ * Copyright (C) 2009,2010 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -96,8 +96,8 @@
 /*
  * Server identification
  */
-char server_version[] = PACKAGE_VERSION;
-char server_build_date[] = __DATE__;
+char server_version[] = PACKAGE_VERSION; // This define gets set by the config process
+char server_build_date[] = __DATE__;     // This is a builtin define set by the compiler
 char server_program_name[32] = {0};
 
 /*
@@ -151,7 +151,7 @@ char xawtv_channel_file[256];
 
 
 /*
- * Global variables for MP4 encoding
+ * Global variables for MP4 transcoding
  */
 
 // Full path of ffmpeg bin. Read from ini-file
@@ -164,6 +164,8 @@ char default_transcoding_profile[32];
 int max_load_for_transcoding ;
 
 // Maximum waiting time to start a new transcoding process. Read from ini-file
+// (if this is 0 then we will wait indefinitely to transcode a file). The wait happens
+// if the load on the server is too high to start a new transcoding.
 int max_waiting_time_to_transcode ;
 
 /*
@@ -171,19 +173,19 @@ int max_waiting_time_to_transcode ;
  * Flag set by the main thread to signal to one of the recording thread
  * to cancel recording
  */
-volatile int * volatile abort_video; //[MAX_VIDEO]
+volatile int * volatile abort_video; 
 
 /*
  * rec_threads
  * The thread id for each active recording thread
  */
-static pthread_t *rec_threads; //[MAX_VIDEO];
+static pthread_t *rec_threads; 
 
 /*
  * cli_threads
  * The thread id for each thread that are handling a client
  */
-pthread_t *cli_threads; //[MAX_CLIENTS];
+pthread_t *cli_threads; 
 int ncli_threads = 0;
 
 /*
@@ -199,13 +201,13 @@ static pthread_t chkrec_thread;
  * Points to a dynamically allocated string buffer to hold the
  * human readable version of the address, e.g. 192.168.0.1
  */
-char **client_ipadr; //[MAX_CLIENTS];
+char **client_ipadr; 
 
 /*
  * client_tsconn
  * Keep track of timestamps when the client connected
  */
-time_t *client_tsconn; //[MAX_CLIENTS];
+time_t *client_tsconn; 
 
 /*
  * Mutexes to protect
@@ -224,14 +226,14 @@ static int received_signal = 0;
 /*
  * Keep track of the socket that each client uses
  */
-static int *client_socket; //[MAX_CLIENTS];
+static int *client_socket; 
 
 /*
  * video_idx
  * The video stream index. Used in the call to pthread_create() to avoid
  * local stack based variables as arguments in the thread creation
  */
-static int *video_idx; //[MAX_VIDEO];
+static int *video_idx; 
 
 /*
  * ts_serverstart
@@ -328,21 +330,6 @@ init_globs(void) {
 
 }
 
-#ifdef DEBUG_SIMULATE
-#define _dbg_close(fd) _x_dbg_close(fd)
-#else
-#define _dbg_close(fd) close(fd)
-#endif
-
-
-int
-_x_dbg_close(int fd) {
-
-    logmsg(LOG_NOTICE,"dbg_close() : fd=%d",fd);
-    return close(fd);
-    
-}
-
 void
 free_globs(void) {
 
@@ -368,6 +355,28 @@ free_globs(void) {
 
 }
 
+#ifdef DEBUG_SIMULATE
+#define _dbg_close(fd) _x_dbg_close(fd)
+#else
+#define _dbg_close(fd) close(fd)
+#endif
+
+
+int
+_x_dbg_close(int fd) {
+
+    logmsg(LOG_NOTICE,"dbg_close() : fd=%d",fd);
+    return close(fd);
+    
+}
+
+/**
+ * Set the video encoding HW parameters on teh video card from the values specified in the
+ * supplied profile
+ * @param fd
+ * @param profile
+ * @return 0 on success, -1 on failure
+ */
 int
 set_enc_parameters(int fd, struct transcoding_profile_entry *profile) {
     char infobuff[256];
@@ -578,7 +587,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     // performance.
                     pid_t rpid;
 
-                    // We only allow one transcoding to run for a maximum of 24 h
+                    // We only allow one transcoding to run for a maximum of 24 h any longer than
+                    // that and we consider the transcoding process as hung
                     const int watchdog = 24 * 3600;
                     int ret;
                     do {
