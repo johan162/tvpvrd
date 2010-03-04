@@ -5,7 +5,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009 Johan Persson
+ * Copyright (C) 2009,2010 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,6 +80,13 @@ _writef(int fd, const char *buf, ...) {
     return -1;
 }
 
+/**
+ * _vsyslogf
+ * Write a message to the system logger with printf() formatting capabilities
+ * @param priority Priority
+ * @param msg Format string
+ * @param ... Arguments for format string
+ */
 void
 _vsyslogf(int priority, char *msg, ...) {
     static const int blen = 4096;
@@ -485,7 +492,7 @@ mv_and_rename(char *from, char *to, char *newname, int size) {
 
     *newname = '\0';
     if( -1 == stat(from,&fstat) ) {
-        logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' since it does not exist!",from);
+        logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s'. (%d : %s)",from,errno,strerror(errno));
         return -1;
     }
 
@@ -590,7 +597,7 @@ int
 validate(const int min, const int max, const char *name, const int val) {
     if( val >= min && val <= max )
         return val;
-    logmsg(LOG_ERR,"Value for '%s' is out of range [%d,%d]. Aborting. \n",name,min,max);
+    logmsg(LOG_ERR,"Value for '%s' is out of allowed range [%d,%d]. Aborting. \n",name,min,max);
     (void)exit(EXIT_FAILURE);
 }
 
@@ -841,3 +848,5 @@ tail_logfile(int n, char *buffer, int maxlen) {
 
     return 0;
 }
+
+/* utils.c */
