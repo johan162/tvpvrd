@@ -2,15 +2,16 @@
  * File:        FREQMAP.C
  * Description: This module is responsible for mapping between
  *              frequency and frequency table with there named channels.
- *              Please note that named channels have nothng to do with the
+ *              Please note that named channels have nothing to do with the
  *              broadcasting names. The channels names are standardized names
  *              for frequences. The names changes depending on geographic
  *              location and hence each geographic location uses its own
- *              frequency map. By defaylt the "west-euprope" map will be used.
+ *              frequency map to translate to/from numeric frequency values.
+ *              By defaylt the "west-euprope" map will be used.
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009 Johan Persson
+ * Copyright (C) 2009,2010 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,7 +48,7 @@
 
 /*
  * Structure to hold all frequency channel maps. Each maps consists of
- * (table name, number of recors, pointer to actual frequency map)
+ * (table name, number of records, pointer to actual frequency map)
  * This structure gets the pointer to the actual maps resolved
  * at runtime initialization.
  *
@@ -200,6 +201,9 @@ static struct freqch europe_west_chtable[] = {
     {855250, "69"}
 };
 
+/*
+ * French frequency table
+ */
 static struct freqch france_chtable[] = {
     {47750, "K01"},
     {55750, "K02"},
@@ -297,6 +301,9 @@ static struct freqch france_chtable[] = {
     {855250, "69"}
 };
 
+/*
+ * East european frequency table
+ */
 static struct freqch europe_east_chtable[] = {
 {49750,"R1"},
 {59250,"R2"},
@@ -433,6 +440,9 @@ static struct freqch europe_east_chtable[] = {
 {855250,"69"}
 };
 
+/*
+ * Irish frequency table
+ */
 static struct freqch ireland_chtable[] = {
     {45750, "A0"},
     {48000, "A1"},
@@ -522,6 +532,9 @@ static struct freqch ireland_chtable[] = {
     {855250, "69"}
 };
 
+/*
+ * Italian frequency table
+ */
 static struct freqch italy_chtable[] = {
     {53750, "A"},
     {62250, "B"},
@@ -585,6 +598,9 @@ static struct freqch italy_chtable[] = {
 
 };
 
+/*
+ * Australian frequency table
+ */
 static struct freqch australia_chtable[] = {
     {46250, "0"},
     {57250, "1"},
@@ -642,6 +658,9 @@ static struct freqch australia_chtable[] = {
 
 };
 
+/*
+ * New zealand frequency table
+ */
 static struct freqch newzealand_chtable[] = {
     {45250, "1"},
     {55250, "2"},
@@ -705,6 +724,9 @@ static struct freqch newzealand_chtable[] = {
     {855250, "69"},
 };
 
+/*
+ * US Broadcast frequency table
+ */
 static struct freqch usbcast_chtable[] = {
     {55250, "2"},
     {61250, "3"},
@@ -791,6 +813,9 @@ static struct freqch usbcast_chtable[] = {
 
 };
 
+/*
+ * US Cable frequency table
+ */
 static struct freqch uscable_chtable[] = {
     {73250, "1"},
     {55250, "2"},
@@ -931,7 +956,7 @@ static struct freqch uscable_chtable[] = {
 
 /**
  * Initialize the frequency table. Must be called in the beginning of the
- * program
+ * program.
  */
 void
 initfreqtable(void) {
@@ -1148,3 +1173,5 @@ int getfmapnames(char *names[], int size) {
     }
     return i;
 }
+
+/* freqmap.c */
