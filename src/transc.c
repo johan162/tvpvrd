@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009 Johan Persson
+ * Copyright (C) 2009,2010 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -52,7 +52,9 @@
 #include "stats.h"
 #include "confpath.h"
 
-
+// Wee keep all ongoing transcoding in an array so that we now what is going
+// on. Each transcoding is run as a separate process and that process is
+// monitored by a thread in the main server.
 struct ongoing_transcoding {
     time_t start_ts;
     char *workingdir;
@@ -64,6 +66,8 @@ struct ongoing_transcoding {
 static struct ongoing_transcoding *ongoing_transcodings[16] = { (struct ongoing_transcoding *)0 };
 static const int max_ongoing_transcoding = 16;
 
+// We store all the details about a specific transcoding profile in an array
+// as well. In theory there is no limit to how many profiles a user may define
 static struct transcoding_profile_entry *profiles[MAX_TRANS_PROFILES];
 static int num_transcoding_profiles=0;
 
@@ -83,7 +87,7 @@ check_ffmpeg_bin(void) {
 }
 
 /**
- * All ongoing transcodings are stored in a list. This functsion adds a new
+ * All ongoing transcodings are stored in a list. This function adds a new
  * transcoding to this list.
  * @param workingdir
  * @param short_filename
@@ -116,8 +120,9 @@ record_ongoingtranscoding(char *workingdir,char *short_filename,char *cmd_ffmpeg
 }
 
 /**
- * Forget the specified transcoding
- * @param idx
+ * Forget the specified transcoding. This is called when a transcoding have finished
+ * either sucessfully or with an error
+ * @param idx The index of the transcoding to remove from the watch list
  */
 void
 forget_ongoingtranscoding(int idx) {
@@ -135,10 +140,10 @@ forget_ongoingtranscoding(int idx) {
 }
 
 /**
- * Fill a buffer with information on all the ongoing recordings
+ * Fill a buffer with information (text) on all the ongoing recordings
  * @param obuff
  * @param size
- * @return number of ongoing transcodings
+ * @return number of currently ongoing transcodings
  */
 int
 get_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
@@ -191,12 +196,23 @@ get_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
     return num;
 }
 
+/**
+ * Store the start og the array of transcoding profiles in the supplied
+ * parameter.
+ * @param start
+ * @return The total number of defined profiles
+ */
 int
 get_transcoding_profile_list(struct transcoding_profile_entry **start[]) {
     *start = profiles;
     return num_transcoding_profiles;
 }
 
+/**
+ * Check if a profile with the specified name exists
+ * @param name
+ * @return 1 if the name exists 0 otherwise
+ */
 int
 transcoding_profile_exist(char *name) {
     if( strlen(name) == 0 ) 
@@ -209,6 +225,13 @@ transcoding_profile_exist(char *name) {
     return 0;
 }
 
+/**
+ * Read all transcoding profile from the specified file and store it as profile number
+ * 'idx'
+ * @param filename
+ * @param idx
+ * @return
+ */
 int
 _read_transcoding_profile(char *filename,int idx) {
     // Find all the sections named ffmpeg_profile_<profile-name>
@@ -412,6 +435,10 @@ _read_transcoding_profile(char *filename,int idx) {
     return 0;
 }
 
+/**
+ * Read all defined transcoding profiles in the profile directory
+ * @return 0 on sucess, -1 on failure
+ */
 int
 read_transcoding_profiles(void) {
     char dirbuff[256];
@@ -479,6 +506,9 @@ read_transcoding_profiles(void) {
     return 0;
 }
 
+/**
+ * Re-read all transcoding profiles from disk
+ */
 void
 refresh_transcoding_profiles(void) {
     // Re-read allexisting profiles
@@ -487,6 +517,13 @@ refresh_transcoding_profiles(void) {
     }
 }
 
+/**
+ * Dump a textual representation of the supplied transcoding profile to the
+ * buffer given as the second argument of specified maxlen.
+ * @param profile A pointer to the profile to be displayed
+ * @param buff Buffer to hold the text
+ * @param size Max length of the supplied buffer
+ */
 void
 _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff, int size) {
     float sampling[] = {44.1, 48.0, 32.0};
@@ -540,6 +577,13 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     );
 }
 
+/**
+ * Dump the named transcoding profile as atextual representation to the specified buffer
+ * @param name
+ * @param buff
+ * @param size
+ * @return
+ */
 int 
 dump_transcoding_profile(char *name, char *buff, int size) {
     int i;
@@ -553,6 +597,11 @@ dump_transcoding_profile(char *name, char *buff, int size) {
     }
 }
 
+/**
+ * Get the details of the named transcoding profile
+ * @param name
+ * @param entry
+ */
 void
 get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
 
@@ -579,6 +628,11 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
     *entry = profiles[i];
 }
 
+/**
+ * Generate a textual list of all currently specified transcoding profiles
+ * @param buff
+ * @param maxlen
+ */
 void
 list_profile_names(char *buff,int maxlen) {
     int i=0,len=maxlen-1;
@@ -746,6 +800,9 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 
 }
 
+/**
+ * Kill all ongoing transcoding processes
+ */
 void
 kill_all_ongoing_transcodings(void) {
 
