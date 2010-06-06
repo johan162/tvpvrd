@@ -60,6 +60,7 @@ video_peak_bitrate=3400000
 #  
 # Supported named formats at the present are
 #  pal     = 720,576 (For PAL video standard)
+#  ntsc    = 720,480 (For NTSC video standard)
 #  vga     = 640,480
 #  qvga    = 320,240
 #  qqvga   = 160,120
