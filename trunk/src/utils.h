@@ -248,6 +248,16 @@ getwsetsize(int pid, int *size, char *unit, int *threads);
 int
 tail_logfile(int n, char *buffer, int maxlen);
 
+/**
+ * Send a simple text mail to the specified recepients
+ * @param subject
+ * @param to
+ * @param message
+ * @return 0 on success -1 otherwise
+ */
+int
+send_mail(const char *subject, const char *to, const char *message);
+
 
 #ifdef	__cplusplus
 }

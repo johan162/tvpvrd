@@ -374,10 +374,24 @@ _cmd_delete(const char *cmd, int sockfd) {
     } else {
         snprintf(msgbuff, 256, "Command not recognized.");
     }
-    if( !ret || err )
+
+
+    if( ! err ) {
         logmsg(LOG_INFO,msgbuff);
-    else
+        char logmsgbuff[256];
+        if (writeXMLFile(xmldbfile) >= 0 ) {
+            snprintf(logmsgbuff, 255,"Database successfully updated '%s' after delete command", xmldbfile);
+            logmsgbuff[255] = 0 ;
+            logmsg(LOG_INFO,logmsgbuff);
+        } else {
+            snprintf(logmsgbuff, 255,"Failed to update database '%s' after delete command", xmldbfile);
+            logmsgbuff[255] = 0 ;
+            logmsg(LOG_ERR,logmsgbuff);
+        }
+    }
+    else {
         logmsg(LOG_ERR,msgbuff);
+    }
     _writef(sockfd, "%s\n", msgbuff);
     if( field != (void *)NULL ) {
         pcre_free_substring_list((const char **)field);
@@ -1107,6 +1121,18 @@ _cmd_add(const char *cmd, int sockfd) {
     if (err) {
         sprintf(msgbuff, "Error:%d:%s:%s", err,add_errstr[err],last_logmsg+26);
         logmsg(LOG_ERR,"Can not add record. ( %d : %s )", err,add_errstr[err]);
+    } else {
+        // Synchronize the DB file with the added recordings
+        char logmsgbuff[256];
+        if (writeXMLFile(xmldbfile) >= 0 ) {
+            snprintf(logmsgbuff, 255,"Database successfully updated '%s' after add command", xmldbfile);
+            logmsgbuff[255] = 0 ;
+            logmsg(LOG_INFO,logmsgbuff);
+        } else {
+            snprintf(logmsgbuff, 255,"Failed to update database '%s' after add command", xmldbfile);
+            logmsgbuff[255] = 0 ;
+            logmsg(LOG_ERR,logmsgbuff);
+        }
     }
 
     if( field != (void *)NULL ) {

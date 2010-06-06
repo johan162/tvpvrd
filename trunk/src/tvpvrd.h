@@ -229,6 +229,18 @@ extern "C" {
 #define LOGFILE_SYSLOG "syslog"
 
 /*
+ * USE_LOGMAIL boolean
+ * Should we send notification of serious error to a mail address?
+ */
+#define SEND_MAIL_ON_ERROR 0
+
+/*
+ * SEND_MAILADDRESS string
+ * Mail address to use if we have enabled sending notification of serious error
+ */
+#define SEND_MAILADDRESS "root@localhost"
+
+/*
  * DEFAULT_FREQUENCY_MAP string
  * The name of the default frequency map to use.
  * Note: If the xawtvrc also specifes a map that map will
@@ -440,6 +452,12 @@ extern char frequencymap_name[];
 // Gloabl Mutex that must be called if the routine wants to access
 // any datastructure that modifies the recordings
 extern pthread_mutex_t recs_mutex;
+
+// Should we send mail on errors?
+extern int send_mail_on_error;
+
+// Mail address to use
+extern char send_mailaddress[];
 
 #ifdef	__cplusplus
 }

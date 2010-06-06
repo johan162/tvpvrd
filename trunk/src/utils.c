@@ -114,6 +114,7 @@ _vsyslogf(int priority, char *msg, ...) {
  * system logger. The name of the output device to use is set in the main
  * program and communicated here with a global variable
  */
+
 void logmsg(int priority, char *msg, ...) {
     static const int blen = 2048;
     static int _loginit = 0 ;
@@ -180,6 +181,33 @@ void logmsg(int priority, char *msg, ...) {
                 last_logmsg[MAX_LASTLOGMSG-1]='\0';
             }
         }
+
+        if( priority == LOG_ERR && send_mail_on_error ) {
+            // The sibject in the mail will be the name of the daemon together with
+            // the canonical hostname
+            const char mailSubjectFormat[] = {"tvpvrd@%s - FAILURE"};
+            const int tblen = 32;
+            const int shortblen = 80;
+            char timebuff[tblen] ;
+            char subjbuff[shortblen], hostname[shortblen];
+            time_t now = time(NULL);
+            ctime_r(&now,timebuff);
+            timebuff[strnlen(timebuff,tblen)-1] = 0;
+            snprintf(msgbuff, blen-1, "%s: %s\n", timebuff, tmpbuff);
+            msgbuff[blen-1] = '\0' ;
+
+            // Create subject line with host name
+            gethostname(hostname,shortblen);
+            hostname[shortblen-1] = '\0';
+            snprintf(subjbuff, shortblen, mailSubjectFormat, hostname);
+            subjbuff[shortblen-1] = '\0';
+
+            if( send_mail(subjbuff,send_mailaddress,msgbuff) ) {
+                syslog(priority, "*** Failed sending mail. ");
+                syslog(priority, tmpbuff);
+            }
+        }
+
         va_end(ap);
     }
 }
@@ -847,6 +875,23 @@ tail_logfile(int n, char *buffer, int maxlen) {
     pclose(fp);
 
     return 0;
+}
+
+/**
+ * Send a simple text mail to the specified recepients
+ * @param subject
+ * @param to
+ * @param message
+ * @return 0 on success -1 otherwise
+ */
+int
+send_mail(const char *subject, const char *to, const char *message) {
+    char buffer[512];
+
+    snprintf(buffer,511,
+	"echo '%s' | /usr/bin/mail -s '%s' '%s'",message, subject, to);
+
+    return system(buffer);
 }
 
 /* utils.c */

@@ -282,6 +282,13 @@ int dokilltranscodings = 1;
 static int require_password = REQUIRE_PASSWORD;
 static char password[32];
 
+/*
+ * Mail setting. Determine if we should send mail on errors and what address
+ * to use. Read from the inifile normally.
+ */
+int send_mail_on_error;
+char send_mailaddress[64];
+
 void
 init_globs(void) {
 
@@ -385,10 +392,15 @@ set_enc_parameters(int fd, struct transcoding_profile_entry *profile) {
     char *aspect[] = {"1x1","4x3","16x9","221x100"};
     int w,h;
 
-    video_get_wh_fromname(&w, &h, profile->encoder_video_frame_size_name);
+    int ret = video_get_wh_fromname(&w, &h, profile->encoder_video_frame_size_name);
+    if( ret == -1 ) {
+        logmsg(LOG_ERR,"Unknown video frame size specified in prodile '%s' : '%s'",
+                profile->name,profile->encoder_video_frame_size_name);
+        return -1;
+    }
 
     int i=2;
-    int ret = video_set_video_bitrate(fd, profile->encoder_video_bitrate, profile->encoder_video_peak_bitrate);
+    ret = video_set_video_bitrate(fd, profile->encoder_video_bitrate, profile->encoder_video_peak_bitrate);
     while( ret == -1 && errno == EBUSY && i > 0 ) {
         usleep(700*(3-i));
         ret = video_set_video_bitrate(fd, profile->encoder_video_bitrate, profile->encoder_video_peak_bitrate);
@@ -955,6 +967,7 @@ startrec(void *arg) {
                                  &transcode_time, time(NULL)-start);
                 }
             }
+
         }
 
         if (!transcoding_problem) {
@@ -1040,12 +1053,18 @@ chkrec(void *arg) {
                 // If the recording is more than 10 min off then we consider this a missed
                 // oppportunity. We remove this recording to be able to try the next one in
                 // sequence.
+
+                // Flag to keep track if we should update the SML DB file or not
+                // We only update the file in case we have actually a) ignored a recording or
+                // b) actually started a recording;
+                int update_xmldb = 0;
                 if (diff > 60 * 10) {
                     int sy,sm,sd,sh,smin,ssec;
                     fromtimestamp(recs[REC_IDX(video, 0)]->ts_start,&sy,&sm,&sd,&sh,&smin,&ssec);
                     logmsg(LOG_ERR, "Time for recording of ('%s' %d-%02d-%02d %02d:%02d) on video %d is too far in the past. Recording cancelled.",
                            recs[REC_IDX(video, 0)]->title, sy,sm,sd,sh,smin,video);
                     deletetoprec(video);
+                    update_xmldb = 1; // We removed a entry so update DB file
                 } else {
                     // Start the initiation at least (TIME_RESOLUTION-1) s before the exact start
                     // time since we cannot guarantee that the thread will be scheduled right
@@ -1075,12 +1094,27 @@ chkrec(void *arg) {
                             // Remove it from the list of pending recordings
                             removetoprec(video);
 
+                            update_xmldb = 1; // We removed a entry so update DB file
+
                             // Start the thread that will actually do the recording to the file system
                             ret = pthread_create(&rec_threads[video], NULL, startrec, (void *) & video_idx[video]);
                             if (ret != 0) {
                                 logmsg(LOG_ERR, "Could not create thread for recording.");
                             }
                         }
+                    }
+                }
+                if( update_xmldb ) {
+                    if (writeXMLFile(xmldbfile) >= 0 ) {
+                        char msgbuff[256];
+                        snprintf(msgbuff, 255,"Database successfully updated '%s' after recording has been done", xmldbfile);
+                        msgbuff[255] = 0 ;
+                        logmsg(LOG_INFO,msgbuff);
+                    } else {
+                        char msgbuff[256];
+                        snprintf(msgbuff, 255,"Failed to update database '%s' after recording has been done§    ", xmldbfile);
+                        msgbuff[255] = 0 ;
+                        logmsg(LOG_ERR,msgbuff);
                     }
                 }
             }
@@ -1395,7 +1429,7 @@ startupsrv(void) {
 
 /*
  * This is the signal receiveing thread. In order to gurantee that we don't get any
- * deadlocks all signals is masked in all oyther threads and only this thread can receive
+ * deadlocks all signals is masked in all other threads and only this thread can receive
  * signals. The function then set the global variable handled_signal
  */
 void *
@@ -2017,6 +2051,13 @@ read_inisettings(void) {
     allow_profiles_adj_encoder = iniparser_getboolean(dict,"config:allow_profiles_adj_encoder",0);
     
     require_password = iniparser_getboolean(dict,"config:require_password",REQUIRE_PASSWORD);
+
+
+    send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SEND_MAIL_ON_ERROR);
+    strncpy(send_mailaddress,
+            iniparser_getstring(dict, "config:sendmail_address", SEND_MAILADDRESS),
+            63);
+    send_mailaddress[63] = '\0';
     
     strncpy(password,
             iniparser_getstring(dict, "config:password", ""),

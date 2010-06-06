@@ -65,6 +65,7 @@
  */
 static struct framesize named_size[] = {
     {"pal",720,576},
+    {"ntsc",720,480},
     {"qvga",320,240},
     {"qqvga",160,120},
     {"vga",640,480},
