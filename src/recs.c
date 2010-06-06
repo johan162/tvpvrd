@@ -564,16 +564,20 @@ insertrec(int video, struct recording_entry * entry) {
  * @return 1 on success, 0 on failure
  */
 int
-getrectypestr(const int rectype, char *buff, int size) {
-    static char *sn[] = {"None.", "Daily", "Weekly", "Monthly", "Mon-Fri", "Sat-Sun"};
-
-    if (rectype >= 0 && rectype <= 5) {
-        strncpy(buff, sn[rectype],size);
+getrectypestr(const int type, const int longformat, char *buffer, int maxlen) {
+    // d=daily, w=weekly, m=monthly, f=Mon-Fri, s=Sat-Sun, t=Mon-Thu
+    static char *names[] = {"-","d","w","m","f","s","t"};
+    static char *longnames[] = {"-","daily","weekly","monthly","Mon-Fri","Sat-Sun","Mon-Thu"};
+    if( type >= 0 && type < 7 ) {
+        if( longformat == 0 )
+            strncpy(buffer,names[type],maxlen);
+        else
+            strncpy(buffer,longnames[type],maxlen);
+        buffer[maxlen-1] = '\0';
         return 0;
-    } else {
-        strncpy(buff, "(Unknown)",size);
-        return -1;
     }
+    *buffer = '\0';
+    return -1;
 }
 
 
@@ -620,7 +624,8 @@ void
 dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) {
     int sy, sm, sd, sh, smi, ss;
     int ey, em, ed, eh, emi, es;
-    char rectype[16];
+    char rectypename[16];
+    char rectypelongname[16];
     struct tm result;
     static char wday_name[7][3] = {
         "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
@@ -628,7 +633,8 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
 
     fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
     fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emi, &es);
-    (void)getrectypestr(entry->recurrence_type, rectype,16);
+    (void)getrectypestr(entry->recurrence_type, 0, rectypename,16);
+    (void)getrectypestr(entry->recurrence_type, 1, rectypelongname,16);
 
     // We need localtime to find the day of week for the start
     (void)localtime_r(&entry->ts_start, &result);
@@ -677,7 +683,7 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
                         "End", ey, em, ed, eh, emi, es,
                         "Video", entry->video,
                         "Filename", entry->filename,
-                        "Repeats", rectype, entry->recurrence_num - 1, entry->recurrence_id,
+                        "Repeats", rectypelongname, entry->recurrence_num - 1, entry->recurrence_id,
                         "", "Base-title   :", entry->recurrence_title,
                         "", "Base-filename:", entry->recurrence_filename);
             } else if (style == 1) {
@@ -694,7 +700,7 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
                         "Channel", entry->channel,
                         "Start", sy, sm, sd, sh, smi, ss,
                         "End", ey, em, ed, eh, emi, es,
-                        "Repeats", rectype, entry->recurrence_num - 1);
+                        "Repeats", rectypelongname, entry->recurrence_num - 1);
 
             }
         } else {
