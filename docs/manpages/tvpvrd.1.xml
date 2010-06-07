@@ -1427,7 +1427,6 @@ xawtv_station file      : /etc/X11/xawtvrc
 default_profile         : normal</screen>
                         </listitem>
                     </varlistentry>
-                    <varlistentry/>
                     <varlistentry>
                         <term>'<command>!</command> [<emphasis>#videocard</emphasis>]' - Stop
                             recording on specified video card</term>
