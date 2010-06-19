@@ -1453,6 +1453,9 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "%24s: %d\n"
             "%24s: %s\n"
 
+            "%24s: %s\n"
+            "%24s: %s\n"
+
             "%24s: %d\n"
 
             "%24s: %s\n"
@@ -1473,6 +1476,9 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "logfile",logfile_name,
             "verbose_log",verbose_log,
             "inifile_name",inifile,
+
+            "sendmail_on_error",send_mail_on_error,
+            "sendmail_address",send_mailaddress,
 
             "daemonize",daemonize,
 

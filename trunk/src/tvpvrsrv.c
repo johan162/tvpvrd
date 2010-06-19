@@ -806,22 +806,6 @@ startrec(void *arg) {
             // Do the actual recording by reading chunks of data from the
             // MP2 stream and store it in the recording file
             
-            /*
-            int *buffer = calloc(video_bufsize, sizeof (unsigned char));
-            if (buffer == NULL) {
-
-               logmsg(LOG_ERR,"Unable to allocate video buffer. '%s' recording aborted ( %d : %s )",recording->title,errno,strerror(errno));
-               pthread_mutex_lock(&recs_mutex);
-               free(recording);
-               ongoing_recs[video] = (struct recording_entry *)NULL;
-               pthread_mutex_unlock(&recs_mutex);
-
-               pthread_exit(NULL);
-               return (void *)NULL;
-
-            }
-            */
-
             logmsg(LOG_INFO,"Started recording using video card #%02d, fd=%d to '%s'.", video,vh, full_filename);
             fd_set fds;
             struct timeval tv;
@@ -839,11 +823,11 @@ startrec(void *arg) {
                 tv.tv_usec = 0;
 
                 // ---------------------------------------------------------------------------------------
-                // First wait until we have some data avialable from the video capture card
-                // via a select() call. We only wait for the descriptor assocuated with this capture
+                // First wait until we have some data available from the video capture card
+                // via a select() call. We only wait for the descriptor associated with this capture
                 // card. If there is no error and the call wasn't interrupted (EINTR) we go ahead
                 // and read as much data as the card wants to give us. Normally this is a whole number of
-                // frames the the data read vay in size from  ~8k to ~80k in size.
+                // frames. The data read is normnally in the ange ~8k to ~80k in size.
                 // ---------------------------------------------------------------------------------------
 
                 //logmsg(LOG_DEBUG,"    -- [%02d] select WAITING %d (%s)",video,vh,full_filename);
@@ -896,8 +880,6 @@ startrec(void *arg) {
                 }
             } while (recording->ts_end > time(NULL) && !doabort);
 
-            // Release video buffer
-            // free(buffer);
 #else
             logmsg(LOG_INFO,"Started simulated recording to file '%s'.", full_filename);
             _writef(fh, "Simulated writing at ts=%u\n", (unsigned)time(NULL));
@@ -996,7 +978,7 @@ startrec(void *arg) {
                     logmsg(LOG_INFO, "Deleted directory '%s'.", workingdir);
                 }
             }
-        } else {
+        } else if( !doabort ) {
             logmsg(LOG_ERR,"Transcoding error. Leaving original MP2 file under '%s'",full_filename);
         }
     }

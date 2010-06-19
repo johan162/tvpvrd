@@ -203,8 +203,10 @@ void logmsg(int priority, char *msg, ...) {
             subjbuff[shortblen-1] = '\0';
 
             if( send_mail(subjbuff,send_mailaddress,msgbuff) ) {
-                syslog(priority, "*** Failed sending mail. ");
+                syslog(priority, "*** tvpvrd Failed sending error notification mail. ");
                 syslog(priority, tmpbuff);
+            } else {
+                logmsg(LOG_DEBUG,"Mail notification on error sent to '%s'",send_mailaddress);
             }
         }
 
