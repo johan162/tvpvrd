@@ -28,7 +28,7 @@
 // We want the full POSIX and C99 standard
 #define _GNU_SOURCE
 
-// And we need to have support for files over 2GB in size
+// We need to have support for files over 2GB in size
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
@@ -1490,7 +1490,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "client_idle_time",max_idle_time,
             "port",tcpip_port,
             "time_resolution",time_resolution,
-            "video_buffer_size",video_bufsize,(float)video_bufsize/1024.0/1024.0,
+            "video_buffer_size",VIDBUFSIZE,(float)VIDBUFSIZE/1024.0/1024.0,
             "default_recording_time",defaultDurationHour,defaultDurationMin,
             "xawtv_station file",xawtv_channel_file,
             "default_profile",default_transcoding_profile,

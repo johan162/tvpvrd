@@ -34,7 +34,7 @@
 // We want the full POSIX and C99 standard
 #define _GNU_SOURCE
 
-// And we need to have support for files over 2GB in size
+// We need to have support for files over 2GB in size
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64

@@ -136,13 +136,12 @@ extern "C" {
 
 /*
  * VIDBUFSIZE integer
- * 16 MB Video buffer size. This is the data chunk size we will read from the
+ * 200 KB Video buffer size. This is the data chunk size we will read from the
  * video stream into memory before storing it on the file in the file system.
- * A larger buffer size reduces disk load. On the other hand a recording will only
- * stop after a chunk has been read. So the recoring might in worst case
- * be one chunk size larger recorded after the ending time.
+ * This might not look very large but when we do the select() to wait for data
+ * from the card the typical size returned is 80K-180K so 200K is enough.
  */
-#define VIDBUFSIZE 4*1024*1024
+#define VIDBUFSIZE (200*1024)
 
 /*
  * VIDEO_DEVICE_BASENAME string

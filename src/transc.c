@@ -448,6 +448,8 @@ read_transcoding_profiles(void) {
     // 1) <CONFDIR>/tvpvrd/profiles
     // 2) <cwd>/profiles
     snprintf(dirbuff,255,"%s/tvpvrd/profiles",CONFDIR);
+    logmsg(LOG_DEBUG,"Profile directory: %s",dirbuff);
+
     if( -1 == stat(dirbuff,&fstat) ) {
         char cwd[256];
         // Try current working directory
@@ -455,7 +457,8 @@ read_transcoding_profiles(void) {
         if( ret != NULL ) {
             snprintf(dirbuff,255,"%s/profiles",ret);
             if( -1 == stat(dirbuff,&fstat) ) {
-                logmsg(LOG_ERR,"Cannot find any transcoding profiles. Aborting.");
+                logmsg(LOG_ERR,"Cannot find any transcoding profiles in '%s' ( %d : %s )",dirbuff,
+                       errno,strerror(errno));
                 return -1;
             }
         }
@@ -1165,6 +1168,12 @@ struct filelist_queue {
 struct filelist_queue *ongoing_filelist_transcodings[MAX_FILELISTS] = {NULL};
 static int num_filelists=0;
 
+/**
+ * Enqueu a gives list of files to transcode. All the transcoding file lists
+ * are kept in an array.
+ * @param filelist
+ * @return 0 on success, -1 on failure
+ */
 int
 enqueue_filelist(struct transc_filelistparam *filelist) {
     int i;
@@ -1199,6 +1208,11 @@ enqueue_filelist(struct transc_filelistparam *filelist) {
     return 0;
 }
 
+/**
+ * Dequeue a list of files to transcode
+ * @param filelist
+ * @return
+ */
 int
 dequeue_filelist(struct transc_filelistparam *filelist) {
     int i;
@@ -1225,6 +1239,11 @@ dequeue_filelist(struct transc_filelistparam *filelist) {
     return 0;
 }
 
+/**
+ * Update the count where in a filelist we are, i.e. how many files have been processed
+ * @param filelist
+ * @return 0 on success, -1 on failure
+ */
 int
 incidx_fillist(struct transc_filelistparam *filelist) {
     int i;
@@ -1253,6 +1272,14 @@ incidx_fillist(struct transc_filelistparam *filelist) {
     return 0;
 }
 
+/**
+ * Fill a buffer with textural information on the current filelists
+ * @param num
+ * @param buffer
+ * @param len
+ * @param incfiles
+ * @return
+ */
 int
 get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
     char tmpbuff[512] = {'\0'};
@@ -1351,6 +1378,12 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
     return 0;
 }
 
+/**
+ * The main thread function which runs for each filelist and keeps track of the
+ * transcoding of each file in the list
+ * @param arg
+ * @return
+ */
 void *
 _transcode_filelist(void *arg) {   
     struct transc_filelistparam *param = (struct transc_filelistparam *) arg;
