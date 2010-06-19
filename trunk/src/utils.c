@@ -114,11 +114,23 @@ _vsyslogf(int priority, char *msg, ...) {
  * system logger. The name of the output device to use is set in the main
  * program and communicated here with a global variable
  */
+#define MAXLOGFILEBUFF 10*1024
 
 void logmsg(int priority, char *msg, ...) {
-    static const int blen = 2048;
+    static const int blen = 20*1024;
     static int _loginit = 0 ;
-    char msgbuff[blen],tmpbuff[blen];
+    char *msgbuff,*tmpbuff,*logfilebuff;
+
+    msgbuff = calloc(1,blen);
+    tmpbuff = calloc(1,blen);
+    logfilebuff = calloc(1,blen);
+    if( msgbuff == NULL || tmpbuff == NULL || logfilebuff == NULL ) {
+        free(msgbuff);
+        free(tmpbuff);
+        free(logfilebuff);
+        syslog(priority,"FATAL. Can not allocate message buffers in logmsg().");
+        return;
+    }
 
     // We only print errors by default and info if the verbose flag is set
     if ( (priority == LOG_ERR) ||
@@ -202,8 +214,15 @@ void logmsg(int priority, char *msg, ...) {
             snprintf(subjbuff, shortblen, mailSubjectFormat, hostname);
             subjbuff[shortblen-1] = '\0';
 
+            // Extract the last lines from the log file and include in the mail.
+            if( 0 == tail_logfile(20,logfilebuff,blen) ) {
+                strncat(msgbuff,"\n\n---- LAST 20 LINES FROM LOG FILE ----\n",blen);
+                strncat(msgbuff,logfilebuff,blen-1);
+                msgbuff[blen-1] = '\0' ;
+            }
+
             if( send_mail(subjbuff,send_mailaddress,msgbuff) ) {
-                syslog(priority, "*** tvpvrd Failed sending error notification mail. ");
+                syslog(priority, "'tvpvrd' Failed sending error notification mail. ");
                 syslog(priority, tmpbuff);
             } else {
                 logmsg(LOG_DEBUG,"Mail notification on error sent to '%s'",send_mailaddress);
@@ -212,6 +231,10 @@ void logmsg(int priority, char *msg, ...) {
 
         va_end(ap);
     }
+
+    free(msgbuff);
+    free(tmpbuff);
+    free(logfilebuff);
 }
 
 /*
@@ -840,6 +863,13 @@ getwsetsize(int pid, int *size, char *unit, int *threads) {
 
 }
 
+/**
+ * Return the last n line from the logfile
+ * @param n Number of lines to return
+ * @param buffer Buffer
+ * @param maxlen Maximum length of the buffer
+ * @return 0 success, -1 failure
+ */
 int
 tail_logfile(int n, char *buffer, int maxlen) {
     if( n < 1 || n > 999 )
@@ -861,7 +891,7 @@ tail_logfile(int n, char *buffer, int maxlen) {
         return -1;
     }
 
-    const int maxbuff=256;
+    const int maxbuff=512;
     char linebuffer[maxbuff];
     *buffer = '\0';
     while( maxlen > 1024 && NULL != fgets(linebuffer,maxbuff,fp) ) {
@@ -888,12 +918,20 @@ tail_logfile(int n, char *buffer, int maxlen) {
  */
 int
 send_mail(const char *subject, const char *to, const char *message) {
-    char buffer[512];
+    const int blen=20*1024;
+    char buffer[blen];
 
-    snprintf(buffer,511,
+    if( strlen(message) > 19*1024 ) {
+        syslog(LOG_ERR,"Truncating mail sent from 'tvpvrd'");
+    }
+
+    snprintf(buffer,blen-1,
 	"echo '%s' | /usr/bin/mail -s '%s' '%s'",message, subject, to);
 
+    buffer[blen-1] = '\0';
+
     return system(buffer);
+
 }
 
 /* utils.c */

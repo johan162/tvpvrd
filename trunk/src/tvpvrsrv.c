@@ -127,9 +127,6 @@ char logfile_name[256] = {'\0'};
 // Time resolution for checks
 int time_resolution;
 
-// The size of the memory buffer used when reading video data from the device
-int video_bufsize;
-
 // The video buffer (used when reading the video stream from the capture card)
 // One buffer for each video card. We support up to 4 simultaneous cards
 char *video_buffer[MAX_VIDEO];
@@ -315,7 +312,7 @@ init_globs(void) {
 
     if( is_master_server ) {
         for(int i=0; i < max_video; ++i) {
-            video_buffer[i] = calloc(video_bufsize, sizeof(char *));
+            video_buffer[i] = calloc(VIDBUFSIZE, sizeof(char *));
             if( video_buffer[i] == NULL ) {
                 fprintf(stderr,"Cannot allocate video buffer memory. (%d : %s)",errno,strerror(errno));
                 exit(EXIT_FAILURE);
@@ -847,7 +844,7 @@ startrec(void *arg) {
                 } else {      
 #endif
                     //logmsg(LOG_DEBUG,"    -- [%02d] Trying to read bytes from fd=%d '%s'",video,vh, recording->title);
-                    nread = read(vh, video_buffer[video], video_bufsize);
+                    nread = read(vh, video_buffer[video], VIDBUFSIZE);
                     //logmsg(LOG_DEBUG,"    -- [%02d] DONE. Read %05d bytes from fd=%d '%s'",video,nread,vh,recording->title);
 
                     if (-1 == nread ) {
@@ -2026,9 +2023,6 @@ read_inisettings(void) {
 
     time_resolution     = validate(1,30,"time_resolution",
                                     iniparser_getint(dict, "config:time_resolution", TIME_RESOLUTION));
-
-    video_bufsize       = validate(100*1024, 1000*1024,"video_bufsize",
-                                    iniparser_getint(dict, "config:video_bufsize", VIDBUFSIZE));
 
     allow_profiles_adj_encoder = iniparser_getboolean(dict,"config:allow_profiles_adj_encoder",0);
     
