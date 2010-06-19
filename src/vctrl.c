@@ -222,7 +222,7 @@ _vctrl_tuner(const int set, const int fd,  struct v4l2_tuner *vtun) {
         return -1;
     }
     if (xioctl(fd, VIDIOC_G_TUNER, vtun) == -1) {
-        logmsg(LOG_ERR, "(VIDIOC_G_TUNER) Cannot get information on video tuner. (%d : %s)", errno, strerror(errno));
+        logmsg(LOG_ERR, "(VIDIOC_G_TUNER) Cannot get information on tuner. (%d : %s)", errno, strerror(errno));
         return -1;
     }
     return 0;
@@ -262,8 +262,8 @@ _vctrl_gettunerinfo(const int fd, double *frequnits,
 
 /**
  * Video Device Control: _vctrl_channel
- * Get/Set chanel of the tuner. The channel name must exist in the curren frequency map
- * When the function is called to set the channel the size paramter is not used. This
+ * Get/Set channel of the tuner. The channel name must exist in the current frequency map
+ * When the function is called to set the channel the size parameter is not used. This
  * is only meant to give the maximum buffer size of the ch buffer to limit how long
  * string is written when the function is called to get the channel.
  * 
@@ -304,7 +304,7 @@ _vctrl_channel(const int set, const int fd, char *ch, int size) {
     } else {
         CLEAR(vfreq);
         vfreq.tuner = 0;
-        vfreq.type = 2; // Analog TV
+        vfreq.type = V4L2_TUNER_ANALOG_TV;
 
         // Translate channel to frequency
         if (-1 == getfreqfromstr(&freq, ch)) {

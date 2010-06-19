@@ -42,9 +42,9 @@
 #include <pcre.h>
 
 // XML2 lib headers
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xmlreader.h>
+#include <libxml2/libxml/parser.h>
+#include <libxml2/libxml/tree.h>
+#include <libxml2/libxml/xmlreader.h>
 
 #include "tvxmldb.h"
 #include "tvpvrd.h"
@@ -191,7 +191,7 @@ parseDate(const char *date, int *y, int *m, int *d) {
 
 /*
  * Parse a single recording in the XML file. Extract the necessary fields
- * and add this as a proper entry in te list of recordings.
+ * and add this as a proper entry in the list of recordings.
  */
 static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
     char directory[512], tmpbuff[512], bname_buffer[512];
