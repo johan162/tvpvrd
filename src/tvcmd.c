@@ -1449,11 +1449,13 @@ _cmd_getSettings(const char *cmd, int sockfd) {
 
     _writef(sockfd,
             "%24s: %s\n"
+            "%24s: %d\n"
             "%24s: %s\n"
             "%24s: %d\n"
             "%24s: %s\n"
 
-            "%24s: %s\n"
+            "%24s: %d\n"
+            "%24s: %d\n"
             "%24s: %s\n"
 
             "%24s: %d\n"
@@ -1473,11 +1475,13 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "%24s: %s\n"
             ,
             "datadir",datadir,
+            "use_profile_directories",use_profiledirectories,
             "logfile",logfile_name,
             "verbose_log",verbose_log,
             "inifile_name",inifile,
 
             "sendmail_on_error",send_mail_on_error,
+            "sendmail_on_transcode_end",send_mail_on_transcode_end,
             "sendmail_address",send_mailaddress,
 
             "daemonize",daemonize,

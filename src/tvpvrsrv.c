@@ -280,10 +280,16 @@ static int require_password = REQUIRE_PASSWORD;
 static char password[32];
 
 /*
+ * Determine if we should use subdirectories for each profile or just
+ * store all videos directly under mp2/ or mp4/
+ */
+int use_profiledirectories = 1;
+
+/*
  * Mail setting. Determine if we should send mail on errors and what address
  * to use. Read from the inifile normally.
  */
-int send_mail_on_error;
+int send_mail_on_error, send_mail_on_transcode_end;
 char send_mailaddress[64];
 
 void
@@ -509,6 +515,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
     struct rusage usage;
     CLEAR(*transcode_time);
+    int rh, rm, rs;
 
     // We do not start transcoding if the recording was aborted
     // If the bitrate is set to < 10kbps then this indicates that no
@@ -516,9 +523,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
     int transcoding_done=0;
     if ( !profile->use_transcoding || profile->video_bitrate == 0) {
 
-        // Do nothing. The MP2 file will be moved by the calling
-        // function.
-        logmsg(LOG_NOTICE,"Transcoding disabled in profile '%s' for file '%s'",profile->name,short_filename);
+        // Do nothing. The MP2 file will be moved by the calling function.
+        logmsg(LOG_DEBUG,"Transcoding disabled in profile '%s' for file '%s'",profile->name,short_filename);
         return 0;
 
     } else  {
@@ -530,7 +536,6 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
         }
 
         // If recording was successful then do the transcoding
-        // tiny 32, xsmall 128, small 256, med 512, large 1024, xlarge 2048, huge 4096
         char cmdbuff[1024], cmd_ffmpeg[512], destfile[128] ;
         int runningtime = 0;
         
@@ -596,15 +601,15 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     // performance.
                     pid_t rpid;
 
-                    // We only allow one transcoding to run for a maximum of 24 h any longer than
+                    // We only allow one transcoding to run for a maximum of 49 h any longer than
                     // that and we consider the transcoding process as hung
-                    const int watchdog = 24 * 3600;
+                    const int watchdog = 49 * 3600;
                     int ret;
                     do {
                         // Transcoding usually takes hours so we don't bother
-                        // waking up and check if we are done more often than once a minute
-                        sleep(60);
-                        runningtime += 60;
+                        // waking up and check if we are done more often than once every 2 minute
+                        sleep(120);
+                        runningtime += 120;
                         rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
 
                     } while (pid != rpid && runningtime < watchdog);
@@ -613,9 +618,9 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     forget_ongoingtranscoding(tidx);
                     pthread_mutex_unlock(&recs_mutex);
 
-                    int rh = runningtime / 3600;
-                    int rm = (runningtime - rh*3600)/60;
-                    int rs = runningtime % 60;
+                    rh = runningtime / 3600;
+                    rm = (runningtime - rh*3600)/60;
+                    rs = runningtime % 60;
 
                     if (runningtime >= watchdog) {
                         // Something is terrible wrong if the transcoding haven't
@@ -671,7 +676,11 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
             char newname[256], tmpbuff2[256], tmpbuff[256];
 
             // Move MP4 file
-            snprintf(tmpbuff, 255, "%s/mp4/%s/%s", datadir, profile->name, destfile);
+            if( use_profiledirectories ) {
+                snprintf(tmpbuff, 255, "%s/mp4/%s/%s", datadir, profile->name, destfile);
+            } else {
+                snprintf(tmpbuff, 255, "%s/mp4/%s", datadir, destfile);
+            }
             tmpbuff[255] = '\0';
             snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
             tmpbuff2[255] = '\0';
@@ -691,10 +700,45 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     transcode_time->stime.tv_sec = usage.ru_stime.tv_sec;
 
                 } else {
-                    logmsg(LOG_ERR,"Can not determnine size of transcoded file '%s'. ( %d : %s) ",
+                    logmsg(LOG_ERR,"Can not determine size of transcoded file '%s'. ( %d : %s) ",
                            newname,errno,strerror(errno));
                 }
-                
+
+                // The complete transcoding and file relocation has been successful. Now check
+                // if we should send a mail with this happy news!
+                if( send_mail_on_transcode_end ) {
+                    char mailbuff[1024];
+                    
+                    // Include system load average in mail
+                    float l1,l5,l15;
+                    getsysload(&l1,&l5,&l15);
+
+                    // Get full current time to include in mail
+                    static const int tblen = 32;
+                    char timebuff[tblen] ;
+                    time_t now = time(NULL);
+                    ctime_r(&now,timebuff);
+                    timebuff[strnlen(timebuff,tblen)-1] = 0;
+
+                    snprintf(mailbuff,1023,
+                                "Transcoding of \"%s\" using profile \"@%s\" finished %s \n\n"
+                                "Moved file to: \"%s\"\n"
+                                "Transcoding time: %02d:%02d\n"
+                                "System load: %.1f %.1f %.1f\n\n",
+                                short_filename,profile->name, timebuff,
+                                tmpbuff,
+                                rh,rm,
+                                l1,l5,l15);
+
+                    mailbuff[1023] = '\0';
+                    char subjectbuff[80];
+                    char hostname[80];
+                    gethostname(hostname,80);
+                    hostname[79] = '\0';
+                    snprintf(subjectbuff,79,"[tvpvrd@%s] Transcoding of \"%s\" finished",hostname,short_filename);
+                    subjectbuff[79] = '\0';
+                    send_mail(subjectbuff,send_mailaddress,mailbuff);
+                }
             }
         }
     }
@@ -951,11 +995,16 @@ startrec(void *arg) {
 
         if (!transcoding_problem) {
             char tmpbuff[256], newname[512];
+
             // Move the original mp2 file if the user asked to keep it
             int delete_workingdir = 1;
             if (keep_mp2_file) {
                 // Move MP2 file
-                snprintf(tmpbuff, 255, "%s/mp2/%s/%s", datadir, profile->name, short_filename);
+                if( use_profiledirectories ) {
+                    snprintf(tmpbuff, 255, "%s/mp2/%s/%s", datadir, profile->name, short_filename);
+                } else {
+                    snprintf(tmpbuff, 255, "%s/mp2/%s", datadir, short_filename);
+                }
                 tmpbuff[255] = '\0';
 
                 if (mv_and_rename(full_filename, tmpbuff, newname, 512)) {
@@ -1229,15 +1278,12 @@ clientsrv(void *arg) {
 
             //Timeout
             idle_time += 60;
-            logmsg(LOG_DEBUG, "Client %d terminal timeout. Idle for a total of %d seconds",i,idle_time);
+            // logmsg(LOG_DEBUG, "Client %d terminal timeout. Idle for a total of %d seconds",i,idle_time);
 
             if (idle_time >= max_idle_time) {
                 numreads = -1; // Force a disconnect
                 logmsg(LOG_INFO, "Client disconnected after being idle for more than %d seconds.", max_idle_time);
             } else {
-                if( idle_time % 300 == 0 ) {
-                    logmsg(LOG_NOTICE, "Client %d idle the last 5 min.", i);
-                }
                 numreads = 1; // To keep the loop going
             }
         } else {
@@ -1543,17 +1589,20 @@ chkdirstructure(void) {
         }
     }
 
-    // Create the profile directories under mp4/mp2
-    struct transcoding_profile_entry **profiles;
-    int nprof = get_transcoding_profile_list(&profiles);
-    for( int i=0; i < nprof; i++) {
-        snprintf(bdirbuff,511,"mp4/%s",profiles[i]->name);
-        if( -1 == chkcreatedir(datadir,bdirbuff) ) {
-            exit(EXIT_FAILURE);
-        }
-        snprintf(bdirbuff,511,"mp2/%s",profiles[i]->name);
-        if( -1 == chkcreatedir(datadir,bdirbuff) ) {
-            exit(EXIT_FAILURE);
+    // Create the profile directories under mp4/mp2 if user has enabled
+    // profile subdirectory hierachy
+    if( use_profiledirectories ) {
+        struct transcoding_profile_entry **profiles;
+        int nprof = get_transcoding_profile_list(&profiles);
+        for( int i=0; i < nprof; i++) {
+            snprintf(bdirbuff,511,"mp4/%s",profiles[i]->name);
+            if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+                exit(EXIT_FAILURE);
+            }
+            snprintf(bdirbuff,511,"mp2/%s",profiles[i]->name);
+            if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+                exit(EXIT_FAILURE);
+            }
         }
     }
 }
@@ -1907,7 +1956,7 @@ exithandler(void) {
     // The deletion of the lockile will only succeed if we are running as
     // root since the lockfile resides in a directory owned by root
     // no other uid can remove it.
-    // This is not a problem though since the startup will check that there
+    // This is not a problem though since the startup will check that the
     // pid in the lockfile really exists.
     if (strcmp(pwe->pw_name, "root") == 0) {
         deleteockfile();
@@ -1957,18 +2006,20 @@ chkswitchuser(void) {
                     dummyret = system(cmdbuff);
                 }
             }
+
             // Make sure we run as belonging to the video group
             struct group *gre = getgrnam("video");
             if( gre == NULL ) {
-                logmsg(LOG_ERR,"** Specified group to run as, '%s', does not exist. (%d : %s) **",
+                logmsg(LOG_ERR,"Specified group to run as, '%s', does not exist. (%d : %s) **",
                    "video",errno,strerror(errno));
                 exit(EXIT_FAILURE);
             }
+            
             gid_t groups[2];
             groups[0] = pwe->pw_gid;
             groups[1] = gre->gr_gid;
             if( -1 == setgroups(2, groups) ) {
-                logmsg(LOG_ERR,"** Cannot set groups. Check that '%s' belongs to the 'video' group. (%d : %s) **",
+                logmsg(LOG_ERR,"Cannot set groups. Check that '%s' belongs to the 'video' group. (%d : %s) **",
                    username,errno,strerror(errno));
                 exit(EXIT_FAILURE);
             }
@@ -1979,17 +2030,19 @@ chkswitchuser(void) {
             }
                  */
         } else {
-            logmsg(LOG_INFO,"*** The server is running as user 'root'. This is strongly discouraged. *");
+            logmsg(LOG_INFO,"The server is running as user 'root'. This is strongly discouraged. *");
         }
     }
 }
 
+/**
+ * Get common master values from the ini file
+ * Since iniparser is not reentrant we must do it here and not individually
+ * in each thread. Since all of these are read only there is no need to
+ * protect these with a mutex
+ */
 void
 read_inisettings(void) {
-    // Get common master values from the ini file
-    // Since iniparser is not reentant we must do it here and not individually
-    // in each thread. Since all of these are read only there is no need to
-    // protect these with a mutex
 
     /*--------------------------------------------------------------------------
      * CONFIG Section
@@ -2000,22 +2053,28 @@ read_inisettings(void) {
         is_master_server    = iniparser_getboolean(dict,"config:master",MASTER_SERVER);
     }
 
-    max_video           = validate(1, 4,"max_video",
-                                    iniparser_getint(dict, "config:max_video", MAX_VIDEO));
+    max_video           = validate(0, 5,"max_video",
+                                   iniparser_getint(dict, "config:max_video", MAX_VIDEO));
+
+    if( 0 == max_video ) {
+        // Automatically determine the maximum number of cards
+        max_video = _vctrl_getnumcards();
+    }
+
     max_entries         = validate(1,4096,"max_entries",
-                                    iniparser_getint(dict, "config:max_entries", MAX_ENTRIES));
+                                   iniparser_getint(dict, "config:max_entries", MAX_ENTRIES));
     max_clients         = validate(1,10,"max_clients",
-                                    iniparser_getint(dict, "config:max_clients", MAX_CLIENTS));
+                                   iniparser_getint(dict, "config:max_clients", MAX_CLIENTS));
 
     defaultDurationHour = validate(0,4,"recording_timehour",
-                                    iniparser_getint(dict, "config:recording_timehour", DEFAULT_DURATIONHOUR));
+                                   iniparser_getint(dict, "config:recording_timehour", DEFAULT_DURATIONHOUR));
     defaultDurationMin  = validate(0,59,"recording_timemin",
-                                    iniparser_getint(dict, "config:recording_timemin", DEFAULT_DURATIONMIN));    
+                                   iniparser_getint(dict, "config:recording_timemin", DEFAULT_DURATIONMIN));    
 
     if( tcpip_port == -1 ) {
         // Not specified on the command line
         tcpip_port          = validate(1025,99999,"port",
-                                        iniparser_getint(dict, "config:port", PORT));
+                                       iniparser_getint(dict, "config:port", PORT));
     }
 
     max_idle_time       = validate(2*60,30*60,"client_idle_time",
@@ -2029,7 +2088,9 @@ read_inisettings(void) {
     require_password = iniparser_getboolean(dict,"config:require_password",REQUIRE_PASSWORD);
 
 
-    send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SEND_MAIL_ON_ERROR);
+    send_mail_on_transcode_end = iniparser_getboolean(dict,"config:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);
+    send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SENDMAIL_ON_ERROR);
+
     strncpy(send_mailaddress,
             iniparser_getstring(dict, "config:sendmail_address", SEND_MAILADDRESS),
             63);
@@ -2071,6 +2132,11 @@ read_inisettings(void) {
             127);
     datadir[127] = '\0';
 
+    use_profiledirectories =
+            iniparser_getboolean(dict, "config:use_profile_directories", DEFAULT_USE_PROFILE_DIRECTORIES);
+
+    datadir[127] = '\0';
+
     strncpy(device_basename,
             iniparser_getstring(dict, "config:video_device_basename", VIDEO_DEVICE_BASENAME),
             127);
@@ -2099,7 +2165,7 @@ read_inisettings(void) {
 
     if( -1 == read_transcoding_profiles() ) {
         logmsg(LOG_ERR,"FATAL: No transcoding profiles defined. Aborting.");
-        exit(EXIT_FAILURE);
+        _exit(EXIT_FAILURE);
     }
 
 #ifndef DEBUG_SIMULATE
@@ -2212,6 +2278,7 @@ main(int argc, char *argv[]) {
     sigset_t signal_set;
     pthread_t signal_thread;
 
+   
     // Set lockfile to avoid multiple instances running
     if( -1 == createlockfile() ) {
         fprintf(stderr,"Cannot start server. Check system log for more information.\n");
@@ -2290,19 +2357,22 @@ main(int argc, char *argv[]) {
     if( daemonize == -1 ) {
         daemonize = iniparser_getboolean(dict, "config:daemonize", DEFAULT_DAEMONIZE);
     }
-    
+
     if( daemonize ) {
         startdaemon();
 	logmsg(LOG_DEBUG,"Reborn as a daemon");
 
-        // Update the PID in the lockfile since have a new PID
+        // Update the PID in the lockfile since we have a new PID
         if( -1 == updatelockfilepid() ) {
             logmsg(LOG_ERR,"Can't update lockfile with new daemon PID. Aborting.");
             exit(EXIT_FAILURE);
         }
 
     }
-    
+
+    // Get the overall settings from the ini-file
+    read_inisettings();
+
     //----------------------------------------------------------------------------------------
     // Note: The order of the initialization below is somewhat important. The vital dependcies
     // are:
@@ -2315,8 +2385,6 @@ main(int argc, char *argv[]) {
     //----------------------------------------------------------------------------------------
 
 
-    // Get the overall settings from the ini-file
-    read_inisettings();
 
     if( is_master_server ) {
         logmsg(LOG_NOTICE,"Starting server as MASTER");
@@ -2334,12 +2402,12 @@ main(int argc, char *argv[]) {
     // and in our case it is not necessary for us to run as root.
     chkswitchuser();
 
-    // After a possible setuid() adn setgrp() the dumapable falg is reset which means
+    // After a possible setuid() adn setgrp() the dumapable flag is reset which means
     // that no core is dumped in case of a SIGSEGV signal. We want a coredump in case
     // of a memory overwrite so we make sure this is allowed
     if( -1 == prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) ) {
         logmsg(LOG_ERR,"FATAL: Can not set PR_SET_DUMPABLE");
-        _exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     // Initialize all the data structures that stores our recording

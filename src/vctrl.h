@@ -307,6 +307,14 @@ int
 _vctrl_get_cardinfo(int fd, char **driver, char **card,
                     char **version, unsigned int *capflags);
 
+/**
+ * Determine the number of installed video cards by trying to open 
+ * the first five, one by one
+ * @return Number of video cards found
+ */
+int
+_vctrl_getnumcards(void);
+
 
 #ifdef	__cplusplus
 }
