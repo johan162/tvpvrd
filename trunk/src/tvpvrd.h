@@ -200,6 +200,12 @@ extern "C" {
 #define DEFAULT_PREFIX "_"
 
 /*
+ * DEFAULT_USE_PROFILE_DIRECTORIES boolean
+ * Determine if we should use a directory hierarchy based on profile names
+ * to store the transcoded and encoded videos
+ */
+#define DEFAULT_USE_PROFILE_DIRECTORIES 1
+/*
  * MAX_CLIENTS integer
  * Max number of clients that are allowed to connect to us
  */
@@ -228,10 +234,12 @@ extern "C" {
 #define LOGFILE_SYSLOG "syslog"
 
 /*
- * USE_LOGMAIL boolean
- * Should we send notification of serious error to a mail address?
+ * SENDMAIL_ON_ERROR boolean
+ * SENDMAIL_ON_TRANSCODE_END boolean
+ * Should we send notification of serious error and transcode ending to a mail address?
  */
-#define SEND_MAIL_ON_ERROR 0
+#define SENDMAIL_ON_ERROR 0
+#define SENDMAIL_ON_TRANSCODE_END 0
 
 /*
  * SEND_MAILADDRESS string
@@ -334,6 +342,8 @@ struct ffmpeg_profile {
 extern char server_version[] ;
 extern char server_build_date[] ;
 extern char server_program_name[32] ;
+extern int use_profiledirectories ;
+
 
 /*
  * xawtv_channel_file string
@@ -457,6 +467,9 @@ extern int send_mail_on_error;
 
 // Mail address to use
 extern char send_mailaddress[];
+
+// Should we send mail on when transcoding finished?
+extern int send_mail_on_transcode_end ;
 
 #ifdef	__cplusplus
 }

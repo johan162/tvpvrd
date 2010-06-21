@@ -451,17 +451,9 @@ read_transcoding_profiles(void) {
     logmsg(LOG_DEBUG,"Profile directory: %s",dirbuff);
 
     if( -1 == stat(dirbuff,&fstat) ) {
-        char cwd[256];
-        // Try current working directory
-        char *ret = getcwd(cwd,256);
-        if( ret != NULL ) {
-            snprintf(dirbuff,255,"%s/profiles",ret);
-            if( -1 == stat(dirbuff,&fstat) ) {
-                logmsg(LOG_ERR,"Cannot find any transcoding profiles in '%s' ( %d : %s )",dirbuff,
-                       errno,strerror(errno));
-                return -1;
-            }
-        }
+        logmsg(LOG_ERR,"Cannot find transcoding profiles in '%s' ( %d : %s )",dirbuff,
+               errno,strerror(errno));
+        return -1;
     }
 
     // Now loop through all profile files in 'dirbuff' directory
@@ -997,19 +989,20 @@ _transcode_file(void *arg) {
             // performance.
             pid_t rpid;
 
-            // We only allow one transcoding to run for a maximum of 48 h
-            // This will easily allow (even on a weak CPU) the transcoding two 4h
+            // We only allow one transcoding to run for a maximum of 49 h
+            // This will easily allow (even on a weak CPU) the transcoding of 4h
             // videos in high quality which could take up to 4-5 hours per hour recorded
             // for a single running transcoding. This means that two simulataneous running
-            // jobs would require ~8 hour per recorded hour to complete.
-            const int watchdog = 48 * 3600;
+            // jobs would require ~8 hour per recorded hour to complete. This means that
+            // it could take up to 48h to encode two 4h videos in high quality simultaneous.
+            const int watchdog = 49 * 3600;
             int ret;
             struct rusage usage;
             do {
                 // Transcoding usually takes hours so we don't bother
-                // waking up and check if we are done more often than once a minute
-                sleep(60);
-                runningtime += 60;
+                // waking up and check if we are done more often than once every two minute
+                sleep(120);
+                runningtime += 120;
                 rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
 
             } while (pid != rpid && runningtime < watchdog);
@@ -1025,8 +1018,8 @@ _transcode_file(void *arg) {
             if (runningtime >= watchdog) {
                 // Something is terrible wrong if the transcoding haven't
                 // finished after the watchdog timeout
-                logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung. Have run more than %02d:%02d:%02d h",
-                        basename(filename), rh,rm,rs);
+                logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung. Running time %02d:%02d:%02d h. Process %d killed",
+                        basename(filename), rh,rm,rs,pid);
                 (void) kill(pid, SIGKILL);
             } else {
                 if (WIFEXITED(ret)) {
@@ -1038,7 +1031,7 @@ _transcode_file(void *arg) {
 
                         } else {
                             logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
-                                    basename(filename), rh, rm, rs, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
+                                   basename(filename), rh, rm, rs, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
 
                         }
                     } else {
@@ -1061,7 +1054,12 @@ _transcode_file(void *arg) {
                     char newname[256], tmpbuff2[256], tmpbuff[256];
 
                     // Move MP4 file
-                    snprintf(tmpbuff, 255, "%s/mp4/%s/%s", datadir, profile->name, destfile);
+                    if( use_profiledirectories ) {
+                        snprintf(tmpbuff, 255, "%s/mp4/%s/%s", datadir, profile->name, destfile);
+                    } else {
+                        snprintf(tmpbuff, 255, "%s/mp4/%s", datadir, destfile);
+                    }
+
                     tmpbuff[255] = '\0';
                     snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
                     tmpbuff2[255] = '\0';
@@ -1077,10 +1075,26 @@ _transcode_file(void *arg) {
                         logmsg(LOG_ERR, "Could not delete working directory '%s'.", workingdir);
                     } else {
                         logmsg(LOG_INFO, "Deleted working directory '%s'.", workingdir);
+
+                        // The complete transcoding and file relocation has been successful. Now check
+                        // if we should send a mail with this happy news!
+                        if( send_mail_on_transcode_end ) {
+                            char mailbuff[1024];
+                            snprintf(mailbuff,1023,
+                                    "Transcoding of '%s/%s' using profile '%s' finished.\n"
+                                    "Total time: %02d:%02d:%02d h\n",
+                                     workingdir,destfile,profile->name,
+                                     rh,rm,rs);
+                            mailbuff[1023] = '\0';
+                            char subjectbuff[80];
+                            snprintf(subjectbuff,79,"[tvpvrd] Transcoding of '%s' finished",destfile);
+                            subjectbuff[79] = '\0';
+                            send_mail(subjectbuff,send_mailaddress,mailbuff);
+                        }
                     }
 
                 } else {
-                    logmsg(LOG_NOTICE,"Transcoding was not successfull. Working directory '%s' not removed.",workingdir);
+                    logmsg(LOG_NOTICE,"Transcoding error. Working directory '%s' not removed.",workingdir);
                 }
 
             }

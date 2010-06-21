@@ -115,7 +115,7 @@ xioctl(int fd, int request, void * arg) {
 /**
  * Video Device Control: _vctrl_openvideo
  * Open the specified video. The video parameter is a small unsigned (normally in the range 0-4)
- * and speciies the number of the card which is normall accessed trhough the /dev/video0,
+ * and specifies the number of the card which is normall accessed trhough the /dev/video0,
  * /dev/video1 etc. device
  * The function does a number of sanity checks to try to determine that the video device
  * really exists.
@@ -131,7 +131,7 @@ _vctrl_openvideo(unsigned int video) {
         logmsg(LOG_ERR, "(_vctrl_openvideo) Video device must be in range 0-5");
         return -1;
     }
-    sprintf(vdevice, "%s%d", "/dev/video", video);
+    sprintf(vdevice, "%s%d", device_basename, video);
 
     if (stat(vdevice, &st) == -1) {
         logmsg(LOG_ERR, "Cannot identify device '%s'. ( %d : %s )", vdevice, errno, strerror(errno));
@@ -151,9 +151,33 @@ _vctrl_openvideo(unsigned int video) {
         return -1;
     }
 
-    logmsg(LOG_NOTICE,"Opened video stream '%s' as handle fd=%d",vdevice,fd);
+    logmsg(LOG_DEBUG,"Opened video stream '%s' as handle fd=%d",vdevice,fd);
 
     return fd;
+}
+
+/**
+ * Determine the number of installed video cards by trying to open 
+ * the first five, one by one
+ * @return Number of video cards found
+ */
+int
+_vctrl_getnumcards(void) {
+    const int maxcards=5;
+    int found=0,fd;
+    struct stat st;
+    char vdevice[64];
+
+    while (found <= maxcards) {
+        sprintf(vdevice, "%s%d", device_basename, found);
+        if ( (stat(vdevice, &st) == -1) || (!S_ISCHR(st.st_mode)) )
+            break;
+        fd = open(vdevice, O_RDONLY | O_NONBLOCK , 0);
+        if (fd == -1) break;
+        close(fd);
+        ++found;
+    }
+    return found;
 }
 
 /**
@@ -173,7 +197,7 @@ _vctrl_closevideo(int fd) {
     // too fast again.
     usleep(300);
 
-    logmsg(LOG_NOTICE, "Closed video stream fd=%d.",fd);
+    logmsg(LOG_DEBUG, "Closed video stream fd=%d.",fd);
     return 0;
 }
 
