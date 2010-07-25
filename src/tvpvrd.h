@@ -248,6 +248,13 @@ extern "C" {
 #define SEND_MAILADDRESS "root@localhost"
 
 /*
+ * LOCALE_NAME string
+ * The default locale to use in case no locale is defined. This is important to get
+ * right since otherwise the system() will not interpret the filenames correctly.
+ */
+#define LOCALE_NAME "en_US.UTF8"
+
+/*
  * DEFAULT_FREQUENCY_MAP string
  * The name of the default frequency map to use.
  * Note: If the xawtvrc also specifes a map that map will
@@ -470,6 +477,9 @@ extern char send_mailaddress[];
 
 // Should we send mail on when transcoding finished?
 extern int send_mail_on_transcode_end ;
+
+// Name of loclae to use (used to set LC_ALL)
+extern char locale_name[];
 
 #ifdef	__cplusplus
 }
