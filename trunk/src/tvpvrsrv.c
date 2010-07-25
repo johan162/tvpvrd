@@ -292,6 +292,12 @@ int use_profiledirectories = 1;
 int send_mail_on_error, send_mail_on_transcode_end;
 char send_mailaddress[64];
 
+/*
+ * What locale to use, by default this is set to LOCALE_NAME (which in the original distribution
+ * is set to en_US.UTF8)
+ */
+char locale_name[255];
+
 void
 init_globs(void) {
 
@@ -707,7 +713,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                 // The complete transcoding and file relocation has been successful. Now check
                 // if we should send a mail with this happy news!
                 if( send_mail_on_transcode_end ) {
-                    char mailbuff[1024];
+                    char mailbuff[2048];
                     
                     // Include system load average in mail
                     float l1,l5,l15;
@@ -720,24 +726,39 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     ctime_r(&now,timebuff);
                     timebuff[strnlen(timebuff,tblen)-1] = 0;
 
-                    snprintf(mailbuff,1023,
-                                "Transcoding of \"%s\" using profile \"@%s\" finished %s \n\n"
-                                "Moved file to: \"%s\"\n"
-                                "Transcoding time: %02d:%02d\n"
-                                "System load: %.1f %.1f %.1f\n\n",
-                                short_filename,profile->name, timebuff,
-                                tmpbuff,
-                                rh,rm,
-                                l1,l5,l15);
-
-                    mailbuff[1023] = '\0';
-                    char subjectbuff[80];
+                    // Include the server name in the mail
                     char hostname[80];
                     gethostname(hostname,80);
                     hostname[79] = '\0';
-                    snprintf(subjectbuff,79,"[tvpvrd@%s] Transcoding of \"%s\" finished",hostname,short_filename);
-                    subjectbuff[79] = '\0';
+
+                    // Also include all ongoing transcodings
+                    char ongtr_buff[1024];
+                    get_ongoing_transcodings(ongtr_buff,1023,0);
+                    ongtr_buff[1023] = '\0';
+
+                    snprintf(mailbuff,2047,
+                                "Transcoding of \"%s\" using profile \"@%s\" done.\n\n"
+                                "Server: %s\n"
+                                "Time: %s \n"
+                                "Moved file to: \"%s\"\n"
+                                "Transcoding time: %02d:%02d\n"
+                                "System load: %.1f %.1f %.1f\n\n"
+                                "Ongoing transcodings:\n%s\n\n",
+                                short_filename,profile->name,
+                                hostname,
+                                timebuff,
+                                tmpbuff,
+                                rh,rm,
+                                l1,l5,l15,
+                                ongtr_buff);
+
+                    mailbuff[2047] = '\0';
+                    char subjectbuff[256];
+
+                    snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
+                    subjectbuff[255] = '\0';
                     send_mail(subjectbuff,send_mailaddress,mailbuff);
+
                 }
             }
         }
@@ -2302,7 +2323,7 @@ main(int argc, char *argv[]) {
     
     // Remember when the server was started
     ts_serverstart = time(NULL);
-    
+   
     // Initialize the static frequency map. 
     initfreqtable();
     
@@ -2339,6 +2360,32 @@ main(int argc, char *argv[]) {
         fprintf(stderr,"Can not find the ini file : '%s'\n",INIFILE_NAME);
         exit(EXIT_FAILURE);
     }
+
+    /* In case we are started as a daemon from a boot script we most likely
+     * have a faulty locale. If the locale is set in the INI file we will use
+     * that one instead
+     */
+
+    strncpy(locale_name,
+            iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
+            255);
+    logfile_name[255] = '\0';
+    setenv("LC_ALL",locale_name,1);
+    logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
+
+/*
+    char *_loc = getenv("LC_ALL");
+    char _locbuff[255];
+    snprintf(_locbuff,254,"Current system locale at #1 : LC_ALL=%s",_loc);
+    if( _loc ) {
+        syslog(LOG_DEBUG,_locbuff);
+    } else {
+        syslog(LOG_DEBUG,"Current system locale at #1 : UNKNOWN");
+    }
+*/
+
+
+
 
     if( verbose_log == -1 ) {
         verbose_log = iniparser_getint(dict, "config:verbose_log", VERBOSE_LOG);

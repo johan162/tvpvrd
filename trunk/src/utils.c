@@ -46,6 +46,8 @@
 #include <errno.h>
 #include <libgen.h>
 #include <math.h>
+#include <locale.h>
+
 
 // Local headers
 #include "tvpvrd.h"
@@ -921,17 +923,27 @@ send_mail(const char *subject, const char *to, const char *message) {
     const int blen=20*1024;
     char buffer[blen];
 
-    if( strlen(message) > 19*1024 ) {
+    /*
+    char *loc = getenv("LC_ALL");
+    if( loc ) {
+        logmsg(LOG_DEBUG,"Current system LC_ALL=%s",loc);
+    } else {
+        logmsg(LOG_DEBUG,"Current system UNKNOWN",loc);
+    }
+    */
+
+    if( strlen(message) >= blen ) {
         syslog(LOG_ERR,"Truncating mail sent from 'tvpvrd'");
     }
 
     snprintf(buffer,blen-1,
 	"echo '%s' | /usr/bin/mail -s '%s' '%s'",message, subject, to);
 
-    buffer[blen-1] = '\0';
+    logmsg(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
 
     return system(buffer);
 
 }
+
 
 /* utils.c */

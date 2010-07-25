@@ -258,7 +258,6 @@ tail_logfile(int n, char *buffer, int maxlen);
 int
 send_mail(const char *subject, const char *to, const char *message);
 
-
 #ifdef	__cplusplus
 }
 #endif

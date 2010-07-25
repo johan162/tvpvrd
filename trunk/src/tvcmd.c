@@ -1448,31 +1448,32 @@ _cmd_getSettings(const char *cmd, int sockfd) {
     }
 
     _writef(sockfd,
-            "%24s: %s\n"
-            "%24s: %d\n"
-            "%24s: %s\n"
-            "%24s: %d\n"
-            "%24s: %s\n"
+            "%25s: %s\n"
+            "%25s: %d\n"
+            "%25s: %s\n"
+            "%25s: %d\n"
+            "%25s: %s\n"
 
-            "%24s: %d\n"
-            "%24s: %d\n"
-            "%24s: %s\n"
+            "%25s: %d\n"
+            "%25s: %d\n"
+            "%25s: %s\n"
+            "%25s: %s\n"
 
-            "%24s: %d\n"
+            "%25s: %d\n"
 
-            "%24s: %s\n"
-            "%24s: %s\n"
-            "%24s: %d\n"
-            "%24s: %d\n"
-            "%24s: %d\n"
-            "%24s: %ds\n"
-            "%24s: %d\n"
-            "%24s: %ds\n"
-            "%24s: %d (%0.1fMB)\n"
-            "%24s: %02d:%02d (h:min)\n"
-            "%24s: %s\n"
-            "%24s: %s\n"
-            "%24s: %s\n"
+            "%25s: %s\n"
+            "%25s: %s\n"
+            "%25s: %d\n"
+            "%25s: %d\n"
+            "%25s: %d\n"
+            "%25s: %ds\n"
+            "%25s: %d\n"
+            "%25s: %ds\n"
+            "%25s: %d (%0.1fMB)\n"
+            "%25s: %02d:%02d (h:min)\n"
+            "%25s: %s\n"
+            "%25s: %s\n"
+            "%25s: %s\n"
             ,
             "datadir",datadir,
             "use_profile_directories",use_profiledirectories,
@@ -1483,6 +1484,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "sendmail_on_error",send_mail_on_error,
             "sendmail_on_transcode_end",send_mail_on_transcode_end,
             "sendmail_address",send_mailaddress,
+            "locale_name",locale_name,
 
             "daemonize",daemonize,
 
