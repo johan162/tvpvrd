@@ -63,8 +63,18 @@ struct ongoing_transcoding {
     struct transcoding_profile_entry *profile;
     pid_t pid;
 };
-static struct ongoing_transcoding *ongoing_transcodings[16] = { (struct ongoing_transcoding *)0 };
+static struct ongoing_transcoding *ongoing_transcodings[16] ;
 static const int max_ongoing_transcoding = 16;
+
+// We keep track on all transcodings that are waiting to happen
+#define MAX_WAITING_TRANSCODINGS 64
+struct waiting_transcoding_t {
+    char filename[255];
+    char profilename[255];
+    time_t timestamp;
+};
+static struct waiting_transcoding_t wtrans[MAX_WAITING_TRANSCODINGS] ;
+
 
 // We store all the details about a specific transcoding profile in an array
 // as well. In theory there is no limit to how many profiles a user may define
@@ -146,7 +156,7 @@ forget_ongoingtranscoding(int idx) {
  * @return number of currently ongoing transcodings
  */
 int
-get_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
+list_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
     char tmpbuff[512];
     int y, m, d, h, min, sec;
     time_t now = time(NULL);
@@ -163,7 +173,7 @@ get_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
             int rmin = (rtime - rh*3600)/60;
             fromtimestamp(ongoing_transcodings[i]->start_ts, &y, &m, &d, &h, &min, &sec);
             if( show_ffmpegcmd ) {
-                snprintf(tmpbuff, 511, "[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|%s]\n(cmd: %s)\n",
+                snprintf(tmpbuff, 511, "[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|@%s]\n(cmd: %s)\n",
                          i,
                          h, min,
                          rh,rmin,						 
@@ -171,7 +181,7 @@ get_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
                          ongoing_transcodings[i]->profile->name,
                          ongoing_transcodings[i]->cmd);
             } else {
-                snprintf(tmpbuff, 511, "[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|%s]\n",
+                snprintf(tmpbuff, 511, "[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|@%s]\n",
                          i,
                          h, min,
                          rh,rmin,
@@ -526,27 +536,27 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     char *aspect[] = {"1x1","4x3","16x9","221x100"};
 
     snprintf(buff,size-1,
-    "%25s: %s\n"           /* name */
+    "%-22s: %s\n"           /* name */
     "ENCODER:\n"
-    "%25s: %d\n"           /* video_bitrate */
-    "%25s: %d\n"           /* video_peak_bitrate */
-    "%25s: %.1f\n"         /* audio sampling */
-    "%25s: %d\n"           /* audio_bitrate*/
-    "%25s: %s\n"           /* aspect */
-    "%25s: %s\n"           /* frame_size */
+    "%-22s: %d\n"           /* video_bitrate */
+    "%-22s: %d\n"           /* video_peak_bitrate */
+    "%-22s: %.1f\n"         /* audio sampling */
+    "%-22s: %d\n"           /* audio_bitrate*/
+    "%-22s: %s\n"           /* aspect */
+    "%-22s: %s\n"           /* frame_size */
     "FFMPEG:\n"
-    "%25s: %d\n"
-    "%25s: %d\n"
-    "%25s: %d\n"
-    "%25s: %s\n"
-    "%25s: %s\n"
-    "%25s: %d\n"
-    "%25s: %s\n"
-    "%25s: %d\n"
-    "%25s: %s\n"
-    "%25s: (l=%d, r=%d, t=%d, b=%d)\n"
-    "%25s: %s\n"
-    "%25s: %s\n",
+    "%-22s: %d\n"
+    "%-22s: %d\n"
+    "%-22s: %d\n"
+    "%-22s: %s\n"
+    "%-22s: %s\n"
+    "%-22s: %d\n"
+    "%-22s: %s\n"
+    "%-22s: %d\n"
+    "%-22s: %s\n"
+    "%-22s: l=%d, r=%d, t=%d, b=%d\n"
+    "%-22s: %s\n"
+    "%-22s: %s\n",
     "name",profile->name,
 
     "video_bitrate", profile->encoder_video_bitrate,
@@ -628,21 +638,23 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
  * @param buff
  * @param maxlen
  */
-void
+int
 list_profile_names(char *buff,int maxlen) {
-    int i=0,len=maxlen-1;
+    int idx=0;
+    char tmpbuff[255];
     *buff = '\0';
-    while( len > 1 && i < num_transcoding_profiles ) {
-        strncat(buff,profiles[i]->name,len);
-        len -= strnlen(profiles[i]->name,32);
-        if( i < num_transcoding_profiles -1 ) {
-            strncat(buff,", ",len);
-            len -= 2;
+    while( idx < num_transcoding_profiles ) {
+        snprintf(tmpbuff,254,"#%02d : %s\n",idx+1,profiles[idx]->name);
+        if( maxlen > strlen(tmpbuff) ) {
+            strcat(buff,tmpbuff);
+            maxlen -= strlen(tmpbuff);
+        } else {
+            logmsg(LOG_ERR,"supplied buffer size in list_profile_names() too small to hold all profiles");
+            return -1;
         }
-        ++i;
+        ++idx;
     }
-    strncat(buff,"\n",len);
-    buff[maxlen-1] = '\0'; // Paranoid always end with a '\0'
+    return 0;
 }
 
 /*
@@ -679,6 +691,86 @@ wait_to_transcode(char *filename) {
         
     }
     return waiting_time < max_waiting_time_to_transcode || max_waiting_time_to_transcode==0 ? 0 : -1;
+}
+
+/*
+ * Remember each transcoding that are waiting to start when the server load is
+ * below the treshold
+ */
+int
+remember_waiting_transcoding(char *short_filename,char *profile_name) {
+
+    // Find the first empty slot
+    int idx=0;
+    while( idx < MAX_WAITING_TRANSCODINGS && *wtrans[idx].filename )
+        ++idx;
+
+    if( idx >= MAX_WAITING_TRANSCODINGS ) {
+        logmsg(LOG_ERR,"Can only record a maximum of %d waiting transcoding", MAX_WAITING_TRANSCODINGS);
+        return -1;
+    }
+
+    strncpy(wtrans[idx].filename,short_filename,254);
+    wtrans[idx].filename[254] = '\0';
+    strncpy(wtrans[idx].profilename,profile_name,254);
+    wtrans[idx].profilename[254] = '\0';
+    wtrans[idx].timestamp = time(NULL);
+
+    return idx;
+}
+
+/*
+ * Remove a queued transcoding once it has started
+ */
+int
+forget_waiting_transcoding(int idx) {
+    if( idx >= 0 && idx < MAX_WAITING_TRANSCODINGS ) {
+        *wtrans[idx].filename = '\0';
+        return 0;
+    } else {
+        logmsg(LOG_ERR,"Internal error. Illegal index for forget_waiting_transcoding()");
+        return -1;
+    }
+}
+
+/*
+ * Return a list of all transcoding waiting in queue
+ */
+int
+list_waiting_transcodings(char *buffer,int maxlen) {
+    int num=0;
+    int idx=0;
+    char tmpbuff[1024];
+    *buffer = '\0';
+    while( idx < MAX_WAITING_TRANSCODINGS ) {
+        if( *wtrans[idx].filename ) {
+            ++num;
+            time_t waiting_time = time(NULL)-wtrans[idx].timestamp;
+            int whours = waiting_time/3600;
+            waiting_time -= whours*3600;
+            int wmin = waiting_time/60;
+            int y,m,d,h,smin,ssec;
+            fromtimestamp(wtrans[idx].timestamp,&y,&m,&d,&h,&smin,&ssec);
+            snprintf(tmpbuff,1023,"[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|@%s]\n",
+                    num,h,smin,
+                    whours,wmin,
+                    wtrans[idx].filename,wtrans[idx].profilename);
+            if( maxlen > strlen(tmpbuff) ) {
+                strcat(buffer,tmpbuff);
+                maxlen -= strlen(tmpbuff);
+            } else {
+                logmsg(LOG_ERR,"Buffer to use to store waiting transcodings is too small.");
+                return -1;
+            }
+        }
+        ++idx;
+    }
+
+    if( num == 0 ) {
+        strncpy(buffer,"None.\n",maxlen-1);
+    }
+
+    return 0;
 }
 
 /**

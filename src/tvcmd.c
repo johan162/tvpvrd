@@ -88,8 +88,9 @@
 #define CMD_LIST_QUEUEDTRANSC 28
 #define CMD_SHOW_LASTLOG 29
 #define CMD_LIST_PROFILES 30
+#define CMD_LISTWAITINGTRANSC 31
 
-#define CMD_UNDEFINED 31
+#define CMD_UNDEFINED 32
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -163,6 +164,7 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  u    - force update of database with recordings\n"\
     			"  v    - print version\n"\
                         "  vc <n> - print information on TV-Card <n>\n"\
+                        "  wt   - list waiting transcodings\n"\
 			"  x    - view database (in XML format) with recordings\n"\
                         "  z    - display all settings from ini-file\n"\
                         "  ! <n>  - cancel ongoing recording\n"\
@@ -186,6 +188,7 @@ _cmd_help(const char *cmd, int sockfd) {
     			"  tl   - read list of videos to transcode from file\n"\
                         "  td   - transcode all videos in directory\n"\
     			"  v    - print version\n"\
+                        "  wt   - list waiting transcodings\n"\
                         "  z    - display all settings from ini-file\n"\
                         "  ! <n>  - cancel ongoing recording\n"\
                         "Type h <cmd> for syntax of each command\n";
@@ -195,10 +198,10 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
-        ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|z)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
     }
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
@@ -1256,7 +1259,7 @@ _cmd_ongoingtrans(const char *cmd, int sockfd) {
                 );
         return;
     }
-    get_ongoing_transcodings(msgbuff,2048,cmd[2]=='l');
+    list_ongoing_transcodings(msgbuff,2048,cmd[2]=='l');
     if( strlen(msgbuff) == 0 ) {
         strcpy(msgbuff,"None.\n");
     }
@@ -1359,13 +1362,13 @@ _cmd_status(const char *cmd, int sockfd) {
     (void)getwsetsize(getpid(), &wsize, unit, &nthreads);
 
     snprintf(msgbuff,511,
-            "%15s: %s"
-            "%15s: %s"
-            "%15s: %02d days %02d hours %02d min\n"
-            "%15s: %.1f %.1f %.1f\n"
-            "%15s: %02d days %02d hours %02d min\n"
-            "%15s: %d %s\n"
-            "%15s: %d\n",
+            "%-16s: %s"
+            "%-16s: %s"
+            "%-16s: %02d days %02d hours %02d min\n"
+            "%-16s: %.1f %.1f %.1f\n"
+            "%-16s: %02d days %02d hours %02d min\n"
+            "%-16s: %d %s\n"
+            "%-16s: %d\n",
             "Current time", currtime,
             "tvpvrd' started", ctime(&ts_serverstart),
             "'tvpvrd' uptime", sday, sh, smin,
@@ -1382,7 +1385,7 @@ _cmd_status(const char *cmd, int sockfd) {
     char ctitle[16] = {"Clients"};
     for (int i = 0, clinbr = 1; i < max_clients; i++) {
         if (cli_threads[i]) {
-            snprintf(msgbuff, 511,"%15s: %s%02d: %s, %s", ctitle, "#",  clinbr, client_ipadr[i], ctime(&client_tsconn[i]));
+            snprintf(msgbuff, 511,"%-16s: %s%02d: %s, %s", ctitle, "#",  clinbr, client_ipadr[i], ctime(&client_tsconn[i]));
             tmpbuff[511] = 0 ;
             _writef(sockfd,msgbuff);
             clinbr++;
@@ -1448,32 +1451,32 @@ _cmd_getSettings(const char *cmd, int sockfd) {
     }
 
     _writef(sockfd,
-            "%25s: %s\n"
-            "%25s: %d\n"
-            "%25s: %s\n"
-            "%25s: %d\n"
-            "%25s: %s\n"
+            "%-30s: %s\n"
+            "%-30s: %d\n"
+            "%-30s: %s\n"
+            "%-30s: %d\n"
+            "%-30s: %s\n"
 
-            "%25s: %d\n"
-            "%25s: %d\n"
-            "%25s: %s\n"
-            "%25s: %s\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %s\n"
+            "%-30s: %s\n"
 
-            "%25s: %d\n"
+            "%-30s: %d\n"
 
-            "%25s: %s\n"
-            "%25s: %s\n"
-            "%25s: %d\n"
-            "%25s: %d\n"
-            "%25s: %d\n"
-            "%25s: %ds\n"
-            "%25s: %d\n"
-            "%25s: %ds\n"
-            "%25s: %d (%0.1fMB)\n"
-            "%25s: %02d:%02d (h:min)\n"
-            "%25s: %s\n"
-            "%25s: %s\n"
-            "%25s: %s\n"
+            "%-30s: %s\n"
+            "%-30s: %s\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %ds\n"
+            "%-30s: %d\n"
+            "%-30s: %ds\n"
+            "%-30s: %d (%0.1fMB)\n"
+            "%-30s: %02d:%02d (h:min)\n"
+            "%-30s: %s\n"
+            "%-30s: %s\n"
+            "%-30s: %s\n"
             ,
             "datadir",datadir,
             "use_profile_directories",use_profiledirectories,
@@ -2165,6 +2168,19 @@ _cmd_list_profiles(const char *cmd, int sockfd) {
     _writef(sockfd,buff);
 }
 
+static void
+_cmd_list_waiting_transcodings(const char *cmd, int sockfd) {
+    char buff[2048];
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Return a list of all videos waiting to be transcoded.\n"
+                );
+        return;
+    }
+    list_waiting_transcodings(buff,2048);
+    buff[2047] = '\0';
+    _writef(sockfd,buff);
+}
 
 /**
  * Reserved for future use
@@ -2213,6 +2229,7 @@ cmdinit(void) {
     cmdtable[CMD_TRANSCODEDIR]      = _cmd_transcodefilesindirectory;
     cmdtable[CMD_LIST_QUEUEDTRANSC] = _cmd_list_queued_transcodings;
     cmdtable[CMD_SHOW_LASTLOG]      = _cmd_show_last_log;
+    cmdtable[CMD_LISTWAITINGTRANSC] = _cmd_list_waiting_transcodings;
 }
 
 /**
@@ -2265,6 +2282,7 @@ _getCmdPtr(const char *cmd) {
         {"u",  CMD_UPDATEXMLFILE},
         {"vc", CMD_CARDINFO},
         {"v",  CMD_VERSION},
+        {"wt", CMD_LISTWAITINGTRANSC},
         {"x",  CMD_GETXML},
         {"z",  CMD_GETSETTINGS},
         {"!",  CMD_ABORT}
@@ -2287,6 +2305,7 @@ _getCmdPtr(const char *cmd) {
         {"tl", CMD_TRANSCODEFILELIST},
         {"t",  CMD_TIME},
         {"v",  CMD_VERSION},
+        {"wt", CMD_LISTWAITINGTRANSC},
         {"z",  CMD_GETSETTINGS},
         {"!",  CMD_ABORT}
     };

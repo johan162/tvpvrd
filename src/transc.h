@@ -209,7 +209,7 @@ forget_ongoingtranscoding(int idx);
  * @return -1 failure, 0 on success
  */
 int
-get_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd);
+list_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd);
 
 /**
  * read all transcoding profiles from file
@@ -333,12 +333,38 @@ int
 get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles);
 
 /**
- * Return a comma separated list of all defined profiles
+ * Return a list of all defined profiles
  * @param buff
  * @param maxlen
  */
-void
+int
 list_profile_names(char *buff,int maxlen);
+
+/**
+ *
+ * @param short_filename
+ * @param profile_name
+ * @return
+ */
+int
+remember_waiting_transcoding(char *short_filename,char *profile_name);
+
+/**
+ *
+ * @param idx
+ * @return
+ */
+int
+forget_waiting_transcoding(int idx);
+
+/**
+ *
+ * @param buffer
+ * @param maxlen
+ * @return
+ */
+int
+list_waiting_transcodings(char *buffer,int maxlen);
 
 #ifdef	__cplusplus
 }
