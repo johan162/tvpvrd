@@ -1035,7 +1035,7 @@ read_xawtvfile(const char *name) {
 void
 list_stations(int fd) {
     for(int i=0; i<num_stations; i++) {
-        _writef(fd,"%6s: %s\n",station_map[i].channel,station_map[i].name);
+        _writef(fd,"%-5s: %s\n",station_map[i].channel,station_map[i].name);
     }
 }
 

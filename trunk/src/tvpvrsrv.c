@@ -544,8 +544,19 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
         // If recording was successful then do the transcoding
         char cmdbuff[1024], cmd_ffmpeg[512], destfile[128] ;
         int runningtime = 0;
-        
+
+        // We remember all wating transcodings by storing them in global queue
+        // This way we can easily list all transcoding that are waiting
+        pthread_mutex_lock(&recs_mutex);
+        int rid=remember_waiting_transcoding(short_filename,profile->name);
+        pthread_mutex_unlock(&recs_mutex);
+
         if (0 == wait_to_transcode(short_filename)) {
+            // The system load is below the treshold to start a new transcoding
+
+            pthread_mutex_lock(&recs_mutex);
+            forget_waiting_transcoding(rid);
+            pthread_mutex_unlock(&recs_mutex);
 
             logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, short_filename);
 
@@ -566,7 +577,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 #else
             pid_t pid;
             if ((pid = fork()) == 0) {
-                // In thevfor child process
+                // In fork child process
                 // Make absolutely sure everything is cleaned up except the standard
                 // descriptors
                 for (int i = getdtablesize(); i > 2; --i) {
@@ -731,10 +742,15 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     gethostname(hostname,80);
                     hostname[79] = '\0';
 
-                    // Also include all ongoing transcodings
+                    // Include all ongoing transcodings
                     char ongtr_buff[1024];
-                    get_ongoing_transcodings(ongtr_buff,1023,0);
+                    list_ongoing_transcodings(ongtr_buff,1023,0);
                     ongtr_buff[1023] = '\0';
+                    
+                    // Also include all waiting transcodings
+                    char waittr_buff[1024];
+                    list_waiting_transcodings(waittr_buff,1023);
+                    waittr_buff[1023] = '\0';
 
                     snprintf(mailbuff,2047,
                                 "Transcoding of \"%s\" using profile \"@%s\" done.\n\n"
@@ -743,14 +759,16 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                                 "Moved file to: \"%s\"\n"
                                 "Transcoding time: %02d:%02d\n"
                                 "System load: %.1f %.1f %.1f\n\n"
-                                "Ongoing transcodings:\n%s\n\n",
+                                "Ongoing transcodings:\n%s\n\n"
+                                "Waiting transcodings:\n%s\n\n",
                                 short_filename,profile->name,
                                 hostname,
                                 timebuff,
                                 tmpbuff,
                                 rh,rm,
                                 l1,l5,l15,
-                                ongtr_buff);
+                                ongtr_buff,
+                                waittr_buff);
 
                     mailbuff[2047] = '\0';
                     char subjectbuff[256];
@@ -769,7 +787,9 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 /*
  * Start a recording on the specified video stream immediately using the information in the
  * current recording record.
- * This function is only run in its own thread created in chkrec()
+ * This function is only run in its own thread that is created in chkrec() when it decides a
+ * new recording should be started. After the recording have been sucessfully finished
+ * the transcoding is initiated.
  */
 void *
 startrec(void *arg) {
