@@ -237,7 +237,7 @@ dumprecordid(int seqnbr, int repeats, int style, char *buffer, int bufflen);
  * @param fd
  */
 void
-listrecs(int style, int fd);
+listrecs(int maxrecs, int style, int fd);
 
 /**
  * Delete the record with the specified id

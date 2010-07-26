@@ -607,7 +607,8 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
-                                role="bold">l</emphasis> - list all pending recordings</para>
+                                role="bold">l &lt;n></emphasis> - list all pending recordings,
+                            possibly restricted to the next &lt;n> recordings</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -616,7 +617,7 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
-                                role="bold">log n</emphasis> -show the last n lines of the
+                                role="bold">log &lt;n></emphasis> -show the last n lines of the
                             logfile</para>
                     </listitem>
                     <listitem>
@@ -1006,10 +1007,15 @@ killflag=n</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term>'<command>l</command>' - <emphasis
-                                role="bold">List command</emphasis></term>
+                        <term>'<command>l</command>' <emphasis
+                            role="italic">n</emphasis> - <emphasis
+                            role="bold">List coming recordings command</emphasis></term>
                         <listitem>
-                            <para>List all upcoming recordings.</para>
+                            <para>List coming recordings. If  <emphasis
+                                role="italic">n</emphasis> is specified as number in the range
+                            [1,99] then the list will be limited to <emphasis
+                                role="italic">n</emphasis> recordings. Otherwise all pending
+                            recordings will be listed.</para>
                             <para>Each record is listed with 7 fields. Each record starts with a '['
                                 and ends with a ']' character. Each field is separated with a bar
                                 '|'. The order of fields are</para>
