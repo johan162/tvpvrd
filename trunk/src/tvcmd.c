@@ -1158,14 +1158,37 @@ _cmd_add(const char *cmd, int sockfd) {
  */
 static void
 _cmd_list(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "l            - List all pending recordings.\n"
-                "ls           - List defined stations.\n"
+                "l <n>         - List all pending recordings. If <n> is given, only list the first n records\n"
                  );
         return;
     }
-    listrecs(0, sockfd);
+
+    int ret = matchcmd("^l" _PR_SO _PR_OPID _PR_E, cmd, &field);
+    int n;
+    if( ret > 1 ) {
+        // User has limited the list
+
+        n = atoi(field[1]);
+        if( n < 1 || n > 99 ) {
+            _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
+            return;
+        }
+
+    } else if ( ret == 1 ) {
+
+        n = -1; // Default to all records
+
+    } else {
+
+        _writef(sockfd,"Syntax error.",ret);
+        return;
+
+    }
+
+    listrecs(n, 0, sockfd);
 }
 
 

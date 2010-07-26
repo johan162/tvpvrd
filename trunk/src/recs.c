@@ -801,7 +801,7 @@ dumprecordid(int seqnbr, int repeats, int style, char *buffer, int bufflen) {
  * Print a list of all recordings to specified file for the specified video stream
  */
 void
-listrecs(int style, int fd) {
+listrecs(int maxrecs, int style, int fd) {
     struct recording_entry **entries;
     char buffer[2048];
 
@@ -815,7 +815,7 @@ listrecs(int style, int fd) {
     //dumprecord_header(style,buffer,2048);
     //write(fd, buffer, strlen(buffer));
 
-    // We combine all recroding in all video in order to
+    // We combine all recordings on all videos in order to
     // give a combined sorted list of pending recordings
     int k=0;
     for (int video = 0; video < max_video; video++) {
@@ -825,6 +825,9 @@ listrecs(int style, int fd) {
     }
 
     qsort(entries, k, sizeof (struct recording_entry *), _cmprec);
+
+    if( maxrecs > 0 )
+        k = MIN(k,maxrecs);
 
     for(int i=0; i < k; i++ ) {
         dumprecord(entries[i], style, buffer, 2048);
