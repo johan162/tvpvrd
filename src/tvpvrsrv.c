@@ -759,7 +759,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                                 "Moved file to: \"%s\"\n"
                                 "Transcoding time: %02d:%02d\n"
                                 "System load: %.1f %.1f %.1f\n\n"
-                                "Ongoing transcodings:\n%s\n\n"
+                                "Ongoing transcodings:\n%s\n"
                                 "Waiting transcodings:\n%s\n\n",
                                 short_filename,profile->name,
                                 hostname,
