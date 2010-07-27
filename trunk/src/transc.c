@@ -166,6 +166,12 @@ list_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
     for (int i = 0; i < max_ongoing_transcoding; i++) {
         num += ongoing_transcodings[i] ? 1 : 0;
     }
+
+    if( num == 0 ) {
+        strncpy(obuff,"None.\n",size-1);
+        return 0;
+    }
+
     for (int i = 0; i < max_ongoing_transcoding; i++) {
         if (ongoing_transcodings[i]) {
             int rtime = now-ongoing_transcodings[i]->start_ts;
