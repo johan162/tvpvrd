@@ -92,6 +92,7 @@
 #include "stats.h"
 #include "confpath.h"
 #include "config.h"
+#include "tvwebcmd.h"
 
 /*
  * Server identification
@@ -297,6 +298,11 @@ char send_mailaddress[64];
  * is set to en_US.UTF8)
  */
 char locale_name[255];
+
+/*
+ * Should the WEB-interface available be enabled
+ */
+int enable_webinterface = 0 ;
 
 void
 init_globs(void) {
@@ -567,10 +573,12 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 #ifdef DEBUG_SIMULATE
             
             snprintf(cmdbuff, 256, "%s/%s", workingdir, destfile);
-            int sfd = open(cmdbuff, O_WRONLY | O_CREAT | O_TRUNC);
+            const mode_t fmode =  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+            int sfd = open(cmdbuff, O_WRONLY | O_CREAT | O_TRUNC, fmode);
             logmsg(LOG_INFO, "Simulation mode: No real transcoding. Creating fake file '%s'",cmdbuff);
             _writef(sfd, "Fake MP4 file created during simulation at ts=%u\n", time(NULL));
             (void) close(sfd);
+            rh = rm = rs = -1;
             transcoding_done = 1;
             CLEAR(usage);
 
@@ -752,6 +760,11 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     list_waiting_transcodings(waittr_buff,1023);
                     waittr_buff[1023] = '\0';
 
+                    // Finally list the three next recordings
+                    char nextrec_buff[1024];
+                    listrecsbuff(nextrec_buff,1023,3,0);
+                    nextrec_buff[1023] = '\0';
+
                     snprintf(mailbuff,2047,
                                 "Transcoding of \"%s\" using profile \"@%s\" done.\n\n"
                                 "Server: %s\n"
@@ -760,7 +773,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                                 "Transcoding time: %02d:%02d\n"
                                 "System load: %.1f %.1f %.1f\n\n"
                                 "Ongoing transcodings:\n%s\n"
-                                "Waiting transcodings:\n%s\n\n",
+                                "Waiting transcodings:\n%s\n"
+                                "Upcoming recordings:\n%s\n\n",
                                 short_filename,profile->name,
                                 hostname,
                                 timebuff,
@@ -768,7 +782,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                                 rh,rm,
                                 l1,l5,l15,
                                 ongtr_buff,
-                                waittr_buff);
+                                waittr_buff,
+                                nextrec_buff);
 
                     mailbuff[2047] = '\0';
                     char subjectbuff[256];
@@ -1332,10 +1347,25 @@ clientsrv(void *arg) {
             numreads = read(my_socket, buffer, 1023);
             buffer[1023] = '\0';
             buffer[numreads] = 0;
-            if (strcmp("exit\r\n", buffer) == 0) {
+            
+            if ( 0 == strcmp("exit\r\n", buffer) ) {
+                // Exit command. Exit the loop and close the socket
                 _writef(my_socket,"Goodbye.\n");
                 numreads = -1;
                 break;
+            } else if( 0 == strncmp("GET",buffer,3) ) {
+                // Web commands must always close the socket after each command
+                char wcmd[1024];
+                if( webconnection(buffer,wcmd,1023) ) {
+                    logmsg(LOG_INFO, "Client (%s) sent WEB command: %s", client_ipadr[i], wcmd);
+                    cmdinterp(buffer, my_socket);
+                    numreads = -1;
+                    break;
+                } else {
+                    logmsg(LOG_ERR, "Client (%s) sent ILLEGAL WEB command: %s", client_ipadr[i], buffer);
+                    numreads = -1;
+                    break;
+                }
             } else {
                 buffer[MAX(strnlen(buffer,1023) - 2, 0)] = 0;
                 pthread_mutex_lock(&recs_mutex);
@@ -1365,6 +1395,117 @@ clientsrv(void *arg) {
     return (void *) 0;
 }
 
+
+/*
+ * This is the main function that gets started when browser connects to
+ * the server. This has been made into a separate function from clientsrv()
+ * in order to keep the code clean since there are a number of subtle differences
+ * in order to handle a browser request. This would otherwise force a number of
+ * strange tests in clientsrv() that would make the code difficult to follow.
+ *
+ * This function is run in its own thread.
+ */
+void *
+webclientsrv(void *arg) {
+    int numreads, i, ret;
+    int my_socket = *(int *) arg;
+    char buffer[1024];
+    fd_set read_fdset;
+    struct timeval timeout;
+
+    // To avoid reserving ~8MB after the thread terminates we
+    // detach it. Without doing this the pthreads library would keep
+    // the exit status until the thread is joined (or detached) which would mean
+    // loosing 8MB for exah created thread
+    pthread_detach(pthread_self());
+
+    bzero(buffer, 1024);
+
+    i = 0;
+    while (i < max_clients && client_socket[i] != my_socket)
+        i++;
+
+    if( i >= max_clients ) {
+        logmsg(LOG_ERR,"Internal error. Socket (%d) for new client is invalid! ", my_socket);
+        pthread_mutex_lock(&socks_mutex);
+
+        client_socket[i] = 0;
+        free(client_ipadr[i]);
+        client_ipadr[i] = 0;
+        client_tsconn[i] = 0;
+        cli_threads[i] = 0;
+        if( -1 == _dbg_close(my_socket) ) {
+            logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
+                        my_socket,client_ipadr[i],errno,strerror(errno));
+        }
+        ncli_threads--;
+        pthread_mutex_unlock(&socks_mutex);
+        pthread_exit(NULL);
+        return (void *) 0;
+    }
+
+    // FIX ME: Apssword authentication from browser
+    if( require_password ) {
+
+    }
+
+    FD_ZERO(&read_fdset);
+    FD_SET(my_socket, &read_fdset);
+
+    timerclear(&timeout);
+    timeout.tv_sec = 2;
+
+    ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
+    if (ret == 0) {
+
+        logmsg(LOG_INFO, "WEB Browser disconnected due to timeout.");
+
+    } else {
+
+        numreads = read(my_socket, buffer, 1023);
+        buffer[1023] = '\0';
+        buffer[numreads] = 0;
+        char wcmd[1024];
+        if( webconnection(buffer,wcmd,1023) ) {
+            char title[255];
+            snprintf(title,254,"tvpvrd %s",server_version);
+            html_newpage(my_socket,title);
+            html_topbanner(my_socket);
+            html_commandlist(my_socket);
+            html_output(my_socket);
+            pthread_mutex_lock(&recs_mutex);
+            cmdinterp(wcmd, my_socket);
+            pthread_mutex_unlock(&recs_mutex);
+            html_output_end(my_socket);
+
+            html_endpage(my_socket);
+
+        } else {
+            logmsg(LOG_DEBUG, "Browser (%s) sent unrecognized command", client_ipadr[i]);
+        }
+    }
+
+    logmsg(LOG_INFO,"Connection from browser %s on socket %d closed.", client_ipadr[i], my_socket);
+
+    pthread_mutex_lock(&socks_mutex);
+    client_socket[i] = 0;
+    free(client_ipadr[i]);
+    client_ipadr[i] = 0;
+    client_tsconn[i] = 0;
+    cli_threads[i] = 0;
+    if( -1 == _dbg_close(my_socket) ) {
+        logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
+                    my_socket,client_ipadr[i],errno,strerror(errno));
+    }
+    ncli_threads--;
+    pthread_mutex_unlock(&socks_mutex);
+
+    pthread_exit(NULL);
+    return (void *) 0;
+}
+
+
+
 /*
  * Start the main socket server that listens for clients that connects
  * to us. For each new client a thread that will manage that client
@@ -1372,20 +1513,15 @@ clientsrv(void *arg) {
  */
 int
 startupsrv(void) {
-    int sockd, newsocket, i;
+    int sockd=-1, websockd=-1, newsocket=-1, i;
     unsigned tmpint;
-    struct sockaddr_in socketaddress;
+    struct sockaddr_in socketaddress, websocketaddress;
     int ret;
     char *dotaddr, tmpbuff[128];
     fd_set read_fdset;
     struct timeval timeout;
 
-    memset(&socketaddress, 0, sizeof (socketaddress));
-    socketaddress.sin_family = AF_INET;
-    socketaddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    socketaddress.sin_port = htons(tcpip_port);
-
-    // Create the socket (TCP)
+    // Create the socket for terminal connection (TCP)
     if ((sockd = socket(AF_INET, SOCK_STREAM, 0)) < 1) {
         logmsg(LOG_ERR, "Unable to create socket. (%d : %s)",errno,strerror(errno));
         exit(EXIT_FAILURE);
@@ -1397,12 +1533,16 @@ startupsrv(void) {
     // that Unix does after a socket has been shut down just to be really, really sure
     // that there is no more data coming.
     int so_flagval = 1;
-    if( -1 == setsockopt(sockd,SOL_SOCKET, SO_REUSEADDR, (char *)&so_flagval, sizeof(int)) ) {
+    if( -1 == setsockopt(sockd, SOL_SOCKET, SO_REUSEADDR, (char *)&so_flagval, sizeof(int)) ) {
         logmsg(LOG_ERR, "Unable to set socket options. (%d : %s)",errno, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
-    // Bind socket to socketaddress
+    memset(&socketaddress, 0, sizeof (socketaddress));
+    socketaddress.sin_family = AF_INET;
+    socketaddress.sin_addr.s_addr = htonl(INADDR_ANY);
+    socketaddress.sin_port = htons(tcpip_port);
+
     if (bind(sockd, (struct sockaddr *) & socketaddress, sizeof (socketaddress)) != 0) {
         logmsg(LOG_ERR, "Unable to bind socket to port. Most likely som other application is using this port.");
         exit(EXIT_FAILURE);
@@ -1417,6 +1557,40 @@ startupsrv(void) {
     // We don't want to risk that a child holds this descriptor
     set_cloexec_flag(sockd, 1);
 
+    if( enable_webinterface ) {
+        // Create the socket for web connection (TCP)
+        if ((websockd = socket(AF_INET, SOCK_STREAM, 0)) < 1) {
+            logmsg(LOG_ERR, "Unable to create websocket. (%d : %s)",errno,strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+
+        so_flagval = 1;
+        if( -1 == setsockopt(websockd, SOL_SOCKET, SO_REUSEADDR, (char *)&so_flagval, sizeof(int)) ) {
+            logmsg(LOG_ERR, "Unable to set socket options. (%d : %s)",errno, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+
+        memset(&websocketaddress, 0, sizeof (websocketaddress));
+        websocketaddress.sin_family = AF_INET;
+        websocketaddress.sin_addr.s_addr = htonl(INADDR_ANY);
+        websocketaddress.sin_port = htons(tcpip_port+1);
+
+        if (bind(websockd, (struct sockaddr *) & websocketaddress, sizeof (websocketaddress)) != 0) {
+            logmsg(LOG_ERR, "Unable to bind socket to port. Most likely som other application is using this port.");
+            exit(EXIT_FAILURE);
+        }
+
+        // Listen on socket, queue up to 5 connections
+        if (listen(websockd, 5) != 0) {
+            logmsg(LOG_ERR, "Unable to listen on socket ");
+            exit(EXIT_FAILURE);
+        }
+
+        set_cloexec_flag(websockd, 1);
+
+    }
+
+
     // Run until we receive a SIGQUIT or SIGINT awaiting client connections and
     // setting up new client communication channels
 
@@ -1424,13 +1598,25 @@ startupsrv(void) {
 
     while ( 1 ) {
 
+        // =======================================================================
+        // MAIN WAIT FOR NEW CONNECTIONS
+        // =======================================================================
+
         // We must reset this each time since select() modifies it
         FD_ZERO(&read_fdset);
         FD_SET(sockd, &read_fdset);
 
+        if( enable_webinterface ) {
+            FD_SET(websockd, &read_fdset);
+        }
+
         timeout.tv_sec = 0;
         timeout.tv_usec = 800;
-        ret = select(sockd + 1, &read_fdset, NULL, NULL, &timeout);
+        if( enable_webinterface ) {
+            ret = select(websockd + 1, &read_fdset, NULL, NULL, &timeout);
+        } else {
+            ret = select(sockd + 1, &read_fdset, NULL, NULL, &timeout);
+        }
 
         if( ret == 0 ) {
             // Timeout, so take the opportunity to check if we received a
@@ -1442,47 +1628,64 @@ startupsrv(void) {
                 continue;
         }
 
-        tmpint = sizeof (socketaddress);
-
-        // =======================================================================
-        // MAIN WAIT FOR NEW CONNECTIONS
-        // =======================================================================
-        newsocket = accept(sockd, (struct sockaddr *) & socketaddress, &tmpint);
-
-        if( newsocket < 0 ) {
-            // Unrecoverable error
-            logmsg(LOG_ERR, "Could not create new client socket ( %d : %s ) ",errno,strerror(errno));
-        } else {
-
-            set_cloexec_flag(newsocket,1);
-            dotaddr = inet_ntoa(socketaddress.sin_addr);
-            pthread_mutex_lock(&socks_mutex);
-            logmsg(LOG_INFO, "Client number %d have connected from IP: %s on socket %d", ncli_threads + 1, dotaddr, newsocket);
-
-            // Find the first empty slot for storing the client thread id
-            i = 0;
-            while (i < max_clients && cli_threads[i])
-                i++;
-
-            if (i < max_clients) {
-                client_socket[i] = newsocket;
-                client_ipadr[i] = strdup(dotaddr); // Released in clisrv()
-                client_tsconn[i] = time(NULL);
-                ret = pthread_create(&cli_threads[i], NULL, clientsrv, (void *) & client_socket[i]);
-                if (ret != 0) {
-                    logmsg(LOG_ERR, "Could not create thread for client ( %d :  %s )",errno,strerror(errno));
-                } else {
-                    ncli_threads++;
-                }
-            } else {
-                logmsg(LOG_ERR, "Client connection not allowed. Maximum number of clients (%d) already connected.",max_clients);
-                strcpy(tmpbuff, "Too many client connections.\n");
-                _writef(newsocket, tmpbuff);
-                _dbg_close(newsocket);
+        int terminal_connection = 0;
+        if( FD_ISSET(sockd,&read_fdset) ) {
+            logmsg(LOG_DEBUG, "Terminal connection.");
+            terminal_connection = 1;
+            tmpint = sizeof (socketaddress);
+            newsocket = accept(sockd, (struct sockaddr *) & socketaddress, &tmpint);
+            if( newsocket < 0 ) {
+                // Unrecoverable error
+                logmsg(LOG_ERR, "Could not create new client socket ( %d : %s ) ",errno,strerror(errno));
             }
-
-            pthread_mutex_unlock(&socks_mutex);
+        } else if( enable_webinterface )  {
+            logmsg(LOG_DEBUG, "Browser connection.");
+            tmpint = sizeof (websocketaddress);
+            newsocket = accept(websockd, (struct sockaddr *) & websocketaddress, &tmpint);
+            if( newsocket < 0 ) {
+                // Unrecoverable error
+                logmsg(LOG_ERR, "Could not create new browser socket ( %d : %s ) ",errno,strerror(errno));
+            }
+        } else {
+            logmsg(LOG_ERR, "Internal serious error. Accepted port connection that we were not listening on. ");
         }
+
+        set_cloexec_flag(newsocket,1);
+        dotaddr = inet_ntoa(socketaddress.sin_addr);
+
+        pthread_mutex_lock(&socks_mutex);
+
+        logmsg(LOG_INFO, "Client number %d have connected from IP: %s on socket %d", ncli_threads + 1, dotaddr, newsocket);
+
+        // Find the first empty slot for storing the client thread id
+        i = 0;
+        while (i < max_clients && cli_threads[i])
+            i++;
+
+        if (i < max_clients) {
+            client_socket[i] = newsocket;
+            client_ipadr[i] = strdup(dotaddr); // Released in clisrv()
+            client_tsconn[i] = time(NULL);
+            
+            if( terminal_connection )
+                ret = pthread_create(&cli_threads[i], NULL, clientsrv, (void *) & client_socket[i]);
+            else
+                ret = pthread_create(&cli_threads[i], NULL, webclientsrv, (void *) & client_socket[i]);
+
+            if (ret != 0) {
+                logmsg(LOG_ERR, "Could not create thread for client ( %d :  %s )",errno,strerror(errno));
+            } else {
+                ncli_threads++;
+            }
+        } else {
+            logmsg(LOG_ERR, "Client connection not allowed. Maximum number of clients (%d) already connected.",max_clients);
+            strcpy(tmpbuff, "Too many client connections.\n");
+            _writef(newsocket, tmpbuff);
+            _dbg_close(newsocket);
+        }
+
+        pthread_mutex_unlock(&socks_mutex);
+
     }
     
     logmsg(LOG_DEBUG,"Closing main listening socket.");
@@ -2127,6 +2330,8 @@ read_inisettings(void) {
     allow_profiles_adj_encoder = iniparser_getboolean(dict,"config:allow_profiles_adj_encoder",0);
     
     require_password = iniparser_getboolean(dict,"config:require_password",REQUIRE_PASSWORD);
+
+    enable_webinterface = iniparser_getboolean(dict,"config:enable_webinterface",ENABLE_WEBINTERFACE);
 
 
     send_mail_on_transcode_end = iniparser_getboolean(dict,"config:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);

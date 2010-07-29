@@ -35,7 +35,6 @@
 
 // Standard UNIX includes
 #include <stdio.h>
-#include <syslog.h>
 #include <unistd.h>
 #include <errno.h>
 #include <pcre.h>
@@ -53,6 +52,7 @@
 #include "vctrl.h"
 #include "transc.h"
 #include "stats.h"
+#include "tvwebcmd.h"
 
 /*
  * Indexes into the command table
@@ -228,74 +228,6 @@ _cmd_undefined(const char *cmd, int sockfd) {
     _writef(sockfd, msgbuff);
 
 }
-
-//-----------------------------------------------------------------------------
-// Various defines for Regular expression matching of commands
-//-----------------------------------------------------------------------------
-
-/*
- * First a number of generic unicode regex defines
- */
-// Required space(s)
-#define _PR_S "[\\p{Z}]+"
-
-// Optional space(s)
-#define _PR_SO "[\\p{Z}]*"
-
-// Required alphanumeric sequence
-#define _PR_AN "([\\p{L}\\p{N}]+)"
-
-// Required filepath
-#define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
-
-// Required alphanumeric and punctuation sequence
-//#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
-#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
-
-// Required alphanumeric, punctuation and space sequence
-#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} ]+)"
-
-// Any sequence of symbols
-#define _PR_ANY "(\\X+)"
-
-#define _PR_E "$"
-
-/*
- * Symbolic names for entitis in the command strings
- */
-// Recording ID
-#define _PR_ID "([\\p{N}]{1,3})"
-
-
-// Optional ID (three digit number)
-#define _PR_OPID "([\\p{N}]{1,3})?"
-
-// Required full time (h:m)
-#define _PR_TIME "([0-1][0-9]|2[0-3]):([0-5][0-9])"
-
-// Required full time with optional seconds
-#define _PR_TIMS "([0-1][0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])?"
-
-// Optional time. Only hour required
-#define _PR_OPTIME "([0-1][0-9]|2[0-3])(:([0-5][0-9]))?(:([0-5][0-9]))?"
-
-// required full date
-#define _PR_FULLDATE "(201[0-9]|2009)-(0[1-9]|1[0-2])-([0-2][0-9]|3[0-2])"
-
-// Relative date from today
-#define _PR_RELDATE "(today|tomorrow|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday|sun|sunday)"
-#define _PR_DATE "(" _PR_RELDATE "|" _PR_FULLDATE ")"
-
-#define _PR_VIDEO "([0-5])"
-#define _PR_DURATION "(0?[0-3]):([0-5][0-9])"
-#define _PR_CHANNEL "([\\p{L}][\\p{L}\\p{N}\\p{P}\\+]*)"
-
-#define _PR_TITLE "(\\p{L}[\\p{L}\\p{N} _-]+)"
-#define _PR_OPTITLE "(" _PR_S "(\\p{L}[\\p{L}\\p{N} _-]*))?"
-
-#define _PR_PROFN "(@[\\p{L}\\p{N}]+)?"
-#define _PR_PROFE "(" _PR_PROFN ")?"
-#define _PR_PROFILES "(" _PR_PROFN _PR_SO _PR_PROFN _PR_SO _PR_PROFN ")?"
 
 static void
 _cmd_setprofile(const char *cmd, int sockfd) {
@@ -1487,6 +1419,8 @@ _cmd_getSettings(const char *cmd, int sockfd) {
 
             "%-30s: %d\n"
 
+            "%-30s: %d\n"
+
             "%-30s: %s\n"
             "%-30s: %s\n"
             "%-30s: %d\n"
@@ -1513,6 +1447,8 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "locale_name",locale_name,
 
             "daemonize",daemonize,
+
+            "enable_webinterface",enable_webinterface,
 
             "username",username, 
             "xmldbfile_name",xmldbfile,
@@ -2347,7 +2283,7 @@ _getCmdPtr(const char *cmd) {
     int i = 0;
     int inhelp=0;
 
-    if( cmd[0] == 'h' && cmd[1] != '\0' ) {
+    if( cmd[0] == 'h' && cmd[1] != '\0'  ) {
         inhelp=1;
         cmd += 2;
     }
@@ -2378,7 +2314,9 @@ _getCmdPtr(const char *cmd) {
  */
 void
 cmdinterp(const char *cmd, int sockfd) {
+
     (_getCmdPtr(cmd))(cmd,sockfd);
+
 }
 
 
