@@ -36,6 +36,13 @@ extern "C" {
 extern char last_logmsg[];
 
 /*
+ * Pointer to a suitable pre-format function used with the _writef()
+ * function. The primary intention is to handle HTMl formatting of
+ * returned command outputs transparanetly.
+ */
+extern char * (*_write_preformat_func)(char *);
+
+/*
  * Utility function to do formatted write simple to a file descriptor
  */
 int
@@ -257,6 +264,76 @@ tail_logfile(int n, char *buffer, int maxlen);
  */
 int
 send_mail(const char *subject, const char *to, const char *message);
+
+
+//-----------------------------------------------------------------------------
+// Various defines for Regular expression matching of commands
+// This is normally used with the matchcmd() function
+//-----------------------------------------------------------------------------
+
+/*
+ * First a number of generic unicode regex defines
+ */
+// Required space(s)
+#define _PR_S "[\\p{Z}]+"
+
+// Optional space(s)
+#define _PR_SO "[\\p{Z}]*"
+
+// Required alphanumeric sequence
+#define _PR_AN "([\\p{L}\\p{N}]+)"
+
+// Required filepath
+#define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
+
+// Required alphanumeric and punctuation sequence
+//#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
+#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
+
+// Required alphanumeric, punctuation and space sequence
+#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} ]+)"
+
+// Any sequence of symbols
+#define _PR_ANY "(\\X+)"
+
+#define _PR_E "$"
+
+/*
+ * Symbolic names for entitis in the command strings
+ */
+// Recording ID
+#define _PR_ID "([\\p{N}]{1,3})"
+
+// Optional ID (three digit number)
+#define _PR_OPID "([\\p{N}]{1,3})?"
+
+// Required full time (h:m)
+#define _PR_TIME "([0-1][0-9]|2[0-3]):([0-5][0-9])"
+
+// Required full time with optional seconds
+#define _PR_TIMS "([0-1][0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])?"
+
+// Optional time. Only hour required
+#define _PR_OPTIME "([0-1][0-9]|2[0-3])(:([0-5][0-9]))?(:([0-5][0-9]))?"
+
+// required full date
+#define _PR_FULLDATE "(201[0-9]|2009)-(0[1-9]|1[0-2])-([0-2][0-9]|3[0-2])"
+
+// Relative date from today
+#define _PR_RELDATE "(today|tomorrow|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday|sun|sunday)"
+#define _PR_DATE "(" _PR_RELDATE "|" _PR_FULLDATE ")"
+
+#define _PR_VIDEO "([0-5])"
+#define _PR_DURATION "(0?[0-3]):([0-5][0-9])"
+#define _PR_CHANNEL "([\\p{L}][\\p{L}\\p{N}\\p{P}\\+]*)"
+
+#define _PR_TITLE "(\\p{L}[\\p{L}\\p{N} _-]+)"
+#define _PR_OPTITLE "(" _PR_S "(\\p{L}[\\p{L}\\p{N} _-]*))?"
+
+#define _PR_PROFN "(@[\\p{L}\\p{N}]+)?"
+#define _PR_PROFE "(" _PR_PROFN ")?"
+#define _PR_PROFILES "(" _PR_PROFN _PR_SO _PR_PROFN _PR_SO _PR_PROFN ")?"
+
 
 #ifdef	__cplusplus
 }

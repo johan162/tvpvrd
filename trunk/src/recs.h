@@ -240,6 +240,16 @@ void
 listrecs(int maxrecs, int style, int fd);
 
 /**
+ * Dump a list of all future recordings in the specified buffer
+ * @param buffer
+ * @param maxlen
+ * @param maxrecs
+ * @param style
+ */
+void
+listrecsbuff(char *buffer, int maxlen, int maxrecs, int style);
+
+/**
  * Delete the record with the specified id
  * @param seqnbr
  * @param allrecurrences

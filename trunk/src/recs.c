@@ -812,9 +812,6 @@ listrecs(int maxrecs, int style, int fd) {
     }
     bzero(buffer, 2048);
 
-    //dumprecord_header(style,buffer,2048);
-    //write(fd, buffer, strlen(buffer));
-
     // We combine all recordings on all videos in order to
     // give a combined sorted list of pending recordings
     int k=0;
@@ -833,6 +830,47 @@ listrecs(int maxrecs, int style, int fd) {
         dumprecord(entries[i], style, buffer, 2048);
         _writef(fd, buffer);
     }
+
+}
+
+/*
+ * Same as listrecs() ut dump all records to the specified buffer instead
+ * of a file descriptor
+ */
+void
+listrecsbuff(char *buffer, int maxlen, int maxrecs, int style) {
+    struct recording_entry **entries;
+    char tmpbuffer[2048];
+
+    entries = calloc(2*max_entries,sizeof (struct recording_entry *));
+    if( entries == NULL ) {
+        logmsg(LOG_ERR,"_listrecs() : Out of memory. Aborting program.");
+        exit(EXIT_FAILURE);
+    }
+    bzero(tmpbuffer, 2048);
+    *buffer = '\0';
+
+    // We combine all recordings on all videos in order to
+    // give a combined sorted list of pending recordings
+    int k=0;
+    for (int video = 0; video < max_video; video++) {
+        for (int i = 0; i < num_entries[video]; ++i) {
+            entries[k++] = recs[REC_IDX(video, i)];
+        }
+    }
+
+    qsort(entries, k, sizeof (struct recording_entry *), _cmprec);
+
+    if( maxrecs > 0 )
+        k = MIN(k,maxrecs);
+
+    int max = maxlen;
+    for(int i=0; i < k; i++ ) {
+        dumprecord(entries[i], style, tmpbuffer, 2048);
+        strncat(buffer,tmpbuffer,max-1);
+        max -= strlen(tmpbuffer);
+    }
+    buffer[maxlen-1] = '\0';
 
 }
 

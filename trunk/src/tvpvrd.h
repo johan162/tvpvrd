@@ -29,6 +29,7 @@
 #include <sys/param.h> // Needed to get MAX()
 #include <iniparser.h>
 #include <errno.h>
+#include <syslog.h>
 
 #ifndef _TVPVRD_H
 #define	_TVPVRD_H
@@ -43,7 +44,8 @@ extern "C" {
  * computer that doesn't have a video card in order to be debug the
  * logic of the server on a computer missing video card.
  */
-//#define DEBUG_SIMULATE
+// #define DEBUG_SIMULATE
+    
 /*
  * Defining this constant will make the server keep on waiting
  * for a read from the capture card indefinitely. This should only
@@ -54,7 +56,8 @@ extern "C" {
 
 /*
  * Note: All the defines for general settings are read from an inifile
- * If the ini file is missing some values then the defines below will be used.
+ * If the ini file is missing some values then the defines below will be used
+ * as the default value.
  */
 
 /*
@@ -104,6 +107,15 @@ extern "C" {
  */
 #define PORT 9300
 
+
+/*
+ * ENABLE_WEBINTERFACE boolean
+ * The server can provoide a very rudimentary WEb-interface which only
+ * allows non-modifying commands. This interface is available on PORT+1,
+ * i.e. on 9301 with the default settings.
+ */
+#define ENABLE_WEBINTERFACE 0    
+
 /*
  * MAX_VIDEO integer
  * The number of available video streams. This is usually the same as the number
@@ -136,12 +148,12 @@ extern "C" {
 
 /*
  * VIDBUFSIZE integer
- * 200 KB Video buffer size. This is the data chunk size we will read from the
+ * 300 KB Video buffer size. This is the data chunk size we will read from the
  * video stream into memory before storing it on the file in the file system.
  * This might not look very large but when we do the select() to wait for data
- * from the card the typical size returned is 80K-180K so 200K is enough.
+ * from the card the typical size returned is 80K-180K so 300K is enough.
  */
-#define VIDBUFSIZE (200*1024)
+#define VIDBUFSIZE (300*1024)
 
 /*
  * VIDEO_DEVICE_BASENAME string
@@ -480,6 +492,9 @@ extern int send_mail_on_transcode_end ;
 
 // Name of loclae to use (used to set LC_ALL)
 extern char locale_name[];
+
+// Should we allow connection to the WEB-interface
+extern int enable_webinterface;
 
 #ifdef	__cplusplus
 }
