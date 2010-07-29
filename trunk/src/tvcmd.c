@@ -1246,7 +1246,7 @@ _cmd_refresh_profiles(const char *cmd, int sockfd) {
  */
 static void
 _cmd_ongoingrec(const char *cmd, int sockfd) {
-    char tmpbuff[512], tmpbuff2[512],msgbuff[2048];
+    char tmpbuff[512], msgbuff[2048];
     int i, left=2047;
 
     if (cmd[0] == 'h') {
@@ -1255,21 +1255,17 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
                 );
         return;
     }
-    strcpy(msgbuff, "");
+    *msgbuff = '\0';
     for (i = 0; i < max_video; i++) {
         if (ongoing_recs[i]) {
             dumprecord(ongoing_recs[i], 0, tmpbuff, 511);
-        } else {
-            snprintf(tmpbuff, 511, "None.\n");
+            strncat(msgbuff, tmpbuff, left);
+            left -= strlen(tmpbuff);
         }
-        tmpbuff[511]=0;
-        snprintf(tmpbuff2,511,"Video #%d: %s",i,tmpbuff);
-        tmpbuff2[511] = '\0';
-        strncat(msgbuff, tmpbuff2, left);
-        left -= strlen(tmpbuff2);
-        left = MAX(left,0);
-        msgbuff[2048-1] = '\0';
     }
+    if( *msgbuff == '\0' )
+        strncpy(msgbuff,"None.",2047);
+    msgbuff[2047] = '\0';
     _writef(sockfd, msgbuff);
 }
 
