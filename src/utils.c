@@ -56,6 +56,11 @@
 #define MAX_LASTLOGMSG 1024
 char last_logmsg[MAX_LASTLOGMSG] = {'\0'};
 
+// Needed to flag we are in the logmsg function to avoid
+// _writef doing possible html output encoding
+static int inlogfunction=0;
+int htmlencode_flag=0;
+
 /*
  * _writef
  * Utility function
@@ -74,7 +79,14 @@ _writef(int fd, const char *buf, ...) {
         va_start(ap, buf);
         vsnprintf(tmpbuff, blen, buf, ap);
         tmpbuff[blen-1] = 0;
-        int ret = write(fd, tmpbuff, strnlen(tmpbuff,blen));
+        int ret;
+        if( !inlogfunction && htmlencode_flag ) {
+            char *htmlbuff = html_encode(tmpbuff);
+            ret = write(fd, htmlbuff, strlen(htmlbuff));
+            free( htmlbuff);
+        } else {
+            ret = write(fd, tmpbuff, strnlen(tmpbuff,blen));
+        }
         free(tmpbuff);
         return ret;
     }
@@ -186,7 +198,9 @@ void logmsg(int priority, char *msg, ...) {
                 timebuff[strnlen(timebuff,tblen)-1] = 0;
                 snprintf(msgbuff, blen-1, "%s: %s\n", timebuff, tmpbuff);
                 msgbuff[blen-1] = 0 ;
+                inlogfunction = 1;
                 _writef(fd, msgbuff);
+                inlogfunction = 0;
                 if( fd != STDOUT_FILENO ) {
                     close(fd);
                 }
@@ -942,6 +956,105 @@ send_mail(const char *subject, const char *to, const char *message) {
 
     return system(buffer);
 
+}
+
+/* Converts a hex character to its integer value */
+char from_hex(char ch) {
+  return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
+}
+
+/* Converts an integer value to its hex character*/
+char to_hex(char code) {
+  static char hex[] = "0123456789abcdef";
+  return hex[code & 15];
+}
+
+/*
+ * URL encode a buffer.
+ * Note: Calling function is responsible to free returned string
+ */
+
+char *url_encode(char *str) {
+  char *pstr = str, *buf = malloc(strlen(str) * 3 + 1), *pbuf = buf;
+  while (*pstr) {
+    if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~')
+      *pbuf++ = *pstr;
+    else if (*pstr == ' ')
+      *pbuf++ = '+';
+    else
+      *pbuf++ = '%', *pbuf++ = to_hex(*pstr >> 4), *pbuf++ = to_hex(*pstr & 15);
+    pstr++;
+  }
+  *pbuf = '\0';
+  return buf;
+}
+
+/*
+ * URL decode a buffer.
+ * Note: Calling function is responsible to free returned string
+ */
+char *url_decode(char *str) {
+  char *pstr = str, *buf = malloc(strlen(str) + 1), *pbuf = buf;
+  while (*pstr) {
+    if (*pstr == '%') {
+      if (pstr[1] && pstr[2]) {
+        *pbuf++ = from_hex(pstr[1]) << 4 | from_hex(pstr[2]);
+        pstr += 2;
+      }
+    } else if (*pstr == '+') {
+      *pbuf++ = ' ';
+    } else {
+      *pbuf++ = *pstr;
+    }
+    pstr++;
+  }
+  *pbuf = '\0';
+  return buf;
+}
+
+/*
+ * HTML encode a buffer.
+ * Note: Calling function is responsible to free returned string
+ */
+char *html_encode(char *str) {
+    char *pstr=str, *buf = malloc(strlen(str) * 6 + 1), *pbuf = buf;
+    while (*pstr) {
+        switch( *pstr ) {
+            case '<':
+                *pbuf++ = '&';
+                *pbuf++ = 'l';
+                *pbuf++ = 't';
+                *pbuf++ = ';';
+                break;
+            case '>':
+                *pbuf++ = '&';
+                *pbuf++ = 'g';
+                *pbuf++ = 't';
+                *pbuf++ = ';';
+                break;
+            case '&':
+                *pbuf++ = '&';
+                *pbuf++ = 'a';
+                *pbuf++ = 'm';
+                *pbuf++ = 'p';
+                *pbuf++ = ';';
+                break;
+            case '"':
+                *pbuf++ = '&';
+                *pbuf++ = 'q';
+                *pbuf++ = 'u';
+                *pbuf++ = 'o';
+                *pbuf++ = 't';
+                *pbuf++ = ';';
+                break;
+            default:
+                *pbuf++ = *pstr;
+                break;
+        }
+        ++pstr;
+    }
+    *pbuf = '\0';
+    return buf;
 }
 
 

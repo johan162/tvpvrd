@@ -21,6 +21,7 @@ confpath.h: Makefile.in Makefile
 install-data-local: 
 	install -d ${DESTDIR}$(sysconfdir)/tvpvrd
 	cp $(abs_srcdir)/tvpvrd.conf ${DESTDIR}$(sysconfdir)/tvpvrd
+	cp $(abs_srcdir)/tvpvrd.css ${DESTDIR}$(sysconfdir)/tvpvrd
 
 
 
