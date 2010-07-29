@@ -1319,15 +1319,15 @@ _cmd_status(const char *cmd, int sockfd) {
             "%-16s: %s"
             "%-16s: %s"
             "%-16s: %02d days %02d hours %02d min\n"
-            "%-16s: %.1f %.1f %.1f\n"
             "%-16s: %02d days %02d hours %02d min\n"
+            "%-16s: %.1f %.1f %.1f\n"
             "%-16s: %d %s\n"
             "%-16s: %d\n",
             "Current time", currtime,
-            "tvpvrd' started", ctime(&ts_serverstart),
-            "'tvpvrd' uptime", sday, sh, smin,
-            "Server load",avg1,avg5,avg15,
+            "tvpvrd started", ctime(&ts_serverstart),
+            "tvpvrd uptime", sday, sh, smin,
             "Server uptime",uday,uh,umin,
+            "Server load",avg1,avg5,avg15,
             "Virtual memory",wsize,unit,
             "Threads",nthreads);
 

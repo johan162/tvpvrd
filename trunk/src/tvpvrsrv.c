@@ -1519,7 +1519,7 @@ startupsrv(void) {
     unsigned tmpint;
     struct sockaddr_in socketaddress, websocketaddress;
     int ret;
-    char *dotaddr, tmpbuff[128];
+    char *dotaddr=NULL, tmpbuff[128];
     fd_set read_fdset;
     struct timeval timeout;
 
@@ -1632,6 +1632,7 @@ startupsrv(void) {
 
         int terminal_connection = 0;
         if( FD_ISSET(sockd,&read_fdset) ) {
+
             logmsg(LOG_DEBUG, "Terminal connection.");
             terminal_connection = 1;
             tmpint = sizeof (socketaddress);
@@ -1640,7 +1641,10 @@ startupsrv(void) {
                 // Unrecoverable error
                 logmsg(LOG_ERR, "Could not create new client socket ( %d : %s ) ",errno,strerror(errno));
             }
+            dotaddr = inet_ntoa(socketaddress.sin_addr);
+
         } else if( enable_webinterface )  {
+
             logmsg(LOG_DEBUG, "Browser connection.");
             tmpint = sizeof (websocketaddress);
             newsocket = accept(websockd, (struct sockaddr *) & websocketaddress, &tmpint);
@@ -1648,12 +1652,14 @@ startupsrv(void) {
                 // Unrecoverable error
                 logmsg(LOG_ERR, "Could not create new browser socket ( %d : %s ) ",errno,strerror(errno));
             }
+            dotaddr = inet_ntoa(websocketaddress.sin_addr);
+
         } else {
+            // This should never happen. This case indicates a network/kernel problem on the server
             logmsg(LOG_ERR, "Internal serious error. Accepted port connection that we were not listening on. ");
         }
 
         set_cloexec_flag(newsocket,1);
-        dotaddr = inet_ntoa(socketaddress.sin_addr);
 
         pthread_mutex_lock(&socks_mutex);
 
@@ -1665,6 +1671,7 @@ startupsrv(void) {
             i++;
 
         if (i < max_clients) {
+
             client_socket[i] = newsocket;
             client_ipadr[i] = strdup(dotaddr); // Released in clisrv()
             client_tsconn[i] = time(NULL);
@@ -1679,11 +1686,14 @@ startupsrv(void) {
             } else {
                 ncli_threads++;
             }
+
         } else {
+
             logmsg(LOG_ERR, "Client connection not allowed. Maximum number of clients (%d) already connected.",max_clients);
             strcpy(tmpbuff, "Too many client connections.\n");
             _writef(newsocket, tmpbuff);
             _dbg_close(newsocket);
+
         }
 
         pthread_mutex_unlock(&socks_mutex);
