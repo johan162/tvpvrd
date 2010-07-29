@@ -105,7 +105,6 @@ typedef void (*ptrcmd)(const char *, int);
 static ptrcmd cmdtable[MAX_COMMANDS];
 
 // Forward declaration
-void cmdinterp(const char *cmd, int sockfd);
 static ptrcmd _getCmdPtr(const char *cmd);
 
 /* ----------------------------------------------------------------------------
@@ -1656,6 +1655,9 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
     }
     char **field;
     int ret = matchcmd("^vc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
+    
+    logmsg(LOG_INFO,"[vc] ret=%d",ret);
+
     if( ret == 2 ) {
         int video = atoi(field[1]);
         int fd = video_open(video);
@@ -1669,8 +1671,8 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
         }
     } else {
 
-        ret = matchcmd("^vc" _PR_E, cmd, &field);
-        if( ret == 1 ) {
+        ret = matchcmd("^vc" _PR_SO _PR_E, cmd, &field);
+        if( ret >= 1 ) {
             // Print info for all available cards
             for(int video=0; video < max_video; video++) {
                 int fd = video_open(video);
@@ -2313,8 +2315,15 @@ _getCmdPtr(const char *cmd) {
  *
  */
 void
-cmdinterp(const char *cmd, int sockfd) {
+cmdinterp(char *cmd, int sockfd) {
 
+    // Remove trailing spaces
+    int n=strlen(cmd);
+    if( n>=1 && cmd[n-1] == ' ' ) {
+        while( n > 0 && cmd[n-1] == ' ')
+            --n;
+        cmd[n] = '\0';
+    }
     (_getCmdPtr(cmd))(cmd,sockfd);
 
 }

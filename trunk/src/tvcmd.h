@@ -67,7 +67,7 @@ extern "C" {
  * @param cmd
  * @param sockfd
  */
-void cmdinterp(const char *cmd, int sockfd);
+void cmdinterp(char *cmd, int sockfd);
 
 /*
  * Initialize the command interpretator. Must be called at

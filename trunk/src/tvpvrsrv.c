@@ -1474,7 +1474,9 @@ webclientsrv(void *arg) {
             html_commandlist(my_socket);
             html_output(my_socket);
             pthread_mutex_lock(&recs_mutex);
+            htmlencode_flag = 1;
             cmdinterp(wcmd, my_socket);
+            htmlencode_flag = 0;
             pthread_mutex_unlock(&recs_mutex);
             html_output_end(my_socket);
 

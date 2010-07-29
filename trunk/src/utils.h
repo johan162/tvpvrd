@@ -265,6 +265,17 @@ tail_logfile(int n, char *buffer, int maxlen);
 int
 send_mail(const char *subject, const char *to, const char *message);
 
+char *
+url_encode(char *str);
+
+char *
+url_decode(char *str);
+
+char *
+html_encode(char *str);
+
+extern int htmlencode_flag;
+
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands
