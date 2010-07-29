@@ -1,18 +1,20 @@
 
-/* CSS Style to format rudimentary WEb-interface for 
- * tvpvrd daemon.
+/*
+ * CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
  * SVN: $Id$
  */
 
+/* Make it 99% to avoid scroll bars on the main page */
 html,body {
     height:99%;
+    width: 99%;
 }
 
 /* The overall main page is contained in this div */
 div.top_page {
 
-    border: 1px solid lightgray;
-    background: #f3f0f8;
+    border: 1px solid gray;
+    background: #e1e6db;
     height:600px;
     width:99%;
     padding:0px;
@@ -54,7 +56,7 @@ div.top_banner {
     text-align:left;
     font-weight:bold;
     font-size:14pt;
-    background:lightgreen;
+    background: #a7b797;
     margin-bottom: 4px;
     padding: 2px;
 }
