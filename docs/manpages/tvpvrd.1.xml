@@ -76,6 +76,26 @@
                 server is controlled via a simple (but efficient) command language which allows
                 manipulation of future recordings and various other administrative tasks. All
                 commands are extensively described in the section 'Command language' below. </para>
+            <para>As an optional way there is also a native simple WEB-interface that allows a
+                limited number of commands such as basic adding of new recording, deleting existing
+                recordings, viewing status, showing upcoming recordings etc.. The WEB-interface must
+                be enabled in the ini-file since it is by default disabled. The WEB interface is
+                accessed on port number (port+1), i.e. one more than the port number specified for
+                the full command interface. This means that by default the WEB-interface is
+                available on port 9301. Please note that as of this writing the WEB-interface does
+                not yet support authentication.  </para>
+            <para>To access the WEB interface from a browser simple give the server address and port
+                number. For example to access the daemon on the localhost with the default port
+                number use URL "<filename>http://localhost:9301</filename>". Again, it should be
+                pointed out that so far the WEB-interface is very simple and the terminal connection
+                is necessary for more advanced commands, such as adding or deleting repeated
+                recordings. However it is the intention that over time the WEB-interface will
+                support the full command set. Baby steps, baby steps ....</para>
+            <para>The look and feel of the WEB-interface is entirely controlled by a CSS style sheet
+                stored in the configuration directory (usually specified as
+                    <filename>/etc</filename>). This is the same place as where the ini-file is
+                stored. This means it is very simple to change the look and feel from the default
+                colors and layout.</para>
             <para>The recordings specified are stored in a database which is a plain text file in
                 XML format (UTF-8 encoded).</para>
             <para>Recorded and transcoded files are stored in a predefined directory structure. The

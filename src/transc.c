@@ -663,6 +663,15 @@ list_profile_names(char *buff,int maxlen) {
     return 0;
 }
 
+int
+get_profile_names(const char *list[],int maxlen) {
+    int n = MIN(maxlen,num_transcoding_profiles);
+    for( int i=0; i < n; ++i ) {
+        list[i] = profiles[i]->name;
+    }
+    return n;
+}
+
 /*
  * Wait until the load on the server is below the acceptable limit to
  * start a new transcoding process. Return the number of seconds

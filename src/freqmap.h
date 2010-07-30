@@ -119,6 +119,16 @@ getchfromfreq(char **ch, const unsigned int freq);
 int
 getfreqfromch(unsigned int *freq, const char *ch);
 
+/**
+ * Fill the given buffer with a list of pointers to the station names.
+ * Note: The entries are pointed to static storages and cannot be modified!
+ * @param stations
+ * @param maxlen
+ * @return number of stations
+ */
+int
+get_stations(const char *stations[],int maxlen);
+
 /*
  * Fill the supplied buffer (array of string pointers)
  * with pointer to statically alocated buffers with the name of
@@ -127,7 +137,8 @@ getfreqfromch(unsigned int *freq, const char *ch);
  * @param size Maximum size of buffert
  * @return -1 failure, o otherwise
  */
-int getfmapnames(char *names[], int size);
+int
+getfmapnames(char *names[], int size);
 
 /**
  * Read the station top channel mapping fil

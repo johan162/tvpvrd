@@ -1,4 +1,5 @@
 
+
 /*
  * CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
  * SVN: $Id$
@@ -21,9 +22,33 @@ div.top_page {
 
 }
 
+div.right_side {
+    float: left;
+    width:70%;
+    height:60%;
+}
+
+div.left_side {
+    float: left;
+    width:25%;
+    height:94%;
+    margin-right : 3px;
+    border-right : 1px solid gray;
+}
+
+/* This div encloses the command menu */
+div.cmd_menu {
+    float: left; 
+    width : 99%;
+    height : 99%;
+    margin-left : 5px;
+    color:black;
+    font-size:11pt;
+}
+
 /* This div encloses the command output */
 div.cmd_output {
-    float: left; 
+    /*float: left; */
     clear:right;
     padding-top: 0px;
     padding-bottom: 0px;
@@ -34,22 +59,11 @@ div.cmd_output {
     font-weight:bold;
     border:dotted gray 1px;
     background:white;
-    height:90%;
-    width:69%;
+    height:99%;
+    width:99%;
     overflow:auto;
 }
 
-/* This div encloses the command menu */
-div.cmd_menu {
-    float: left; 
-    width : 27%;
-    height : 90%;
-    margin-left : 5px;
-    border-right : 1px solid gray;
-    color:black;
-    padding:5px;
-    font-size:11pt;
-}
 
 /* The top banner line with name and version */
 div.top_banner {
@@ -73,24 +87,77 @@ div.cmd_menu a:hover {
     color:navy;
 }
 
-/* Encloses the command group title line */
+/* Encloses the command menu group title line */
 div.cmdgrp_title_row {
     color : navy;
 }
 
-/* Encloses the command group title short name */
+/* Encloses the command menu group title short name */
 span.cmdgrp_title {
     font-weight: bold;
 }
 
-/* Encloses the command group description */
+/* Encloses the command menu group description */
 span.cmdgrp_desc {
     font-style:italic;
 
 }
 
-/* Encloses all commands in one group */
+/* Encloses all commands in one menu group */
 div.cmdgrp_commands {
     padding-left:10px;
 }
+
+/* Add/Del commands at the bottom container */
+div.cmd_bottom_container {
+    /* border : solid gray 1px;*/
+    margin-top:5px;
+    margin-left:5px;
+    margin-right:2px;
+    width:100%;
+    height:50px;
+}
+
+legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:10pt;
+    color:#202020;
+}
+
+fieldset {
+    border:dotted gray 1px;
+}
+
+div.input_container {
+    float:left;
+    padding:1px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+div.input_legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:9pt;
+    color:#505050;
+}
+
+div.input_select {
+}
+
+input.input_text {
+    color : #202020;
+    width : 110px;
+}
+
+input.input_submit {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:10pt;
+    width:60px;
+    margin-left: 10px;
+}
+
+
 

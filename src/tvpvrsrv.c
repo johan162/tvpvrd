@@ -1419,8 +1419,6 @@ webclientsrv(void *arg) {
     // loosing 8MB for exah created thread
     pthread_detach(pthread_self());
 
-    bzero(buffer, 1024);
-
     i = 0;
     while (i < max_clients && client_socket[i] != my_socket)
         i++;
@@ -1444,9 +1442,9 @@ webclientsrv(void *arg) {
         return (void *) 0;
     }
 
-    // FIX ME: Apssword authentication from browser
+    // FIXME: Password authentication from browser
     if( require_password ) {
-
+        logmsg(LOG_ERR, "Browser connection does not support authentication (yet)");
     }
 
     FD_ZERO(&read_fdset);
@@ -1458,33 +1456,15 @@ webclientsrv(void *arg) {
     ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
     if (ret == 0) {
 
-        logmsg(LOG_INFO, "WEB Browser disconnected due to timeout.");
+        logmsg(LOG_ERR, "WEB Browser disconnected due to timeout.");
 
     } else {
 
         numreads = read(my_socket, buffer, 1023);
         buffer[1023] = '\0';
-        buffer[numreads] = 0;
-        char wcmd[1024];
-        if( webconnection(buffer,wcmd,1023) ) {
-            char title[255];
-            snprintf(title,254,"tvpvrd %s",server_version);
-            html_newpage(my_socket,title);
-            html_topbanner(my_socket);
-            html_commandlist(my_socket);
-            html_output(my_socket);
-            pthread_mutex_lock(&recs_mutex);
-            htmlencode_flag = 1;
-            cmdinterp(wcmd, my_socket);
-            htmlencode_flag = 0;
-            pthread_mutex_unlock(&recs_mutex);
-            html_output_end(my_socket);
+        buffer[numreads] = '\0';
+        html_cmdinterp(my_socket,buffer);
 
-            html_endpage(my_socket);
-
-        } else {
-            logmsg(LOG_DEBUG, "Browser (%s) sent unrecognized command", client_ipadr[i]);
-        }
     }
 
     logmsg(LOG_INFO,"Connection from browser %s on socket %d closed.", client_ipadr[i], my_socket);
@@ -1497,7 +1477,7 @@ webclientsrv(void *arg) {
     cli_threads[i] = 0;
     if( -1 == _dbg_close(my_socket) ) {
         logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
-                    my_socket,client_ipadr[i],errno,strerror(errno));
+               my_socket,client_ipadr[i],errno,strerror(errno));
     }
     ncli_threads--;
     pthread_mutex_unlock(&socks_mutex);
