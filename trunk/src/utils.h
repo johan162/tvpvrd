@@ -276,6 +276,8 @@ html_encode(char *str);
 
 extern int htmlencode_flag;
 
+int
+get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands
@@ -292,13 +294,18 @@ extern int htmlencode_flag;
 #define _PR_SO "[\\p{Z}]*"
 
 // Required alphanumeric sequence
-#define _PR_AN "([\\p{L}\\p{N}]+)"
+#define _PR_AN "([\\p{L}\\p{N}\\_]+)"
+
+// Optional alphanumeric sequence
+#define _PR_ANO "([\\p{L}\\p{N}\\_]*)"
+
+// Required numeric sequence
+#define _PR_N "([\\p{N}]+)"
 
 // Required filepath
 #define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
 
 // Required alphanumeric and punctuation sequence
-//#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
 #define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
 
 // Required alphanumeric, punctuation and space sequence
@@ -312,6 +319,7 @@ extern int htmlencode_flag;
 /*
  * Symbolic names for entitis in the command strings
  */
+
 // Recording ID
 #define _PR_ID "([\\p{N}]{1,3})"
 

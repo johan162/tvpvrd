@@ -48,6 +48,12 @@ html_topbanner(int sockd);
 void
 html_commandlist(int sockd);
 
+void
+html_cmdinterp(const int my_socket, char *buffer);
+
+void
+html_cmd_add_del(int sockd);
+
 /**
  * This test function is called when the server receives a new conection and
  * determines if the first command is a GET string. This is then an indication

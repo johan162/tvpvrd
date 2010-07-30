@@ -341,6 +341,17 @@ int
 list_profile_names(char *buff,int maxlen);
 
 /**
+ * Store a list of pointers to profile names in the supplied buffer
+ * Note: The profile names cannot be modified in any way
+ * @param list
+ * @param maxlen
+ * @return
+ */
+int
+get_profile_names(const char *list[],int maxlen);
+
+
+/**
  *
  * @param short_filename
  * @param profile_name

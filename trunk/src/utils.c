@@ -1057,5 +1057,16 @@ char *html_encode(char *str) {
     return buf;
 }
 
-
+int
+get_assoc_value(char *value,int maxlen,char *key,char *list[],int n) {
+    int i = 0;
+    while( i < n ) {
+        if( 0 == strcmp(key,list[i]) ) {
+            strncpy(value,list[i+1],maxlen);
+            return 0;
+        }
+        i += 2;
+    }
+    return -1;
+}
 /* utils.c */

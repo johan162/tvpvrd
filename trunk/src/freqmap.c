@@ -1039,6 +1039,15 @@ list_stations(int fd) {
     }
 }
 
+int
+get_stations(const char *stations[],int maxlen) {
+    int n = MIN(num_stations,maxlen);
+    for(int i=0; i < n; i++) {
+        stations[i] = station_map[i].name;
+    }
+    return n;
+}
+
 /**
  * Translate a station name to a channel name
  * @param station
@@ -1048,7 +1057,7 @@ list_stations(int fd) {
  */
 int
 get_chfromstation(const char *station, char *chbuffer, int size) {
-    for(int i=0; i<num_stations; i++) {
+    for(int i=0; i < num_stations; i++) {
         if( stricmp(station,station_map[i].name) == 0  ) {
             strncpy(chbuffer, station_map[i].channel, size);
             chbuffer[size-1]='\0';
