@@ -619,6 +619,7 @@ dumprecord_header(int style, char *buffer, int bufflen) {
  * 0		One line, short format
  * 1		Record, several lines, short format
  * 2		Record, several lines, long format
+ * 3            Brief only seqnbr,channel,start,title
  */
 void
 dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) {
@@ -660,6 +661,16 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
                 sy, sm, sd, 
                 wday_name[result.tm_wday],
                 sh, smi, eh, emi, entry->title,profbuff);
+
+    } else if ( style == 3 ) {
+
+        snprintf(buffer, bufflen, "#%03d &nbsp;%-8.8s &nbsp;%04d-%02d-%02d &nbsp;" /*%.3s &nbsp; */"%02d:%02d &nbsp;%-20s\n",
+                entry->seqnbr,
+                entry->channel,
+                sy, sm, sd,
+                /* wday_name[result.tm_wday], */
+                sh, smi, entry->title);
+
 
     } else {
         if (entry->recurrence) {
@@ -805,7 +816,7 @@ listrecs(int maxrecs, int style, int fd) {
     struct recording_entry **entries;
     char buffer[2048];
 
-    entries = calloc(2*max_entries,sizeof (struct recording_entry *));
+    entries = calloc(max_video*max_entries,sizeof (struct recording_entry *));
     if( entries == NULL ) {
         logmsg(LOG_ERR,"listrecs() : Out of memory. Aborting program.");
         exit(EXIT_FAILURE);
@@ -831,10 +842,11 @@ listrecs(int maxrecs, int style, int fd) {
         _writef(fd, buffer);
     }
 
+    free(entries);
 }
 
 /*
- * Same as listrecs() ut dump all records to the specified buffer instead
+ * Same as listrecs() but dump all records to the specified buffer instead
  * of a file descriptor
  */
 void
@@ -842,7 +854,7 @@ listrecsbuff(char *buffer, int maxlen, int maxrecs, int style) {
     struct recording_entry **entries;
     char tmpbuffer[2048];
 
-    entries = calloc(2*max_entries,sizeof (struct recording_entry *));
+    entries = calloc(max_video*max_entries,sizeof (struct recording_entry *));
     if( entries == NULL ) {
         logmsg(LOG_ERR,"_listrecs() : Out of memory. Aborting program.");
         exit(EXIT_FAILURE);
@@ -872,7 +884,57 @@ listrecsbuff(char *buffer, int maxlen, int maxrecs, int style) {
     }
     buffer[maxlen-1] = '\0';
 
+    free(entries);
+
 }
+
+/*
+ * Dump a list of all recordings in an array suitable for select()
+ * i.e. the value in pos i and the record id in pos i+1
+ * It is the calling routines responsibility to free the mmeory
+ * allocated to the list argument.
+ */
+
+int
+listrecskeyval(struct skeysval_t **list, int style) {
+    struct recording_entry **entries;
+    char tmpbuffer[2048];
+
+    entries = calloc(max_video*max_entries,sizeof (struct recording_entry *));
+    if( entries == NULL ) {
+        logmsg(LOG_ERR,"_listrecskeyval() : Out of memory. Aborting program.");
+        exit(EXIT_FAILURE);
+    }
+
+    *list = calloc(2*max_entries,sizeof (struct skeysval_t));
+    if( *list == NULL ) {
+        logmsg(LOG_ERR,"_listrecskeyval() : Out of memory. Aborting program.");
+        exit(EXIT_FAILURE);
+    }
+
+    // We combine all recordings on all videos in order to
+    // give a combined sorted list of pending recordings
+    int k=0;
+    for (int video = 0; video < max_video; video++) {
+        for (int i = 0; i < num_entries[video]; ++i) {
+            entries[k++] = recs[REC_IDX(video, i)];
+        }
+    }
+
+    qsort(entries, k, sizeof (struct recording_entry *), _cmprec);
+
+    for(int i=0; i < k; i++ ) {
+        dumprecord(entries[i], style, tmpbuffer, 2048);
+        (*list)[i].val = strdup(tmpbuffer);
+        snprintf(tmpbuffer,2048,"%d",(*entries[i]).seqnbr);
+        (*list)[i].key = strdup(tmpbuffer);
+    }
+
+    free(entries);
+    
+    return k;
+}
+
 
 /*
  * Delete the top recording in the list for the specified video stream

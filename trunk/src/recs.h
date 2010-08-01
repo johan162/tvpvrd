@@ -115,6 +115,15 @@ struct recording_entry {
     int video;
 };
 
+/* Basic key/val structure. Used with listreckeyval to return a list of recordings
+ * with a title string as value and record index as key
+ */
+struct skeysval_t {
+    char *key;
+    char *val;
+};
+
+
 /**
  * The list with all planned recordings
  */
@@ -248,6 +257,15 @@ listrecs(int maxrecs, int style, int fd);
  */
 void
 listrecsbuff(char *buffer, int maxlen, int maxrecs, int style);
+
+/**
+ * Create a list of all currnet recordings
+ * @param list
+ * @param style
+ * @return Number of records returned in list
+ */
+int
+listrecskeyval(struct skeysval_t **list, int style);
 
 /**
  * Delete the record with the specified id

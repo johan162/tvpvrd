@@ -1040,11 +1040,21 @@ list_stations(int fd) {
 }
 
 int
+_qstrcmp(const void *s1, const void *s2) {
+    //return strcmp(*(char *)s1,*(char *)s2);
+    return strcmp(* (char * const *) s1, * (char * const *) s2);
+
+}
+
+int
 get_stations(const char *stations[],int maxlen) {
     int n = MIN(num_stations,maxlen);
     for(int i=0; i < n; i++) {
         stations[i] = station_map[i].name;
     }
+
+    qsort(stations,n,sizeof(char *),_qstrcmp);
+
     return n;
 }
 
