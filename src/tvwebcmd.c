@@ -33,6 +33,7 @@
 #include "tvcmd.h"
 #include "freqmap.h"
 #include "transc.h"
+#include "recs.h"
 /*
  * The WEb interface is fairly simplistic. On receiving a GET request from a
  * WEB-browser we immitate the behavior of a HTTP server by responding with a
@@ -139,7 +140,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
         // logmsg(LOG_DEBUG,"*** Checking buffer: %s",buffer);
         // First check if we should handle an add/delete command
 
-        if( (ret = matchcmd("^GET /addrec\\?" 
+        if( (ret = matchcmd("^GET /addrec\\?"
                             _PR_AN "=" _PR_ANO "&"
                             _PR_AN "=" _PR_ANO "&"
                             _PR_AN "=" _PR_ANO "&"
@@ -148,20 +149,21 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                             _PR_AN "=" _PR_ANO "&"
                             _PR_AN "=" _PR_ANO "&"
                             _PR_AN "=" _PR_ANO "&"
+                            _PR_AN "=" _PR_ANO "&"
+                            _PR_AN "=" _PR_ANSO "&"
                             _PR_AN "=" _PR_ANO 
                             " HTTP/1.1",
                             buffer, &field)) > 1 ) {
 
             const int maxvlen=256;
-            char channel[maxvlen];
+            char channel[maxvlen], repeat[maxvlen], repeatcount[maxvlen];
             char sd[maxvlen],sh[maxvlen],smin[maxvlen],eh[maxvlen],emin[maxvlen];
             char profile[maxvlen],title[maxvlen],submit[maxvlen];
 
+            get_assoc_value(repeat,maxvlen,"repeat",&field[1],ret-1);
+            get_assoc_value(repeatcount,maxvlen,"repeatcount",&field[1],ret-1);
             get_assoc_value(channel,maxvlen,"channel",&field[1],ret-1);
             get_assoc_value(sd,maxvlen,"start_day",&field[1],ret-1);
-            if( 0==strcmp("Today",sd) ) {
-                sd[0]='\0';
-            }
             get_assoc_value(sh,maxvlen,"start_hour",&field[1],ret-1);
             get_assoc_value(smin,maxvlen,"start_min",&field[1],ret-1);
             get_assoc_value(eh,maxvlen,"end_hour",&field[1],ret-1);
@@ -171,24 +173,53 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             get_assoc_value(submit,maxvlen,"submit_addrec",&field[1],ret-1);
 
             if( 0==strcmp(submit,"Add") ) {
-                snprintf(wcmd,1024,
-                    "a %s %s %s:%s %s:%s %s @%s",
-                    channel,sd,sh,smin,eh,emin, title,profile);
+                char tmpcmd[128];
+                // Build command
+
+                if( 0 == strcmp(repeat,"") ) {
+                    snprintf(wcmd,1024,"a %s",channel);
+                } else {
+                    // Repeatet add
+                    snprintf(wcmd,1024,"ar %s %s %s ",repeat,repeatcount,channel);
+                }
+                if( *sd != '\0' ) {
+                    snprintf(tmpcmd,128," %s ",sd);
+                    strncat(wcmd,tmpcmd,1023);
+                }
+                snprintf(tmpcmd,128, " %s:%s ", sh,smin);
+                strncat(wcmd,tmpcmd,1023);
+
+                if( 0 != strcmp(eh,"00") || 0 != strcmp(emin,"00") ) {
+                    snprintf(tmpcmd,128, " %s:%s ", eh,emin);
+                    strncat(wcmd,tmpcmd,1023);
+                }
+
+                snprintf(tmpcmd,128, " %s @%s ",title,profile);
+                strncat(wcmd,tmpcmd,1023);
+
+                logmsg(LOG_DEBUG,"Add cmd=%s",wcmd);
+
             }
 
         } else if( (ret = matchcmd("^GET /delrec\\?"
+                            _PR_AN "=" _PR_ANO "&"
                             _PR_AN "=" _PR_ANO "&"
                             _PR_AN "=" _PR_ANO
                             " HTTP/1.1",
                             buffer, &field)) > 1 ) {
 
             const int maxvlen=256;
-            char recid[maxvlen],submit[maxvlen];
+            char recid[maxvlen],submit[maxvlen],delserie[maxvlen];
             get_assoc_value(recid,maxvlen,"recid",&field[1],ret-1);
+            get_assoc_value(delserie,maxvlen,"delserie",&field[1],ret-1);
             get_assoc_value(submit,maxvlen,"submit_delrec",&field[1],ret-1);
 
-           if( 0==strcmp(submit,"Delete") ) {
-                snprintf(wcmd, 1024, "d %s", recid);
+            if (0 == strcmp(submit, "Delete")) {
+                if (0 == strcmp(delserie, "Yes")) {
+                    snprintf(wcmd, 1024, "dr %s", recid);
+                } else {
+                    snprintf(wcmd, 1024, "d %s", recid);
+                }
             }
             
         }
@@ -329,7 +360,7 @@ html_newpage(int sockd, char *title) {
 }
 
 void
-html_element_select(int sockd,char *legend,char *name,char *selected, const char *list[], int num) {
+html_element_select(int sockd,char *legend,char *name,char *selected, const char *list[], int num, char *id) {
     const int maxlen=8192;
     char *buffer = calloc(1,maxlen);
 
@@ -338,12 +369,23 @@ html_element_select(int sockd,char *legend,char *name,char *selected, const char
         exit(EXIT_FAILURE);
     }
 
-    snprintf(buffer,maxlen,
-            "<div class=\"input_container\">"
-            "<div class=\"input_legend\">%s</div>",legend);
+    if( id && *id ) {
+        snprintf(buffer,maxlen,
+                "<div class=\"input_container\" id=\"%s\">"
+                "<div class=\"input_legend\">%s</div>",id,legend);
+    } else {
+        snprintf(buffer,maxlen,
+                "<div class=\"input_container\">"
+                "<div class=\"input_legend\">%s</div>",legend);
+    }
     _writef(sockd,buffer);
 
-    snprintf(buffer,maxlen,"<select name=\"%s\" class=\"%s\">\n",name,"input_legend");
+    if( id && *id ) {
+        snprintf(buffer,maxlen,"<select name=\"%s\" class=\"%s\" id=\"%s\">\n",name,"input_select",id);
+    } else {
+        snprintf(buffer,maxlen,"<select name=\"%s\" class=\"%s\">\n",name,"input_select");
+    }
+
     _writef(sockd,buffer);
     for (int i=0; i < num; ++i ) {
         if( selected && 0 == strcmp(selected,list[i]) ) {
@@ -359,7 +401,49 @@ html_element_select(int sockd,char *legend,char *name,char *selected, const char
 }
 
 void
-html_element_input_text(int sockd, char *legend, char *name) {
+html_element_select_code(int sockd,char *legend,char *name,char *selected, const struct skeysval_t list[], int num, char *id) {
+    const int maxlen=8192;
+    char *buffer = calloc(1,maxlen);
+
+    if( ! buffer ) {
+        logmsg(LOG_ERR,"Out of memory in html_element_select_code() !");
+        exit(EXIT_FAILURE);
+    }
+
+    if( id && *id ) {
+        snprintf(buffer,maxlen,
+                "<div class=\"input_container\" id=\"%s\">"
+                "<div class=\"input_legend\">%s</div>",id,legend);
+    } else {
+        snprintf(buffer,maxlen,
+                "<div class=\"input_container\">"
+                "<div class=\"input_legend\">%s</div>",legend);
+    }
+    _writef(sockd,buffer);
+
+    if( id && *id ) {
+        snprintf(buffer,maxlen,"<select name=\"%s\" class=\"%s\" id=\"%s\">\n",name,"input_select_code",id);
+    } else {
+        snprintf(buffer,maxlen,"<select name=\"%s\" class=\"%s\">\n",name,"input_select_code");
+    }
+    _writef(sockd,buffer);
+    int i=0;
+    while( i < num ) {
+        if( selected && 0 == strcmp(selected,list[i].val) ) {
+            snprintf(buffer,maxlen,"<option selected value=\"%s\">%s</option>\n",list[i].key,list[i].val);
+        } else {
+            snprintf(buffer,maxlen,"<option value=\"%s\">%s</option>\n",list[i].key,list[i].val);
+        }
+        _writef(sockd,buffer);
+       ++i;
+    }
+    snprintf(buffer,maxlen,"</select></div>\n");
+    _writef(sockd,buffer);
+    free(buffer);
+}
+
+void
+html_element_input_text(int sockd, char *legend, char *name, char *id) {
     const int maxlen=8192;
     char *buffer = calloc(1,maxlen);
 
@@ -367,9 +451,15 @@ html_element_input_text(int sockd, char *legend, char *name) {
         logmsg(LOG_ERR,"Out of memory in html_element_input() !");
         exit(EXIT_FAILURE);
     }
-    snprintf(buffer,maxlen,
-            "<div class=\"input_container\">"
-            "<div class=\"input_legend\">%s</div>",legend);
+    if( id && *id ) {
+        snprintf(buffer,maxlen,
+                "<div class=\"input_container\" id=\"%s\">"
+                "<div class=\"input_legend\">%s</div>",id,legend);
+    } else {
+        snprintf(buffer,maxlen,
+                "<div class=\"input_container\">"
+                "<div class=\"input_legend\">%s</div>",legend);
+    }
     _writef(sockd,buffer);
 
     snprintf(buffer,maxlen,"<input type=\"text\" name=\"%s\" class=\"input_text\"></input></div>\n",name);
@@ -378,7 +468,7 @@ html_element_input_text(int sockd, char *legend, char *name) {
 }
 
 void
-html_element_submit(int sockd,char *name, char *value) {
+html_element_submit(int sockd,char *name, char *value, char *id) {
 
     const int maxlen=8192;
     char *buffer = calloc(1,maxlen);
@@ -390,8 +480,8 @@ html_element_submit(int sockd,char *name, char *value) {
     snprintf(buffer,maxlen,
             "<div class=\"input_container\">"
             "<div class=\"input_legend\">&nbsp;</div>"
-            "<input type=\"submit\" name=\"%s\" value=\"%s\" class=\"input_submit\"></div>\n",
-            name,value);
+            "<input type=\"submit\" name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s\"></div>\n",
+            name,value,id);
     _writef(sockd,buffer);
 
     free(buffer);
@@ -400,55 +490,95 @@ html_element_submit(int sockd,char *name, char *value) {
 void
 html_cmd_add_del(int sockd) {
     static const char *day_list[] = {
-        "Today","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+        "","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
     };
-    int n_day = 7;
+    const int n_day = 8;
     static const char *min_list[] = {
-        "00","05","10","15","20","25","30","35","40","45","50","55"
+        "00","05","10","15","20","25","29","30","35","40","45","50","55","59"
     };
     static const char *hour_list[] = {
         "00","01","02","03","04","05","06","07","08","09","10","11","12",
         "13","14","15","16","17","18","19","20","21","22","23"
     };
+    static const struct skeysval_t rpt_list[] = {
+        {.key = "",.val=""},
+        {.key = "w",.val="Weekly"},
+        {.key = "d",.val="Daily"},
+        {.key = "f",.val="Mon-Fri"},
+        {.key = "t",.val="Mon-Thu"},
+        {.key = "s",.val="Sat-Sun"},
+    };
+    const int n_rpt = 6;
+    static const char *rptcount_list[] = {
+        "","02","03","04","05","06","07","08","09","10",
+        "11","12","13","14","15","16","17","18","19",
+        "20","21","22","23","24","25","26","27","28","29",
+        "30","31","33","33","34","35","36","37","38","39",
+    };
+    const int n_rptcount = 39 ;
+    static const char *yn_list[] = {
+        "Yes","No"
+    };
+    const int n_ynlist = 2;
     static const char *station_list[128];
-    int n_stations = get_stations(station_list,128);
+    const int n_stations = get_stations(station_list,128);
 
     static const char *profile_list[64];
-    int n_profile = get_profile_names(profile_list,64);
+    const int n_profile = get_profile_names(profile_list,64);
 
-    int n_hour = sizeof(hour_list)/sizeof(char *);
-    int n_min = sizeof(min_list)/sizeof(char *);
+    const int n_hour = sizeof(hour_list)/sizeof(char *);
+    const int n_min = sizeof(min_list)/sizeof(char *);
 
-    _writef(sockd,"<div class=\"cmd_bottom_container\">");
+    //_writef(sockd,"<div class=\"cmd_bottom_container\">");
 
+    /*
+     * Add recordings
+     */
     _writef(sockd,"<form name=\"%s\" method=\"get\" action=\"addrec\">\n","addrecording");
 
     _writef(sockd,"<fieldset><legend>Add new recording</legend>");
-    
-    html_element_select(sockd,"Ch:","channel",NULL, station_list, n_stations);
-    html_element_select(sockd,"Start:","start_day",NULL, day_list, n_day);
-    html_element_select(sockd,"&nbsp;","start_hour",NULL, hour_list, n_hour);
-    html_element_select(sockd,"&nbsp;","start_min",NULL, min_list, n_min);
+    html_element_select_code(sockd,"Repeat:","repeat",NULL, rpt_list, n_rpt,NULL);
+    html_element_select(sockd,"Count:","repeatcount",NULL, rptcount_list, n_rptcount,"id_rptcount");
+    html_element_select(sockd,"Profile:","profile",default_transcoding_profile, profile_list, n_profile,"id_profile");
+    html_element_select(sockd,"Station:","channel",NULL, station_list, n_stations,"id_station");
 
-    html_element_select(sockd,"End:","end_hour",NULL, hour_list, n_hour);
-    html_element_select(sockd,"&nbsp;","end_min",NULL, min_list, n_min);
+    html_element_select(sockd,"Time:","start_day",NULL, day_list, n_day,"id_start");
+    html_element_select(sockd,"&nbsp;","start_hour","18", hour_list, n_hour,NULL);
+    html_element_select(sockd,"&nbsp;","start_min",NULL, min_list, n_min,NULL);
+    _writef(sockd,"<div class=\"input_container\"><div>&nbsp;</div> &nbsp; to &nbsp; </div>");
+    html_element_select(sockd,"&nbsp;","end_hour","18", hour_list, n_hour,NULL);
+    html_element_select(sockd,"&nbsp;","end_min","59", min_list, n_min,NULL);
 
-    html_element_select(sockd,"Profile:","profile",default_transcoding_profile, profile_list, n_profile);
-    html_element_input_text(sockd,"Title:","title");
-    html_element_submit(sockd,"submit_addrec","Add");
+    html_element_input_text(sockd,"Title:","title","id_title");
+    html_element_submit(sockd,"submit_addrec","Add","");
     _writef(sockd,"</fieldset>");
     _writef(sockd,"</form>\n");
 
+
+    /*
+     * Delete recordings
+     */
     _writef(sockd,"<form name=\"%s\" method=\"get\" action=\"delrec\">\n","deleterecording");
 
     _writef(sockd,"<fieldset><legend>Delete recording</legend>");
 
-    html_element_input_text(sockd,"Record id:","recid");
-    html_element_submit(sockd,"submit_delrec","Delete");
+    //html_element_input_text(sockd,"Record id:","recid");
+    struct skeysval_t *listrec ;
+    int num = listrecskeyval(&listrec,3);
+    html_element_select_code(sockd,"Title:","recid",NULL,listrec,num,"id_delselect");
+    for( int i=0; i < num; ++i ) {
+        free(listrec[i].key);
+        free(listrec[i].val);
+    }
+    free(listrec);
+
+    html_element_select(sockd,"Delete serie:","delserie","No",yn_list,n_ynlist,"id_seriesyn");
+    html_element_submit(sockd,"submit_delrec","Delete","delrec");
     _writef(sockd,"</fieldset>");
     _writef(sockd,"</form>\n");
 
-    _writef(sockd,"</div>");
+    // Close container
+    //_writef(sockd,"</div>");
 }
 
 struct cmd_entry {
@@ -482,7 +612,7 @@ html_commandlist(int sockd) {
         {"lp","List profiles"},
         {"log","Show last log"},
         {"l","Upcoming recordings"},
-        {"n","Nextr immediate recordings"},
+        {"n","Next immediate recordings"},
         {"otl","Show ongoing transcoding list"},
         {"ot","Show ongoing transcoding"},
         {"o","Show ongoing recording"},
@@ -527,47 +657,70 @@ html_commandlist(int sockd) {
 
     */
 
-  static struct cmd_entry cmdfunc_master_query[] = {
-        {"h","Help"},
-        {"lc 0","List controls for capture card 0"},
-        {"ls","List stations"},
-        {"lp","List profiles"},
-        {"log%2050","Show last 50 log"},
-        {"l","Upcoming recordings"},
-        {"n","Next immediate recordings"},
-        {"otl","Show ongoing transcoding list"},
-        {"ot","Show ongoing transcoding"},
-        {"o","Show ongoing recording"},
-        {"st","Profile statistics"},
-        {"s","Status"},
-        {"t","Server time"},
-        {"vc","Show TV-Card information"},
-        {"v","Version"},
-        {"wt","List waiting transcodings"},
-        {"x","Show DB raw file"},
-        {"z","Show ini-file settings"},
+  static struct cmd_entry cmdfunc_master_recs[] = {
+        {"l","List all"},
+        {"n","Next"},
+        {"o","Ongoing"}
     };
 
-    static struct cmd_entry cmdfunc_slave_query[] = {
-        {"h","Help"},
-        {"lp","List profiles"},
-        {"log","Show last log"},
-        {"otl","Show ongoing transcoding list"},
-        {"ot","Show ongoing transcodings"},
+  static struct cmd_entry cmdfunc_master_list[] = {
+        {"ls","Stations"},
+        {"lp","Profiles"},
+        {"log%2050","Last 50 log entries"},
+        {"ot","Ongoing transcoding"},
+        {"wt","Waiting transcodings"}
+    };
+
+  static struct cmd_entry cmdfunc_master_status[] = {
+        {"s","Server "},
+        {"t","Time"},
+        {"v","Version"}
+    };
+  
+  static struct cmd_entry cmdfunc_master_misc[] = {
         {"st","Profile statistics"},
-        {"s","Status"},
-        {"t","Server time"},
-        {"v","Version"},
-        {"wt","List waiting transcodings"},
+        {"x","Show DB raw file"},
+        {"z","Show ini-file settings"}
+    };
+
+  static struct cmd_entry cmdfunc_master_driver[] = {
+        {"vc","Show TV-Card information"},
+        {"lc 0","List controls for capture card 0"}
+  };
+
+  static struct cmd_entry cmdfunc_slave_list[] = {
+        {"ls","Stations"},
+        {"lp","Profiles"},
+        {"log%2050","Show last 50 log"},
+        {"n","Next immediate recordings"},
+        {"ot","Ongoing transcoding"},
+        {"wt","Waiting transcodings"},
+    };
+
+
+  static struct cmd_entry cmdfunc_slave_status[] = {
+        {"s","Server "},
+        {"t","Time"},
+        {"v","Version"}
+    };
+
+  static struct cmd_entry cmdfunc_slave_misc[] = {
+        {"st","Profile statistics"},
         {"z","Show ini-file settings"}
     };
 
     static struct cmd_grp cmd_grp_master[] = {
-        {"Query","Non modifying commands",sizeof(cmdfunc_master_query)/sizeof(struct cmd_entry),cmdfunc_master_query}
+        {"Recordings","Stored recordings",sizeof(cmdfunc_master_recs)/sizeof(struct cmd_entry),cmdfunc_master_recs},
+        {"Status","Show status",         sizeof(cmdfunc_master_status)/sizeof(struct cmd_entry),cmdfunc_master_status},
+        {"Information","Information lists",sizeof(cmdfunc_master_list)/sizeof(struct cmd_entry),cmdfunc_master_list},
+        {"Other","Various information",  sizeof(cmdfunc_master_misc)/sizeof(struct cmd_entry),cmdfunc_master_misc},
+        {"Driver","Driver information",  sizeof(cmdfunc_master_driver)/sizeof(struct cmd_entry),cmdfunc_master_driver}
     };
 
     static struct cmd_grp cmd_grp_slave[] = {
-        {"Query","Non modifying commands",sizeof(cmdfunc_slave_query)/sizeof(struct cmd_entry),cmdfunc_slave_query}
+        {"List","Show information lists",sizeof(cmdfunc_slave_list)/sizeof(struct cmd_entry),cmdfunc_slave_list},
+        {"Status","Show status",         sizeof(cmdfunc_slave_status)/sizeof(struct cmd_entry),cmdfunc_slave_status},
+        {"Other","Various information",  sizeof(cmdfunc_slave_misc)/sizeof(struct cmd_entry),cmdfunc_slave_misc}
     };
 
     static struct cmd_grp *cmdgrp;

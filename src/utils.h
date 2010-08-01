@@ -299,6 +299,9 @@ get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
 // Optional alphanumeric sequence
 #define _PR_ANO "([\\p{L}\\p{N}\\_]*)"
 
+// Optional alphanumeric sequence
+#define _PR_ANSO "([\\p{L}\\p{N}\\_ ]*)"
+
 // Required numeric sequence
 #define _PR_N "([\\p{N}]+)"
 
