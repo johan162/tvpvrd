@@ -69,7 +69,7 @@ int htmlencode_flag=0;
 int
 _writef(int fd, const char *buf, ...) {
     if( fd >= 0 ) {
-        const int blen = MAX(4096,strlen(buf)+1);
+        const int blen = MAX(8192*2,strlen(buf)+1);
         char *tmpbuff = calloc(blen,sizeof(char));
         if( tmpbuff == NULL ) {
             logmsg(LOG_ERR,"FATAL: Cannot allocate buffer in _writef()");
@@ -434,7 +434,7 @@ matchcmd(const char *regex, const char *cmd, char ***field) {
 
     cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_UTF8,&errptr,&erroff,NULL);
     if( cregex ) {
-        ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,0,ovector,90);
+        ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,PCRE_NEWLINE_ANYCRLF,ovector,90);
         pcre_free(cregex);
         if( ret > 0 ) {
             (void)pcre_get_substring_list(cmd,ovector,ret,(const char ***)field);
