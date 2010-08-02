@@ -54,6 +54,19 @@
  *
  */
 
+void
+html_element_input_text(int sockd, char *legend, char *name, char *id);
+
+void
+html_element_submit(int sockd,char *name, char *value, char *id);
+
+void
+html_main_page(int sockd,char *wcmd,char *cookie);
+
+void
+html_login_page(int sockd);
+
+
 /**
  * This test function is called when the server receives a new conection and
  * determines if the first command is a GET string. This is then an indication
@@ -72,7 +85,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
         // Now extract the command string
         char **field = (void *)NULL;
         int ret ;
-        
+
         if( (ret=matchcmd("^GET /cmd\\?" _PR_ANPS _PR_S "HTTP" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
 
             // Found a command string so store it in the buffer
@@ -83,25 +96,26 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
                 strcat(cmd," ");
             cmd[maxlen-1] = '\0';
 
-            logmsg(LOG_DEBUG,"Decoded command: %s",cmd);
-
             return 1;
 
         } else if ( (ret = matchcmd("^GET /(cmd)? HTTP" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
                
-            // Empty call. Interpret as a 'v' status call
             strncpy(cmd,"v",maxlen);
             return 1;
 
-        } else if( (ret = matchcmd("^GET /addrec?" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
-            
-            logmsg(LOG_DEBUG,"Received addrec: %s",field[1]);
-            
+        } else if( (ret = matchcmd("^GET /addrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
+                       
             return 1;
 
-        } else if( (ret = matchcmd("^GET /delrec?" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
+        } else if( (ret = matchcmd("^GET /delrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
 
-            logmsg(LOG_DEBUG,"Received delrec: %s",field[1]);
+            return 1;
+
+        } else if( (ret = matchcmd("^GET /login\\?" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
+
+            return 1;
+
+        } else if( (ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) > 1 ) {
 
             return 1;
 
@@ -118,6 +132,61 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
     }
 
     return 0;
+}
+
+
+/*
+ * Parse the full HTTP header sent back from the browser to detect
+ * if the corect cookie is set that indicates that the user has logged
+ * in in this session
+ */
+#define LOGIN_COOKIE "djrwye8aj82hAp"
+char *web_user = "ljp";
+char *web_pwd = "ljpljp";
+
+int
+validate_cookie(char *cookie) {
+
+    return ! strcmp(LOGIN_COOKIE,cookie);
+
+}
+
+int
+validate_login(char *user, char *pwd) {
+    if( 0 == strcmp(user,web_user) && 0 == strcmp(pwd,web_pwd) )
+        return 1;
+    else
+        return 0;
+}
+
+static char *
+create_login_cookie(char *user,char *pwd) {
+    static char _cookie_buff[128];
+    strncpy(_cookie_buff,LOGIN_COOKIE,127);
+    return _cookie_buff;
+}
+
+int
+user_loggedin(char *buffer,char *cookie,int maxlen) {
+    char **field = (void *)NULL;
+    int ret ;
+
+    *cookie = '\0';
+    
+    if( (ret=matchcmd( _PR_ANY "Cookie: tvpvrd=" _PR_AN , buffer, &field)) > 1 ) {
+
+        if( validate_cookie(field[2]) ) {
+            strncpy(cookie,field[2],maxlen);
+            cookie[maxlen-1] = '\0';
+            return 1;
+        }
+        else {            
+            return 0;
+        }
+
+    } else {
+        return 0;
+    }    
 }
 
 /*
@@ -222,52 +291,69 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 }
             }
             
+        } 
+        
+        
+        if( (ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1 ) {
+            // If it's not a favicon.ico GET command we proceed
+
+            logmsg(LOG_DEBUG,"**** Browser sent: %s",buffer);
+            logmsg(LOG_DEBUG,"**** Translated to: %s",wcmd);
+            static char logincookie[128];
+            if( ! user_loggedin(buffer,logincookie,127) ) {
+
+                // Check if user just tried to login
+                if( (ret = matchcmd("^GET /login\\?"
+                            _PR_AN "=" _PR_ANO "&"
+                            _PR_AN "=" _PR_ANO "&"
+                            _PR_AN "=" _PR_ANO
+                            " HTTP/1.1",
+                            buffer, &field)) > 1 ) {
+
+                    const int maxvlen=64;
+                    char user[maxvlen],pwd[maxvlen],logsubmit[maxvlen];
+                    get_assoc_value(user,maxvlen,"user",&field[1],ret-1);
+                    get_assoc_value(pwd,maxvlen,"pwd",&field[1],ret-1);
+                    get_assoc_value(logsubmit,maxvlen,"submit_login",&field[1],ret-1);
+                    
+                    if( 0==strcmp(logsubmit,"Login") ) {
+
+                        if( ! validate_login(user,pwd) ) {
+
+                            html_login_page(my_socket);
+
+                        } else {
+
+                            html_main_page(my_socket,"v",create_login_cookie(user,pwd));
+
+                        }
+
+                    } else {
+
+                        html_login_page(my_socket);
+                    }
+
+                } else {
+
+                    html_login_page(my_socket);
+
+                }
+                
+            }
+            else {
+
+                html_main_page(my_socket,wcmd,logincookie);
+
+            }
+
+        } else {
+
+            // Ignore favicon.ico GET
+            logmsg(LOG_DEBUG, "Ignoring WEB GET favicon.ico");
+
         }
-
-        logmsg(LOG_DEBUG,"Web command translated to: %s",wcmd);
-        
-        // Initialize a new page
-        char title[255];
-        snprintf(title,254,"tvpvrd %s",server_version);
-        html_newpage(my_socket,title);
-        html_topbanner(my_socket);
-        _writef(my_socket,"<div class=\"left_side\">");
-        html_commandlist(my_socket);
-        _writef(my_socket,"</div>"); // class="LEFT_side"
-
-        _writef(my_socket,"<div class=\"right_side\">");
-        html_output(my_socket);
-
-        // We must cwait for the semphore since since commands
-        // might alter data structures and we can only have one
-        // thread at a time accessing the data structures
-        pthread_mutex_lock(&recs_mutex);
-
-        // Make _writef() do HTML encoding on any output sent
-        htmlencode_flag = 1;
-
-        // The execution of the command happens in the command module.
-        // Any output from the command are sent to the given socket
-        // descriptor and passed back to the browser in this case.
-        cmdinterp(wcmd, my_socket);
-        htmlencode_flag = 0;
-
-        pthread_mutex_unlock(&recs_mutex);
-
-        html_output_end(my_socket);
-        /*
-         *  Experimental coding
-         */
-        html_cmd_add_del(my_socket);
-        _writef(my_socket,"</div>"); // class="right_side"
-
-
-        html_endpage(my_socket);
-
     } else {
-        
-        logmsg(LOG_DEBUG, "Browser sent unrecognized command: %s",buffer);
-
+        logmsg(LOG_ERR, "Unrecognized WEB-command");
     }
 
     free(buffer);
@@ -281,7 +367,7 @@ read_cssfile(char *buff, int maxlen) {
     char cssfile[255];
     snprintf(cssfile,255,"%s/tvpvrd/%s",CONFDIR,CSSFILE_NAME);
     cssfile[254] = '\0';
-    char linebuff[512];
+    char linebuff[1024];
 
     *buff = '\0';
     FILE *fp = fopen(cssfile,"r");
@@ -290,8 +376,8 @@ read_cssfile(char *buff, int maxlen) {
         return -1;
     }
 
-    while( maxlen >  0 && fgets(linebuff,511,fp) ) {
-        linebuff[511] = '\0';
+    while( maxlen >  0 && fgets(linebuff,1023,fp) ) {
+        linebuff[1023] = '\0';
         strncat(buff,linebuff,maxlen);
         maxlen -= strlen(linebuff);
     }
@@ -353,10 +439,11 @@ html_newpage(int sockd, char *title) {
     "<body>"
     "<div class=\"top_page\">";
 
-    char cssbuff[4096];
-    read_cssfile(cssbuff,4096);
-
+    const int maxlen = 8192*2;
+    char *cssbuff = calloc(1,maxlen);
+    read_cssfile(cssbuff,maxlen);
     _writef(sockd,preamble,title,cssbuff);
+    free(cssbuff);
 }
 
 void
@@ -485,6 +572,76 @@ html_element_submit(int sockd,char *name, char *value, char *id) {
     _writef(sockd,buffer);
 
     free(buffer);
+}
+
+void
+html_main_page(int sockd,char *wcmd, char *cookie_val) {
+        // Send back a proper HTTP header
+        _writef(sockd,
+                "HTTP/1.1 200 OK\r\n"
+                "Server: tvpvrd\r\n"
+                "Set-Cookie: tvpvrd=%s;Version=1;\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/html\r\n\r\n",cookie_val);
+
+        // Initialize a new page
+        char title[255];
+        snprintf(title,254,"tvpvrd %s",server_version);
+        html_newpage(sockd,title);
+        html_topbanner(sockd);
+        _writef(sockd,"<div class=\"left_side\">");
+        html_commandlist(sockd);
+        _writef(sockd,"</div>"); // class="LEFT_side"
+
+        _writef(sockd,"<div class=\"right_side\">");
+        html_output(sockd);
+
+        // We must cwait for the semphore since since commands
+        // might alter data structures and we can only have one
+        // thread at a time accessing the data structures
+        pthread_mutex_lock(&recs_mutex);
+
+        // Make _writef() do HTML encoding on any output sent
+        htmlencode_flag = 1;
+
+        // The execution of the command happens in the command module.
+        // Any output from the command are sent to the given socket
+        // descriptor and passed back to the browser in this case.
+        cmdinterp(wcmd, sockd);
+        htmlencode_flag = 0;
+
+        pthread_mutex_unlock(&recs_mutex);
+
+        html_output_end(sockd);
+        /*
+         *  Experimental coding
+         */
+        html_cmd_add_del(sockd);
+        _writef(sockd,"</div>"); // class="right_side"
+
+        html_endpage(sockd);
+
+}
+
+void
+html_login_page(int sockd) {
+        // Initialize a new page
+        char title[255];
+        snprintf(title,254,"tvpvrd %s",server_version);
+        html_newpage(sockd,title);
+        html_topbanner(sockd);
+
+        _writef(sockd,"<div class=\"%s\">","login_container");
+        _writef(sockd,"<div class=\"%s\">Please login</div>","login_title");
+        _writef(sockd,"<form name=\"%s\" method=\"get\" action=\"login\">\n","tvlogin");
+        html_element_input_text(sockd, "User:", "user", "id_loginuser");
+        html_element_input_text(sockd, "Password:", "pwd", "id_loginpwd");
+        html_element_submit(sockd,"submit_login","Login","id_submitlogin");
+
+        _writef(sockd,"<form>");
+        _writef(sockd,"</div>");
+
+        html_endpage(sockd);
 }
 
 void
