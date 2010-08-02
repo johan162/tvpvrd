@@ -372,7 +372,7 @@ readXMLFile(const char *filename) {
     // Parse the XML file
     doc = xmlParseFile(filename);
     if (doc == NULL) {
-        logmsg(LOG_ERR, "Unable to open XML Database file: '%s'", filename);
+        logmsg(LOG_ERR, "Unable to open XML Database file: '%s' ( %d : %s )", filename,errno,strerror(errno));
         return -1;
     }
 
@@ -421,6 +421,10 @@ _writeXMLFile(const int fd) {
     int saved_recrec[2 * MAX_ENTRIES];
     char tmpbuff[256];
     time_t now;
+
+
+    int oldhtml = htmlencode_flag;
+    htmlencode_flag = 0;
 
     nsaved_recrec = 0;
     now = time(NULL);
@@ -515,7 +519,9 @@ _writeXMLFile(const int fd) {
             }
         }
     }
-    return _writef(fd, "</%s>\n",xmldb_root);
+    _writef(fd, "</%s>\n",xmldb_root);
+    htmlencode_flag = oldhtml;
+    return 0;
 }
 
 /*
