@@ -115,6 +115,14 @@ extern "C" {
  * i.e. on 9301 with the default settings.
  */
 #define ENABLE_WEBINTERFACE 0    
+   
+/*
+ * REQUIRE_WEB_PASSWORD int
+ * Should the WEB-interface require logon
+*/    
+#define REQUIRE_WEB_PASSWORD 0
+#define WEB_USER ""
+#define WEB_PASSWORD ""
 
 /*
  * MAX_VIDEO integer
@@ -495,6 +503,11 @@ extern char locale_name[];
 
 // Should we allow connection to the WEB-interface
 extern int enable_webinterface;
+
+// Web interface login
+extern int require_web_password;
+extern char web_password[];
+extern char web_user[];
 
 #ifdef	__cplusplus
 }

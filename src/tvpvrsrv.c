@@ -279,6 +279,10 @@ int dokilltranscodings = 1;
  */
 static int require_password = REQUIRE_PASSWORD;
 static char password[32];
+char web_password[32];
+char web_user[32];
+int require_web_password;
+
 
 /*
  * Determine if we should use subdirectories for each profile or just
@@ -2324,7 +2328,15 @@ read_inisettings(void) {
     require_password = iniparser_getboolean(dict,"config:require_password",REQUIRE_PASSWORD);
 
     enable_webinterface = iniparser_getboolean(dict,"config:enable_webinterface",ENABLE_WEBINTERFACE);
-
+    require_web_password = iniparser_getboolean(dict,"config:require_web_password",REQUIRE_PASSWORD);
+    strncpy(web_user,
+            iniparser_getstring(dict, "config:web_user", WEB_USER),
+            31);
+    web_user[31] = '\0';
+    strncpy(web_password,
+            iniparser_getstring(dict, "config:web_password", WEB_PASSWORD),
+            31);
+    web_password[31] = '\0';
 
     send_mail_on_transcode_end = iniparser_getboolean(dict,"config:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);
     send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SENDMAIL_ON_ERROR);

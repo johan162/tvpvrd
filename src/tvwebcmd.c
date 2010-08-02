@@ -66,6 +66,9 @@ html_main_page(int sockd,char *wcmd,char *cookie);
 void
 html_login_page(int sockd);
 
+void
+html_notfound(int sockd);
+
 
 /**
  * This test function is called when the server receives a new conection and
@@ -123,7 +126,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 
             // Unrecoqnized command
             strncpy(cmd,"xxx",maxlen);
-            return 1;
+            return 0;
 
         }
 
@@ -140,20 +143,12 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
  * if the corect cookie is set that indicates that the user has logged
  * in in this session
  */
-#define LOGIN_COOKIE "djrwye8aj82hAp"
-char *web_user = "ljp";
-char *web_pwd = "ljpljp";
-
-int
-validate_cookie(char *cookie) {
-
-    return ! strcmp(LOGIN_COOKIE,cookie);
-
-}
+#define LOGIN_COOKIE "d_ye8aj82hApsj02njfuyysad"
 
 int
 validate_login(char *user, char *pwd) {
-    if( 0 == strcmp(user,web_user) && 0 == strcmp(pwd,web_pwd) )
+
+    if( 0 == strcmp(user,web_user) && 0 == strcmp(pwd,web_password) )
         return 1;
     else
         return 0;
@@ -161,9 +156,51 @@ validate_login(char *user, char *pwd) {
 
 static char *
 create_login_cookie(char *user,char *pwd) {
-    static char _cookie_buff[128];
-    strncpy(_cookie_buff,LOGIN_COOKIE,127);
+
+    static char _cookie_buff[128] ;
+    strcpy(_cookie_buff,LOGIN_COOKIE);
+
+    char hostname[128];
+    gethostname(hostname,127);
+    hostname[127] = '\0';
+
+    char buff[128];
+    strncpy(buff,user,127);
+    buff[127]='\0';
+    strncat(buff,pwd,64);
+    buff[127]='\0';
+    strncat(buff,hostname,64);
+    buff[127]='\0';
+
+    int n=MIN(strlen(_cookie_buff),strlen(buff));
+
+
+    for(int i=0; i < n; ++i) {
+
+        _cookie_buff[i] += buff[i] ;
+        _cookie_buff[i] &= 127;
+        if( (int)_cookie_buff[i] < 32 )
+            _cookie_buff[i] += 32;
+
+        // Remove the URL special chars, '+' 
+        if( _cookie_buff[i] == '+' )
+            _cookie_buff[i] = '_';
+
+    }
+
+    _cookie_buff[n] = '\0';
+
+    // logmsg(LOG_DEBUG,"Created cookie: '%s' from %s",_cookie_buff, buff);
+
     return _cookie_buff;
+}
+
+
+int
+validate_cookie(char *cookie) {
+
+    return ! strcmp(create_login_cookie(web_user,web_password),cookie);
+
 }
 
 int
@@ -172,15 +209,24 @@ user_loggedin(char *buffer,char *cookie,int maxlen) {
     int ret ;
 
     *cookie = '\0';
-    
-    if( (ret=matchcmd( _PR_ANY "Cookie: tvpvrd=" _PR_AN , buffer, &field)) > 1 ) {
 
-        if( validate_cookie(field[2]) ) {
-            strncpy(cookie,field[2],maxlen);
+    if( ! require_web_password )
+        return 1;
+    
+    if( (ret=matchcmd( _PR_ANY "Cookie: tvpvrd=" _PR_ANP , buffer, &field)) > 1 ) {
+
+        char *tmpbuff = url_decode(field[2]);
+
+        logmsg(LOG_DEBUG,"Received cookie: %s decoded as: %s",field[2],tmpbuff);
+
+        if( validate_cookie(tmpbuff) ) {
+            strncpy(cookie,tmpbuff,maxlen);
             cookie[maxlen-1] = '\0';
+            free(tmpbuff);
             return 1;
         }
-        else {            
+        else {
+            free(tmpbuff);
             return 0;
         }
 
@@ -353,7 +399,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
         }
     } else {
-        logmsg(LOG_ERR, "Unrecognized WEB-command");
+        html_notfound(my_socket);
+        logmsg(LOG_ERR, "** Unrecognized WEB-command: %s",buffer);
     }
 
     free(buffer);
@@ -575,51 +622,73 @@ html_element_submit(int sockd,char *name, char *value, char *id) {
 }
 
 void
+html_notfound(int sockd) {
+        _writef(sockd,
+                "HTTP/1.1 404 OK\r\n"
+                "Server: tvpvrd\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/html\r\n\r\n<html><body><h3>404 - Not found.</h3></body></html>\r\n");
+}
+
+void
 html_main_page(int sockd,char *wcmd, char *cookie_val) {
         // Send back a proper HTTP header
+
+    if( cookie_val && *cookie_val ) {
+        char *tmpbuff = url_encode(cookie_val);
+        logmsg(LOG_DEBUG,"Stored cookie: %s as %s",cookie_val,tmpbuff) ;
         _writef(sockd,
                 "HTTP/1.1 200 OK\r\n"
                 "Server: tvpvrd\r\n"
                 "Set-Cookie: tvpvrd=%s;Version=1;\r\n"
                 "Connection: close\r\n"
-                "Content-Type: text/html\r\n\r\n",cookie_val);
+                "Content-Type: text/html\r\n\r\n",tmpbuff);
+        free(tmpbuff);
+    } else {
+        _writef(sockd,
+                "HTTP/1.1 200 OK\r\n"
+                "Server: tvpvrd\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/html\r\n\r\n");
+    }
 
-        // Initialize a new page
-        char title[255];
-        snprintf(title,254,"tvpvrd %s",server_version);
-        html_newpage(sockd,title);
-        html_topbanner(sockd);
-        _writef(sockd,"<div class=\"left_side\">");
-        html_commandlist(sockd);
-        _writef(sockd,"</div>"); // class="LEFT_side"
 
-        _writef(sockd,"<div class=\"right_side\">");
-        html_output(sockd);
+    // Initialize a new page
+    char title[255];
+    snprintf(title,254,"tvpvrd %s",server_version);
+    html_newpage(sockd,title);
+    html_topbanner(sockd);
+    _writef(sockd,"<div class=\"left_side\">");
+    html_commandlist(sockd);
+    _writef(sockd,"</div>"); // class="LEFT_side"
 
-        // We must cwait for the semphore since since commands
-        // might alter data structures and we can only have one
-        // thread at a time accessing the data structures
-        pthread_mutex_lock(&recs_mutex);
+    _writef(sockd,"<div class=\"right_side\">");
+    html_output(sockd);
 
-        // Make _writef() do HTML encoding on any output sent
-        htmlencode_flag = 1;
+    // We must cwait for the semphore since since commands
+    // might alter data structures and we can only have one
+    // thread at a time accessing the data structures
+    pthread_mutex_lock(&recs_mutex);
 
-        // The execution of the command happens in the command module.
-        // Any output from the command are sent to the given socket
-        // descriptor and passed back to the browser in this case.
-        cmdinterp(wcmd, sockd);
-        htmlencode_flag = 0;
+    // Make _writef() do HTML encoding on any output sent
+    htmlencode_flag = 1;
 
-        pthread_mutex_unlock(&recs_mutex);
+    // The execution of the command happens in the command module.
+    // Any output from the command are sent to the given socket
+    // descriptor and passed back to the browser in this case.
+    cmdinterp(wcmd, sockd);
+    htmlencode_flag = 0;
 
-        html_output_end(sockd);
-        /*
-         *  Experimental coding
-         */
-        html_cmd_add_del(sockd);
-        _writef(sockd,"</div>"); // class="right_side"
+    pthread_mutex_unlock(&recs_mutex);
 
-        html_endpage(sockd);
+    html_output_end(sockd);
+    /*
+     *  Experimental coding
+     */
+    html_cmd_add_del(sockd);
+    _writef(sockd,"</div>"); // class="right_side"
+
+    html_endpage(sockd);
 
 }
 
