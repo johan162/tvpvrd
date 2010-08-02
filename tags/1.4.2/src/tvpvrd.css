@@ -1,0 +1,245 @@
+
+
+
+/*
+ * CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
+ * SVN: $Id$
+ */
+
+/* Make it 99% to avoid scroll bars on the main page */
+html,body {
+    height:99%;
+    width: 99%;
+}
+
+/* The overall main page is contained in this div */
+div.top_page {
+
+    border: 1px solid gray;
+    background: #e1e6db;
+    height:550px;
+    width:99%;
+    padding:0px;
+
+   border: solid red 2px;
+
+}
+
+/* Container around command output area */
+div.right_side {
+    float: left;
+    width:69%;
+    height:94%;
+}
+
+div.left_side {
+    float: left;
+    width:29%;
+    height:94%;
+    margin-right : 3px;
+    border-right : 1px solid gray;
+}
+
+/* This div encloses the command menu */
+div.cmd_menu {
+    float: left; 
+    width : 99%;
+    height : 99%;
+    margin-left : 5px;
+    color:black;
+    font-size:11pt;
+}
+
+/* This div encloses the command output */
+div.cmd_output {
+    clear:right;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-right: 3px;
+    padding-left: 3px;
+    margin-left:0px;
+    margin-right:0px;
+    font-weight:bold;
+    border:dotted gray 1px;
+    background:white;
+    height:40%;
+    width:99%;
+    overflow:auto;
+}
+
+
+/* The top banner line with name and version */
+div.top_banner {
+    text-align:left;
+    font-weight:bold;
+    font-size:14pt;
+    background: #a7b797;
+    margin-bottom: 4px;
+    padding: 2px;
+}
+
+/* To get rid of anchor underlines in comamnd menu */
+div.cmd_menu a {
+    text-decoration:none;
+    color:black;
+}
+
+/* To highlight the current selected command */
+div.cmd_menu a:hover {
+    text-decoration:underline;
+    color:navy;
+}
+
+/* Encloses the command menu group title line */
+div.cmdgrp_title_row {
+    font-family:Arial, Sans-serif;
+    color : navy;
+    margin-top:10px;
+    margin-bottom:2px;
+}
+
+/* Encloses the command menu group title short name */
+span.cmdgrp_title {
+    font-weight: bold;
+}
+
+/* Encloses the command menu group description */
+span.cmdgrp_desc {
+    font-style:italic;
+
+}
+
+/* Encloses all commands in one menu group */
+div.cmdgrp_commands {
+    padding-left:10px;
+}
+
+legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-variant:small-caps;
+    font-size:13pt;
+    color:#202020;
+}
+
+fieldset {
+    border:dotted gray 1px;
+   margin-top:5px;
+}
+
+div.input_container {
+    float:left;
+    padding:1px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+div.input_legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:9pt;
+    color:#505050;
+}
+
+div.input_select {
+}
+
+select.input_select#id_seriesyn {
+    width:70px;
+}
+
+select.input_select#id_rptcount {
+    width:50px;
+}
+
+
+select.input_select_code {
+    font-family:Arial, Sans-serif;
+    color:#202020;
+}
+
+
+select.input_select_code#id_delselect {
+    width : 350px;
+}
+
+input.input_text {
+    color : #202020;
+    width : 170px;
+}
+
+input.input_submit {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:10pt;
+    width:60px;
+    margin-left: 10px;
+}
+
+div.be_hyphen {
+    float: left;
+    width: 20px;
+    height: 40px;
+   border: solid black 1px;
+   vertical-align:bottom;
+}
+
+/* The submit button to delete a recording */
+input.input_submit#delrec {
+    color:darkred;
+}
+
+/* We want the station, start and title on the "new record" to start on a new row */
+div.input_container#id_start,#id_title,#id_station {
+    clear:left;
+}
+
+
+/* Container for log-in box */
+div.login_container {
+    border: solid gray 1px;
+    position:relative;
+    top:20%;
+    bottom:0;
+    left:0;
+    right:0;
+    width:250px;
+    height:180px;
+    background:#EEE;
+    padding-right:30px
+    padding-bottom:30px;
+    padding-top:0px;
+    margin:auto;
+}
+
+div.login_container  div.input_container {
+    margin-left:30px;
+}
+
+div.login_title {
+    padding:3px;
+    padding-left:10px;
+    color:white:
+    background:#555;
+    font-weight:bold;
+    font-family:Arial, Sans-serif;
+    font-size:12pt;
+    color:white;
+    background:navy;
+    margin-bottom:10px;
+}
+
+div.input_container#id_loginpwd {
+    margin-top:10px;
+    clear:left;
+}
+
+input.input_submit#id_submitlogin {
+    margin-top:0px;
+    width:80px;
+    margin-left: 90px;
+}
+
+
+
+
