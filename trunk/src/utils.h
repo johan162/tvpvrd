@@ -309,10 +309,10 @@ get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
 #define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
 
 // Required alphanumeric and punctuation sequence
-#define _PR_ANP "([\\p{L}\\p{N}\\p{P}]+)"
+#define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"
 
 // Required alphanumeric, punctuation and space sequence
-#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} ]+)"
+#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"
 
 // Any sequence of symbols
 #define _PR_ANY "(\\X+)"

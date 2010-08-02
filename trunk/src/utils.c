@@ -434,7 +434,7 @@ matchcmd(const char *regex, const char *cmd, char ***field) {
 
     cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_UTF8,&errptr,&erroff,NULL);
     if( cregex ) {
-        ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,PCRE_NEWLINE_ANYCRLF,ovector,90);
+        ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,0 /*PCRE_MULTILINE|PCRE_NEWLINE_ANYCRLF*/,ovector,90);
         pcre_free(cregex);
         if( ret > 0 ) {
             (void)pcre_get_substring_list(cmd,ovector,ret,(const char ***)field);
@@ -965,7 +965,7 @@ char from_hex(char ch) {
 
 /* Converts an integer value to its hex character*/
 char to_hex(char code) {
-  static char hex[] = "0123456789abcdef";
+  static char hex[] = "0123456789ABCDEF";
   return hex[code & 15];
 }
 
