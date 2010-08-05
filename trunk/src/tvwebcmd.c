@@ -253,7 +253,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
         char **field = (void *)NULL;
         int ret ;
 
-        // logmsg(LOG_DEBUG,"*** Checking buffer: %s",buffer);
+        logmsg(LOG_DEBUG,"*** WEB Connection accepted. Checking buffer: %s",buffer);
         // First check if we should handle an add/delete command
 
         if( (ret = matchcmd("^GET /addrec\\?"
@@ -325,7 +325,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                             buffer, &field)) > 1 ) {
 
             const int maxvlen=256;
-            char recid[maxvlen],submit[maxvlen],delserie[maxvlen];
+            char recid[maxvlen], submit[maxvlen], delserie[maxvlen];
             get_assoc_value(recid,maxvlen,"recid",&field[1],ret-1);
             get_assoc_value(delserie,maxvlen,"delserie",&field[1],ret-1);
             get_assoc_value(submit,maxvlen,"submit_delrec",&field[1],ret-1);
@@ -811,7 +811,7 @@ html_cmd_add_del(int sockd) {
     /*
      * Delete recordings
      */
-    _writef(sockd,"<form name=\"%s\" method=\"get\" action=\"delrec\">\n","deleterecording");
+    _writef(sockd,"<form name=\"%s\" method=\"get\" action=\"delrec\"  onsubmit=\"return confirm('Really delete?')\">\n","deleterecording");
 
     _writef(sockd,"<fieldset><legend>Delete recording</legend>");
 
@@ -933,12 +933,12 @@ html_commandlist(int sockd) {
   static struct cmd_entry cmdfunc_master_misc[] = {
         {"xx","View DB file"},
         {"z","View settings"},
-        {"log%2050","Last 50 log entries"}
+        {"log%2050","View log"}
     };
 
   static struct cmd_entry cmdfunc_master_driver[] = {
-        {"vc","Driver information"},
-        {"lc 0","Settings for card 0"}
+        {"vc","Driver"},
+        {"lc 0","Settings: Card #0"}
   };
 
   static struct cmd_entry cmdfunc_slave_transcoding[] = {
@@ -957,7 +957,7 @@ html_commandlist(int sockd) {
         {"lp","Profiles"},
         {"st","Profile statistics"},
         {"z","Show ini-file settings"},
-        {"log%2050","Show last 50 log"}
+        {"log%2050","Last log entries"}
     };
 
     static struct cmd_grp cmd_grp_master[] = {
@@ -988,10 +988,6 @@ html_commandlist(int sockd) {
     _writef(sockd,"<div class=\"cmd_menu\">");
     for( int i=0; i < cmdgrplen; ++i ) {
 
-/*
-        _writef(sockd,"<div class=\"cmdgrp_title_row\"><span class=\"cmdgrp_title\">%s</span> - <span class=\"cmdgrp_desc\">%s</span></div>",
-                cmdgrp[i].grp_name,cmdgrp[i].grp_desc);
-*/
         _writef(sockd,"<div class=\"cmdgrp_title_row\"><span class=\"cmdgrp_title\">%s</span></div>",
                 cmdgrp[i].grp_name,cmdgrp[i].grp_desc);
 
