@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 
 #include "tvpvrd.h"
 #include "utils.h"
@@ -469,8 +470,54 @@ html_endpage(int sockd) {
     _writef(sockd,postamble);
 }
 
+#define TIME_RFC822_FORMAT "%a, %d %b %Y %T %z"
 void
-html_newpage(int sockd, char *title) {
+http_header(int sockd, char *cookie_val) {
+    // Initialize a new page
+    char server_id[255];
+    snprintf(server_id, 254, "tvpvrd %s", server_version);
+    // Send back a proper HTTP header
+
+    time_t t = time(NULL);
+    struct tm *t_tm;
+    t_tm = localtime(&t);
+    char ftime[128];
+
+    if (t_tm == NULL) {
+        logmsg(LOG_ERR, "Internal PANIC 'localtime' ( %d : %s )", errno, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    strftime(ftime, 128, TIME_RFC822_FORMAT, t_tm);
+
+    if (cookie_val && *cookie_val) {
+
+        char *tmpbuff = url_encode(cookie_val);
+        // logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff);
+        _writef(sockd,
+                "HTTP/1.1 200 OK\r\n"
+                "Date: %s\r\n"
+                "Server: %s\r\n"
+                "Set-Cookie: tvpvrd=%s;Version=1;\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff);
+        free(tmpbuff);
+
+    } else {
+
+        _writef(sockd,
+                "HTTP/1.1 200 OK\r\n"
+                "Date: %s\r\n"
+                "Server: %s\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/html\r\n\r\n", ftime, server_id);
+
+    }
+
+}
+
+void
+html_newpage(int sockd, char *cookie_val) {
     const char preamble[] =
     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">"
     "<html>"
@@ -485,10 +532,14 @@ html_newpage(int sockd, char *title) {
     "</head>"
     "<body>"
     "<div class=\"top_page\">";
-
+    char title[255];
+    snprintf(title, 254, "tvpvrd %s", server_version);
     const int maxlen = 8192*2;
     char *cssbuff = calloc(1,maxlen);
     read_cssfile(cssbuff,maxlen);
+
+    http_header(sockd,cookie_val);
+
     _writef(sockd,preamble,title,cssbuff);
     free(cssbuff);
 }
@@ -624,7 +675,7 @@ html_element_submit(int sockd,char *name, char *value, char *id) {
 void
 html_notfound(int sockd) {
         _writef(sockd,
-                "HTTP/1.1 404 OK\r\n"
+                "HTTP/1.1 404 Not Found\r\n"
                 "Server: tvpvrd\r\n"
                 "Connection: close\r\n"
                 "Content-Type: text/html\r\n\r\n<html><body><h3>404 - Not found.</h3></body></html>\r\n");
@@ -632,31 +683,9 @@ html_notfound(int sockd) {
 
 void
 html_main_page(int sockd,char *wcmd, char *cookie_val) {
-        // Send back a proper HTTP header
-
-    if( cookie_val && *cookie_val ) {
-        char *tmpbuff = url_encode(cookie_val);
-        logmsg(LOG_DEBUG,"Stored cookie: %s as %s",cookie_val,tmpbuff) ;
-        _writef(sockd,
-                "HTTP/1.1 200 OK\r\n"
-                "Server: tvpvrd\r\n"
-                "Set-Cookie: tvpvrd=%s;Version=1;\r\n"
-                "Connection: close\r\n"
-                "Content-Type: text/html\r\n\r\n",tmpbuff);
-        free(tmpbuff);
-    } else {
-        _writef(sockd,
-                "HTTP/1.1 200 OK\r\n"
-                "Server: tvpvrd\r\n"
-                "Connection: close\r\n"
-                "Content-Type: text/html\r\n\r\n");
-    }
-
-
     // Initialize a new page
-    char title[255];
-    snprintf(title,254,"tvpvrd %s",server_version);
-    html_newpage(sockd,title);
+
+    html_newpage(sockd,cookie_val);
     html_topbanner(sockd);
     _writef(sockd,"<div class=\"left_side\">");
     html_commandlist(sockd);
@@ -694,23 +723,21 @@ html_main_page(int sockd,char *wcmd, char *cookie_val) {
 
 void
 html_login_page(int sockd) {
-        // Initialize a new page
-        char title[255];
-        snprintf(title,254,"tvpvrd %s",server_version);
-        html_newpage(sockd,title);
-        html_topbanner(sockd);
+    // Initialize a new page
+    html_newpage(sockd, NULL);
+    html_topbanner(sockd);
 
-        _writef(sockd,"<div class=\"%s\">","login_container");
-        _writef(sockd,"<div class=\"%s\">Please login</div>","login_title");
-        _writef(sockd,"<form name=\"%s\" method=\"get\" action=\"login\">\n","tvlogin");
-        html_element_input_text(sockd, "User:", "user", "id_loginuser");
-        html_element_input_text(sockd, "Password:", "pwd", "id_loginpwd");
-        html_element_submit(sockd,"submit_login","Login","id_submitlogin");
+    _writef(sockd, "<div class=\"%s\">", "login_container");
+    _writef(sockd, "<div class=\"%s\">Please login</div>", "login_title");
+    _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"login\">\n", "tvlogin");
+    html_element_input_text(sockd, "User:", "user", "id_loginuser");
+    html_element_input_text(sockd, "Password:", "pwd", "id_loginpwd");
+    html_element_submit(sockd, "submit_login", "Login", "id_submitlogin");
 
-        _writef(sockd,"<form>");
-        _writef(sockd,"</div>");
+    _writef(sockd, "<form>");
+    _writef(sockd, "</div>");
 
-        html_endpage(sockd);
+    html_endpage(sockd);
 }
 
 void
@@ -889,62 +916,60 @@ html_commandlist(int sockd) {
         {"o","Ongoing"}
     };
 
-  static struct cmd_entry cmdfunc_master_list[] = {
-        {"ls","Stations"},
-        {"lp","Profiles"},
-        {"log%2050","Last 50 log entries"},
-        {"ot","Ongoing transcoding"},
-        {"wt","Waiting transcodings"}
+  static struct cmd_entry cmdfunc_master_transcoding[] = {
+        {"ot","Ongoing"},
+        {"wt","Queue"}
     };
 
   static struct cmd_entry cmdfunc_master_status[] = {
-        {"s","Server "},
+        {"s","Status"},
         {"t","Time"},
         {"v","Version"}
     };
   
   static struct cmd_entry cmdfunc_master_misc[] = {
+        {"ls","Stations"},
+        {"lp","Profiles"},
         {"st","Profile statistics"},
         {"x","Show DB raw file"},
-        {"z","Show ini-file settings"}
+        {"z","Show ini-file settings"},
+        {"log%2050","Last 50 log entries"}
     };
 
   static struct cmd_entry cmdfunc_master_driver[] = {
-        {"vc","Show TV-Card information"},
-        {"lc 0","List controls for capture card 0"}
+        {"vc","Driver information"},
+        {"lc 0","Settings for card 0"}
   };
 
-  static struct cmd_entry cmdfunc_slave_list[] = {
-        {"ls","Stations"},
-        {"lp","Profiles"},
-        {"log%2050","Show last 50 log"},
-        {"n","Next immediate recordings"},
+  static struct cmd_entry cmdfunc_slave_transcoding[] = {
         {"ot","Ongoing transcoding"},
-        {"wt","Waiting transcodings"},
+        {"wt","Waiting transcodings"}
     };
 
 
   static struct cmd_entry cmdfunc_slave_status[] = {
-        {"s","Server "},
+        {"s","Status"},
         {"t","Time"},
         {"v","Version"}
     };
 
   static struct cmd_entry cmdfunc_slave_misc[] = {
+        {"lp","Profiles"},
         {"st","Profile statistics"},
-        {"z","Show ini-file settings"}
+        {"z","Show ini-file settings"},
+        {"log%2050","Show last 50 log"}
     };
 
     static struct cmd_grp cmd_grp_master[] = {
+        {"Server","Server information",         sizeof(cmdfunc_master_status)/sizeof(struct cmd_entry),cmdfunc_master_status},
         {"Recordings","Stored recordings",sizeof(cmdfunc_master_recs)/sizeof(struct cmd_entry),cmdfunc_master_recs},
-        {"Status","Show status",         sizeof(cmdfunc_master_status)/sizeof(struct cmd_entry),cmdfunc_master_status},
-        {"Information","Information lists",sizeof(cmdfunc_master_list)/sizeof(struct cmd_entry),cmdfunc_master_list},
+        {"Transcoding","Transcoding info",sizeof(cmdfunc_master_transcoding)/sizeof(struct cmd_entry),cmdfunc_master_transcoding},
         {"Other","Various information",  sizeof(cmdfunc_master_misc)/sizeof(struct cmd_entry),cmdfunc_master_misc},
-        {"Driver","Driver information",  sizeof(cmdfunc_master_driver)/sizeof(struct cmd_entry),cmdfunc_master_driver}
+        {"Capture card","Card information",  sizeof(cmdfunc_master_driver)/sizeof(struct cmd_entry),cmdfunc_master_driver}
     };
 
     static struct cmd_grp cmd_grp_slave[] = {
-        {"List","Show information lists",sizeof(cmdfunc_slave_list)/sizeof(struct cmd_entry),cmdfunc_slave_list},
+        {"Transcoding","Transcoding info",sizeof(cmdfunc_slave_transcoding)/sizeof(struct cmd_entry),cmdfunc_slave_transcoding},
         {"Status","Show status",         sizeof(cmdfunc_slave_status)/sizeof(struct cmd_entry),cmdfunc_slave_status},
         {"Other","Various information",  sizeof(cmdfunc_slave_misc)/sizeof(struct cmd_entry),cmdfunc_slave_misc}
     };
