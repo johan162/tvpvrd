@@ -479,7 +479,7 @@ http_header(int sockd, char *cookie_val) {
     // Send back a proper HTTP header
 
     time_t t = time(NULL);
-    time_t texp = t + max_idle_time;
+    time_t texp = t + weblogin_timeout;
     struct tm t_tm, t_tmexp;
     (void)gmtime_r(&t, &t_tm);
     (void)gmtime_r(&texp, &t_tmexp);
@@ -493,20 +493,24 @@ http_header(int sockd, char *cookie_val) {
         char *tmpbuff = url_encode(cookie_val);
         // logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff);
 
-        _writef(sockd,
-                "HTTP/1.1 200 OK\r\n"
-                "Date: %s\r\n"
-                "Server: %s\r\n"
-                "Set-Cookie: tvpvrd=%s;Version=1; expires=%s\r\n"
-                "Connection: close\r\n"
-                "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
-        logmsg(LOG_DEBUG,"HTTP Header sent:\n"
-                "HTTP/1.1 200 OK\r\n"
-                "Date: %s\r\n"
-                "Server: %s\r\n"
-                "Set-Cookie: tvpvrd=%s;Version=1; expires=%s\r\n"
-                "Connection: close\r\n"
-                "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
+        if( weblogin_timeout > 0 ) {
+            _writef(sockd,
+                    "HTTP/1.1 200 OK\r\n"
+                    "Date: %s\r\n"
+                    "Server: %s\r\n"
+                    "Set-Cookie: tvpvrd=%s;Version=1; expires=%s\r\n"
+                    "Connection: close\r\n"
+                    "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
+        } else {
+            _writef(sockd,
+                    "HTTP/1.1 200 OK\r\n"
+                    "Date: %s\r\n"
+                    "Server: %s\r\n"
+                    "Set-Cookie: tvpvrd=%s;Version=1;\r\n"
+                    "Connection: close\r\n"
+                    "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff);
+        }
+
         free(tmpbuff);
 
     } else {
@@ -935,10 +939,10 @@ html_commandlist(int sockd) {
         {"v","Version"}
     };
   
-  static struct cmd_entry cmdfunc_master_misc[] = {
-        {"xx","View DB file"},
-        {"z","View settings"},
-        {"log%2050","View log"}
+  static struct cmd_entry cmdfunc_master_view[] = {
+        {"xx","DB file"},
+        {"z","Settings"},
+        {"log%20100","Recent log"}
     };
 
   static struct cmd_entry cmdfunc_master_driver[] = {
@@ -948,9 +952,10 @@ html_commandlist(int sockd) {
 
   static struct cmd_entry cmdfunc_slave_transcoding[] = {
         {"ot","Ongoing transcoding"},
-        {"wt","Waiting transcodings"}
-    };
-
+        {"wt","Waiting transcodings"},
+        {"st","Statistics"},
+        {"lp","Profiles"}
+  };
 
   static struct cmd_entry cmdfunc_slave_status[] = {
         {"s","Status"},
@@ -958,25 +963,23 @@ html_commandlist(int sockd) {
         {"v","Version"}
     };
 
-  static struct cmd_entry cmdfunc_slave_misc[] = {
-        {"lp","Profiles"},
-        {"st","Profile statistics"},
-        {"z","Show ini-file settings"},
-        {"log%2050","Last log entries"}
+  static struct cmd_entry cmdfunc_slave_view[] = {
+        {"z","Settings"},
+        {"log%2050","Recent log"}
     };
 
     static struct cmd_grp cmd_grp_master[] = {
-        {"Server","Server information",         sizeof(cmdfunc_master_status)/sizeof(struct cmd_entry),cmdfunc_master_status},
-        {"Recordings","Stored recordings",sizeof(cmdfunc_master_recs)/sizeof(struct cmd_entry),cmdfunc_master_recs},
-        {"Transcoding","Transcoding info",sizeof(cmdfunc_master_transcoding)/sizeof(struct cmd_entry),cmdfunc_master_transcoding},
-        {"Other","Various information",  sizeof(cmdfunc_master_misc)/sizeof(struct cmd_entry),cmdfunc_master_misc},
+        {"Server","Server information",      sizeof(cmdfunc_master_status)/sizeof(struct cmd_entry),cmdfunc_master_status},
+        {"Recordings","Stored recordings",   sizeof(cmdfunc_master_recs)/sizeof(struct cmd_entry),cmdfunc_master_recs},
+        {"Transcoding","Transcoding info",   sizeof(cmdfunc_master_transcoding)/sizeof(struct cmd_entry),cmdfunc_master_transcoding},
+        {"Other","Various information",      sizeof(cmdfunc_master_view)/sizeof(struct cmd_entry),cmdfunc_master_view},
         {"Capture card","Card information",  sizeof(cmdfunc_master_driver)/sizeof(struct cmd_entry),cmdfunc_master_driver}
     };
 
     static struct cmd_grp cmd_grp_slave[] = {
         {"Transcoding","Transcoding info",sizeof(cmdfunc_slave_transcoding)/sizeof(struct cmd_entry),cmdfunc_slave_transcoding},
-        {"Status","Show status",         sizeof(cmdfunc_slave_status)/sizeof(struct cmd_entry),cmdfunc_slave_status},
-        {"Other","Various information",  sizeof(cmdfunc_slave_misc)/sizeof(struct cmd_entry),cmdfunc_slave_misc}
+        {"Server","Show status",          sizeof(cmdfunc_slave_status)/sizeof(struct cmd_entry),cmdfunc_slave_status},
+        {"View","View",   sizeof(cmdfunc_slave_view)/sizeof(struct cmd_entry),cmdfunc_slave_view}
     };
 
     static struct cmd_grp *cmdgrp;

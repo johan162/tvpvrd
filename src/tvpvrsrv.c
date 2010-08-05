@@ -282,6 +282,7 @@ static char password[32];
 char web_password[32];
 char web_user[32];
 int require_web_password;
+int weblogin_timeout;
 
 
 /*
@@ -2337,6 +2338,11 @@ read_inisettings(void) {
             iniparser_getstring(dict, "config:web_password", WEB_PASSWORD),
             31);
     web_password[31] = '\0';
+    weblogin_timeout = validate(0,120,"weblogin_timeout",
+                                    iniparser_getint(dict, "config:weblogin_timeout", WEBLOGIN_TIMEOUT));
+    weblogin_timeout *= 60; // Convert to seconds
+
+
 
     send_mail_on_transcode_end = iniparser_getboolean(dict,"config:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);
     send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SENDMAIL_ON_ERROR);
