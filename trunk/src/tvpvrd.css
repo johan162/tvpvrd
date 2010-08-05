@@ -44,7 +44,7 @@ div.cmd_menu {
     height : 99%;
     margin-left : 5px;
     color:black;
-    font-size:11pt;
+    font-size:12pt;
 }
 
 /* This div encloses the command output */
@@ -130,6 +130,7 @@ fieldset {
 div.input_container {
     float:left;
     padding:1px;
+    margin-top:3px;
     margin-right:0px;
     margin-left:0px;
 }
@@ -167,7 +168,7 @@ select.input_select_code {
 
 /* Format for selector with list of recodings to delete */
 select.input_select_code#id_delselect {
-    width : 350px;
+    width : 320px;
 }
 
 /* Input text */
@@ -185,13 +186,19 @@ input.input_submit {
     margin-left: 10px;
 }
 
+div.input_container#delrec,
+div.input_container#id_addrec {
+    padding-top:14px;
+}
+
 /* text between to and from time */
-div.be_hyphen {
-    float: left;
-    width: 20px;
-    height: 40px;
-    border: solid black 1px;
-    vertical-align:bottom;
+span.be_hyphen {
+    font-weight:bold;
+    font-size:14pt;
+}
+#be_hyphen {
+    padding-bottom:0px;
+    padding-top:14px;
 }
 
 /* The submit button to delete a recording */
@@ -201,7 +208,9 @@ input.input_submit#delrec {
 
 /* We want the station, start and title on the "new record" to start on a new row 
  * and we do this by clearing the left side of the corresponding input containers. */
-div.input_container#id_start,#id_title,#id_station {
+div.input_container#id_title,
+div.input_container#id_station,
+div.input_container#id_seriesyn {
     clear:left;
 }
 
