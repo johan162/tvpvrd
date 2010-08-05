@@ -470,7 +470,7 @@ html_endpage(int sockd) {
     _writef(sockd,postamble);
 }
 
-#define TIME_RFC822_FORMAT "%a, %d %b %Y %T %z"
+#define TIME_RFC822_FORMAT "%a, %d %b %Y %T GMT"
 void
 http_header(int sockd, char *cookie_val) {
     // Initialize a new page
@@ -479,28 +479,34 @@ http_header(int sockd, char *cookie_val) {
     // Send back a proper HTTP header
 
     time_t t = time(NULL);
-    struct tm *t_tm;
-    t_tm = localtime(&t);
-    char ftime[128];
+    time_t texp = t + max_idle_time;
+    struct tm t_tm, t_tmexp;
+    (void)gmtime_r(&t, &t_tm);
+    (void)gmtime_r(&texp, &t_tmexp);
+    char ftime[128],fexptime[128];
 
-    if (t_tm == NULL) {
-        logmsg(LOG_ERR, "Internal PANIC 'localtime' ( %d : %s )", errno, strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    strftime(ftime, 128, TIME_RFC822_FORMAT, t_tm);
+    strftime(ftime, 128, TIME_RFC822_FORMAT, &t_tm);
+    strftime(fexptime, 128, TIME_RFC822_FORMAT, &t_tmexp);
 
     if (cookie_val && *cookie_val) {
 
         char *tmpbuff = url_encode(cookie_val);
         // logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff);
+
         _writef(sockd,
                 "HTTP/1.1 200 OK\r\n"
                 "Date: %s\r\n"
                 "Server: %s\r\n"
-                "Set-Cookie: tvpvrd=%s;Version=1;\r\n"
+                "Set-Cookie: tvpvrd=%s;Version=1; expires=%s\r\n"
                 "Connection: close\r\n"
-                "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff);
+                "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
+        logmsg(LOG_DEBUG,"HTTP Header sent:\n"
+                "HTTP/1.1 200 OK\r\n"
+                "Date: %s\r\n"
+                "Server: %s\r\n"
+                "Set-Cookie: tvpvrd=%s;Version=1; expires=%s\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
         free(tmpbuff);
 
     } else {
@@ -663,10 +669,9 @@ html_element_submit(int sockd,char *name, char *value, char *id) {
         exit(EXIT_FAILURE);
     }
     snprintf(buffer,maxlen,
-            "<div class=\"input_container\">"
-            "<div class=\"input_legend\">&nbsp;</div>"
+            "<div class=\"input_container\" id=\"%s\">"
             "<input type=\"submit\" name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s\"></div>\n",
-            name,value,id);
+            id,name,value,id);
     _writef(sockd,buffer);
 
     free(buffer);
@@ -743,7 +748,7 @@ html_login_page(int sockd) {
 void
 html_cmd_add_del(int sockd) {
     static const char *day_list[] = {
-        "","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+        "Auto","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
     };
     const int n_day = 8;
     static const char *min_list[] = {
@@ -754,7 +759,7 @@ html_cmd_add_del(int sockd) {
         "13","14","15","16","17","18","19","20","21","22","23"
     };
     static const struct skeysval_t rpt_list[] = {
-        {.key = "",.val=""},
+        {.key = "",.val="(none)"},
         {.key = "w",.val="Weekly"},
         {.key = "d",.val="Daily"},
         {.key = "f",.val="Mon-Fri"},
@@ -795,15 +800,15 @@ html_cmd_add_del(int sockd) {
     html_element_select(sockd,"Profile:","profile",default_transcoding_profile, profile_list, n_profile,"id_profile");
     html_element_select(sockd,"Station:","channel",NULL, station_list, n_stations,"id_station");
 
-    html_element_select(sockd,"Time:","start_day",NULL, day_list, n_day,"id_start");
-    html_element_select(sockd,"&nbsp;","start_hour","18", hour_list, n_hour,NULL);
+    html_element_select(sockd,"Day:","start_day",NULL, day_list, n_day,"id_start");
+    html_element_select(sockd,"Time:","start_hour","18", hour_list, n_hour,NULL);
     html_element_select(sockd,"&nbsp;","start_min",NULL, min_list, n_min,NULL);
-    _writef(sockd,"<div class=\"input_container\"><div>&nbsp;</div> &nbsp; to &nbsp; </div>");
+    _writef(sockd,"<div class=\"input_container\" id=\"be_hyphen\"><span class=\"be_hyphen\"> &rarr; </span></div>");
     html_element_select(sockd,"&nbsp;","end_hour","18", hour_list, n_hour,NULL);
     html_element_select(sockd,"&nbsp;","end_min","59", min_list, n_min,NULL);
 
     html_element_input_text(sockd,"Title:","title","id_title");
-    html_element_submit(sockd,"submit_addrec","Add","");
+    html_element_submit(sockd,"submit_addrec","Add","id_addrec");
     _writef(sockd,"</fieldset>");
     _writef(sockd,"</form>\n");
 
@@ -938,7 +943,7 @@ html_commandlist(int sockd) {
 
   static struct cmd_entry cmdfunc_master_driver[] = {
         {"vc","Driver"},
-        {"lc 0","Settings: Card #0"}
+        {"lc 0","Settings #0"}
   };
 
   static struct cmd_entry cmdfunc_slave_transcoding[] = {
