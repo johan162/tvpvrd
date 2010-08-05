@@ -416,15 +416,20 @@ readXMLFile(const char *filename) {
  */
 int
 _writeXMLFile(const int fd) {
+    int oldhtml = htmlencode_flag;
+    htmlencode_flag = 0;
+    int ret = _writeXMLFileHTML(fd);
+    htmlencode_flag = oldhtml;
+    return ret;
+}
+
+int
+_writeXMLFileHTML(const int fd) {
     int j, nsaved_recrec;
     int y, m, d, h, min, sec;
     int saved_recrec[2 * MAX_ENTRIES];
     char tmpbuff[256];
     time_t now;
-
-
-    int oldhtml = htmlencode_flag;
-    htmlencode_flag = 0;
 
     nsaved_recrec = 0;
     now = time(NULL);
@@ -520,7 +525,6 @@ _writeXMLFile(const int fd) {
         }
     }
     _writef(fd, "</%s>\n",xmldb_root);
-    htmlencode_flag = oldhtml;
     return 0;
 }
 

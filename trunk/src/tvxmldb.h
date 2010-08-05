@@ -46,6 +46,16 @@ readXMLFile(const char *filename);
 int writeXMLFile(const char *filename);
 
 /**
+ * Write the XML DB file to the specified file name but follow
+ * the current HTML encodation setting (i.e. possible tanslate
+ * '<' to &lt; and so on.
+ * @param filename
+ * @return -1 on failure, 0 otherwise
+ */
+int
+_writeXMLFileHTML(const int fd);
+
+/**
  * Write the XML DB file to the specified file descriptor
  * @param fd
  * @return -1 on failure, 0 otherwise
