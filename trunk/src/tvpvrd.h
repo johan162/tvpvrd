@@ -123,6 +123,7 @@ extern "C" {
 #define REQUIRE_WEB_PASSWORD 0
 #define WEB_USER ""
 #define WEB_PASSWORD ""
+#define WEBLOGIN_TIMEOUT 0
 
 /*
  * MAX_VIDEO integer
@@ -508,6 +509,7 @@ extern int enable_webinterface;
 extern int require_web_password;
 extern char web_password[];
 extern char web_user[];
+extern int weblogin_timeout;
 
 #ifdef	__cplusplus
 }
