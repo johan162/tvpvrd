@@ -519,19 +519,19 @@ http_header(int sockd, char *cookie_val) {
 void
 html_newpage(int sockd, char *cookie_val) {
     const char preamble[] =
-    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">"
+    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">\n"
     "<html>"
     "<head>"
-    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />"
+    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n"
     "<title>"
     "%s"
-    "</title>"
-    "<style type=\"text/css\">"
-    "%s"
-    "</style>"
+    "</title>\n"
+    "<style type=\"text/css\">\n"
+    "<!--\n %s -->\n"
+    "</style>\n"
     "</head>"
-    "<body>"
-    "<div class=\"top_page\">";
+    "<body>\n"
+    "<div class=\"top_page\">\n";
     char title[255];
     snprintf(title, 254, "tvpvrd %s", server_version);
     const int maxlen = 8192*2;
@@ -913,12 +913,15 @@ html_commandlist(int sockd) {
   static struct cmd_entry cmdfunc_master_recs[] = {
         {"l","List all"},
         {"n","Next"},
-        {"o","Ongoing"}
+        {"o","Ongoing"},
+        {"ls","Stations"}
     };
 
   static struct cmd_entry cmdfunc_master_transcoding[] = {
         {"ot","Ongoing"},
-        {"wt","Queue"}
+        {"wt","Queue"},
+        {"st","Statistics"},
+        {"lp","Profiles"}
     };
 
   static struct cmd_entry cmdfunc_master_status[] = {
@@ -928,11 +931,8 @@ html_commandlist(int sockd) {
     };
   
   static struct cmd_entry cmdfunc_master_misc[] = {
-        {"ls","Stations"},
-        {"lp","Profiles"},
-        {"st","Profile statistics"},
-        {"x","Show DB raw file"},
-        {"z","Show ini-file settings"},
+        {"xx","View DB file"},
+        {"z","View settings"},
         {"log%2050","Last 50 log entries"}
     };
 
@@ -988,7 +988,11 @@ html_commandlist(int sockd) {
     _writef(sockd,"<div class=\"cmd_menu\">");
     for( int i=0; i < cmdgrplen; ++i ) {
 
+/*
         _writef(sockd,"<div class=\"cmdgrp_title_row\"><span class=\"cmdgrp_title\">%s</span> - <span class=\"cmdgrp_desc\">%s</span></div>",
+                cmdgrp[i].grp_name,cmdgrp[i].grp_desc);
+*/
+        _writef(sockd,"<div class=\"cmdgrp_title_row\"><span class=\"cmdgrp_title\">%s</span></div>",
                 cmdgrp[i].grp_name,cmdgrp[i].grp_desc);
 
         _writef(sockd,"<div class=\"cmdgrp_commands\">");

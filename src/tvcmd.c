@@ -89,8 +89,9 @@
 #define CMD_SHOW_LASTLOG 29
 #define CMD_LIST_PROFILES 30
 #define CMD_LISTWAITINGTRANSC 31
+#define CMD_GETXMLHTML 32
 
-#define CMD_UNDEFINED 32
+#define CMD_UNDEFINED 33
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -1386,6 +1387,23 @@ _cmd_getxmlfile(const char *cmd, int sockfd) {
 }
 
 /**
+ * Command: _cmd_getxmlsfile
+ * Show the pending recordings in XMLDB format using HTML encoding
+ * Syntax:
+ * x
+ */
+static void
+_cmd_getxmlfilehtml(const char *cmd, int sockfd) {
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Display XML database of pending recordings.\n"
+                );
+        return;
+    }
+    _writeXMLFileHTML(sockfd);
+}
+
+/**
  * Command: _cmd_getSettings
  * List all the settings used, normally adjusted in the ini-file
  * Syntax:
@@ -2172,6 +2190,7 @@ cmdinit(void) {
     cmdtable[CMD_INFO]              = _cmd_info;
     cmdtable[CMD_UPDATEXMLFILE]     = _cmd_updatexmlfile;
     cmdtable[CMD_GETXML]            = _cmd_getxmlfile;
+    cmdtable[CMD_GETXMLHTML]        = _cmd_getxmlfilehtml;
     cmdtable[CMD_ONGOINGREC]        = _cmd_ongoingrec;
     cmdtable[CMD_NEXTREC]           = _cmd_nextrec;
     cmdtable[CMD_VERSION]           = _cmd_version;
@@ -2246,6 +2265,7 @@ _getCmdPtr(const char *cmd) {
         {"vc", CMD_CARDINFO},
         {"v",  CMD_VERSION},
         {"wt", CMD_LISTWAITINGTRANSC},
+        {"xx", CMD_GETXMLHTML},
         {"x",  CMD_GETXML},
         {"z",  CMD_GETSETTINGS},
         {"!",  CMD_ABORT}

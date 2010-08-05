@@ -1,9 +1,9 @@
-
-
-
-/*
- * CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
- * SVN: $Id$
+/*----------------------------------------------------------------------------------------------
+ * File:    TVPVRD.CSS
+ * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
+ *            daemon.
+ * SVN:   $Id$
+ *----------------------------------------------------------------------------------------------
  */
 
 /* Make it 99% to avoid scroll bars on the main page */
@@ -14,27 +14,24 @@ html,body {
 
 /* The overall main page is contained in this div */
 div.top_page {
-
     border: 1px solid gray;
     background: #e1e6db;
     height:550px;
     width:99%;
     padding:0px;
-
-   border: solid red 2px;
-
+    border: solid gray 2px;
 }
 
 /* Container around command output area */
 div.right_side {
     float: left;
-    width:69%;
+    width:78%;
     height:94%;
 }
 
 div.left_side {
     float: left;
-    width:29%;
+    width:21%;
     height:94%;
     margin-right : 3px;
     border-right : 1px solid gray;
@@ -114,6 +111,7 @@ div.cmdgrp_commands {
     padding-left:10px;
 }
 
+/* Legend for the fieldset */
 legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
@@ -122,11 +120,13 @@ legend {
     color:#202020;
 }
 
+/* Fieldset for add/del command */
 fieldset {
     border:dotted gray 1px;
    margin-top:5px;
 }
 
+/* Container around each input and input text-legend */
 div.input_container {
     float:left;
     padding:1px;
@@ -134,6 +134,7 @@ div.input_container {
     margin-left:0px;
 }
 
+/* The legend text for each input field */
 div.input_legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
@@ -141,33 +142,41 @@ div.input_legend {
     color:#505050;
 }
 
+/*
+ * All select input formats are used in the add/delete fieldset when adding and deleteing
+ * records.
+ */
 div.input_select {
 }
 
+/* Delete series y/n selector */
 select.input_select#id_seriesyn {
     width:70px;
 }
 
+/* Repeat count selector */
 select.input_select#id_rptcount {
     width:50px;
 }
 
-
+/* Used for all select with a code table */
 select.input_select_code {
     font-family:Arial, Sans-serif;
     color:#202020;
 }
 
-
+/* Format for selector with list of recodings to delete */
 select.input_select_code#id_delselect {
     width : 350px;
 }
 
+/* Input text */
 input.input_text {
     color : #202020;
     width : 170px;
 }
 
+/* Input submit button in forms*/
 input.input_submit {
     font-family:Arial, Sans-erif;
     font-weight:bold;
@@ -176,12 +185,13 @@ input.input_submit {
     margin-left: 10px;
 }
 
+/* text between to and from time */
 div.be_hyphen {
     float: left;
     width: 20px;
     height: 40px;
-   border: solid black 1px;
-   vertical-align:bottom;
+    border: solid black 1px;
+    vertical-align:bottom;
 }
 
 /* The submit button to delete a recording */
@@ -189,11 +199,15 @@ input.input_submit#delrec {
     color:darkred;
 }
 
-/* We want the station, start and title on the "new record" to start on a new row */
+/* We want the station, start and title on the "new record" to start on a new row 
+ * and we do this by clearing the left side of the corresponding input containers. */
 div.input_container#id_start,#id_title,#id_station {
     clear:left;
 }
 
+/*
+ * The following styles refer to the login box/login page 
+*/
 
 /* Container for log-in box */
 div.login_container {
@@ -216,6 +230,7 @@ div.login_container  div.input_container {
     margin-left:30px;
 }
 
+/* Title of login box */
 div.login_title {
     padding:3px;
     padding-left:10px;
@@ -229,17 +244,17 @@ div.login_title {
     margin-bottom:10px;
 }
 
+/* Adjustment of password field */
 div.input_container#id_loginpwd {
     margin-top:10px;
     clear:left;
 }
 
+/* Submit button for login */
 input.input_submit#id_submitlogin {
     margin-top:0px;
     width:80px;
     margin-left: 90px;
 }
 
-
-
-
+/* EOF CSS Style for tvpvrd */
