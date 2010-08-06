@@ -1436,15 +1436,16 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "%-30s: %d\n"
             "%-30s: %s\n"
             "%-30s: %s\n"
+            "%-30s: %d\n"
 
             "%-30s: %s\n"
             "%-30s: %s\n"
             "%-30s: %d\n"
             "%-30s: %d\n"
             "%-30s: %d\n"
-            "%-30s: %ds\n"
             "%-30s: %d\n"
-            "%-30s: %d sec\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
             "%-30s: %d (%0.1fMB)\n"
             "%-30s: %02d:%02d (h:min)\n"
             "%-30s: %s\n"
@@ -1468,6 +1469,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "require_web_password",require_web_password,
             "web_user",web_user,
             "web_password",web_password,
+            "weblogin_timeout",weblogin_timeout,
 
             "username",username, 
             "xmldbfile_name",xmldbfile,
