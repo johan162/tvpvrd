@@ -22,11 +22,14 @@ div.top_page {
     border: solid gray 2px;
 }
 
-/* Container around command output area */
-div.right_side {
-    float: left;
-    width:78%;
-    height:94%;
+/* The top banner line with name and version */
+div.top_banner {
+    text-align:left;
+    font-weight:bold;
+    font-size:14pt;
+    background: #a7b797;
+    margin-bottom: 4px;
+    padding: 2px;
 }
 
 div.left_side {
@@ -35,6 +38,14 @@ div.left_side {
     height:94%;
     margin-right : 3px;
     border-right : 1px solid gray;
+}
+
+/* Container around command output area */
+div.right_side {
+    float: left;
+    width:78%;
+    height:94%;
+
 }
 
 /* This div encloses the command menu */
@@ -55,7 +66,8 @@ div.cmd_output {
     padding-right: 3px;
     padding-left: 3px;
     margin-left:0px;
-    margin-right:0px;
+    margin-right:1px;
+    margin-bottom:0px;
     font-weight:bold;
     border:dotted gray 1px;
     background:white;
@@ -64,15 +76,14 @@ div.cmd_output {
     overflow:auto;
 }
 
-
-/* The top banner line with name and version */
-div.top_banner {
-    text-align:left;
-    font-weight:bold;
-    font-size:14pt;
-    background: #a7b797;
-    margin-bottom: 4px;
-    padding: 2px;
+/* Container around the command input area */
+div.cmd_bottom_container {
+    width:100%;
+    padding-right: 0px;
+    padding-left: 0px;
+    margin-left:0px;
+    margin-right:0px;
+    margin-top:0px;
 }
 
 /* To get rid of anchor underlines in comamnd menu */
@@ -124,6 +135,8 @@ legend {
 fieldset {
     border:dotted gray 1px;
    margin-top:5px;
+   margin-right:0px;
+   margin-left:0px;
 }
 
 /* Container around each input and input text-legend */

@@ -452,13 +452,28 @@ html_topbanner(int sockd) {
 }
 
 void
-html_output(int sockd) {
-    _writef(sockd,"<div class=\"cmd_output\"><pre>");
-}
+html_cmd_output(int sockd,char *wcmd) {
 
-void
-html_output_end(int sockd) {
+    _writef(sockd,"<div class=\"cmd_output\"><pre>");
+
+    // We must cwait for the semphore since since commands
+    // might alter data structures and we can only have one
+    // thread at a time accessing the data structures
+    pthread_mutex_lock(&recs_mutex);
+
+    // Make _writef() do HTML encoding on any output sent
+    htmlencode_flag = 1;
+
+    // The execution of the command happens in the command module.
+    // Any output from the command are sent to the given socket
+    // descriptor and passed back to the browser in this case.
+    cmdinterp(wcmd, sockd);
+    htmlencode_flag = 0;
+
+    pthread_mutex_unlock(&recs_mutex);
+
     _writef(sockd,"</pre></div>");
+
 }
 
 void
@@ -696,35 +711,17 @@ html_main_page(int sockd,char *wcmd, char *cookie_val) {
 
     html_newpage(sockd,cookie_val);
     html_topbanner(sockd);
+
+    // Left side : Command table
     _writef(sockd,"<div class=\"left_side\">");
     html_commandlist(sockd);
     _writef(sockd,"</div>"); // class="LEFT_side"
 
-    _writef(sockd,"<div class=\"right_side\">");
-    html_output(sockd);
-
-    // We must cwait for the semphore since since commands
-    // might alter data structures and we can only have one
-    // thread at a time accessing the data structures
-    pthread_mutex_lock(&recs_mutex);
-
-    // Make _writef() do HTML encoding on any output sent
-    htmlencode_flag = 1;
-
-    // The execution of the command happens in the command module.
-    // Any output from the command are sent to the given socket
-    // descriptor and passed back to the browser in this case.
-    cmdinterp(wcmd, sockd);
-    htmlencode_flag = 0;
-
-    pthread_mutex_unlock(&recs_mutex);
-
-    html_output_end(sockd);
-    /*
-     *  Experimental coding
-     */
+    // Right side : Output and recording management
+    _writef(sockd,"<div class=\"right_side\">");        
+    html_cmd_output(sockd,wcmd);
     html_cmd_add_del(sockd);
-    _writef(sockd,"</div>"); // class="right_side"
+    _writef(sockd,"</div>");
 
     html_endpage(sockd);
 
@@ -791,7 +788,7 @@ html_cmd_add_del(int sockd) {
     const int n_hour = sizeof(hour_list)/sizeof(char *);
     const int n_min = sizeof(min_list)/sizeof(char *);
 
-    //_writef(sockd,"<div class=\"cmd_bottom_container\">");
+    _writef(sockd,"<div class=\"cmd_bottom_container\">");
 
     /*
      * Add recordings
@@ -814,6 +811,7 @@ html_cmd_add_del(int sockd) {
     html_element_input_text(sockd,"Title:","title","id_title");
     html_element_submit(sockd,"submit_addrec","Add","id_addrec");
     _writef(sockd,"</fieldset>");
+
     _writef(sockd,"</form>\n");
 
 
@@ -824,7 +822,6 @@ html_cmd_add_del(int sockd) {
 
     _writef(sockd,"<fieldset><legend>Delete recording</legend>");
 
-    //html_element_input_text(sockd,"Record id:","recid");
     struct skeysval_t *listrec ;
     int num = listrecskeyval(&listrec,3);
     html_element_select_code(sockd,"Title:","recid",NULL,listrec,num,"id_delselect");
@@ -837,10 +834,11 @@ html_cmd_add_del(int sockd) {
     html_element_select(sockd,"Delete serie:","delserie","No",yn_list,n_ynlist,"id_seriesyn");
     html_element_submit(sockd,"submit_delrec","Delete","delrec");
     _writef(sockd,"</fieldset>");
+
     _writef(sockd,"</form>\n");
 
     // Close container
-    //_writef(sockd,"</div>");
+    _writef(sockd,"</div>");
 }
 
 struct cmd_entry {
@@ -972,7 +970,7 @@ html_commandlist(int sockd) {
         {"Server","Server information",      sizeof(cmdfunc_master_status)/sizeof(struct cmd_entry),cmdfunc_master_status},
         {"Recordings","Stored recordings",   sizeof(cmdfunc_master_recs)/sizeof(struct cmd_entry),cmdfunc_master_recs},
         {"Transcoding","Transcoding info",   sizeof(cmdfunc_master_transcoding)/sizeof(struct cmd_entry),cmdfunc_master_transcoding},
-        {"Other","Various information",      sizeof(cmdfunc_master_view)/sizeof(struct cmd_entry),cmdfunc_master_view},
+        {"View","View",      sizeof(cmdfunc_master_view)/sizeof(struct cmd_entry),cmdfunc_master_view},
         {"Capture card","Card information",  sizeof(cmdfunc_master_driver)/sizeof(struct cmd_entry),cmdfunc_master_driver}
     };
 
