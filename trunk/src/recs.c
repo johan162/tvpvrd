@@ -628,9 +628,14 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
     char rectypename[16];
     char rectypelongname[16];
     struct tm result;
-    static char wday_name[7][3] = {
+    static char wday_name[7][4] = {
         "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
     };
+    static char month_name[12][4] = {
+        "Jan","Feb","Mar","Apr","May","Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
 
     fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
     fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emi, &es);
@@ -664,11 +669,10 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
 
     } else if ( style == 3 ) {
 
-        snprintf(buffer, bufflen, "#%03d &nbsp;%-8.8s &nbsp;%04d-%02d-%02d &nbsp;" /*%.3s &nbsp; */"%02d:%02d &nbsp;%-20s\n",
+        snprintf(buffer, bufflen, "#%03d: %-7.7s %s %02d %02d:%02d &nbsp;%-20s\n",
                 entry->seqnbr,
                 entry->channel,
-                sy, sm, sd,
-                /* wday_name[result.tm_wday], */
+                month_name[sm], sd,
                 sh, smi, entry->title);
 
 

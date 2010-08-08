@@ -62,10 +62,13 @@ void
 html_element_submit(int sockd,char *name, char *value, char *id);
 
 void
-html_main_page(int sockd,char *wcmd,char *cookie);
+html_main_page(int sockd,char *wcmd,char *cookie, int mobile);
 
 void
-html_login_page(int sockd);
+html_main_page_mobile(int sockd,char *wcmd,char *cookie);
+
+void
+html_login_page(int sockd, int mobile);
 
 void
 html_notfound(int sockd);
@@ -82,7 +85,7 @@ html_notfound(int sockd);
  * @return 1 if this was a WEB-connection , 0 otherwise
  */
 int
-webconnection(const char *buffer, char *cmd, int maxlen) {
+webconnection(const char *buffer, char *cmd, int maxlen ) {
     *cmd = '\0';
     if( 0 == strncmp(buffer,"GET",3) ) {
 
@@ -236,10 +239,35 @@ user_loggedin(char *buffer,char *cookie,int maxlen) {
     }    
 }
 
+/* 
+ * Try to determine if the connection is from a mobile phone by examine the headers
+ */
+int
+is_mobile_connection(char *buffer) {
+
+    char **field = (void *)NULL;
+    if( matchcmd("X-Wap-Profile:",buffer,&field) > 0 ) {
+        logmsg(LOG_DEBUG,"Found Wap-Profile in header");
+        return TRUE;
+    }
+
+    // Extract User-Agent String
+    if( matchcmd("User-Agent: (.+)",buffer,&field) > 0 ) {
+        logmsg(LOG_DEBUG,"Found User-Agent: %s",field[1]);
+
+        char *header = strdup(field[1]);
+        if( matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung)",header,&field) > 0 )
+            return TRUE;
+    }
+
+
+    return FALSE;
+}
+
 /*
  * This is the main routine that gets called from the connection handler
  * when a new browser connection has been detected and the command from
- * thebrowser have been received. Tis function is totally responsible to
+ * the browser have been received. Tis function is totally responsible to
  * execute the command and prepare the WEB-page to be sent back.
  */
 
@@ -249,6 +277,10 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
     char *buffer = url_decode(inbuffer);
 
     if( webconnection(buffer,wcmd,1023) ) {
+
+        // Try to determiine if the cobbection originated from a 
+        // mobile phone.
+        int mobile = is_mobile_connection(buffer);
 
         char **field = (void *)NULL;
         int ret ;
@@ -367,29 +399,29 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
                         if( ! validate_login(user,pwd) ) {
 
-                            html_login_page(my_socket);
+                            html_login_page(my_socket,mobile);
 
                         } else {
 
-                            html_main_page(my_socket,"v",create_login_cookie(user,pwd));
+                            html_main_page(my_socket,"v",create_login_cookie(user,pwd),mobile);
 
                         }
 
                     } else {
 
-                        html_login_page(my_socket);
+                        html_login_page(my_socket,mobile);
                     }
 
                 } else {
 
-                    html_login_page(my_socket);
+                    html_login_page(my_socket, mobile);
 
                 }
                 
             }
             else {
 
-                html_main_page(my_socket,wcmd,logincookie);
+                html_main_page(my_socket,wcmd,logincookie,mobile);
 
             }
 
@@ -408,12 +440,16 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 }
 
 
-#define CSSFILE_NAME "tvpvrd.css"
+#define CSSFILE_NAME "tvpvrd"
 
 int
-read_cssfile(char *buff, int maxlen) {
+read_cssfile(char *buff, int maxlen, int mobile) {
     char cssfile[255];
-    snprintf(cssfile,255,"%s/tvpvrd/%s",CONFDIR,CSSFILE_NAME);
+    if( mobile ) {
+        snprintf(cssfile,255,"%s/tvpvrd/%s_mobile.css",CONFDIR,CSSFILE_NAME);
+    } else {
+        snprintf(cssfile,255,"%s/tvpvrd/%s.css",CONFDIR,CSSFILE_NAME);
+    }
     cssfile[254] = '\0';
     char linebuff[1024];
 
@@ -448,7 +484,7 @@ html_topbanner(int sockd) {
 
             "\n",server_program_name, server_version,
             is_master_server ? "master" : "client", server_build_date);
-    _writef(sockd,"</div>");
+    _writef(sockd,"</div> <!-- top_banner -->\n");
 }
 
 void
@@ -472,14 +508,14 @@ html_cmd_output(int sockd,char *wcmd) {
 
     pthread_mutex_unlock(&recs_mutex);
 
-    _writef(sockd,"</pre></div>");
+    _writef(sockd,"</pre>\n</div> <!-- cmd_output -->\n");
 
 }
 
 void
 html_endpage(int sockd) {
     const char postamble[] =
-    "</div>"
+    "</div> <!-- top_page -->"
     "</body>"
     "</html>";
     _writef(sockd,postamble);
@@ -542,7 +578,7 @@ http_header(int sockd, char *cookie_val) {
 }
 
 void
-html_newpage(int sockd, char *cookie_val) {
+html_newpage(int sockd, char *cookie_val,int mobile) {
     const char preamble[] =
     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">\n"
     "<html>"
@@ -561,7 +597,7 @@ html_newpage(int sockd, char *cookie_val) {
     snprintf(title, 254, "tvpvrd %s", server_version);
     const int maxlen = 8192*2;
     char *cssbuff = calloc(1,maxlen);
-    read_cssfile(cssbuff,maxlen);
+    read_cssfile(cssbuff,maxlen,mobile);
 
     http_header(sockd,cookie_val);
 
@@ -706,13 +742,22 @@ html_notfound(int sockd) {
 }
 
 void
-html_main_page(int sockd,char *wcmd, char *cookie_val) {
+html_commandlist_short(int sockd);
+
+void
+html_main_page(int sockd,char *wcmd, char *cookie_val, int mobile) {
     // Initialize a new page
 
-    html_newpage(sockd,cookie_val);
+    if( mobile ) {
+        html_main_page_mobile(sockd, wcmd, cookie_val);
+        return;
+    }
+
+    html_newpage(sockd,cookie_val,FALSE);
     html_topbanner(sockd);
 
     // Left side : Command table
+
     _writef(sockd,"<div class=\"left_side\">");
     html_commandlist(sockd);
     _writef(sockd,"</div>"); // class="LEFT_side"
@@ -728,9 +773,27 @@ html_main_page(int sockd,char *wcmd, char *cookie_val) {
 }
 
 void
-html_login_page(int sockd) {
+html_main_page_mobile(int sockd,char *wcmd, char *cookie_val) {
     // Initialize a new page
-    html_newpage(sockd, NULL);
+
+    html_newpage(sockd,cookie_val,TRUE);
+    html_topbanner(sockd);
+
+    _writef(sockd,"<div class=\"single_side\">");
+    html_commandlist_short(sockd);
+    html_cmd_add_del(sockd);
+    html_cmd_output(sockd,wcmd);
+    _writef(sockd,"</div> <!-- single_side -->");
+
+    html_endpage(sockd);
+
+}
+
+
+void
+html_login_page(int sockd, int mobile) {
+    // Initialize a new page
+    html_newpage(sockd, NULL, mobile);
     html_topbanner(sockd);
 
     _writef(sockd, "<div class=\"%s\">", "login_container");
@@ -749,7 +812,7 @@ html_login_page(int sockd) {
 void
 html_cmd_add_del(int sockd) {
     static const char *day_list[] = {
-        "Auto","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+        "","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
     };
     const int n_day = 8;
     static const char *min_list[] = {
@@ -797,20 +860,20 @@ html_cmd_add_del(int sockd) {
 
     _writef(sockd,"<fieldset><legend>Add new recording</legend>");
     html_element_select_code(sockd,"Repeat:","repeat",NULL, rpt_list, n_rpt,NULL);
-    html_element_select(sockd,"Count:","repeatcount",NULL, rptcount_list, n_rptcount,"id_rptcount");
+    html_element_select(sockd,"Count:","<repeatcount",NULL, rptcount_list, n_rptcount,"id_rptcount");
     html_element_select(sockd,"Profile:","profile",default_transcoding_profile, profile_list, n_profile,"id_profile");
     html_element_select(sockd,"Station:","channel",NULL, station_list, n_stations,"id_station");
 
     html_element_select(sockd,"Day:","start_day",NULL, day_list, n_day,"id_start");
-    html_element_select(sockd,"Time:","start_hour","18", hour_list, n_hour,NULL);
+    html_element_select(sockd,"Time:","start_hour","18", hour_list, n_hour,"id_starthour");
     html_element_select(sockd,"&nbsp;","start_min",NULL, min_list, n_min,NULL);
     _writef(sockd,"<div class=\"input_container\" id=\"be_hyphen\"><span class=\"be_hyphen\"> &rarr; </span></div>");
-    html_element_select(sockd,"&nbsp;","end_hour","18", hour_list, n_hour,NULL);
+    html_element_select(sockd,"&nbsp;","end_hour","18", hour_list, n_hour,"id_endhour");
     html_element_select(sockd,"&nbsp;","end_min","59", min_list, n_min,NULL);
 
     html_element_input_text(sockd,"Title:","title","id_title");
     html_element_submit(sockd,"submit_addrec","Add","id_addrec");
-    _writef(sockd,"</fieldset>");
+    _writef(sockd,"</fieldset>\n");
 
     _writef(sockd,"</form>\n");
 
@@ -820,7 +883,7 @@ html_cmd_add_del(int sockd) {
      */
     _writef(sockd,"<form name=\"%s\" method=\"get\" action=\"delrec\"  onsubmit=\"return confirm('Really delete?')\">\n","deleterecording");
 
-    _writef(sockd,"<fieldset><legend>Delete recording</legend>");
+    _writef(sockd,"<fieldset>\n<legend>Delete recording</legend>\n");
 
     struct skeysval_t *listrec ;
     int num = listrecskeyval(&listrec,3);
@@ -833,12 +896,12 @@ html_cmd_add_del(int sockd) {
 
     html_element_select(sockd,"Delete serie:","delserie","No",yn_list,n_ynlist,"id_seriesyn");
     html_element_submit(sockd,"submit_delrec","Delete","delrec");
-    _writef(sockd,"</fieldset>");
+    _writef(sockd,"</fieldset>\n");
 
     _writef(sockd,"</form>\n");
 
     // Close container
-    _writef(sockd,"</div>");
+    _writef(sockd,"</div> <!-- bottom_container -->");
 }
 
 struct cmd_entry {
@@ -850,6 +913,80 @@ struct cmd_grp {
     char *grp_desc;
     int cmd_num;
     struct cmd_entry *entry;
+};
+
+
+static struct cmd_entry cmdfunc_master_recs[] = {
+    {"l", "List all"},
+    {"n", "Next"},
+    {"o", "Ongoing"}
+};
+
+static struct cmd_entry cmdfunc_master_transcoding[] = {
+    {"ot", "Ongoing"},
+    {"wt", "Queue"},
+    {"st", "Statistics"},
+    {"lp", "Profiles"}
+};
+
+static struct cmd_entry cmdfunc_master_status[] = {
+    {"s", "Status"},
+    {"t", "Time"},
+    {"v", "Version"}
+};
+
+static struct cmd_entry cmdfunc_master_view[] = {
+    {"xx", "DB file"},
+    {"z", "Settings"},
+    {"ls", "Station list"},
+    {"log%20100", "Recent log"}
+};
+
+static struct cmd_entry cmdfunc_master_driver[] = {
+    {"vc", "Driver"},
+    {"lc 0", "Settings #0"}
+};
+
+static struct cmd_entry cmdfunc_slave_transcoding[] = {
+    {"ot", "Ongoing transcoding"},
+    {"wt", "Waiting transcodings"},
+    {"st", "Statistics"},
+    {"lp", "Profiles"}
+};
+
+static struct cmd_entry cmdfunc_slave_status[] = {
+    {"s", "Status"},
+    {"t", "Time"},
+    {"v", "Version"}
+};
+
+static struct cmd_entry cmdfunc_slave_view[] = {
+    {"z", "Settings"},
+    {"log%2050", "Recent log"}
+};
+
+static struct cmd_grp cmd_grp_master[] = {
+    {"Server", "Server information", sizeof (cmdfunc_master_status) / sizeof (struct cmd_entry), cmdfunc_master_status},
+    {"Recordings", "Stored recordings", sizeof (cmdfunc_master_recs) / sizeof (struct cmd_entry), cmdfunc_master_recs},
+    {"Transcoding", "Transcoding info", sizeof (cmdfunc_master_transcoding) / sizeof (struct cmd_entry), cmdfunc_master_transcoding},
+    {"View", "View", sizeof (cmdfunc_master_view) / sizeof (struct cmd_entry), cmdfunc_master_view},
+    {"Capture card", "Card information", sizeof (cmdfunc_master_driver) / sizeof (struct cmd_entry), cmdfunc_master_driver}
+};
+
+static struct cmd_grp cmd_grp_slave[] = {
+    {"Transcoding", "Transcoding info", sizeof (cmdfunc_slave_transcoding) / sizeof (struct cmd_entry), cmdfunc_slave_transcoding},
+    {"Server", "Show status", sizeof (cmdfunc_slave_status) / sizeof (struct cmd_entry), cmdfunc_slave_status},
+    {"View", "View", sizeof (cmdfunc_slave_view) / sizeof (struct cmd_entry), cmdfunc_slave_view}
+};
+
+static struct cmd_grp cmd_grp_master_short[] = {
+    {"Server", "Server information", sizeof (cmdfunc_master_status) / sizeof (struct cmd_entry), cmdfunc_master_status},
+    {"Recs", "Stored recordings", sizeof (cmdfunc_master_recs) / sizeof (struct cmd_entry), cmdfunc_master_recs}
+};
+
+static struct cmd_grp cmd_grp_slave_short[] = {
+    {"Server", "Show status", sizeof (cmdfunc_slave_status) / sizeof (struct cmd_entry), cmdfunc_slave_status},
+    {"Trans", "Transcoding info", sizeof (cmdfunc_slave_transcoding) / sizeof (struct cmd_entry), cmdfunc_slave_transcoding}
 };
 
 void
@@ -915,95 +1052,66 @@ html_commandlist(int sockd) {
         {"z","Show ini-file settings"}        
     };
 
-    */
-
-  static struct cmd_entry cmdfunc_master_recs[] = {
-        {"l","List all"},
-        {"n","Next"},
-        {"o","Ongoing"},
-        {"ls","Stations"}
-    };
-
-  static struct cmd_entry cmdfunc_master_transcoding[] = {
-        {"ot","Ongoing"},
-        {"wt","Queue"},
-        {"st","Statistics"},
-        {"lp","Profiles"}
-    };
-
-  static struct cmd_entry cmdfunc_master_status[] = {
-        {"s","Status"},
-        {"t","Time"},
-        {"v","Version"}
-    };
-  
-  static struct cmd_entry cmdfunc_master_view[] = {
-        {"xx","DB file"},
-        {"z","Settings"},
-        {"log%20100","Recent log"}
-    };
-
-  static struct cmd_entry cmdfunc_master_driver[] = {
-        {"vc","Driver"},
-        {"lc 0","Settings #0"}
-  };
-
-  static struct cmd_entry cmdfunc_slave_transcoding[] = {
-        {"ot","Ongoing transcoding"},
-        {"wt","Waiting transcodings"},
-        {"st","Statistics"},
-        {"lp","Profiles"}
-  };
-
-  static struct cmd_entry cmdfunc_slave_status[] = {
-        {"s","Status"},
-        {"t","Time"},
-        {"v","Version"}
-    };
-
-  static struct cmd_entry cmdfunc_slave_view[] = {
-        {"z","Settings"},
-        {"log%2050","Recent log"}
-    };
-
-    static struct cmd_grp cmd_grp_master[] = {
-        {"Server","Server information",      sizeof(cmdfunc_master_status)/sizeof(struct cmd_entry),cmdfunc_master_status},
-        {"Recordings","Stored recordings",   sizeof(cmdfunc_master_recs)/sizeof(struct cmd_entry),cmdfunc_master_recs},
-        {"Transcoding","Transcoding info",   sizeof(cmdfunc_master_transcoding)/sizeof(struct cmd_entry),cmdfunc_master_transcoding},
-        {"View","View",      sizeof(cmdfunc_master_view)/sizeof(struct cmd_entry),cmdfunc_master_view},
-        {"Capture card","Card information",  sizeof(cmdfunc_master_driver)/sizeof(struct cmd_entry),cmdfunc_master_driver}
-    };
-
-    static struct cmd_grp cmd_grp_slave[] = {
-        {"Transcoding","Transcoding info",sizeof(cmdfunc_slave_transcoding)/sizeof(struct cmd_entry),cmdfunc_slave_transcoding},
-        {"Server","Show status",          sizeof(cmdfunc_slave_status)/sizeof(struct cmd_entry),cmdfunc_slave_status},
-        {"View","View",   sizeof(cmdfunc_slave_view)/sizeof(struct cmd_entry),cmdfunc_slave_view}
-    };
+     */
 
     static struct cmd_grp *cmdgrp;
     int cmdgrplen;
 
-    if( is_master_server ) {
+    if (is_master_server) {
         cmdgrp = cmd_grp_master;
-        cmdgrplen = sizeof (cmd_grp_master) / sizeof(struct cmd_grp);
+        cmdgrplen = sizeof (cmd_grp_master) / sizeof (struct cmd_grp);
     } else {
         cmdgrp = cmd_grp_slave;
-        cmdgrplen = sizeof (cmd_grp_slave) / sizeof(struct cmd_grp);
+        cmdgrplen = sizeof (cmd_grp_slave) / sizeof (struct cmd_grp);
     }
 
-    _writef(sockd,"<div class=\"cmd_menu\">");
-    for( int i=0; i < cmdgrplen; ++i ) {
+    _writef(sockd, "<div class=\"cmd_menu\">");
+    for (int i = 0; i < cmdgrplen; ++i) {
 
-        _writef(sockd,"<div class=\"cmdgrp_title_row\"><span class=\"cmdgrp_title\">%s</span></div>",
-                cmdgrp[i].grp_name,cmdgrp[i].grp_desc);
+        _writef(sockd, "<div class=\"cmdgrp_title_row\"><span class=\"cmdgrp_title\">%s</span></div>",
+                cmdgrp[i].grp_name, cmdgrp[i].grp_desc);
 
-        _writef(sockd,"<div class=\"cmdgrp_commands\">");
-        for( int j=0; j < cmdgrp[i].cmd_num; ++j ) {
-            _writef(sockd,"<a href=\"cmd?%s\">%02d. %s</a><br>\n",cmdgrp[i].entry[j].cmd_name,j+1,cmdgrp[i].entry[j].cmd_desc);
+        _writef(sockd, "<div class=\"cmdgrp_commands\">");
+        for (int j = 0; j < cmdgrp[i].cmd_num; ++j) {
+            _writef(sockd, "<a href=\"cmd?%s\">%02d. %s</a><br>\n", cmdgrp[i].entry[j].cmd_name, j + 1, cmdgrp[i].entry[j].cmd_desc);
         }
-        _writef(sockd,"</div>");
+        _writef(sockd, "</div>");
 
     }
-    _writef(sockd,"</div>");
+    _writef(sockd, "</div>");
+
+}
+
+void
+html_commandlist_short(int sockd) {
+
+    static struct cmd_grp *cmdgrp;
+    int cmdgrplen;
+
+    if (is_master_server) {
+        cmdgrp = cmd_grp_master_short;
+        cmdgrplen = sizeof (cmd_grp_master_short) / sizeof (struct cmd_grp);
+    } else {
+        cmdgrp = cmd_grp_slave_short;
+        cmdgrplen = sizeof (cmd_grp_slave_short) / sizeof (struct cmd_grp);
+    }
+
+    _writef(sockd, "<div class=\"cmd_menu_short\">\n");
+    for (int i = 0; i < cmdgrplen; ++i) {
+
+        _writef(sockd, "<div class=\"cmdgrp_short_container\">\n");
+
+        _writef(sockd, "<div class=\"cmdgrp_commands_short\"><span class=\"cmdgrp_title_short\">%s:</span></div>\n", cmdgrp[i].grp_name);
+
+        for (int j = 0; j < cmdgrp[i].cmd_num; ++j) {
+            _writef(sockd, "<div class=\"cmdgrp_commands_short\">");
+            _writef(sockd, "<a href=\"cmd?%s\">%d. %s</a>\n", cmdgrp[i].entry[j].cmd_name,j+1, cmdgrp[i].entry[j].cmd_desc);
+            _writef(sockd, "</div>\n");
+        }
+
+        _writef(sockd, "</div>\n");
+
+    }
+    _writef(sockd, "</div>\n");
 
 }

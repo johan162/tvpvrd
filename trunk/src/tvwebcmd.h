@@ -40,7 +40,7 @@ void
 html_endpage(int sockd);
 
 void
-html_newpage(int sockd, char *cookie_val);
+html_newpage(int sockd, char *cookie_val, int mobile);
 
 void
 html_topbanner(int sockd);

@@ -356,6 +356,8 @@ get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
 #define _PR_PROFE "(" _PR_PROFN ")?"
 #define _PR_PROFILES "(" _PR_PROFN _PR_SO _PR_PROFN _PR_SO _PR_PROFN ")?"
 
+#define TRUE 1
+#define FALSE 0
 
 #ifdef	__cplusplus
 }
