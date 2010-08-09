@@ -288,20 +288,22 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
         logmsg(LOG_DEBUG,"*** WEB Connection accepted. Checking buffer: %s",buffer);
         // First check if we should handle an add/delete command
 
-        if( (ret = matchcmd("^GET /addrec\\?"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
-                            _PR_AN "=" _PR_ANO "&"
+        if( (ret = matchcmd("GET /addrec\\?"
                             _PR_AN "=" _PR_ANSO "&"
-                            _PR_AN "=" _PR_ANO 
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANSO "&"
+                            _PR_AN "=" _PR_ANPS "&"
+                            _PR_AN "=" _PR_AN 
                             " HTTP/1.1",
                             buffer, &field)) > 1 ) {
+
+            logmsg(LOG_DEBUG,"========== Accepted addrec-command:");
 
             const int maxvlen=256;
             char channel[maxvlen], repeat[maxvlen], repeatcount[maxvlen];
@@ -345,7 +347,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 snprintf(tmpcmd,128, " %s @%s ",title,profile);
                 strncat(wcmd,tmpcmd,1023);
 
-                logmsg(LOG_DEBUG,"Add cmd=%s",wcmd);
+                logmsg(LOG_DEBUG,"============= Add cmd=%s",wcmd);
 
             }
 
@@ -370,14 +372,12 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 }
             }
             
-        } 
-        
+        }        
         
         if( (ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1 ) {
             // If it's not a favicon.ico GET command we proceed
 
-            logmsg(LOG_DEBUG,"**** Browser sent: %s",buffer);
-            logmsg(LOG_DEBUG,"**** Translated to: %s",wcmd);
+            logmsg(LOG_DEBUG,"==== Translated to: %s",wcmd);
             static char logincookie[128];
             if( ! user_loggedin(buffer,logincookie,127) ) {
 
@@ -427,8 +427,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
         } else {
 
-            // Ignore favicon.ico GET
-            logmsg(LOG_DEBUG, "Ignoring WEB GET favicon.ico");
+            // Ignore GET favicon.ico
+            html_notfound(my_socket);
 
         }
     } else {
@@ -781,9 +781,9 @@ html_main_page_mobile(int sockd,char *wcmd, char *cookie_val) {
 
     _writef(sockd,"<div class=\"single_side\">");
     html_commandlist_short(sockd);
-    html_cmd_add_del(sockd);
     html_cmd_output(sockd,wcmd);
-    _writef(sockd,"</div> <!-- single_side -->");
+    html_cmd_add_del(sockd);
+    _writef(sockd,"\n</div> <!-- single_side -->");
 
     html_endpage(sockd);
 
@@ -812,7 +812,7 @@ html_login_page(int sockd, int mobile) {
 void
 html_cmd_add_del(int sockd) {
     static const char *day_list[] = {
-        "","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+        " ","Mon","Tue","Wed","Thu","Fri","Sat","Sun"
     };
     const int n_day = 8;
     static const char *min_list[] = {
@@ -832,7 +832,7 @@ html_cmd_add_del(int sockd) {
     };
     const int n_rpt = 6;
     static const char *rptcount_list[] = {
-        "","02","03","04","05","06","07","08","09","10",
+        " ","02","03","04","05","06","07","08","09","10",
         "11","12","13","14","15","16","17","18","19",
         "20","21","22","23","24","25","26","27","28","29",
         "30","31","33","33","34","35","36","37","38","39",
@@ -860,7 +860,7 @@ html_cmd_add_del(int sockd) {
 
     _writef(sockd,"<fieldset><legend>Add new recording</legend>");
     html_element_select_code(sockd,"Repeat:","repeat",NULL, rpt_list, n_rpt,NULL);
-    html_element_select(sockd,"Count:","<repeatcount",NULL, rptcount_list, n_rptcount,"id_rptcount");
+    html_element_select(sockd,"Count:","repeatcount",NULL, rptcount_list, n_rptcount,"id_rptcount");
     html_element_select(sockd,"Profile:","profile",default_transcoding_profile, profile_list, n_profile,"id_profile");
     html_element_select(sockd,"Station:","channel",NULL, station_list, n_stations,"id_station");
 
@@ -965,6 +965,13 @@ static struct cmd_entry cmdfunc_slave_view[] = {
     {"log%2050", "Recent log"}
 };
 
+static struct cmd_entry cmdfunc_master_menu_short[] = {
+    {"s", "Status"},
+    {"l", "Recs"},
+    {"n", "Next"},
+    {"o", "Ongoing"}
+};
+
 static struct cmd_grp cmd_grp_master[] = {
     {"Server", "Server information", sizeof (cmdfunc_master_status) / sizeof (struct cmd_entry), cmdfunc_master_status},
     {"Recordings", "Stored recordings", sizeof (cmdfunc_master_recs) / sizeof (struct cmd_entry), cmdfunc_master_recs},
@@ -979,9 +986,15 @@ static struct cmd_grp cmd_grp_slave[] = {
     {"View", "View", sizeof (cmdfunc_slave_view) / sizeof (struct cmd_entry), cmdfunc_slave_view}
 };
 
+/*
 static struct cmd_grp cmd_grp_master_short[] = {
     {"Server", "Server information", sizeof (cmdfunc_master_status) / sizeof (struct cmd_entry), cmdfunc_master_status},
     {"Recs", "Stored recordings", sizeof (cmdfunc_master_recs) / sizeof (struct cmd_entry), cmdfunc_master_recs}
+};
+*/
+
+static struct cmd_grp cmd_grp_master_menu_short[] = {
+    {"Menu", "Server information", sizeof (cmdfunc_master_menu_short) / sizeof (struct cmd_entry), cmdfunc_master_menu_short}
 };
 
 static struct cmd_grp cmd_grp_slave_short[] = {
@@ -1089,8 +1102,8 @@ html_commandlist_short(int sockd) {
     int cmdgrplen;
 
     if (is_master_server) {
-        cmdgrp = cmd_grp_master_short;
-        cmdgrplen = sizeof (cmd_grp_master_short) / sizeof (struct cmd_grp);
+        cmdgrp = cmd_grp_master_menu_short;
+        cmdgrplen = sizeof (cmd_grp_master_menu_short) / sizeof (struct cmd_grp);
     } else {
         cmdgrp = cmd_grp_slave_short;
         cmdgrplen = sizeof (cmd_grp_slave_short) / sizeof (struct cmd_grp);
@@ -1099,19 +1112,12 @@ html_commandlist_short(int sockd) {
     _writef(sockd, "<div class=\"cmd_menu_short\">\n");
     for (int i = 0; i < cmdgrplen; ++i) {
 
-        _writef(sockd, "<div class=\"cmdgrp_short_container\">\n");
-
-        _writef(sockd, "<div class=\"cmdgrp_commands_short\"><span class=\"cmdgrp_title_short\">%s:</span></div>\n", cmdgrp[i].grp_name);
-
         for (int j = 0; j < cmdgrp[i].cmd_num; ++j) {
             _writef(sockd, "<div class=\"cmdgrp_commands_short\">");
-            _writef(sockd, "<a href=\"cmd?%s\">%d. %s</a>\n", cmdgrp[i].entry[j].cmd_name,j+1, cmdgrp[i].entry[j].cmd_desc);
+            _writef(sockd, "<a href=\"cmd?%s\">%d. %s</a>", cmdgrp[i].entry[j].cmd_name,j+1, cmdgrp[i].entry[j].cmd_desc);
             _writef(sockd, "</div>\n");
         }
-
-        _writef(sockd, "</div>\n");
-
     }
-    _writef(sockd, "</div>\n");
+    _writef(sockd, "</div> <!-- cmd_menu_short -->\n");
 
 }

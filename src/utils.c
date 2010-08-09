@@ -1057,12 +1057,38 @@ char *html_encode(char *str) {
     return buf;
 }
 
+
+/**
+ * Trim a string by removing beginning and ending spaces
+ * @param str
+ */
+void strtrim(char *str) {
+    char *tmp = strdup(str),*tmpptr=tmp, *strptr=str;
+    while( *tmpptr ) {
+        if( *tmpptr != ' ' )
+            *strptr++ = *tmpptr;
+        ++tmpptr;
+    }
+    *strptr='\0';
+}
+
+/**
+ * Get associated value from a list of keys and values. The returned values are
+ * stripped from beginning and ending spaces
+ * @param value
+ * @param maxlen
+ * @param key
+ * @param list
+ * @param n
+ * @return
+ */
 int
 get_assoc_value(char *value,int maxlen,char *key,char *list[],int n) {
     int i = 0;
     while( i < n ) {
         if( 0 == strcmp(key,list[i]) ) {
             strncpy(value,list[i+1],maxlen);
+            strtrim(value);
             return 0;
         }
         i += 2;

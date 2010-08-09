@@ -6,9 +6,15 @@
  *----------------------------------------------------------------------------------------------
  */
 
+* {
+}
+
+
 /* Make it 99% to avoid scroll bars on the main page */
-html,body {
-    width: 100%;
+body {
+    width: 700px;
+    line-height:140%;
+    margin:0;
 }
 
 /* The overall main page is contained in this div */
@@ -16,20 +22,26 @@ div.top_page {
      border: 1px solid gray;
      background: #e1e6db;
     width:100%;
-    padding:0px;
+    height:98%;
+    padding:0;
+    margin:0;
     padding-bottom: 3px;
-    border: solid gray 2px;
+    border: solid #555 1px;
 }
 
 /* The top banner line with name and version */
 div.top_banner {
-    text-align:left;
+    width:100%;
+    text-align:center;
     font-weight:bold;
     font-size:18pt;
     font-family: Arial, Sans-serif;
+    color: darkred;
     background: #a7b797;
-    margin-bottom:0px;
-    padding: 2px;
+    margin:0;
+    padding: 0;
+    padding-bottom: 0.3em;
+    padding-top: 0.3em;
 }
 
 div.single_side {
@@ -41,12 +53,10 @@ div.single_side {
 
 /* Container around the command input area */
 div.cmd_bottom_container {
-    width:99%;
+    width:98%;
     padding-right: 0px;
-    padding-left: 0px;
-    margin-left:0px;
-    margin-right:0px;
-    margin-top:0px;
+    padding: 0px;
+    margin:0;
 }
 
 /*
@@ -84,7 +94,7 @@ div.login_container input {
 div.login_title {
     padding:3px;
     padding-left:10px;
-    color:white:
+    color:white;
     background:#555;
     font-weight:bold;
     font-family:Arial, Sans-serif;
@@ -122,12 +132,12 @@ select {
 
 /* Delete series y/n selector */
 select.input_select#id_seriesyn {
-    width:70px;
+   width:5em;
 }
 
 /* Repeat count selector */
 select.input_select#id_rptcount {
-    width:60px;
+   width:3em;
 }
 
 /* Used for all select with a code table */
@@ -138,7 +148,7 @@ select.input_select_code {
 
 /* Format for selector with list of recodings to delete */
 select.input_select_code#id_delselect {
-    width: 97%;
+    width: 20em;
 }
 
 /* Input text */
@@ -154,16 +164,19 @@ div.cmd_output {
     padding-bottom: 0px;
     padding-right: 3px;
     padding-left: 3px;
-    margin-left:0px;
-    margin-right:1px;
+    margin-left:1%;
+    margin-right:0;
     margin-top:3px;
     margin-bottom:0px;
     font-weight:bold;
+    font-size:130%;
+    font-family: Monospace;
     border:dotted gray 1px;
     background:white;
-    height:130px;
-    width:98%;
+    height:150px;
+    width: 97%;
     overflow:auto;
+    clear:both;
 }
 
 
@@ -172,29 +185,24 @@ legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-variant:small-caps;
-    font-size:18pt;
+    font-size:200%;
     color:blue;
 }
 
 /* Fieldset for add/del command */
 fieldset {
-    border:dotted gray 1px;
-   margin-top:5px;
+    border:dotted #333 2px;
+    layout: block;
+   margin-top:1%;
    margin-right:0px;
-   margin-left:0px;
+   margin-left:1%;
+   width:97%;
 }
 
 
 /*
 * Command lines
 */
-
-/* Container around all command groups */
-div.cmd_menu_short {
-    width : 99%;
-    margin:0;
-}
-
 
 /* Container around each input and input text-legend */
 div.input_container {
@@ -217,9 +225,9 @@ div.input_legend {
 input.input_submit {
     font-family:Arial, Sans-erif;
     font-weight:bold;
-    width:90px;
+    width: 6em;
     margin-left: 10px;
-    font-size: 18pt;
+    font-size: 180%;
 }
 
 div.input_container#delrec,
@@ -230,11 +238,11 @@ div.input_container#id_addrec {
 /* text between to and from time */
 span.be_hyphen {
     font-weight:bold;
-    font-size:20pt;
+    font-size:30pt;
 }
 #be_hyphen {
     padding-bottom:0px;
-    padding-top:22px;
+    padding-top:30px;
 }
 
 /* The submit button to delete a recording */
@@ -244,11 +252,18 @@ input.input_submit#delrec {
 
 /* We want the station, start and title on the "new record" to start on a new row 
  * and we do this by clearing the left side of the corresponding input containers. */
-div.input_container#id_title,
-div.input_container#id_station,
-div.input_container#id_starthour,
-div.input_container#id_seriesyn {
+#id_title,
+#id_station,
+#id_starthour,
+#id_seriesyn,
+#id_profile {
     clear:left;
+}
+
+#id_addrec,
+#delrec {
+    clear:left;
+    margin-left:0;
 }
 
 
@@ -256,41 +271,36 @@ div.input_container#id_seriesyn {
 * For Menu links at the top 
 */
 
-/* Container around each command group and title */
-div.cmdgrp_short_container {
-    width : 98%;
-    height: 16pt;
-    padding: 3px;
-    margin-top: 3px;
-    border: dotted gray 1px;
+/* Container around all command groups */
+div.cmd_menu_short {
+    width : 100%;
+    margin-left: 2%;
+    margin-top:2%;
+    margin-bottom: 2%;
 }
 
-
-/* Container around title */
-span.cmdgrp_title_short {
-    font-family: Arial, Sans-serif;
-    font-weight: bold;
-    font-size: 12pt;
-}
 
 /* Container around all the links in the command group */
 div.cmdgrp_commands_short {
     float : left;
-    width : 20%;
+    margin-right:2em;
+    margin-bottom:1em;
 }
 
 div.cmdgrp_commands_short a {
-    font-size:16pt;
+    font-size:190%;
+    font-weight: bold;
+    font-family: Arial, Sans-serif;
 }
 
 /* To get rid of anchor underlines in comamnd menu */
-a {
+div.cmdgrp_commands_short a {
     text-decoration:none;
     color:black;
 }
 
 /* To highlight the current selected command */
-a:hover {
+div.cmdgrp_commands_short a:hover {
     text-decoration:underline;
     color:blue;
 }
