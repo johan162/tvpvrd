@@ -1,0 +1,315 @@
+/*----------------------------------------------------------------------------------------------
+ * File:    TVPVRD_MOBILE.CSS
+ * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
+ *            daemon suitable for a mobile phone with smaller screen
+ * SVN:   $Id: tvpvrd.css 159 2010-08-01 19:41:56Z johan162 $
+ *----------------------------------------------------------------------------------------------
+ */
+
+* {
+}
+
+
+/* Make it 99% to avoid scroll bars on the main page */
+body {
+    width: 670px;
+    line-height:150%;
+    margin:0;
+}
+
+/* The overall main page is contained in this div */
+div.top_page {
+     border: 1px solid gray;
+     background: #e1e6db;
+    width:100%;
+    height:98%;
+    padding:0;
+    margin:0;
+    padding-bottom: 3px;
+    border: solid #555 1px;
+}
+
+/* The top banner line with name and version */
+div.top_banner {
+    width:100%;
+    text-align:center;
+    font-weight:bold;
+    font-size:18pt;
+    font-family: Arial, Sans-serif;
+    color: darkred;
+    background: #a7b797;
+    margin:0;
+    padding: 0;
+    padding-bottom: 0.3em;
+    padding-top: 0.3em;
+    border-bottom: solid black 1px;
+}
+
+div.single_side {
+    width:99%;
+    margin-left:3px;
+    margin-right:3px;
+    padding-bottom:3px;
+}
+
+/* Container around the command input area */
+div.cmd_bottom_container {
+    width:98%;
+    padding-right: 0px;
+    padding: 0px;
+    margin:0;
+}
+
+/*
+ * The following styles refer to the login box/login page 
+*/
+
+/* Container for log-in box */
+div.login_container {
+    border: solid gray 1px;
+    position:relative;
+    top:0%;
+    bottom:0;
+    left:0;
+    right:0;
+    width:300px;
+    height:220px;
+    background:#EEE;
+    padding-right:30px
+    padding-bottom:30px;
+    padding-top:0;
+    margin:auto;
+    margin-top:0;
+    margin-bottom:10px;
+}
+
+div.login_container  div.input_container {
+    margin-left:40px;
+}
+
+div.login_container input {
+    font-size:18pt;
+}
+
+/* Title of login box */
+div.login_title {
+    padding:3px;
+    padding-left:10px;
+    color:white;
+    background:#555;
+    font-weight:bold;
+    font-family:Arial, Sans-serif;
+    font-size:16pt;
+    color:white;
+    background:navy;
+    margin-bottom:10px;
+}
+
+/* Adjustment of password field */
+div.input_container#id_loginpwd {
+    margin-top:10px;
+    clear:left;
+}
+
+/* Submit button for login */
+input.input_submit#id_submitlogin {
+    margin-top:0px;
+    width:80px;
+    margin-left: 90px;
+}
+
+
+/*
+ * All select input formats are used in the add/delete fieldset when adding and deleteing
+ * records.
+ */
+div.input_select {
+}
+
+select {
+    font-size:20pt;
+    padding: 2px;
+}
+
+/* Delete series y/n selector */
+select.input_select#id_seriesyn {
+   width:5em;
+}
+
+/* Repeat count selector */
+select.input_select#id_rptcount {
+   width:3em;
+}
+
+/* Used for all select with a code table */
+select.input_select_code {
+    font-family:Arial, Sans-serif;
+    color:#202020;
+}
+
+/* Format for selector with list of recodings to delete */
+select.input_select_code#id_delselect {
+    width: 20em;
+}
+
+/* Input text */
+input.input_text {
+    color : #202020;
+    font-size: 18pt;
+}
+
+
+/* This div encloses the command output */
+div.cmd_output {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 3px;
+    padding-left: 3px;
+    margin-left:1%;
+    margin-right:0;
+    margin-top:0.5em;
+    margin-bottom:0px;
+    font-weight:bold;
+    font-size:130%;
+    font-family: Monospace;
+    border:dotted gray 1px;
+    background:white;
+    height:20ex;
+    width: 97%;
+    overflow:auto;
+    clear:both;
+    background:black;
+    color: #0f0;
+}
+
+pre {
+    margin:0;
+    padding: 0;
+}
+
+/* Legend for the fieldset */
+legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-variant:small-caps;
+    font-size:200%;
+    color:#444;
+}
+
+/* Fieldset for add/del command */
+fieldset {
+    border:dotted #333 2px;
+    layout: block;
+   margin-top:1%;
+   margin-right:0px;
+   margin-left:1%;
+   width:97%;
+}
+
+
+/*
+* Command lines
+*/
+
+/* Container around each input and input text-legend */
+div.input_container {
+    float:left;
+    padding:2px;
+    margin-top:5px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+/* The legend text for each input field */
+div.input_legend {
+    font-family:Arial, Sans-serif;
+    font-weight:bold;
+    font-size:14pt;
+    color:#505050;
+}
+
+/* Input submit button in forms*/
+input.input_submit {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    width: 6em;
+    margin-left: 10px;
+    font-size: 180%;
+    color:blue;
+}
+
+div.input_container#delrec,
+div.input_container#id_addrec {
+    padding-top:18px;
+}
+
+/* text between to and from time */
+span.be_hyphen {
+    font-weight:bold;
+    font-size:30pt;
+}
+#be_hyphen {
+    padding-bottom:0px;
+    padding-top:30px;
+}
+
+/* The submit button to delete a recording */
+input.input_submit#delrec {
+    color:darkred;
+}
+
+/* We want the station, start and title on the "new record" to start on a new row 
+ * and we do this by clearing the left side of the corresponding input containers. */
+#id_title,
+#id_station,
+#id_starthour,
+#id_seriesyn,
+#id_profile {
+    clear:left;
+}
+
+#id_addrec,
+#delrec {
+    clear:left;
+    margin-left:0;
+}
+
+
+/*
+* For Menu links at the top 
+*/
+
+/* Container around all command groups */
+div.cmd_menu_short {
+    width : 100%;
+    height: 2em;
+    margin:0;
+    padding: 0.3em;
+    padding-top: 0.8em;
+    background: #fff;
+}
+
+
+/* Container around all the links in the command group */
+div.cmdgrp_commands_short {
+    float : left;
+    margin-right:2em;
+}
+
+div.cmdgrp_commands_short a {
+    font-size:190%;
+    font-weight: bold;
+    font-family: Arial, Sans-serif;
+}
+
+/* To get rid of anchor underlines in comamnd menu */
+div.cmdgrp_commands_short a {
+    text-decoration:none;
+    color:blue;
+}
+
+/* To highlight the current selected command */
+div.cmdgrp_commands_short a:hover {
+    text-decoration:underline;
+    color:darkred;
+}
