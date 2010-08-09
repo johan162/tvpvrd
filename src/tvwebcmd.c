@@ -256,7 +256,7 @@ is_mobile_connection(char *buffer) {
         logmsg(LOG_DEBUG,"Found User-Agent: %s",field[1]);
 
         char *header = strdup(field[1]);
-        if( matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung)",header,&field) > 0 )
+        if( matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung|blac|moto|doco|java|symb)",header,&field) > 0 )
             return TRUE;
     }
 
@@ -298,8 +298,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                             _PR_AN "=" _PR_ANSO "&"
                             _PR_AN "=" _PR_ANSO "&"
                             _PR_AN "=" _PR_ANSO "&"
-                            _PR_AN "=" _PR_ANPS "&"
-                            _PR_AN "=" _PR_AN 
+                            _PR_AN "=" _PR_ANPSO "&"
+                            _PR_AN "=" _PR_AN
                             " HTTP/1.1",
                             buffer, &field)) > 1 ) {
 

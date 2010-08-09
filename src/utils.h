@@ -314,6 +314,8 @@ get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
 // Required alphanumeric, punctuation and space sequence
 #define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"
 
+#define _PR_ANPSO "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\']*)"
+
 // Any sequence of symbols
 #define _PR_ANY "(\\X+)"
 
