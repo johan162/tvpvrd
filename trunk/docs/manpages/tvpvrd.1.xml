@@ -92,6 +92,14 @@
                     <filename>/etc</filename>). This is the same place as where the ini-file is
                 stored. This means it is very simple to change the look and feel from the default
                 colors and layout.</para>
+            <para>The WEB interface will also automatically adapt when it detects that a mobile
+                phone browser is trying to access the interface to a format more suitable for the
+                smaller screen on mobile phones. By necessity this means that only a subset of the
+                full command set is available from the browser on a phone in order to keep the
+                interface simple. The detection is based on the header that the browser sends and
+                should detect most phones. However, it is possible that some browsers used on mobile
+                phone will not be detected as mobile browsers and then the normal WEB interface will
+                be used.</para>
             <para>The recordings specified are stored in a database which is a plain text file in
                 XML format (UTF-8 encoded).</para>
             <para>Recorded and transcoded files are stored in a predefined directory structure. The
