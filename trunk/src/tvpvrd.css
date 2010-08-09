@@ -70,7 +70,8 @@ div.cmd_output {
     margin-bottom:0px;
     font-weight:bold;
     border:dotted gray 1px;
-    background:white;
+    background:black;
+    color: #0f0;
     height:40%;
     width:99%;
     overflow:auto;
@@ -242,7 +243,7 @@ div.login_container {
     width:250px;
     height:180px;
     background:#EEE;
-    padding-right:30px
+    padding-right:30px;
     padding-bottom:30px;
     padding-top:0px;
     margin:auto;
@@ -256,7 +257,7 @@ div.login_container  div.input_container {
 div.login_title {
     padding:3px;
     padding-left:10px;
-    color:white:
+    color:white;
     background:#555;
     font-weight:bold;
     font-family:Arial, Sans-serif;
