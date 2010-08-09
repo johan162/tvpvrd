@@ -58,6 +58,11 @@ div.cmd_menu {
     font-size:12pt;
 }
 
+
+pre {
+	margin:0;
+}
+
 /* This div encloses the command output */
 div.cmd_output {
     clear:right;
@@ -72,13 +77,13 @@ div.cmd_output {
     border:dotted gray 1px;
     background:black;
     color: #0f0;
-    height:40%;
+    height:30%;
     width:99%;
     overflow:auto;
 }
 
 /* Container around the command input area */
-div.cmd_bottom_container {
+div.cmd_add_del_container {
     width:100%;
     padding-right: 0px;
     padding-left: 0px;
@@ -201,8 +206,10 @@ input.input_submit {
 }
 
 div.input_container#delrec,
-div.input_container#id_addrec {
-    padding-top:14px;
+div.input_container#id_addrec,
+div.input_container#id_qaddrec
+ {
+    padding-top:15px;
 }
 
 /* text between to and from time */
@@ -223,8 +230,7 @@ input.input_submit#delrec {
 /* We want the station, start and title on the "new record" to start on a new row 
  * and we do this by clearing the left side of the corresponding input containers. */
 div.input_container#id_title,
-div.input_container#id_station,
-div.input_container#id_seriesyn {
+div.input_container#id_station {
     clear:left;
 }
 

@@ -276,8 +276,24 @@ html_encode(char *str);
 
 extern int htmlencode_flag;
 
+/**
+ * Return the associated value in an aray of key/value pairs
+ * @param value
+ * @param maxlen
+ * @param key
+ * @param list
+ * @param n
+ * @return
+ */
 int
 get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
+
+/**
+ * Trim a string by removing beginning and ending psaces
+ * @param string
+ */
+void
+trim(char *string);
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands

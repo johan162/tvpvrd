@@ -12,9 +12,10 @@
 
 /* Make it 99% to avoid scroll bars on the main page */
 body {
-    width: 670px;
+    width: 650px;
     line-height:150%;
     margin:0;
+    padding:0;
 }
 
 /* The overall main page is contained in this div */
@@ -25,7 +26,6 @@ div.top_page {
     height:98%;
     padding:0;
     margin:0;
-    padding-bottom: 3px;
     border: solid #555 1px;
 }
 
@@ -46,9 +46,9 @@ div.top_banner {
 }
 
 div.single_side {
-    width:99%;
-    margin-left:3px;
-    margin-right:3px;
+    width:100%;
+    margin-left:0;
+    margin-right:0;
     padding-bottom:3px;
 }
 
@@ -149,7 +149,7 @@ select.input_select_code {
 
 /* Format for selector with list of recodings to delete */
 select.input_select_code#id_delselect {
-    width: 20em;
+    width: 15em;
 }
 
 /* Input text */
@@ -203,7 +203,7 @@ fieldset {
    margin-top:1%;
    margin-right:0px;
    margin-left:1%;
-   width:97%;
+   width:94%;
 }
 
 
@@ -238,10 +238,6 @@ input.input_submit {
     color:blue;
 }
 
-div.input_container#delrec,
-div.input_container#id_addrec {
-    padding-top:18px;
-}
 
 /* text between to and from time */
 span.be_hyphen {
@@ -264,14 +260,24 @@ input.input_submit#delrec {
 #id_station,
 #id_starthour,
 #id_seriesyn,
+#id_length_hour,
+#id_qtitle,
 #id_profile {
     clear:left;
 }
 
+/* Submit buttons */
 #id_addrec,
-#delrec {
+#delrec,
+#id_qaddrec {
     clear:left;
     margin-left:0;
+}
+
+div.input_container#delrec,
+div.input_container#id_qaddrec,
+div.input_container#id_addrec {
+    padding-top:10px;
 }
 
 
@@ -284,9 +290,10 @@ div.cmd_menu_short {
     width : 100%;
     height: 2em;
     margin:0;
-    padding: 0.3em;
+    padding: 0em;
     padding-top: 0.8em;
-    background: #fff;
+    background: #bbb;
+    border-bottom: solid gray 1px;
 }
 
 
