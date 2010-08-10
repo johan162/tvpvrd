@@ -242,15 +242,22 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
         logmsg(LOG_DEBUG, "Received cookie: %s decoded as: %s", field[2], tmpbuff);
 
+        int sucess=0;
         if (validate_cookie(tmpbuff)) {
             strncpy(cookie, tmpbuff, maxlen);
             cookie[maxlen - 1] = '\0';
             free(tmpbuff);
-            return 1;
+            sucess = 1;
         } else {
             free(tmpbuff);
-            return 0;
         }
+
+        if ( ret > 0 && field != (void *)NULL ) {
+            pcre_free_substring_list((const char **)field);
+        }
+
+        return sucess;
+
 
     } else {
         return 0;
@@ -265,20 +272,25 @@ is_mobile_connection(char *buffer) {
 
     char **field = (void *) NULL;
     if (matchcmd("X-Wap-Profile:", buffer, &field) > 0) {
-        logmsg(LOG_DEBUG, "Found Wap-Profile in header");
+
+        pcre_free_substring_list((const char **)field);
         return TRUE;
     }
 
     // Extract User-Agent String
     if (matchcmd("User-Agent: (.+)", buffer, &field) > 0) {
-        logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
+        // logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
 
         char *header = strdup(field[1]);
-        if (matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung|blac|moto|doco|java|symb)", header, &field) > 0)
+        pcre_free_substring_list((const char **)field);
+
+        if (matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung|blac|moto|doco|java|symb)", header, &field) > 0) {
+            pcre_free_substring_list((const char **)field);
             return TRUE;
+        }
+
     }
-
-
+    
     return FALSE;
 }
 
@@ -900,7 +912,7 @@ void
 html_cmd_next(int sockd) {
     _writef(sockd, "<fieldset><legend>Next recording</legend>\n");
     _writef(sockd, "<div class=\"next_rec_container\">\n");
-    listrecs(1,0,sockd);
+    listrecs(1,3,sockd);
     _writef(sockd, "</div>\n");
     _writef(sockd, "</fieldset>\n");
 }
@@ -916,8 +928,10 @@ html_cmd_ongoing(int sockd) {
         _writef(sockd, "<div class=\"ongoing_rec_entry\">\n");
 
         if (ongoing_recs[i]) {
-            _writef(sockd, "<div class=\"ongoing_rec_title\">%d: %s</div>",i+1,ongoing_recs[i]->title);
-            _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">[Stop]</a></div>",i);
+            int ey, em, ed, eh, emi, es;
+            fromtimestamp(ongoing_recs[i]->ts_end, &ey, &em, &ed, &eh, &emi, &es);
+            _writef(sockd, "<div class=\"ongoing_rec_title\">(%02d:%02d) %s</div>",eh,emi,ongoing_recs[i]->title);
+            _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">Stop</a></div>",i);
             flag=1;
             //_writef(sockd, "<input type=\"hidden\" name=\"rid\" value=\"%d\">",i);
             //html_element_submit(sockd, "submit_killrec", "Stop", "id_killrec");
@@ -1075,8 +1089,7 @@ struct cmd_grp {
 
 
 static struct cmd_entry cmdfunc_master_recs[] = {
-    {"l", "List all"},
-    {"n", "Next"}
+    {"l", "List"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {

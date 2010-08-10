@@ -620,6 +620,7 @@ dumprecord_header(int style, char *buffer, int bufflen) {
  * 1		Record, several lines, short format
  * 2		Record, several lines, long format
  * 3            Brief only seqnbr,channel,start,title
+ * 4            More human readable format for display
  */
 void
 dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) {
@@ -669,14 +670,16 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
 
     } else if ( style == 3 ) {
 
-        snprintf(buffer, bufflen, "#%03d: %-7.7s %s %02d %02d:%02d &nbsp;%-20s\n",
-                entry->seqnbr,
+        snprintf(buffer, bufflen, "%-7.7s %s %02d %02d:%02d-%02d:%02d: &nbsp;%-20s\n",
                 entry->channel,
                 month_name[sm], sd,
-                sh, smi, entry->title);
+                sh, smi,
+                eh,emi,
+                entry->title);
 
 
     } else {
+        // Format 1 or 2 so we must differntiate a recurring and single record
         if (entry->recurrence) {
             if (style == 2) {
                 snprintf(buffer,bufflen,
