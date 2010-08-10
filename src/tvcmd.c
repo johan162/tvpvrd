@@ -90,8 +90,9 @@
 #define CMD_LIST_PROFILES 30
 #define CMD_LISTWAITINGTRANSC 31
 #define CMD_GETXMLHTML 32
+#define CMD_LIST_RECHUMAN 33
 
-#define CMD_UNDEFINED 33
+#define CMD_UNDEFINED 34
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -142,7 +143,8 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  i    - print detailed information on recording\n"\
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
-			"  l    - list all pending recordings\n"\
+			"  l    - list recordings\n"\
+    			"  lh   - list recordings, human format\n"\
                         "  lc   - list all controls for the capture card\n"\
                         "  log n -show the last n lines of the logfile\n"\
                         "  ls   - list all stations\n"\
@@ -198,16 +200,15 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lh|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
     }
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
-        if( field != (void *)NULL ) {
-            pcre_free_substring_list((const char **)field);
-        }
+        
+        matchcmd_free(field);
     }
     else {
         _writef(sockfd, msgbuff);
@@ -233,7 +234,7 @@ static void
 _cmd_setprofile(const char *cmd, int sockfd) {
     char msgbuff[256];
     int err, ret;
-    char **field;
+    char **field = NULL;
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
@@ -254,7 +255,8 @@ _cmd_setprofile(const char *cmd, int sockfd) {
         } else {
             snprintf(msgbuff,255,"Failed to set profile '%s' on recording %03d\n",field[2],atoi(field[1]));
         }
-        _writef(sockfd,msgbuff);        
+        _writef(sockfd,msgbuff);
+        matchcmd_free(field);
     } else {
         _writef(sockfd,"ret=%d\n",ret);
         _cmd_undefined(cmd,sockfd);
@@ -272,7 +274,7 @@ _cmd_setprofile(const char *cmd, int sockfd) {
 static void
 _cmd_delete(const char *cmd, int sockfd) {
     char msgbuff[256];
-    int err, ret, id;
+    int err=0, ret, id;
     char **field=(void *)NULL;
 
     if (cmd[0] == 'h') {
@@ -286,12 +288,8 @@ _cmd_delete(const char *cmd, int sockfd) {
         return;
     }
 
-    ret = matchcmd("^d" _PR_SO _PR_ID _PR_E, cmd, &field);
-    err = ret < 0;
-
-    if ( err ) {
-        ret = matchcmd("^dr" _PR_SO _PR_ID _PR_E, cmd, &field);
-        err = ret < 0;
+    if( (ret = matchcmd("^d" _PR_SO _PR_ID _PR_E, cmd, &field)) < 0 ) {
+        err = ( matchcmd("^dr" _PR_SO _PR_ID _PR_E, cmd, &field) < 0 );
     }
 
     if ( ! err ) {
@@ -301,10 +299,12 @@ _cmd_delete(const char *cmd, int sockfd) {
 
         if (ret) {
             snprintf(msgbuff, 256, "Deleted %s #%02d",
-                    cmd[1] == 'r' ? "all repeated recordings" : "recording", id);
+                    cmd[1] == 'r' ? "repeated recordings" : "recording", id);
         }
         else
             snprintf(msgbuff, 256, "Can not delete record #%02d", id);
+
+        matchcmd_free(field);
 
     } else {
         snprintf(msgbuff, 256, "Command not recognized.");
@@ -328,9 +328,7 @@ _cmd_delete(const char *cmd, int sockfd) {
         logmsg(LOG_ERR,msgbuff);
     }
     _writef(sockfd, "%s\n", msgbuff);
-    if( field != (void *)NULL ) {
-        pcre_free_substring_list((const char **)field);
-    }
+
 }
 
 /**
@@ -441,6 +439,8 @@ _cmd_add(const char *cmd, int sockfd) {
             repeat_nbr = atoi(field[2]);
             snprintf(cmdbuff,255, "a %s", field[3]);
             cmdbuff[255] = 0;
+            matchcmd_free(field);
+
         }
         else {
             // See if number of instances was specified with an end date instead
@@ -508,6 +508,8 @@ _cmd_add(const char *cmd, int sockfd) {
                     snprintf(cmdbuff,255, "a %s", field[5]);
                     cmdbuff[255] = 0;
 
+                    matchcmd_free(field);
+
                 }
             } else {
                 err = 1;
@@ -529,8 +531,7 @@ _cmd_add(const char *cmd, int sockfd) {
         // a <channel> <starttime> [<title>] [@profile, @profile, ...]
         char _regex[256];
         strcpy(_regex,"^a" _PR_S _PR_CHANNEL _PR_S _PR_OPTIME _PR_OPTITLE _PR_PROFILES _PR_E);
-        ret = matchcmd(_regex,
-                       cmdbuff, &field);
+        ret = matchcmd(_regex, cmdbuff, &field);
         err =  ret < 2 ;
 
         if( ! err ) {
@@ -613,6 +614,8 @@ _cmd_add(const char *cmd, int sockfd) {
             }
             title[128-1] = '\0';
             channel[64-1] = '\0';
+
+            matchcmd_free(field);
 
         } else {
             // Variant 1 :
@@ -724,6 +727,8 @@ _cmd_add(const char *cmd, int sockfd) {
                     fromtimestamp(ts_end, &ey, &em, &ed, &eh, &emin, &esec);
                 }
 
+                matchcmd_free(field);
+
             } else {
 
                 // Variant 2
@@ -755,8 +760,6 @@ _cmd_add(const char *cmd, int sockfd) {
 
                     // Adjust a potential recurring count in cease an end date was specified
                     if( repeat_with_enddate ) {
-
-
 
                        // Find out how many repeats are required to reach the end date
                         // from todays date. If a startdate is given then this will
@@ -864,10 +867,10 @@ _cmd_add(const char *cmd, int sockfd) {
                                 err = 1;
                             }
                         }
+
+                        matchcmd_free(field);
                     }
                 } else {
-
-
 
                     // Variant 3
                     // a <channel> <startdate> <starttime> <endtime> [<title>] [@profile, @profile, ...]
@@ -966,6 +969,8 @@ _cmd_add(const char *cmd, int sockfd) {
                                 }
                             }
                         }
+
+                        matchcmd_free(field);
                     }
 
                 }
@@ -1070,9 +1075,11 @@ _cmd_add(const char *cmd, int sockfd) {
         }
     }
 
+    /*
     if( field != (void *)NULL ) {
         pcre_free_substring_list((const char **)field);
     }
+    */
 
     for(int i=0; i < REC_MAX_TPROFILES; i++) {
         free(profiles[i]);
@@ -1104,6 +1111,8 @@ _cmd_list(const char *cmd, int sockfd) {
         // User has limited the list
 
         n = atoi(field[1]);
+        matchcmd_free(field);
+
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
             return;
@@ -1115,13 +1124,51 @@ _cmd_list(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Syntax error.",ret);
+        _writef(sockfd,"Syntax error.\n",ret);
         return;
 
     }
 
     listrecs(n, 0, sockfd);
 }
+
+static void
+_cmd_list_human(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "lh <n>         - List all pending recordings. If <n> is given, only list the first n records\n"
+                 );
+        return;
+    }
+
+    int ret = matchcmd("^lh" _PR_SO _PR_OPID _PR_E, cmd, &field);
+    int n;
+    if( ret > 1 ) {
+        // User has limited the list
+
+        n = atoi(field[1]);
+        matchcmd_free(field);
+
+        if( n < 1 || n > 99 ) {
+            _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
+            return;
+        }
+
+    } else if ( ret == 1 ) {
+
+        n = -1; // Default to all records
+
+    } else {
+
+        _writef(sockfd,"Syntax error.\n",ret);
+        return;
+
+    }
+
+    listrecs(n, 3, sockfd);
+}
+
 
 
 /**
@@ -1156,10 +1203,12 @@ _cmd_list_controls(const char *cmd, int sockfd) {
                  );
         return;
     }
-    char **field;
+    char **field=(void *)NULL;
     int ret = matchcmd("^lc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     if( ret == 2 ) {
         int video = atoi(field[1]);
+        matchcmd_free(field);
+
         int fd = video_open(video);
         if( fd >= 0 ) {
             int n=_vctrl_getcontrols(fd, vctl, 32);
@@ -1265,7 +1314,7 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
         }
     }
     if( *msgbuff == '\0' )
-        strncpy(msgbuff,"None.",2047);
+        strncpy(msgbuff,"None.\n",2047);
     msgbuff[2047] = '\0';
     _writef(sockfd, msgbuff);
 }
@@ -1502,10 +1551,11 @@ _cmd_dump_tprofile(const char *cmd, int sockfd) {
                 );
         return;
     }
-    char **field;
+    char **field=(void *)NULL;
     int ret = matchcmd("^dp" _PR_S _PR_PROFN _PR_E, cmd, &field);
     if( ret == 2 ) {
         dump_transcoding_profile(&field[1][1], msgbuff, 1024);
+        matchcmd_free(field);
 	_writef(sockfd,msgbuff);
     } else {
         snprintf(msgbuff,1024,"Syntax error. Please specify '@profile' to display.\n");
@@ -1540,7 +1590,7 @@ _cmd_updatexmlfile(const char *cmd, int sockfd) {
     rename(xmldbfile,tmpbuff);
 
     if (writeXMLFile(xmldbfile) >= 0 ) {
-        snprintf(msgbuff, 255,"Database successfully updated '%s'", xmldbfile);
+        snprintf(msgbuff, 255,"Database successfully updated '%s'\n", xmldbfile);
         msgbuff[255] = 0 ;
         logmsg(LOG_INFO,msgbuff);
     }
@@ -1677,13 +1727,14 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
                 );
         return;
     }
-    char **field;
+    char **field=(void *)NULL;
     int ret = matchcmd("^vc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     
     logmsg(LOG_INFO,"[vc] ret=%d",ret);
 
     if( ret == 2 ) {
         int video = atoi(field[1]);
+
         int fd = video_open(video);
         if( fd >= 0 ) {
             char *driver, *card, *version;
@@ -1694,7 +1745,6 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
             }
         }
     } else {
-
         ret = matchcmd("^vc" _PR_SO _PR_E, cmd, &field);
         if( ret >= 1 ) {
             // Print info for all available cards
@@ -1705,7 +1755,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
                     unsigned int capflags;
                     if( 0 == _vctrl_get_cardinfo(fd, &driver, &card, &version, &capflags) ) {
                         video_close(fd);
-                        _writef(sockfd, "Card %02d: %s, driver=%s v%s\n",video,card,driver,version);
+                        _writef(sockfd, "%d: %s, driver=%s v%s\n",video,card,driver,version);
                     }
                 }
             }
@@ -1714,6 +1764,8 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
             _cmd_undefined(cmd,sockfd);
         }
     }
+
+    matchcmd_free(field);
 }
 
 
@@ -1755,9 +1807,8 @@ _cmd_abort(const char *cmd, int sockfd) {
     else {
         _cmd_undefined(cmd,sockfd);
     }
-    if( ret > 0 && field != (void *)NULL) {
-        pcre_free_substring_list((const char **)field);
-    }
+
+    matchcmd_free(field);
 }
 
 
@@ -1879,9 +1930,7 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
     } else {
         _cmd_undefined(cmd, sockfd);
     }
-    if (ret > 0 && field != (void *)NULL ) {
-        pcre_free_substring_list((const char **)field);
-    }
+    matchcmd_free(field);
 }
 
 /**
@@ -1906,11 +1955,11 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
 
         if( ret > 0 ) {
             dokilltranscodings = field[1][0] == 'y' ? 1 : 0 ;
-            
-            if (field != (void *)NULL ) {
-                pcre_free_substring_list((const char **)field);
-            }
+
+            matchcmd_free(field);
+
             _writef(sockfd,"killflag=%c\n",dokilltranscodings ? 'y' : 'n' );
+
         } else {
             _writef(sockfd,"Syntax error.\n");
         }
@@ -1963,6 +2012,8 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
         (void)transcode_file(field[1], profile, 1);
 
         _writef(sockfd,"Ok. Transcoding of '%s' using profile '%s' queued.\n",basename(field[1]),profile);
+        
+        matchcmd_free(field);
 
     } else {
 
@@ -2006,6 +2057,8 @@ _cmd_transcodefilelist(const char *cmd, int sockfd) {
         (void)read_transcode_filelist(field[1],profile);
         _writef(sockfd,"Ok. Transcoding of filelist started.\n");
 
+        matchcmd_free(field);
+
     } else {
         _writef(sockfd,"Syntax error.\n");
     }
@@ -2045,6 +2098,8 @@ _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
         (void)transcode_whole_directory(field[1],profile);
         _writef(sockfd,"Ok. Transcoding of directory.\n");
 
+        matchcmd_free(field);
+
     } else {
         _writef(sockfd,"Syntax error.\n");
     }
@@ -2076,6 +2131,8 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
             _writef(sockfd,buffer);
         }
 
+        matchcmd_free(field);
+
     } else {
 
         int ret = matchcmd("^lq" _PR_E, cmd, &field);
@@ -2086,6 +2143,8 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
             } else {
                 _writef(sockfd,buffer);
             }
+
+            matchcmd_free(field);
 
         } else {
             _writef(sockfd,"Syntax error.\n");
@@ -2112,6 +2171,8 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
             _writef(sockfd,"Error. Number of lines must be in range [1,999]\n");
             return;
         }
+
+        matchcmd_free(field);
 
     } else if ( ret == 1 ) {
 
@@ -2185,6 +2246,7 @@ cmdinit(void) {
     cmdtable[CMD_ADD]               = _cmd_add;
     cmdtable[CMD_DELETE]            = _cmd_delete;
     cmdtable[CMD_LIST]              = _cmd_list;
+    cmdtable[CMD_LIST_RECHUMAN]     = _cmd_list_human;
     cmdtable[CMD_LIST_CONTROLS]     = _cmd_list_controls;
     cmdtable[CMD_LIST_STATIONS]     = _cmd_list_stations;
     cmdtable[CMD_LIST_PROFILES]     = _cmd_list_profiles;
@@ -2248,6 +2310,7 @@ _getCmdPtr(const char *cmd) {
         {"kt", CMD_KILLTRANSCODING},
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"lc", CMD_LIST_CONTROLS},
+        {"lh", CMD_LIST_RECHUMAN},
         {"ls", CMD_LIST_STATIONS},
         {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},

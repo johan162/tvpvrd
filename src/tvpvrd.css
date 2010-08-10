@@ -66,13 +66,14 @@ pre {
 /* This div encloses the command output */
 div.cmd_output {
     clear:right;
-    padding-top: 0px;
-    padding-bottom: 0px;
+    padding-top: 0;
+    padding-bottom: 0;
     padding-right: 3px;
     padding-left: 3px;
-    margin-left:0px;
+    margin-left:0;
     margin-right:1px;
-    margin-bottom:0px;
+    margin-bottom:0;
+    margin-top: 0;
     font-weight:bold;
     border:dotted gray 1px;
     background:black;
@@ -137,6 +138,7 @@ legend {
     color:#333;
     padding-left:2px;
     padding-right:4px;
+    background: #e1e6db;    
 }
 
 /* Fieldset for add/del command */
@@ -307,12 +309,10 @@ div.next_rec_container {
     color: #444;
     font-weight:bold;
     font-family:monospace;
-/*
-    background:black;
-    color:#0f0;
+    background: white;
     margin-right:0.5em;
-    padding-bottom:2pt;
-*/
+    padding-left: 2pt;
+    padding-bottom: 1pt;
 }
 
 /*

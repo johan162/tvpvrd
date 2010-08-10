@@ -424,6 +424,9 @@ increcdays(int rectype,
 /*
  * Utility function that uses Perl Regular Expression library to match
  * a string and return an array of the found subexpressions
+ * NOTE: It is the calling routines obligation to free the returned
+ * field with a call to
+ * pcre_free_substring_list((const char **)field);
  */
 int
 matchcmd(const char *regex, const char *cmd, char ***field) {
@@ -444,6 +447,12 @@ matchcmd(const char *regex, const char *cmd, char ***field) {
     return -1;
 }
 
+void
+matchcmd_free(char **field) {
+    if( field != (void *)NULL ) {
+        pcre_free_substring_list((const char **)field);
+    }
+}
 
 /*
  * Fill the supplied buffer with 'num' repeats of character 'c'
