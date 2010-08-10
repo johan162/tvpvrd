@@ -16,7 +16,7 @@ html,body {
 div.top_page {
     border: 1px solid gray;
     background: #e1e6db;
-    height:550px;
+    height:520px;
     width:99%;
     padding:0px;
     border: solid gray 2px;
@@ -76,8 +76,8 @@ div.cmd_output {
     font-weight:bold;
     border:dotted gray 1px;
     background:black;
-    color: #0f0;
-    height:30%;
+    color: #0ef;
+    height:27%;
     width:99%;
     overflow:auto;
 }
@@ -134,22 +134,24 @@ legend {
     font-weight:bold;
     font-variant:small-caps;
     font-size:13pt;
-    color:#202020;
+    color:navy;
 }
 
 /* Fieldset for add/del command */
 fieldset {
-    border:dotted gray 1px;
-   margin-top:5px;
+    border:dotted black 1px;
+   margin-top:4px;
    margin-right:0px;
    margin-left:0px;
+   padding:0;
+   padding-left:3px;
 }
 
 /* Container around each input and input text-legend */
 div.input_container {
     float:left;
     padding:1px;
-    margin-top:3px;
+    margin-top:1px;
     margin-right:0px;
     margin-left:0px;
 }
@@ -160,6 +162,7 @@ div.input_legend {
     font-weight:bold;
     font-size:9pt;
     color:#505050;
+    margin:0;
 }
 
 /*
@@ -193,7 +196,7 @@ select.input_select_code#id_delselect {
 /* Input text */
 input.input_text {
     color : #202020;
-    width : 170px;
+    width : 140px;
 }
 
 /* Input submit button in forms*/
@@ -205,6 +208,7 @@ input.input_submit {
     margin-left: 10px;
 }
 
+/* Adjustment for submit buttons */
 div.input_container#delrec,
 div.input_container#id_addrec,
 div.input_container#id_qaddrec
@@ -227,11 +231,75 @@ input.input_submit#delrec {
     color:darkred;
 }
 
-/* We want the station, start and title on the "new record" to start on a new row 
- * and we do this by clearing the left side of the corresponding input containers. */
-div.input_container#id_title,
-div.input_container#id_station {
+/* Which input fields shoud start on a new line */
+div.input_container#id_start 
+{
     clear:left;
+}
+
+div.cmd_killrec {
+
+}
+
+div.ongoing_rec_entry {
+    float:left;
+}
+
+div.ongoing_rec_title {
+    padding-top: 2pt;
+    float:left;
+    font-size:11pt;
+    font-family:Arial, Sans-serif;
+    font-weight:bold;
+    color:darkred;
+    margin-bottom: 4pt;
+}
+
+div.ongoing_rec_title_disabled {
+    padding-top: 2pt;
+    float:left;
+    font-family:monospace;
+    font-weight:bold;
+    color:#444;
+    margin-bottom: 4pt;
+}
+
+div.ongoing_rec_stop {
+    float:left;
+    font-weight:bold;
+    font-size:11pt;
+    font-family: Arial, Sans-serif;
+}
+
+div.ongoing_rec_stop_disabled {
+    float:left;
+    color:gray;
+    font-weight:bold;
+    font-size:11pt;
+    font-family: Arial, Sans-serif;
+}
+
+div.ongoing_rec_stop a {
+    text-decoration: none;
+    color:black;
+}
+
+div.ongoing_rec_stop a:hover {
+    color:red;
+}
+
+
+div.ongoing_rec_stop_disabled a {
+    text-decoration: none;
+    color: #444;;
+}
+
+div.next_rec_container {
+    color: #444;
+    margin-bottom:4pt;
+    font-weight:bold;
+    margin-left: 2pt;
+    font-family:monospace;
 }
 
 /*

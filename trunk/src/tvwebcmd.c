@@ -35,6 +35,7 @@
 #include "freqmap.h"
 #include "transc.h"
 #include "recs.h"
+#include "pcre.h"
 /*
  * The WEb interface is fairly simplistic. On receiving a GET request from a
  * WEB-browser we immitate the behavior of a HTTP server by responding with a
@@ -76,6 +77,13 @@ html_notfound(int sockd);
 void
 html_cmd_qadd(int sockd);
 
+// For some commands (like delete) we want to wait a little bit in order
+// for the command to have effect before we report back on the status in
+// the web interface. If we didnät do this some commands would not be visible
+// until the next referesh of the web page.
+static int cmd_delay=0;
+
+
 /**
  * This test function is called when the server receives a new conection and
  * determines if the first command is a GET string. This is then an indication
@@ -93,7 +101,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 
         // Now extract the command string
         char **field = (void *) NULL;
-        int ret;
+        int ret=0, found=0;
 
         if ((ret = matchcmd("^GET /cmd\\?" _PR_ANPS _PR_S "HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
@@ -105,41 +113,48 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
                 strcat(cmd, " ");
             cmd[maxlen - 1] = '\0';
 
-            return 1;
+            found = 1;
 
         } else if ((ret = matchcmd("^GET /(cmd)? HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
             strncpy(cmd, "v", maxlen);
-            return 1;
+            found = 1;
 
         } else if ((ret = matchcmd("^GET /addrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
-            return 1;
+            found = 1;
         } else if ((ret = matchcmd("^GET /addqrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
-            return 1;
+            found = 1;
 
         } else if ((ret = matchcmd("^GET /delrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
-            return 1;
+            found = 1;
 
         } else if ((ret = matchcmd("^GET /login\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
-            return 1;
+            found = 1;
+
+        } else if ((ret = matchcmd("^GET /killrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
+
+            found = 1;
 
         } else if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
-            return 1;
+            found = 1;
 
         } else if ((ret = matchcmd("^GET /" _PR_ANPS "HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
             // Unrecoqnized command
             strncpy(cmd, "xxx", maxlen);
-            return 0;
 
         }
+        
+        if ( ret > 0 && field != (void *)NULL ) {
+            pcre_free_substring_list((const char **)field);
+        }
 
-        return 0;
+        return found;
 
     }
 
@@ -278,18 +293,19 @@ void
 html_cmdinterp(const int my_socket, char *inbuffer) {
     char wcmd[1024];
     char *buffer = url_decode(inbuffer);
+    char **field = (void *) NULL;
+    int ret=0;
 
     if (webconnection(buffer, wcmd, 1023)) {
+
+        // Reset cmd_delay
+        cmd_delay = 0;
 
         // Try to determiine if the cobbection originated from a 
         // mobile phone.
         int mobile = is_mobile_connection(buffer);
 
-        char **field = (void *) NULL;
-        int ret;
-
         // First check if we should handle an add/delete command
-
         if ((ret = matchcmd("GET /addrec\\?"
                 _PR_AN "=" _PR_ANSO "&"
                 _PR_AN "=" _PR_ANSO "&"
@@ -379,7 +395,20 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 strncat(wcmd, tmpcmd, 1023);
                 snprintf(tmpcmd, 128, " %s @%s ", title, profile);
                 strncat(wcmd, tmpcmd, 1023);
+                cmd_delay = 2400000;
             }
+
+        } else if ((ret = matchcmd("GET /killrec\\?"
+                _PR_AN "=" _PR_AN 
+                " HTTP/1.1",
+                buffer, &field)) > 1) {
+
+            const int maxvlen = 256;
+            char recid[maxvlen], submit[maxvlen];
+            get_assoc_value(recid, maxvlen, "rid", &field[1], ret - 1);
+            get_assoc_value(submit, maxvlen, "submit_killrec", &field[1], ret - 1);
+            snprintf(wcmd, 1024, "! %s", recid);
+            cmd_delay = 400000;
 
         } else if ((ret = matchcmd("^GET /delrec\\?"
                 _PR_AN "=" _PR_ANO "&"
@@ -426,43 +455,33 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     get_assoc_value(logsubmit, maxvlen, "submit_login", &field[1], ret - 1);
 
                     if (0 == strcmp(logsubmit, "Login")) {
-
                         if (!validate_login(user, pwd)) {
-
                             html_login_page(my_socket, mobile);
-
                         } else {
-
                             html_main_page(my_socket, "v", create_login_cookie(user, pwd), mobile);
-
                         }
 
                     } else {
-
                         html_login_page(my_socket, mobile);
                     }
-
                 } else {
 
                     html_login_page(my_socket, mobile);
-
                 }
-
             } else {
-
                 html_main_page(my_socket, wcmd, logincookie, mobile);
-
             }
-
         } else {
-
             // Ignore GET favicon.ico
             html_notfound(my_socket);
-
         }
     } else {
         html_notfound(my_socket);
         logmsg(LOG_ERR, "** Unrecognized WEB-command: %s", buffer);
+    }
+
+    if ( ret > 0 && field != (void *)NULL ) {
+        pcre_free_substring_list((const char **)field);
     }
 
     free(buffer);
@@ -763,6 +782,25 @@ html_element_submit(int sockd, char *name, char *value, char *id) {
 }
 
 void
+html_element_submit_disabled(int sockd, char *name, char *value, char *id) {
+
+    const int maxlen = 8192;
+    char *buffer = calloc(1, maxlen);
+
+    if (!buffer) {
+        logmsg(LOG_ERR, "Out of memory in html_element_submit() !");
+        exit(EXIT_FAILURE);
+    }
+    snprintf(buffer, maxlen,
+            "<div class=\"input_container\" id=\"%s\">"
+            "<input type=\"submit\" disabled name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s\"></div>\n",
+            id, name, value, id);
+    _writef(sockd, buffer);
+
+    free(buffer);
+}
+
+void
 html_notfound(int sockd) {
     _writef(sockd,
             "HTTP/1.1 404 Not Found\r\n"
@@ -773,6 +811,12 @@ html_notfound(int sockd) {
 
 void
 html_commandlist_short(int sockd);
+
+void
+html_cmd_ongoing(int sockd);
+
+void
+html_cmd_next(int sockd);
 
 void
 html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
@@ -787,7 +831,6 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     html_topbanner(sockd);
 
     // Left side : Command table
-
     _writef(sockd, "<div class=\"left_side\">");
     html_commandlist(sockd);
     _writef(sockd, "</div>"); // class="LEFT_side"
@@ -795,8 +838,12 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     // Right side : Output and recording management
     _writef(sockd, "<div class=\"right_side\">");
     html_cmd_output(sockd, wcmd);
+    usleep(cmd_delay); // Give some time for the command to execute
+    html_cmd_ongoing(sockd);
+    html_cmd_next(sockd);
     html_cmd_qadd(sockd);
     html_cmd_add_del(sockd);
+
     _writef(sockd, "</div>");
 
     html_endpage(sockd);
@@ -848,6 +895,49 @@ static const char *hour_list[] = {
     "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12",
     "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"
 };
+
+void
+html_cmd_next(int sockd) {
+    _writef(sockd, "<fieldset><legend>Next recording</legend>\n");
+    _writef(sockd, "<div class=\"next_rec_container\">\n");
+    listrecs(1,0,sockd);
+    _writef(sockd, "</div>\n");
+    _writef(sockd, "</fieldset>\n");
+}
+
+
+void
+html_cmd_ongoing(int sockd) {
+
+    _writef(sockd, "<fieldset><legend>Ongoing recordings</legend>\n");
+    int flag=0;
+    for (int i = 0; i < max_video; i++) {
+
+        _writef(sockd, "<div class=\"ongoing_rec_entry\">\n");
+
+        if (ongoing_recs[i]) {
+            _writef(sockd, "<div class=\"ongoing_rec_title\">%d: %s</div>",i+1,ongoing_recs[i]->title);
+            _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">[Stop]</a></div>",i);
+            flag=1;
+            //_writef(sockd, "<input type=\"hidden\" name=\"rid\" value=\"%d\">",i);
+            //html_element_submit(sockd, "submit_killrec", "Stop", "id_killrec");
+            //dumprecord(ongoing_recs[i], 0, buff, 511);
+        } else {
+            //_writef(sockd, "<div class=\"ongoing_rec_title_disabled\">%d: None.</div>",i+1);
+            //_writef(sockd, "<div class=\"ongoing_rec_stop_disabled\"><a href=\"\">[Stop]</a></div>",i);
+            //html_element_submit_disabled(sockd, "submit_killrec", "Stop", "id_killrec");
+            _writef(sockd, "&nbsp;");
+        }
+
+        _writef(sockd, "</div>\n");
+    }
+    if( ! flag ) {
+        _writef(sockd, "<div class=\"ongoing_rec_title_disabled\">None.</div>");
+    }
+
+    _writef(sockd, "</fieldset>\n");
+
+}
 
 void
 html_cmd_qadd(int sockd) {
@@ -927,11 +1017,10 @@ html_cmd_add_del(int sockd) {
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"addrec\">\n", "addrecording");
 
     _writef(sockd, "<fieldset><legend>New recording</legend>");
-    html_element_select_code(sockd, "Repeat:", "repeat", NULL, rpt_list, n_rpt, NULL);
-    html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
     html_element_select(sockd, "Profile:", "profile", default_transcoding_profile, profile_list, n_profile, "id_profile");
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_station");
-
+    html_element_select_code(sockd, "Repeat:", "repeat", NULL, rpt_list, n_rpt,"id_rpttype");
+    html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
     html_element_select(sockd, "Day:", "start_day", NULL, day_list, n_day, "id_start");
     html_element_select(sockd, "Time:", "start_hour", "18", hour_list, n_hour, "id_starthour");
     html_element_select(sockd, "&nbsp;", "start_min", NULL, min_list, n_min, NULL);
@@ -987,8 +1076,7 @@ struct cmd_grp {
 
 static struct cmd_entry cmdfunc_master_recs[] = {
     {"l", "List all"},
-    {"n", "Next"},
-    {"o", "Ongoing"}
+    {"n", "Next"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
@@ -1000,8 +1088,7 @@ static struct cmd_entry cmdfunc_master_transcoding[] = {
 
 static struct cmd_entry cmdfunc_master_status[] = {
     {"s", "Status"},
-    {"t", "Time"},
-    {"v", "Version"}
+    {"t", "Time"}
 };
 
 static struct cmd_entry cmdfunc_master_view[] = {
@@ -1025,8 +1112,7 @@ static struct cmd_entry cmdfunc_slave_transcoding[] = {
 
 static struct cmd_entry cmdfunc_slave_status[] = {
     {"s", "Status"},
-    {"t", "Time"},
-    {"v", "Version"}
+    {"t", "Time"}
 };
 
 static struct cmd_entry cmdfunc_slave_view[] = {

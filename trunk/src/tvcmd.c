@@ -1578,12 +1578,14 @@ _cmd_nextrec(const char *cmd, int sockfd) {
 
     for (int video = 0; video < max_video; video++) {
         if (num_entries[video] > 0) {
+            /*
             time_t ts_now = time(NULL);
             time_t until = recs[REC_IDX(video, 0)]->ts_start - ts_now;
             //int days = until / (24*3600);
             int hours = until/3600;
             int minutes = (until - hours*3600)/60;
             _writef(sockfd,"(%02d:%02d) : ",hours,minutes);
+            */
             dumprecord(recs[REC_IDX(video, 0)], cmd[1] == 'l' ? 2 : 0,  tmpbuff, 512);
             _writef(sockfd,tmpbuff);
         }
@@ -1801,7 +1803,7 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
     // could be busy and it might take some time before this
     // new entry gets checked and we don't want it to be in
     // the past.
-    fromtimestamp(now+5,&sy,&sm,&sd,&sh,&smin,&ssec);
+    fromtimestamp(now+1,&sy,&sm,&sd,&sh,&smin,&ssec);
     ey=sy; em = sm; ed = sd;
     eh=sh; emin=smin; esec=ssec;
     int profile = 0 ;
