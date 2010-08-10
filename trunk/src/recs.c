@@ -670,7 +670,7 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
 
     } else if ( style == 3 ) {
 
-        snprintf(buffer, bufflen, "%-7.7s %s %02d %02d:%02d-%02d:%02d: &nbsp;%-20s\n",
+        snprintf(buffer, bufflen, "%-7.7s %s %02d %02d:%02d-%02d:%02d: %-20s\n",
                 entry->channel,
                 month_name[sm], sd,
                 sh, smi,

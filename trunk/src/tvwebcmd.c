@@ -149,10 +149,8 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
             strncpy(cmd, "xxx", maxlen);
 
         }
-        
-        if ( ret > 0 && field != (void *)NULL ) {
-            pcre_free_substring_list((const char **)field);
-        }
+
+        matchcmd_free(field);
 
         return found;
 
@@ -252,9 +250,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
             free(tmpbuff);
         }
 
-        if ( ret > 0 && field != (void *)NULL ) {
-            pcre_free_substring_list((const char **)field);
-        }
+        matchcmd_free(field);
 
         return sucess;
 
@@ -273,7 +269,7 @@ is_mobile_connection(char *buffer) {
     char **field = (void *) NULL;
     if (matchcmd("X-Wap-Profile:", buffer, &field) > 0) {
 
-        pcre_free_substring_list((const char **)field);
+        matchcmd_free(field);
         return TRUE;
     }
 
@@ -282,10 +278,10 @@ is_mobile_connection(char *buffer) {
         // logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
 
         char *header = strdup(field[1]);
-        pcre_free_substring_list((const char **)field);
+        matchcmd_free(field);
 
         if (matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung|blac|moto|doco|java|symb)", header, &field) > 0) {
-            pcre_free_substring_list((const char **)field);
+            matchcmd_free(field);
             return TRUE;
         }
 
@@ -319,15 +315,15 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
         // First check if we should handle an add/delete command
         if ((ret = matchcmd("GET /addrec\\?"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_AN
                 " HTTP/1.1",
@@ -378,11 +374,11 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             }
 
         } else if ((ret = matchcmd("GET /addqrec\\?"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
-                _PR_AN "=" _PR_ANSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
+                _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_AN
                 " HTTP/1.1",
                 buffer, &field)) > 1) {
@@ -445,6 +441,10 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
         }
 
+        if( ret > 0 ) {
+            matchcmd_free(field);
+        }
+
         if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) {
             // If it's not a favicon.ico GET command we proceed
 
@@ -454,9 +454,9 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
                 // Check if user just tried to login
                 if ((ret = matchcmd("^GET /login\\?"
-                        _PR_AN "=" _PR_ANO "&"
-                        _PR_AN "=" _PR_ANO "&"
-                        _PR_AN "=" _PR_ANO
+                        _PR_AN "=" _PR_ANPO "&"
+                        _PR_AN "=" _PR_ANPO "&"
+                        _PR_AN "=" _PR_ANPO
                         " HTTP/1.1",
                         buffer, &field)) > 1) {
 
@@ -485,15 +485,12 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             }
         } else {
             // Ignore GET favicon.ico
+            matchcmd_free(field);
             html_notfound(my_socket);
         }
     } else {
         html_notfound(my_socket);
         logmsg(LOG_ERR, "** Unrecognized WEB-command: %s", buffer);
-    }
-
-    if ( ret > 0 && field != (void *)NULL ) {
-        pcre_free_substring_list((const char **)field);
     }
 
     free(buffer);
@@ -1036,10 +1033,10 @@ html_cmd_add_del(int sockd) {
     html_element_select_code(sockd, "Repeat:", "repeat", NULL, rpt_list, n_rpt,"id_rpttype");
     html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
     html_element_select(sockd, "Day:", "start_day", NULL, day_list, n_day, "id_start");
-    html_element_select(sockd, "Time:", "start_hour", "18", hour_list, n_hour, "id_starthour");
+    html_element_select(sockd, "Start:", "start_hour", "18", hour_list, n_hour, "id_starthour");
     html_element_select(sockd, "&nbsp;", "start_min", NULL, min_list, n_min, NULL);
     _writef(sockd, "<div class=\"input_container\" id=\"be_hyphen\"><span class=\"be_hyphen\"> &rarr; </span></div>");
-    html_element_select(sockd, "&nbsp;", "end_hour", "18", hour_list, n_hour, "id_endhour");
+    html_element_select(sockd, "End:", "end_hour", "18", hour_list, n_hour, "id_endhour");
     html_element_select(sockd, "&nbsp;", "end_min", "59", min_list, n_min, NULL);
 
     html_element_input_text(sockd, "Title:", "title", "id_title");
@@ -1089,7 +1086,7 @@ struct cmd_grp {
 
 
 static struct cmd_entry cmdfunc_master_recs[] = {
-    {"l", "List"}
+    {"lh", "List"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {

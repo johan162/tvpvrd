@@ -96,6 +96,13 @@ int
 matchcmd(const char *regex, const char *cmd, char ***field);
 
 /*
+ * This must be called after matchcmd() in order to free the allocated
+ * field array
+ */
+void
+matchcmd_free(char **field);
+
+/*
  * Return a pointer to a statically allocated string which are filled with
  * 'num' repeats of character 'c'. NOTE: Not thread safe since it uses a
  * statically allocated buffer which will be the same for all threads
@@ -326,6 +333,8 @@ trim(char *string);
 
 // Required alphanumeric and punctuation sequence
 #define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"
+
+#define _PR_ANPO "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\']*)"
 
 // Required alphanumeric, punctuation and space sequence
 #define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"
