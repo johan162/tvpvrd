@@ -134,7 +134,9 @@ legend {
     font-weight:bold;
     font-variant:small-caps;
     font-size:13pt;
-    color:navy;
+    color:#333;
+    padding-left:2px;
+    padding-right:4px;
 }
 
 /* Fieldset for add/del command */
@@ -145,6 +147,7 @@ fieldset {
    margin-left:0px;
    padding:0;
    padding-left:3px;
+   padding-bottom:2px;
 }
 
 /* Container around each input and input text-legend */
@@ -169,7 +172,7 @@ div.input_legend {
  * All select input formats are used in the add/delete fieldset when adding and deleteing
  * records.
  */
-div.input_select {
+div.input_select select {
 }
 
 /* Delete series y/n selector */
@@ -246,36 +249,40 @@ div.ongoing_rec_entry {
 }
 
 div.ongoing_rec_title {
-    padding-top: 2pt;
+    padding-top: 1pt;
     float:left;
-    font-size:11pt;
-    font-family:Arial, Sans-serif;
     font-weight:bold;
+    font-family:monospace;
     color:darkred;
     margin-bottom: 4pt;
 }
 
 div.ongoing_rec_title_disabled {
-    padding-top: 2pt;
+    padding-top: 1pt;
     float:left;
-    font-family:monospace;
+    color: #444;
     font-weight:bold;
-    color:#444;
+    font-family:monospace;
     margin-bottom: 4pt;
 }
 
 div.ongoing_rec_stop {
     float:left;
     font-weight:bold;
-    font-size:11pt;
+    font-size:10pt;
     font-family: Arial, Sans-serif;
+    margin-left: 10pt;
+    margin-right: 10pt;
+    border: solid black 1px;
+    background: orange;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 div.ongoing_rec_stop_disabled {
     float:left;
-    color:gray;
+    color: #444;
     font-weight:bold;
-    font-size:11pt;
     font-family: Arial, Sans-serif;
 }
 
@@ -285,7 +292,7 @@ div.ongoing_rec_stop a {
 }
 
 div.ongoing_rec_stop a:hover {
-    color:red;
+    color:yellow;
 }
 
 
@@ -295,11 +302,17 @@ div.ongoing_rec_stop_disabled a {
 }
 
 div.next_rec_container {
-    color: #444;
-    margin-bottom:4pt;
-    font-weight:bold;
+    margin-bottom:3pt;
     margin-left: 2pt;
+    color: #444;
+    font-weight:bold;
     font-family:monospace;
+/*
+    background:black;
+    color:#0f0;
+    margin-right:0.5em;
+    padding-bottom:2pt;
+*/
 }
 
 /*
