@@ -1072,13 +1072,24 @@ char *html_encode(char *str) {
  * @param str
  */
 void strtrim(char *str) {
-    char *tmp = strdup(str),*tmpptr=tmp, *strptr=str;
-    while( *tmpptr ) {
-        if( *tmpptr != ' ' )
-            *strptr++ = *tmpptr;
-        ++tmpptr;
+    char *tmp = strdup(str),*startptr=tmp;
+    int n=strlen(str);
+    char *endptr = tmp+n-1;
+
+    while( *startptr == ' ') {
+        startptr++;
     }
-    *strptr='\0';
+
+    while( n>0 && *endptr == ' ') {
+        --n;
+        --endptr;
+    }
+
+    while( startptr <= endptr ) {
+        *str++ = *startptr++;
+    }
+
+    *str = '\0';
 }
 
 /**
