@@ -306,10 +306,12 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
     if (webconnection(buffer, wcmd, 1023)) {
 
+        logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
+
         // Reset cmd_delay
         cmd_delay = 0;
 
-        // Try to determiine if the cobbection originated from a 
+        // Try to determiine if the connection originated from a
         // mobile phone.
         int mobile = is_mobile_connection(buffer);
 
