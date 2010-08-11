@@ -307,7 +307,83 @@ char locale_name[255];
 /*
  * Should the WEB-interface available be enabled
  */
-int enable_webinterface = 0 ;
+int enable_webinterface = 0 ;       
+
+
+/*
+ * The following memory routines are just used to double check that
+ * all the calls to PCRE regep routines are matched with respect to
+ * memory allocation.
+ */
+
+int pcre_mem_count=0;
+struct tvp_mem_entry {
+    void *ptr;
+    int size;
+    struct tvp_mem_entry *next;
+};
+
+struct tvp_mem_entry *pcre_mem_list = (void *)NULL;
+int tvp_call_count=0;
+
+void *tvp_malloc(size_t size) {
+    struct tvp_mem_entry *ent = calloc(1,sizeof(struct tvp_mem_entry));
+    ent->size=size;
+    ent->ptr=malloc(size);
+    
+    struct tvp_mem_entry *walk = pcre_mem_list;
+    
+    if( walk == NULL ) {
+        pcre_mem_list = ent;
+    } else {
+        while( walk->next ) {
+            walk = walk->next;
+        }
+        walk->next = ent;
+    }
+    tvp_call_count++;
+    logmsg(LOG_DEBUG,"PCRE MALLOC: %06d bytes",size);
+    return ent->ptr;
+}
+
+void tvp_free(void *ptr) {
+    struct tvp_mem_entry *walk = pcre_mem_list;
+    struct tvp_mem_entry *prev = NULL;
+
+    while( walk && walk->ptr != ptr ) {
+        prev = walk;
+        walk = walk->next;
+    }
+    if( walk == NULL ) {
+        logmsg(LOG_CRIT,"Trying to deallocat PCRE without previous allocation!");
+    } else {
+        if( prev == NULL ) {
+            // First entry in list
+            pcre_mem_list = walk->next;
+            logmsg(LOG_DEBUG,"PCRE FREE: %06d bytes",walk->size);
+            free(walk->ptr);
+            free(walk);
+        } else {
+            prev->next = walk->next;
+            logmsg(LOG_DEBUG,"PCRE FREE: %06d bytes",walk->size);
+            free(walk->ptr);
+            free(walk);
+        }
+    }
+    tvp_call_count--;
+}
+
+void
+tvp_mem_list(int sockd) {
+    struct tvp_mem_entry *walk = pcre_mem_list;
+    int n=0;
+    _writef(sockd,"PCRE MALLOC List: %02d\n",tvp_call_count);
+    while( walk ) {
+        ++n;
+        _writef(sockd,"  #%0002d: size = %06d bytes\n",n,walk->size);
+        walk = walk->next;
+    }
+}
 
 void
 init_globs(void) {
@@ -2547,6 +2623,12 @@ main(int argc, char *argv[]) {
     static char *var = "MALLOC_CHECK";
     static char *val = "2";
     setenv(var,val,1);
+
+    // Keep rtack ourself of PCRE memory
+    //void *(*pcre_malloc)(size_t);
+    //void (*pcre_free)(void *);
+    pcre_malloc = tvp_malloc;
+    pcre_free = tvp_free;
 
     // Setup exit() handler
     atexit(exithandler);
