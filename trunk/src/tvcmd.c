@@ -1111,10 +1111,10 @@ _cmd_list(const char *cmd, int sockfd) {
         // User has limited the list
 
         n = atoi(field[1]);
-        matchcmd_free(field);
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
+            matchcmd_free(field);
             return;
         }
 
@@ -1128,7 +1128,8 @@ _cmd_list(const char *cmd, int sockfd) {
         return;
 
     }
-
+    
+    matchcmd_free(field);
     listrecs(n, 0, sockfd);
 }
 
@@ -1148,10 +1149,10 @@ _cmd_list_human(const char *cmd, int sockfd) {
         // User has limited the list
 
         n = atoi(field[1]);
-        matchcmd_free(field);
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
+            matchcmd_free(field);
             return;
         }
 
@@ -1166,6 +1167,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
 
     }
 
+    matchcmd_free(field);
     listrecs(n, 3, sockfd);
 }
 
@@ -1361,21 +1363,38 @@ _cmd_status(const char *cmd, int sockfd) {
     int nthreads=-1;
     (void)getwsetsize(getpid(), &wsize, unit, &nthreads);
 
-    snprintf(msgbuff,511,
-            "%-16s: %s"
-            "%-16s: %s"
-            "%-16s: %02d days %02d hours %02d min\n"
-            "%-16s: %02d days %02d hours %02d min\n"
-            "%-16s: %.1f %.1f %.1f\n"
-            "%-16s: %d %s\n"
-            "%-16s: %d\n",
-            "Current time", currtime,
-            "tvpvrd started", ctime(&ts_serverstart),
-            "tvpvrd uptime", sday, sh, smin,
-            "Server uptime",uday,uh,umin,
-            "Server load",avg1,avg5,avg15,
-            "Virtual memory",wsize,unit,
-            "Threads",nthreads);
+    if( verbose_log == 3 ) {
+
+        snprintf(msgbuff,511,
+                "%-16s: %s"
+                "%-16s: %s"
+                "%-16s: %02d days %02d hours %02d min\n"
+                "%-16s: %02d days %02d hours %02d min\n"
+                "%-16s: %.1f %.1f %.1f\n"
+                "%-16s: %d %s\n"
+                "%-16s: %d\n",
+                "Current time", currtime,
+                "tvpvrd started", ctime(&ts_serverstart),
+                "tvpvrd uptime", sday, sh, smin,
+                "Server uptime",uday,uh,umin,
+                "Server load",avg1,avg5,avg15,
+                "Virtual memory",wsize,unit,
+                "Threads",nthreads);
+
+    } else {
+        
+        snprintf(msgbuff,511,
+                "%-16s: %s"
+                "%-16s: %s"
+                "%-16s: %02d days %02d hours %02d min\n"
+                "%-16s: %02d days %02d hours %02d min\n"
+                "%-16s: %.1f %.1f %.1f\n",
+                "Current time", currtime,
+                "tvpvrd started", ctime(&ts_serverstart),
+                "tvpvrd uptime", sday, sh, smin,
+                "Server uptime",uday,uh,umin,
+                "Server load",avg1,avg5,avg15);
+    }
 
     msgbuff[511] = 0 ;
 
@@ -1391,6 +1410,10 @@ _cmd_status(const char *cmd, int sockfd) {
             clinbr++;
             *ctitle='\0'; // We only want the title on the first line
         }
+    }
+
+    if( verbose_log == 3 ) {
+        tvp_mem_list(sockfd);
     }
 }
 

@@ -511,6 +511,10 @@ extern char web_password[];
 extern char web_user[];
 extern int weblogin_timeout;
 
+
+void
+tvp_mem_list(int sockd);
+
 #ifdef	__cplusplus
 }
 #endif
