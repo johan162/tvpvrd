@@ -420,7 +420,6 @@ increcdays(int rectype,
     return 0;
 }
 
-
 /*
  * Utility function that uses Perl Regular Expression library to match
  * a string and return an array of the found subexpressions
@@ -429,12 +428,13 @@ increcdays(int rectype,
  * pcre_free_substring_list((const char **)field);
  */
 int
-matchcmd(const char *regex, const char *cmd, char ***field) {
+_matchcmd(const char *regex, const char *cmd, char ***field, const char *func, int line) {
     pcre *cregex;
     int ovector[100];
     const char *errptr;
     int erroff,ret;
 
+    logmsg(LOG_DEBUG, "matchcmd() called from '%s()' at line #%05d",func,line);
     cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_UTF8,&errptr,&erroff,NULL);
     if( cregex ) {
         ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,0 /*PCRE_MULTILINE|PCRE_NEWLINE_ANYCRLF*/,ovector,90);
@@ -448,7 +448,8 @@ matchcmd(const char *regex, const char *cmd, char ***field) {
 }
 
 void
-matchcmd_free(char **field) {
+_matchcmd_free(char **field,const char *func, int line) {
+    logmsg(LOG_DEBUG, "matchcmd_free() called from '%s()' at line #%05d",func,line);
     if( field != (void *)NULL ) {
         pcre_free_substring_list((const char **)field);
     }

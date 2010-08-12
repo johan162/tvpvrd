@@ -52,7 +52,7 @@ div.right_side {
 div.cmd_menu {
     float: left; 
     width : 99%;
-    height : 99%;
+    height : 93%; /* Leave some room for the logout button */
     margin-left : 5px;
     color:black;
     font-size:12pt;
@@ -327,44 +327,90 @@ div.login_container {
     bottom:0;
     left:0;
     right:0;
-    width:250px;
-    height:180px;
-    background:#EEE;
-    padding-right:30px;
-    padding-bottom:30px;
+    width:300px;
+    background:#b0c1a3;
     padding-top:0px;
+    padding-bottom:10px;
     margin:auto;
 }
 
 div.login_container  div.input_container {
-    margin-left:30px;
+    float:none;
+    margin-left:10px;
 }
 
 /* Title of login box */
 div.login_title {
     padding:3px;
-    padding-left:10px;
     color:white;
-    background:#555;
+    background:#546349;
     font-weight:bold;
     font-family:Arial, Sans-serif;
     font-size:12pt;
     color:white;
-    background:navy;
     margin-bottom:10px;
 }
 
 /* Adjustment of password field */
 div.input_container#id_loginpwd {
-    margin-top:10px;
+    Margin-top:10px;
     clear:left;
+}
+
+div.input_container#id_loginuser div.input_legend,
+div.input_container#id_loginpwd div.input_legend
+ {
+    float:left;
+    margin-top:2px;
+    width: 8em;
+    color:black;
 }
 
 /* Submit button for login */
 input.input_submit#id_submitlogin {
-    margin-top:0px;
-    width:80px;
-    margin-left: 90px;
+    width:10em;
+}
+
+div.input_container#id_submitlogin {
+    float:none;
+    margin-top:1em;
+    margin-left: 5em;
+}
+
+
+div#logout_container {
+    float:left;
+    width:99%;
+    height: 10%;
+}
+
+div#logout {
+    border : solid gray 1px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+    width: 70px;
+    height: 1.0em;
+    background: white;
+    font-weight:bold;
+    margin-left:15px;
+    padding-left:20px;
+    padding-right:0px;
+}
+
+div#logout a {
+    text-decoration:none;
+    font-weight:bold;
+    font-family:Arial,Sans-serif;
+    font-size:10pt;
+    color:black;
+}
+
+div#logout a:hover {
+    text-decoration:none;
+    font-weight:bold;
+    font-family:Arial,Sans-serif;
+    font-size:10pt;
+    color:darkred;
 }
 
 /* EOF CSS Style for tvpvrd */
