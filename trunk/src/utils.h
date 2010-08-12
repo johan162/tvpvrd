@@ -88,19 +88,25 @@ increcdays(int rectype, time_t *ts_start, time_t *ts_end,
            int *sy, int *sm, int *sd, int *sh, int *smin, int *ssec,
            int *ey, int *em, int *ed, int *eh, int *emin, int *esec);
 
+
+
+#define matchcmd_free(field) _matchcmd_free((field),__FUNCTION__,__LINE__)
+#define matchcmd(regex,cmd,field) _matchcmd((regex), (cmd),(field),__FUNCTION__,__LINE__)
+
+
 /*
  * Utility function that uses Perl Regular Expression library to match
  * a string and return an array of the found subexpressions
  */
 int
-matchcmd(const char *regex, const char *cmd, char ***field);
+_matchcmd(const char *regex, const char *cmd, char ***field,const char *func, int line);
 
 /*
  * This must be called after matchcmd() in order to free the allocated
  * field array
  */
 void
-matchcmd_free(char **field);
+_matchcmd_free(char **field,const char *func, int line);
 
 /*
  * Return a pointer to a statically allocated string which are filled with

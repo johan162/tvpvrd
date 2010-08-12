@@ -153,7 +153,7 @@ parseTime(const char *time, int *h, int *m, int *s) {
         } else {
             *s = 0;
         }
-        pcre_free_substring_list((const char **)field);
+        matchcmd_free(field);
         return 1;
     } else {
         *h = 0;
@@ -179,7 +179,7 @@ parseDate(const char *date, int *y, int *m, int *d) {
         *y = atoi(field[1]);
         *m = atoi(field[2]);
         *d = atoi(field[3]);
-        pcre_free_substring_list((const char **)field);
+        matchcmd_free(field);
         return 1;
     } else {
         *y = 0;

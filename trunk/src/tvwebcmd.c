@@ -117,7 +117,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 
         } else if ((ret = matchcmd("^GET /(cmd)? HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
-            strncpy(cmd, "v", maxlen);
+            strncpy(cmd, "t", maxlen);
             found = 1;
 
         } else if ((ret = matchcmd("^GET /addrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
@@ -139,6 +139,9 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 
             found = 1;
 
+        } else if ((ret = matchcmd("^GET /logout" _PR_ANY _PR_E, buffer, &field)) > 1) {
+
+            found = 1;
         } else if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
             found = 1;
@@ -256,7 +259,9 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
 
     } else {
+
         return 0;
+
     }
 }
 
@@ -306,14 +311,24 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
     if (webconnection(buffer, wcmd, 1023)) {
 
-        logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
-
         // Reset cmd_delay
         cmd_delay = 0;
 
         // Try to determiine if the connection originated from a
         // mobile phone.
         int mobile = is_mobile_connection(buffer);
+
+        logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
+
+         if ((ret = matchcmd("GET /logout HTTP/1.1", buffer, &field)) == 1) {
+
+             matchcmd_free(field);
+             free(buffer);
+             html_login_page(my_socket,mobile);
+             return;
+
+         }
+
 
         // First check if we should handle an add/delete command
         if ((ret = matchcmd("GET /addrec\\?"
@@ -468,6 +483,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     get_assoc_value(pwd, maxvlen, "pwd", &field[1], ret - 1);
                     get_assoc_value(logsubmit, maxvlen, "submit_login", &field[1], ret - 1);
 
+                    matchcmd_free(field);
+                    
                     if (0 == strcmp(logsubmit, "Login")) {
                         if (!validate_login(user, pwd)) {
                             html_login_page(my_socket, mobile);
@@ -590,7 +607,16 @@ http_header(int sockd, char *cookie_val) {
     // Send back a proper HTTP header
 
     time_t t = time(NULL);
-    time_t texp = t + weblogin_timeout;
+    time_t texp = t;
+    if( strcmp(cookie_val,"logout") ) {
+        // If not the special logout cookie then put a valid expire time
+        texp += weblogin_timeout;
+    } else {
+        // For logout we set the expire in the past to force the browser
+        // to remove the cookie
+        logmsg(LOG_DEBUG,"******* SETTING cookie() in the past");
+        texp -= 36000;
+    }
     struct tm t_tm, t_tmexp;
     (void) gmtime_r(&t, &t_tm);
     (void) gmtime_r(&texp, &t_tmexp);
@@ -604,7 +630,7 @@ http_header(int sockd, char *cookie_val) {
         char *tmpbuff = url_encode(cookie_val);
         // logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff);
 
-        if (weblogin_timeout > 0) {
+        if ( weblogin_timeout > 0 || texp < t ) {
             _writef(sockd,
                     "HTTP/1.1 200 OK\r\n"
                     "Date: %s\r\n"
@@ -844,6 +870,9 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     // Left side : Command table
     _writef(sockd, "<div class=\"left_side\">");
     html_commandlist(sockd);
+
+    _writef(sockd,"<div id=\"logout_container\"><div id=\"logout\"><a href=\"logout\">Logout</a></div></div>");
+
     _writef(sockd, "</div>"); // class="LEFT_side"
 
     // Right side : Output and recording management
@@ -882,11 +911,15 @@ html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
 void
 html_login_page(int sockd, int mobile) {
     // Initialize a new page
-    html_newpage(sockd, NULL, mobile);
+
+    // Give the special cookie value "logout" which will create a
+    // header which replace the old cookie and sets it expire time
+    // in the past so it is removed from the browser
+    html_newpage(sockd, "logout", mobile);
     html_topbanner(sockd);
 
     _writef(sockd, "<div class=\"%s\">", "login_container");
-    _writef(sockd, "<div class=\"%s\">Please login</div>", "login_title");
+    _writef(sockd, "<div class=\"%s\">Welcome to tvpvrd</div>", "login_title");
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"login\">\n", "tvlogin");
     html_element_input_text(sockd, "User:", "user", "id_loginuser");
     html_element_input_text(sockd, "Password:", "pwd", "id_loginpwd");
