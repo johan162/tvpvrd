@@ -6,14 +6,10 @@
  *----------------------------------------------------------------------------------------------
  */
 
-* {
-}
-
-
 /* Make it 99% to avoid scroll bars on the main page */
 body {
-    width: 650px;
-    line-height:150%;
+    width: 100%;
+    line-height:140%;
     margin:0;
     padding:0;
 }
@@ -23,8 +19,9 @@ div.top_page {
      border: 1px solid gray;
      background: #e1e6db;
     width:100%;
-    height:98%;
-    padding:0;
+    height:100%;
+    padding-top:0;
+    padding-bottom: 2em;
     margin:0;
     border: solid #555 1px;
 }
@@ -67,41 +64,30 @@ div.cmd_bottom_container {
 /* Container for log-in box */
 div.login_container {
     border: solid gray 1px;
-    position:relative;
-    top:0%;
-    bottom:0;
-    left:0;
-    right:0;
-    width:300px;
-    height:220px;
-    background:#EEE;
-    padding-right:30px
-    padding-bottom:30px;
-    padding-top:0;
-    margin:auto;
-    margin-top:0;
-    margin-bottom:10px;
+    margin-top:60px;
+    margin-bottom:100px;
+    margin-left:auto;
+    margin-right:auto;
+    width:500px;
+    background:#b0c1a3;
+    padding-top:0px;
+    padding-bottom:10px;
 }
 
 div.login_container  div.input_container {
-    margin-left:40px;
-}
-
-div.login_container input {
-    font-size:18pt;
+   float:none;
+    margin-left:10px;
 }
 
 /* Title of login box */
 div.login_title {
     padding:3px;
-    padding-left:10px;
     color:white;
-    background:#555;
+    background:#546349;
     font-weight:bold;
     font-family:Arial, Sans-serif;
-    font-size:16pt;
+    font-size:12pt;
     color:white;
-    background:navy;
     margin-bottom:10px;
 }
 
@@ -111,11 +97,60 @@ div.input_container#id_loginpwd {
     clear:left;
 }
 
+div.input_container#id_loginuser div.input_legend,
+div.input_container#id_loginpwd div.input_legend {
+    float:left;
+    margin-top:2px;
+    width: 8em;
+    color:black;
+}
+
 /* Submit button for login */
 input.input_submit#id_submitlogin {
-    margin-top:0px;
-    width:80px;
-    margin-left: 90px;
+    width:10em;
+}
+
+div.input_container#id_submitlogin {
+    float:none;
+    margin-top:1em;
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+
+div#logout_container {
+    float:left;
+    width:99%;
+    height: 10%;
+}
+
+div#logout {
+    border : solid gray 1px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+    width: 70px;
+    height: 1.0em;
+    background: white;
+    font-weight:bold;
+    margin-left:15px;
+    padding-left:20px;
+    padding-right:0px;
+}
+
+div#logout a {
+    text-decoration:none;
+    font-weight:bold;
+    font-family:Arial,Sans-serif;
+    font-size:10pt;
+    color:black;
+}
+
+div#logout a:hover {
+    text-decoration:none;
+    font-weight:bold;
+    font-family:Arial,Sans-serif;
+    font-size:10pt;
+    color:darkred;
 }
 
 
