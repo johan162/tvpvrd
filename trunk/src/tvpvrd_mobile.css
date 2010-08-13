@@ -292,8 +292,8 @@ input.input_submit#delrec {
 /* We want the station, start and title on the "new record" to start on a new row 
  * and we do this by clearing the left side of the corresponding input containers. */
 #id_title,
-#id_station,
 #id_starthour,
+#id_rpttype,
 #id_seriesyn,
 #id_length_hour,
 #id_qtitle,
