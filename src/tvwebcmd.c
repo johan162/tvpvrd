@@ -380,10 +380,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 snprintf(tmpcmd, 128, " %s:%s ", sh, smin);
                 strncat(wcmd, tmpcmd, 1023);
 
-                if (0 != strcmp(eh, "00") || 0 != strcmp(emin, "00")) {
-                    snprintf(tmpcmd, 128, " %s:%s ", eh, emin);
-                    strncat(wcmd, tmpcmd, 1023);
-                }
+                snprintf(tmpcmd, 128, " %s:%s ", eh, emin);
+                strncat(wcmd, tmpcmd, 1023);
 
                 snprintf(tmpcmd, 128, " %s @%s ", title, profile);
                 strncat(wcmd, tmpcmd, 1023);

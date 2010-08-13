@@ -7,16 +7,18 @@
  */
 
 /* Make it 99% to avoid scroll bars on the main page */
-html,body {
+body {
     height:99%;
-    width: 99%;
+    width: 720px;
+    margin-left:auto;
+    margin-right:auto;
 }
 
 /* The overall main page is contained in this div */
 div.top_page {
     border: 1px solid gray;
     background: #e1e6db;
-    height:520px;
+    height:525px;
     width:99%;
     padding:0px;
     border: solid gray 2px;
@@ -34,7 +36,7 @@ div.top_banner {
 
 div.left_side {
     float: left;
-    width:21%;
+    width:130px;
     height:94%;
     margin-right : 3px;
     border-right : 1px solid gray;
@@ -43,9 +45,9 @@ div.left_side {
 /* Container around command output area */
 div.right_side {
     float: left;
-    width:78%;
+    width:550px;
     height:94%;
-
+    margin-left:12px;
 }
 
 /* This div encloses the command menu */
@@ -174,6 +176,19 @@ div.input_legend {
  * All select input formats are used in the add/delete fieldset when adding and deleteing
  * records.
  */
+
+select {
+    border: solid gray 1px;
+    background: white;
+}
+
+input {
+    border: solid gray 1px;
+    background: white;
+    font-family:Arial, Sans-serif;
+    font-weight:bold;
+}
+
 div.input_select select {
 }
 
