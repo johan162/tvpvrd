@@ -52,28 +52,10 @@
 #include "stats.h"
 #include "confpath.h"
 
-// Wee keep all ongoing transcoding in an array so that we now what is going
-// on. Each transcoding is run as a separate process and that process is
-// monitored by a thread in the main server.
-struct ongoing_transcoding {
-    time_t start_ts;
-    char *workingdir;
-    char *filename;
-    char *cmd;
-    struct transcoding_profile_entry *profile;
-    pid_t pid;
-};
-static struct ongoing_transcoding *ongoing_transcodings[16] ;
-static const int max_ongoing_transcoding = 16;
 
-// We keep track on all transcodings that are waiting to happen
-#define MAX_WAITING_TRANSCODINGS 64
-struct waiting_transcoding_t {
-    char filename[255];
-    char profilename[255];
-    time_t timestamp;
-};
-static struct waiting_transcoding_t wtrans[MAX_WAITING_TRANSCODINGS] ;
+struct ongoing_transcoding *ongoing_transcodings[3] ;
+const int max_ongoing_transcoding = 3;
+struct waiting_transcoding_t wtrans[MAX_WAITING_TRANSCODINGS] ;
 
 
 // We store all the details about a specific transcoding profile in an array
@@ -149,6 +131,15 @@ forget_ongoingtranscoding(int idx) {
     }
 }
 
+int
+get_num_ongoing_transcodings(void) {
+    int num=0;
+    for (int i = 0; i < max_ongoing_transcoding; i++) {
+        num += ongoing_transcodings[i] ? 1 : 0;
+    }
+    return num;
+}
+
 /**
  * Fill a buffer with information (text) on all the ongoing recordings
  * @param obuff
@@ -162,10 +153,7 @@ list_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
     time_t now = time(NULL);
 
     *obuff = '\0';
-    int num=0;
-    for (int i = 0; i < max_ongoing_transcoding; i++) {
-        num += ongoing_transcodings[i] ? 1 : 0;
-    }
+    int num=get_num_ongoing_transcodings();
 
     if( num == 0 ) {
         strncpy(obuff,"None.\n",size-1);

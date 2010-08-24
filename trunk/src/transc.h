@@ -174,6 +174,30 @@ struct transcoding_profile_entry {
  */
 #define MAX_TRANS_PROFILES 64
 
+// Wee keep all ongoing transcoding in an array so that we now what is going on.
+// Each transcoding is run as a separate process and that process is
+// monitored by a thread in the main server.
+struct ongoing_transcoding {
+    time_t start_ts;
+    char *workingdir;
+    char *filename;
+    char *cmd;
+    struct transcoding_profile_entry *profile;
+    pid_t pid;
+};
+extern struct ongoing_transcoding *ongoing_transcodings[] ;
+extern const int max_ongoing_transcoding;
+
+// We keep track on all transcodings that are waiting to happen
+#define MAX_WAITING_TRANSCODINGS 64
+struct waiting_transcoding_t {
+    char filename[255];
+    char profilename[255];
+    time_t timestamp;
+};
+extern struct waiting_transcoding_t wtrans[] ;
+
+
 /**
  * Check if ffmpeg binaries can be found at the specified location
  * @return -1 on failure, 0 on success
@@ -254,6 +278,14 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
  */
 int
 get_transcoding_profile_list(struct transcoding_profile_entry **start[]);
+
+/**
+ * Return number of ongoing transcodings
+ * @return Number of currently ongoing transcodings
+ */
+int
+get_num_ongoing_transcodings(void);
+
 
 /**
  * Check if the named transcoding proifile exists ot not

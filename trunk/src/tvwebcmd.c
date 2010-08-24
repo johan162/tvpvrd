@@ -77,90 +77,21 @@ html_notfound(int sockd);
 void
 html_cmd_qadd(int sockd);
 
+int
+read_cssfile(char *buff, int maxlen, int mobile);
+
+void
+html_cmd_ongoingtransc(int sockd);
+
+#define TIME_RFC822_FORMAT "%a, %d %b %Y %T GMT"
+
+
 // For some commands (like delete) we want to wait a little bit in order
 // for the command to have effect before we report back on the status in
 // the web interface. If we didnät do this some commands would not be visible
 // until the next referesh of the web page.
 static int cmd_delay=0;
 
-
-/**
- * This test function is called when the server receives a new conection and
- * determines if the first command is a GET string. This is then an indication
- * that this is a WEB-browser calling us. The command given is stored in the
- * buffer posinted to by the second argument.
- * @param buffer
- * @param cmd
- * @param maxlen
- * @return 1 if this was a WEB-connection , 0 otherwise
- */
-int
-webconnection(const char *buffer, char *cmd, int maxlen) {
-    *cmd = '\0';
-    if (0 == strncmp(buffer, "GET", 3)) {
-
-        // Now extract the command string
-        char **field = (void *) NULL;
-        int ret=0, found=0;
-
-        if ((ret = matchcmd("^GET /cmd\\?" _PR_ANPS _PR_S "HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            // Found a command string so store it in the buffer
-            char *tmpbuff = url_decode(field[1]);
-            strncpy(cmd, tmpbuff, maxlen);
-            free(tmpbuff);
-            if (*cmd != 'h')
-                strcat(cmd, " ");
-            cmd[maxlen - 1] = '\0';
-
-            found = 1;
-
-        } else if ((ret = matchcmd("^GET /(cmd)? HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            strncpy(cmd, "t", maxlen);
-            found = 1;
-
-        } else if ((ret = matchcmd("^GET /addrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            found = 1;
-        } else if ((ret = matchcmd("^GET /addqrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            found = 1;
-
-        } else if ((ret = matchcmd("^GET /delrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            found = 1;
-
-        } else if ((ret = matchcmd("^GET /login\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            found = 1;
-
-        } else if ((ret = matchcmd("^GET /killrec\\?" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            found = 1;
-
-        } else if ((ret = matchcmd("^GET /logout" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            found = 1;
-        } else if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            found = 1;
-
-        } else if ((ret = matchcmd("^GET /" _PR_ANPS "HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
-
-            // Unrecoqnized command
-            strncpy(cmd, "xxx", maxlen);
-
-        }
-
-        matchcmd_free(field);
-
-        return found;
-
-    }
-
-    return 0;
-}
 
 
 /*
@@ -182,6 +113,7 @@ validate_login(char *user, char *pwd) {
 static char *
 create_login_cookie(char *user, char *pwd) {
 
+    // Based on the user/password we modify the cookie
     static char _cookie_buff[128];
     strcpy(_cookie_buff, LOGIN_COOKIE);
 
@@ -293,6 +225,113 @@ is_mobile_connection(char *buffer) {
     }
     
     return FALSE;
+}
+
+
+/**
+ * This test function is called when the server receives a new conection and
+ * determines if the first command is a GET string. This is then an indication
+ * that this is a WEB-browser calling us. The command given is stored in the
+ * buffer posinted to by the second argument.
+ * @param buffer
+ * @param cmd
+ * @param maxlen
+ * @return 1 if this was a WEB-connection , 0 otherwise
+ */
+int
+webconnection(const char *buffer, char *cmd, int maxlen) {
+
+    static char *allowed_commands[] = {
+        "^GET /favicon.ico" _PR_ANY _PR_E,
+        "^GET /addrec\\?" _PR_ANY _PR_E,
+        "^GET /addqrec\\?" _PR_ANY _PR_E,
+        "^GET /delrec\\?" _PR_ANY _PR_E,
+        "^GET /login\\?" _PR_ANY _PR_E,
+        "^GET /killrec\\?" _PR_ANY _PR_E,
+        "^GET /logout" _PR_ANY _PR_E
+    };
+
+    *cmd = '\0';
+    if (0 == strncmp(buffer, "GET", 3)) {
+
+        // Now extract the command string
+        char **field = (void *) NULL;
+        int ret=0, found=0;
+
+        if ((ret = matchcmd("^GET /cmd\\?" _PR_ANPS "HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
+
+            // Found a command string so store it in the buffer
+            char *tmpbuff = url_decode(field[1]);
+            strncpy(cmd, tmpbuff, maxlen);
+            free(tmpbuff);
+            if (*cmd != 'h')
+                strcat(cmd, " ");
+            cmd[maxlen - 1] = '\0';
+
+            found = 1;
+
+        } else if ((ret = matchcmd("^GET / HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
+
+            strncpy(cmd, "t", maxlen);
+            found = 1;
+
+        } else if ((ret = matchcmd("^GET /" _PR_ANP " HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
+            
+            found = 1;
+
+        } else {
+            int i=0;
+            int nmax = sizeof(allowed_commands)/sizeof(char *);
+            while( i < nmax && ret <= 1 ) {
+                ret = matchcmd(allowed_commands[i], buffer, &field);
+                ++i;
+            }
+            found = ret > 1;
+        }
+
+        matchcmd_free(field);
+
+        return found;
+
+    }
+
+    return 0;
+}
+
+void
+sendback_css_file(int sockd, char *name) {
+    char *tmpbuff = calloc(1,16000);
+    read_cssfile(tmpbuff,16000,strcmp(name,"tvpvrd_mobile")==0);
+
+    // Initialize a new page
+    char server_id[255];
+    snprintf(server_id, 254, "tvpvrd %s", server_version);
+    // Send back a proper HTTP header
+
+    time_t t = time(NULL);
+    struct tm t_tm;
+    char ftime[128];
+    
+    (void) gmtime_r(&t, &t_tm);
+    strftime(ftime, 128, TIME_RFC822_FORMAT, &t_tm);
+
+    // Todo: Add handling of "304 Not Modified"
+    // When receiving the header "If-Modified-Since" from the client
+
+    _writef(sockd,
+                "HTTP/1.1 200 OK\r\n"
+                "Date: %s\r\n"
+                "Last-Modified: %s\r\n"
+                "Server: %s\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/css\r\n\r\n", ftime, ftime, server_id);
+
+    _writef(sockd,tmpbuff);
+
+    logmsg(LOG_DEBUG,"Sent back CSS sheet %s",name);
+
+    free(tmpbuff);
+
 }
 
 /*
@@ -454,6 +493,20 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 }
             }
 
+        } else if ( (ret = matchcmd("^GET /" _PR_ANP ".css HTTP/1.1", buffer, &field)) > 1) {
+                       
+            // Check if this is a call for one of the CSS files that we recognize
+            if( strcmp(field[1],"tvpvrd")==0 ||  strcmp(field[1],"tvpvrd_mobile")==0 ) {
+
+                sendback_css_file(my_socket,field[1]);
+
+                matchcmd_free(field);
+                free(buffer);
+                
+                return;
+
+            }
+
         }
 
         if( ret > 0 ) {
@@ -595,8 +648,6 @@ html_endpage(int sockd) {
     _writef(sockd, postamble);
 }
 
-#define TIME_RFC822_FORMAT "%a, %d %b %Y %T GMT"
-
 void
 http_header(int sockd, char *cookie_val) {
     // Initialize a new page
@@ -671,22 +722,16 @@ html_newpage(int sockd, char *cookie_val, int mobile) {
             "<title>"
             "%s"
             "</title>\n"
-            "<style type=\"text/css\">\n"
-            "<!--\n %s -->\n"
-            "</style>\n"
+            "<link rel=\"stylesheet\" type=\"text/css\" href=\"%s.css\">"
             "</head>"
             "<body>\n"
             "<div class=\"top_page\">\n";
     char title[255];
     snprintf(title, 254, "tvpvrd %s", server_version);
-    const int maxlen = 8192 * 2;
-    char *cssbuff = calloc(1, maxlen);
-    read_cssfile(cssbuff, maxlen, mobile);
 
     http_header(sockd, cookie_val);
+    _writef(sockd, preamble, title, mobile ? "tvpvrd_mobile" : "tvpvrd" );
 
-    _writef(sockd, preamble, title, cssbuff);
-    free(cssbuff);
 }
 
 void
@@ -878,6 +923,7 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     html_cmd_output(sockd, wcmd);
     usleep(cmd_delay); // Give some time for the command to execute
     html_cmd_ongoing(sockd);
+    html_cmd_ongoingtransc(sockd);
     html_cmd_next(sockd);
     html_cmd_qadd(sockd);
     html_cmd_add_del(sockd);
@@ -939,6 +985,10 @@ static const char *hour_list[] = {
     "00", "01", "02", "03", "04", "05", "06",
     "07", "08", "09", "10", "11", "12","13", "14", "15", "16"
 };
+static const char *hourlength_list[] = {
+    "0", "1", "2", "3"
+};
+
 
 void
 html_cmd_next(int sockd) {
@@ -949,36 +999,67 @@ html_cmd_next(int sockd) {
     _writef(sockd, "</fieldset>\n");
 }
 
+void
+html_cmd_ongoingtransc(int sockd) {
+
+    _writef(sockd, "<fieldset><legend>Ongoing transcodings</legend>\n");
+    int num=get_num_ongoing_transcodings();
+
+    if( num == 0 ) {
+        _writef(sockd, "<div class=\"ongoing_transc_title_disabled\">None.</div>");
+    } else {
+
+        for (int i = 0; i < max_ongoing_transcoding; i++) {
+
+            if (ongoing_transcodings[i]) {
+
+                _writef(sockd, "<div class=\"ongoing_transc_entry\">\n");
+
+                time_t now = time(NULL);
+                int rtime = now-ongoing_transcodings[i]->start_ts;
+                int rh = rtime/3600;
+                int rmin = (rtime - rh*3600)/60;
+
+                _writef(sockd, "<div class=\"ongoing_transc_title\">(%02d:%02d) %s</div>",rh,rmin,ongoing_transcodings[i]->filename);
+                _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"killtransc?tid=%d\">Stop</a></div>",i);
+
+                _writef(sockd, "</div>\n");
+            }
+        }
+    }
+
+    _writef(sockd, "</fieldset>\n");
+}
 
 void
 html_cmd_ongoing(int sockd) {
 
     _writef(sockd, "<fieldset><legend>Ongoing recordings</legend>\n");
-    int flag=0;
+
+    int num=0;
     for (int i = 0; i < max_video; i++) {
-
-        _writef(sockd, "<div class=\"ongoing_rec_entry\">\n");
-
-        if (ongoing_recs[i]) {
-            int ey, em, ed, eh, emi, es;
-            fromtimestamp(ongoing_recs[i]->ts_end, &ey, &em, &ed, &eh, &emi, &es);
-            _writef(sockd, "<div class=\"ongoing_rec_title\">(%02d:%02d) %s</div>",eh,emi,ongoing_recs[i]->title);
-            _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">Stop</a></div>",i);
-            flag=1;
-            //_writef(sockd, "<input type=\"hidden\" name=\"rid\" value=\"%d\">",i);
-            //html_element_submit(sockd, "submit_killrec", "Stop", "id_killrec");
-            //dumprecord(ongoing_recs[i], 0, buff, 511);
-        } else {
-            //_writef(sockd, "<div class=\"ongoing_rec_title_disabled\">%d: None.</div>",i+1);
-            //_writef(sockd, "<div class=\"ongoing_rec_stop_disabled\"><a href=\"\">[Stop]</a></div>",i);
-            //html_element_submit_disabled(sockd, "submit_killrec", "Stop", "id_killrec");
-            _writef(sockd, "&nbsp;");
-        }
-
-        _writef(sockd, "</div>\n");
+        num += ongoing_recs[i] ? 1 : 0 ;
     }
-    if( ! flag ) {
-        _writef(sockd, "<div class=\"ongoing_rec_title_disabled\">None.</div>");
+    if( num == 0 ) {
+        _writef(sockd, "<div class=\"ongoing_transc_title_disabled\">None.</div>");
+    } else {
+
+        for (int i = 0; i < max_video; i++) {
+
+            if (ongoing_recs[i]) {
+
+                _writef(sockd, "<div class=\"ongoing_rec_entry\">\n");
+
+                int ey, em, ed, eh, emi, es;
+                fromtimestamp(ongoing_recs[i]->ts_end, &ey, &em, &ed, &eh, &emi, &es);
+                int sy, sm, sd, sh, smi, ss;
+                fromtimestamp(ongoing_recs[i]->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
+                _writef(sockd, "<div class=\"ongoing_rec_title\">%s %02d:%02d-%02d:%02d, %s</div>",ongoing_recs[i]->channel,sh,smi,eh,emi,ongoing_recs[i]->title);
+                _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">Stop</a></div>",i);
+
+                _writef(sockd, "</div>\n");
+            }
+        }
     }
 
     _writef(sockd, "</fieldset>\n");
@@ -993,7 +1074,7 @@ html_cmd_qadd(int sockd) {
     const char *profile_list[64];
     const int n_profile = get_profile_names(profile_list, 64);
 
-    const int n_hour = sizeof (hour_list) / sizeof (char *);
+    const int n_hourlength = sizeof (hourlength_list) / sizeof (char *);
     const int n_min = sizeof (min_list) / sizeof (char *);
 
     _writef(sockd, "<div class=\"cmd_qadd_container\">");
@@ -1007,8 +1088,8 @@ html_cmd_qadd(int sockd) {
     html_element_select(sockd, "Profile:", "profile", default_transcoding_profile, profile_list, n_profile, "id_qprofile");
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_qstation");
 
-    html_element_select(sockd, "Length:", "length_hour", "00", hour_list, n_hour, "id_length_hour");
-    html_element_select(sockd, "&nbsp;", "length_min", "59", min_list, n_min, "id_length_min");
+    html_element_select(sockd, "Length:", "length_hour", "00", hourlength_list, n_hourlength, "id_length_hour");
+    html_element_select(sockd, "&nbsp;", "length_min", "45", min_list, n_min, "id_length_min");
 
     html_element_input_text(sockd, "Title:", "title", "id_qtitle");
     html_element_submit(sockd, "submit_qaddrec", "Start", "id_qaddrec");
