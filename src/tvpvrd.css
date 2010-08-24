@@ -18,7 +18,7 @@ body {
 div.top_page {
     border: 1px solid gray;
     background: #e1e6db;
-    height:525px;
+    height:620px;
     width:99%;
     padding:0px;
     border: solid gray 2px;
@@ -37,7 +37,7 @@ div.top_banner {
 div.left_side {
     float: left;
     width:130px;
-    height:94%;
+    height:95%;
     margin-right : 3px;
     border-right : 1px solid gray;
 }
@@ -54,7 +54,7 @@ div.right_side {
 div.cmd_menu {
     float: left; 
     width : 99%;
-    height : 93%; /* Leave some room for the logout button */
+    height : 75%; /* Leave some room for the logout button */
     margin-left : 5px;
     color:black;
     font-size:12pt;
@@ -261,11 +261,13 @@ div.cmd_killrec {
 
 }
 
-div.ongoing_rec_entry {
+div.ongoing_rec_entry,
+div.ongoing_transc_entry {
     float:left;
 }
 
-div.ongoing_rec_title {
+div.ongoing_rec_title,
+div.ongoing_transc_title {
     padding-top: 1pt;
     float:left;
     font-weight:bold;
@@ -274,7 +276,8 @@ div.ongoing_rec_title {
     margin-bottom: 4pt;
 }
 
-div.ongoing_rec_title_disabled {
+div.ongoing_rec_title_disabled ,
+div.ongoing_transc_title_disabled  {
     padding-top: 1pt;
     float:left;
     color: #444;
@@ -283,7 +286,8 @@ div.ongoing_rec_title_disabled {
     margin-bottom: 4pt;
 }
 
-div.ongoing_rec_stop {
+div.ongoing_rec_stop,
+div.ongoing_transc_stop {
     float:left;
     font-weight:bold;
     font-size:10pt;
@@ -296,24 +300,28 @@ div.ongoing_rec_stop {
     padding-right: 10px;
 }
 
-div.ongoing_rec_stop_disabled {
+div.ongoing_rec_stop_disabled,
+div.ongoing_transc_stop_disabled {
     float:left;
     color: #444;
     font-weight:bold;
     font-family: Arial, Sans-serif;
 }
 
-div.ongoing_rec_stop a {
+div.ongoing_rec_stop a,
+div.ongoing_transc_stop a  {
     text-decoration: none;
     color:black;
 }
 
-div.ongoing_rec_stop a:hover {
+div.ongoing_rec_stop a:hover,
+div.ongoing_transc_stop a:hover {
     color:yellow;
 }
 
 
-div.ongoing_rec_stop_disabled a {
+div.ongoing_rec_stop_disabled a,
+div.ongoing_transc_stop_disabled a {
     text-decoration: none;
     color: #444;;
 }
