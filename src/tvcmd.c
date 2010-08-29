@@ -1217,7 +1217,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
             if( n > -1 ) {
                 for(int i=0; i < n; i++) {
                     char buff[1024];
-                    _vctrl_vidcontrol_tostr(&vctl[i], buff, 1024);
+                    _vctrl_vidcontrol_tostr(&vctl[i], buff, 1024, FALSE); // Use shortformat which is more human readable
                     _writef(sockfd,buff);
                 }
             }
