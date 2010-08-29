@@ -619,8 +619,8 @@ dumprecord_header(int style, char *buffer, int bufflen) {
  * 0		One line, short format
  * 1		Record, several lines, short format
  * 2		Record, several lines, long format
- * 3            Brief only seqnbr,channel,start,title
- * 4            More human readable format for display
+ * 3            Brief only channel,start,title (human readable)
+ * 4            Fancy, use "today" and "tomorrow" as applicable
  */
 void
 dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) {
@@ -636,7 +636,6 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
         "Jan","Feb","Mar","Apr","May","Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
-
 
     fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
     fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emi, &es);
@@ -670,13 +669,39 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
 
     } else if ( style == 3 ) {
 
-        snprintf(buffer, bufflen, "%-7.7s %s %02d %02d:%02d-%02d:%02d: %-20s\n",
+        snprintf(buffer, bufflen, "%-7.7s %s %s %02d, %02d:%02d-%02d:%02d, %s\n",
                 entry->channel,
-                month_name[sm], sd,
+                wday_name[result.tm_wday],
+                month_name[sm-1], sd,
                 sh, smi,
                 eh,emi,
                 entry->title);
+    } else if ( style == 4 ) {
+        time_t now = time(NULL);
+        int now_y, now_m, now_d,now_h,now_mi,now_s;
+        fromtimestamp(now, &now_y, &now_m, &now_d, &now_h, &now_mi, &now_s);
 
+        if( sy==now_y && sm==now_m && sd==now_d ) {
+            snprintf(buffer, bufflen, "%-7.7s today, %02d:%02d-%02d:%02d, %s\n",
+                    entry->channel,
+                    sh, smi,
+                    eh,emi,
+                    entry->title);
+        } else if( sy==now_y && sm==now_m && sd==now_d+1 ) {
+            snprintf(buffer, bufflen, "%-7.7s tomorrow, %02d:%02d-%02d:%02d, %s\n",
+                    entry->channel,
+                    sh, smi,
+                    eh,emi,
+                    entry->title);
+        } else {
+            snprintf(buffer, bufflen, "%-7.7s %s %s %02d, %02d:%02d-%02d:%02d, %s\n",
+                    entry->channel,
+                    wday_name[result.tm_wday],
+                    month_name[sm-1], sd,
+                    sh, smi,
+                    eh,emi,
+                    entry->title);
+        }
 
     } else {
         // Format 1 or 2 so we must differntiate a recurring and single record

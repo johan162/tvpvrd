@@ -994,7 +994,7 @@ void
 html_cmd_next(int sockd) {
     _writef(sockd, "<fieldset><legend>Next recording</legend>\n");
     _writef(sockd, "<div class=\"next_rec_container\">\n");
-    listrecs(1,3,sockd);
+    listrecs(1,4,sockd); // Use style==4 , fancy
     _writef(sockd, "</div>\n");
     _writef(sockd, "</fieldset>\n");
 }

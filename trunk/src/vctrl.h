@@ -267,7 +267,7 @@ video_get_wh_fromname(int *width, int *height, char *name);
  * all information from controls.
  */
 char *
-_vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size);
+_vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longformat);
 
 /**
  * Video Device Control: _vctrl_getcontrols

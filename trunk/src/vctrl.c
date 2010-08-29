@@ -388,20 +388,31 @@ _vctrl_get_cardinfo(int fd, char **driver, char **card, char **version, unsigned
  * all information from controls.
  */
 char *
-_vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size) {
+_vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longformat) {
     static char menu[256];
 
     if( vctl->type == VCTRL_CLASS_TITLE ) {
-        snprintf(buff,size,"\n** %s **\n",vctl->name);
+        snprintf(buff,size,"\n= %s =\n",vctl->name);
     } else {
-        snprintf(buff,size,
-                 "%30s (%8d) : val=%d, default=%d, [%d,%d], step=%d, %s\n",
-                 vctl->name,vctl->id,
-                 vctl->value,vctl->defval,vctl->minval,vctl->maxval,vctl->step,
-                 vctl->type==2 ? "(menu)" : vctl->type==1 ? "(bool)" : "(int)");
+        if( longformat ) {
+            snprintf(buff,size,
+                     "%-30s (%8d) : %d (%d) [%d:%d:%d], %s\n",
+                     vctl->name,vctl->id,
+                     vctl->value,vctl->defval,vctl->minval,vctl->maxval,vctl->step,
+                     vctl->type==2 ? "(menu)" : vctl->type==1 ? "(bool)" : "(int)");
+        } else {
+            snprintf(buff,size,
+                     "%-27s : %d (%d) [%d:%d:%d]\n",
+                     vctl->name,
+                     vctl->value,vctl->defval,vctl->minval,vctl->maxval,vctl->step);
+        }
         if( vctl->type == VCTRL_MENU ) {
             for(int i=0; i < vctl->num_menu; i++) {
-                snprintf(menu,255,"%41s : %d = %s\n"," ",vctl->menu[i].index,vctl->menu[i].name);
+                if( longformat ) {
+                    snprintf(menu,255,"%-41s : %d = %s\n"," ",vctl->menu[i].index,vctl->menu[i].name);
+                } else {
+                    snprintf(menu,255,"%-30s %d = %s\n"," ",vctl->menu[i].index,vctl->menu[i].name);
+                }
                 menu[255] = '\0';
                 strncat(buff,menu,size);
             }
