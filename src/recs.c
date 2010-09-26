@@ -645,6 +645,7 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
     // We need localtime to find the day of week for the start
     (void)localtime_r(&entry->ts_start, &result);
 
+    // One line short format
     if (style == 0) {
         char profbuff[256], profile[REC_MAX_TPROFILE_LEN+1];
         profbuff[0] = '\0';
@@ -660,51 +661,54 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
         }
         profbuff[255] = '\0';
 
-        snprintf(buffer, bufflen, "[%03d|%-8.8s|%04d-%02d-%02d|%.3s|%02d:%02d|%02d:%02d|%-30s|%s]\n",
+        snprintf(buffer, bufflen, "[%03d|%-8.8s|%s %s %02d|%.3s|%02d:%02d|%02d:%02d|%-30s|%s]\n",
                 entry->seqnbr,
                 entry->channel,
-                sy, sm, sd, 
+                wday_name[result.tm_wday], month_name[sm-1], sd,
                 wday_name[result.tm_wday],
                 sh, smi, eh, emi, entry->title,profbuff);
 
     } else if ( style == 3 ) {
-
-        snprintf(buffer, bufflen, "%-7.7s %s %s %02d, %02d:%02d-%02d:%02d, %s\n",
-                entry->channel,
-                wday_name[result.tm_wday],
-                month_name[sm-1], sd,
+        // Brief format
+        snprintf(buffer, bufflen, "%s %s %02d %02d:%02d-%02d:%02d %-7.7s  %s\n",
+                wday_name[result.tm_wday], month_name[sm-1], sd,
                 sh, smi,
                 eh,emi,
+                entry->channel,
                 entry->title);
+
     } else if ( style == 4 ) {
+        // Fancy format
         time_t now = time(NULL);
         int now_y, now_m, now_d,now_h,now_mi,now_s;
         fromtimestamp(now, &now_y, &now_m, &now_d, &now_h, &now_mi, &now_s);
 
         if( sy==now_y && sm==now_m && sd==now_d ) {
-            snprintf(buffer, bufflen, "%-7.7s today, %02d:%02d-%02d:%02d, %s\n",
-                    entry->channel,
+            snprintf(buffer, bufflen, "today %02d:%02d-%02d:%02d %-7.7s \"%s\"\n",
                     sh, smi,
                     eh,emi,
+                    entry->channel,
                     entry->title);
         } else if( sy==now_y && sm==now_m && sd==now_d+1 ) {
-            snprintf(buffer, bufflen, "%-7.7s tomorrow, %02d:%02d-%02d:%02d, %s\n",
-                    entry->channel,
+            snprintf(buffer, bufflen, "tomorrow %02d:%02d-%02d:%02d %-7.7s \"%s\"\n",
                     sh, smi,
                     eh,emi,
+                    entry->channel,
                     entry->title);
         } else {
-            snprintf(buffer, bufflen, "%-7.7s %s %s %02d, %02d:%02d-%02d:%02d, %s\n",
-                    entry->channel,
+            snprintf(buffer, bufflen, "%s %s %02d %02d:%02d-%02d:%02d %-7.7s \"%s\"\n",
                     wday_name[result.tm_wday],
                     month_name[sm-1], sd,
                     sh, smi,
                     eh,emi,
+                    entry->channel,
                     entry->title);
         }
 
     } else {
         // Format 1 or 2 so we must differntiate a recurring and single record
+        // 1 Record several lines, long format
+        // 2 Record several lines, short format
         if (entry->recurrence) {
             if (style == 2) {
                 snprintf(buffer,bufflen,

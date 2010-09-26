@@ -342,7 +342,7 @@ void *tvp_malloc(size_t size) {
         walk->next = ent;
     }
     tvp_call_count++;
-    logmsg(LOG_DEBUG,"PCRE MALLOC: %06d bytes",size);
+    //logmsg(LOG_DEBUG,"PCRE MALLOC: %06d bytes",size);
     return ent->ptr;
 }
 
@@ -355,17 +355,17 @@ void tvp_free(void *ptr) {
         walk = walk->next;
     }
     if( walk == NULL ) {
-        logmsg(LOG_CRIT,"Trying to deallocat PCRE without previous allocation!");
+        logmsg(LOG_CRIT,"FATAL: Trying to deallocat PCRE without previous allocation !");
     } else {
         if( prev == NULL ) {
             // First entry in list
             pcre_mem_list = walk->next;
-            logmsg(LOG_DEBUG,"PCRE FREE: %06d bytes",walk->size);
+            //logmsg(LOG_DEBUG,"PCRE FREE: %06d bytes",walk->size);
             free(walk->ptr);
             free(walk);
         } else {
             prev->next = walk->next;
-            logmsg(LOG_DEBUG,"PCRE FREE: %06d bytes",walk->size);
+            //logmsg(LOG_DEBUG,"PCRE FREE: %06d bytes",walk->size);
             free(walk->ptr);
             free(walk);
         }
@@ -843,7 +843,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
                     // Finally list the three next recordings
                     char nextrec_buff[1024];
-                    listrecsbuff(nextrec_buff,1023,3,0);
+                    listrecsbuff(nextrec_buff,1023,3,4);
                     nextrec_buff[1023] = '\0';
 
                     snprintf(mailbuff,2047,
