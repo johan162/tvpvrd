@@ -2201,6 +2201,8 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
 
         n = 10; // Default to the last 10 lines
 
+        matchcmd_free(field);
+
     } else {
 
         _writef(sockfd,"Error. Syntax error (ret=%d).\n",ret);

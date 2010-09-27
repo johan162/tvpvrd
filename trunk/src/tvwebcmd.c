@@ -357,7 +357,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
         // mobile phone.
         int mobile = is_mobile_connection(buffer);
 
-        logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
+        // logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
 
          if ((ret = matchcmd("GET /logout HTTP/1.1", buffer, &field)) == 1) {
 
@@ -707,7 +707,6 @@ http_header(int sockd, char *cookie_val) {
                 "Server: %s\r\n"
                 "Connection: close\r\n"
                 "Content-Type: text/html\r\n\r\n", ftime, server_id);
-
     }
 
 }
