@@ -54,8 +54,9 @@
  * A two dimensional array with a list of recordings per video stream
  * The REC_IDX macro is a shorthand to get hold of elements in the array
  * since this should be treated as a two-dimensional array
+ * The reason this is not implemented as a two dimensional array is that
+ * this is dynamically allocated as a single array.
  */
-
 struct recording_entry **recs; // [MAX_VIDEO][MAX_ENTRIES];
 
 /*
@@ -79,7 +80,8 @@ static int seqnbr = 1;
 
 /*
  * recurrence_id
- * Unique id for each recurrence sequence
+ * Unique id for each recurrence sequence. This is used to know if a recording is
+ * part of a recurrent sequence.
  */
 static int recurrence_id = 1;
 
@@ -252,6 +254,11 @@ freerecs(void) {
     free(num_entries);    
 }
 
+/**
+ * Free a single recording entry
+ * @param entry Pointer to record entry to erase
+ * @param caller String for name of caller (used for enhanced memory debugging)
+ */
 void freerec(struct recording_entry *entry ,char *caller) {
     //logmsg(LOG_DEBUG,"freerec() called from '%s'",caller);
     for(int i=0; i < REC_MAX_TPROFILES ; i++) {
@@ -261,7 +268,8 @@ void freerec(struct recording_entry *entry ,char *caller) {
 }
 
 /**
- * Create a new record from the given fields
+ * Create a new record from the given fields. This will in essence create a new
+ * entry for a TV-program recording
  */
 struct recording_entry *
 newrec(const char *title, const char *filename, const time_t start,
@@ -377,6 +385,14 @@ _insertrec(int video, struct recording_entry* entry) {
     return 1;
 }
 
+/**
+ * Make sure a repetaing recording that is set to record only certain weekdays
+ * have a first date that obey this restriction
+ * @param start
+ * @param end
+ * @param recurrence_type
+ * @return
+ */
 int
 adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
     int sy, sm, sd, sh, smin, ssec;
@@ -558,8 +574,8 @@ insertrec(int video, struct recording_entry * entry) {
 }
 
 /**
- * Give a textual representation to the recurrece type
- * It is the callers responsibility that the buff is larger
+ * Give a textual representation to the recurrence type
+ * It is the callers responsibility that the buff parameter is large
  * enout to hold at least 12 bytes.
  * @return 1 on success, 0 on failure
  */
@@ -925,9 +941,9 @@ listrecsbuff(char *buffer, int maxlen, int maxrecs, int style) {
 }
 
 /*
- * Dump a list of all recordings in an array suitable for select()
- * i.e. the value in pos i and the record id in pos i+1
- * It is the calling routines responsibility to free the mmeory
+ * Dump a list of all recordings in an array suitable for a HTML SELECT
+ * statment, i.e. the value in pos i and the record id in pos i+1
+ * It is the calling routines responsibility to free the memory
  * allocated to the list argument.
  */
 
@@ -996,7 +1012,9 @@ deletetoprec(const int video) {
 
 /*
  * Remove the top recording from the list but do NOT deallocate the memory
- * occupied by the record.
+ * occupied by the record. This is useful when we just want to move the record
+ * from the waiting recording list to the ongoing recording list. In this case
+ * we want to remove it from the waiting que but not delete the record.
  */
 void
 removetoprec(const int video) {
@@ -1010,9 +1028,16 @@ removetoprec(const int video) {
     }
 }
 
+/**
+ * Update the recording profile in an already existing recording (with seq.nbr)
+ * @param seqnbr
+ * @param profile
+ * @return
+ */
 int 
 updateprofile(int seqnbr, char *profile) {
 
+    // Check that the named profile really exists
     if( ! transcoding_profile_exist(profile) ) {
         return 0;
     }
@@ -1031,7 +1056,6 @@ updateprofile(int seqnbr, char *profile) {
     if (!found) {
         return 0;
     } else {
-        // FIXME: Proile
         strncpy(recs[REC_IDX(foundvideo, foundidx)]->transcoding_profiles[0],profile,REC_MAX_TPROFILE_LEN-1);
         recs[REC_IDX(foundvideo, foundidx)]->transcoding_profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
         return seqnbr;
@@ -1041,7 +1065,8 @@ updateprofile(int seqnbr, char *profile) {
 /*
  * Delete a recording with specified sequence number.
  * If "allrecurrences" is true then all recurrent recording
- * will be deleted if the record is part of a sequnce of recordings
+ * will be deleted if the specified record is part of a sequnce of recordings
+ * (recurrent recording)
  */
 int
 deleterecid(int seqnbr, int allrecurrences) {
@@ -1103,3 +1128,5 @@ deleterecid(int seqnbr, int allrecurrences) {
         return 1;
     }
 }
+
+/* EOF */

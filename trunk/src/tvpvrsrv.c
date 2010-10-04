@@ -1500,12 +1500,16 @@ webclientsrv(void *arg) {
     // loosing 8MB for exah created thread
     pthread_detach(pthread_self());
 
+    // First we need to find out what the index the socket that we will used
+    // have in the array of all open sockets. This is necessary since we use the same
+    // index to keep track of a lot of information about this connection. You can view the
+    // idnex as a unique key for this connection.
     i = 0;
     while (i < max_clients && client_socket[i] != my_socket)
         i++;
 
     if( i >= max_clients ) {
-        logmsg(LOG_ERR,"Internal error. Socket (%d) for new client is invalid! ", my_socket);
+        logmsg(LOG_ERR,"Internal error. Socket (%d) for new client is invalid.", my_socket);
         pthread_mutex_lock(&socks_mutex);
 
         client_socket[i] = 0;
@@ -1514,7 +1518,7 @@ webclientsrv(void *arg) {
         client_tsconn[i] = 0;
         cli_threads[i] = 0;
         if( -1 == _dbg_close(my_socket) ) {
-            logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
+            logmsg(LOG_ERR,"Failed to close socket %d to client %s after error. ( %d : %s )",
                         my_socket,client_ipadr[i],errno,strerror(errno));
         }
         ncli_threads--;
@@ -1528,19 +1532,19 @@ webclientsrv(void *arg) {
         logmsg(LOG_ERR, "Browser connection does not support authentication (yet)");
     }
 
+    // Now wait for activity on this port to execute one command and then
+    // terminate.
     FD_ZERO(&read_fdset);
     FD_SET(my_socket, &read_fdset);
-
     timerclear(&timeout);
     timeout.tv_sec = 2;
-
     ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
     if (ret == 0) {
-
         logmsg(LOG_ERR, "WEB Browser disconnected due to timeout.");
-
     } else {
 
+        // We have activity so read from the socket and try to interpret the
+        // given command.
         numreads = read(my_socket, buffer, 1023);
         buffer[1023] = '\0';
         buffer[numreads] = '\0';
@@ -1548,19 +1552,23 @@ webclientsrv(void *arg) {
 
     }
 
+    // After the command has been executed we close the connection
+
     logmsg(LOG_INFO,"Connection from browser %s on socket %d closed.", client_ipadr[i], my_socket);
 
     pthread_mutex_lock(&socks_mutex);
+
     client_socket[i] = 0;
     free(client_ipadr[i]);
     client_ipadr[i] = 0;
     client_tsconn[i] = 0;
     cli_threads[i] = 0;
     if( -1 == _dbg_close(my_socket) ) {
-        logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
+        logmsg(LOG_ERR,"Failed to close socket %d to client %s after command has been interpretated. ( %d : %s )",
                my_socket,client_ipadr[i],errno,strerror(errno));
     }
     ncli_threads--;
+
     pthread_mutex_unlock(&socks_mutex);
 
     pthread_exit(NULL);
@@ -1568,11 +1576,11 @@ webclientsrv(void *arg) {
 }
 
 
-
 /*
  * Start the main socket server that listens for clients that connects
  * to us. For each new client a thread that will manage that client
- * is started.
+ * is started. If the WEB interface have been enable we also add a listener
+ * to the specified WEB interface port.
  */
 int
 startupsrv(void) {
@@ -1592,8 +1600,8 @@ startupsrv(void) {
 
     // To allow the server to be restarted quickly we set the SO_REUSEADDR flag
     // Otherwise the server would give a "Port in use" error if the server were restarted
-    // within approx. 30s after it was shutown. This is due to the extra safey wait
-    // that Unix does after a socket has been shut down just to be really, really sure
+    // within approx. 30s after it was shutdown. This is due to the extra safey wait
+    // that Unix does after a socket has been shut down just to be really, really make sure
     // that there is no more data coming.
     int so_flagval = 1;
     if( -1 == setsockopt(sockd, SOL_SOCKET, SO_REUSEADDR, (char *)&so_flagval, sizeof(int)) ) {
@@ -1621,6 +1629,7 @@ startupsrv(void) {
     set_cloexec_flag(sockd, 1);
 
     if( enable_webinterface ) {
+
         // Create the socket for web connection (TCP)
         if ((websockd = socket(AF_INET, SOCK_STREAM, 0)) < 1) {
             logmsg(LOG_ERR, "Unable to create websocket. (%d : %s)",errno,strerror(errno));
@@ -1652,7 +1661,6 @@ startupsrv(void) {
         set_cloexec_flag(websockd, 1);
 
     }
-
 
     // Run until we receive a SIGQUIT or SIGINT awaiting client connections and
     // setting up new client communication channels
@@ -1772,7 +1780,7 @@ startupsrv(void) {
 /*
  * This is the signal receiveing thread. In order to gurantee that we don't get any
  * deadlocks all signals is masked in all other threads and only this thread can receive
- * signals. The function then set the global variable handled_signal
+ * signals. The function then sets the global variable handled_signal
  */
 void *
 sighand_thread(void *ptr) {
@@ -1828,7 +1836,7 @@ void startdaemon(void) {
 
     if( pid > 0 ) {
         // Exit parent. Note the use of _exit() rather than exit()
-        // The _exit() performs the atexit() cleanup handler
+        // The exit() performs the atexit() cleanup handler
 	// which we do not want since that would delete the lockfile
         _exit(EXIT_SUCCESS);
     }
@@ -1856,7 +1864,7 @@ void startdaemon(void) {
 
     if( pid > 0 ) {
 	// Exit parent. Note the use of _exit() rather than exit()
-        // The _exit() performs the atexit() cleanup handler
+        // The exit() performs the atexit() cleanup handler
 	// which we do not want since that would delete the lockfile
         _exit(EXIT_SUCCESS);
     }
@@ -1873,7 +1881,7 @@ void startdaemon(void) {
         (void)_dbg_close(i);
     }
 
-    // Reopen stdin, stdout, stderr so the point harmlessly to /dev/null
+    // Reopen stdin, stdout, stderr so they point harmlessly to /dev/null
     // (Some brain dead library routines might write to, for example, stderr)
     int i = open("/dev/null", O_RDWR);
     int dummy=dup(i);
@@ -1881,6 +1889,10 @@ void startdaemon(void) {
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
 }
 
+/**
+ * Check that the directory structure for the stored recordigs are in place. In case
+ * a directory is missing it is created.
+ */
 void
 chkdirstructure(void) {
     char bdirbuff[512];
@@ -1942,6 +1954,12 @@ static const struct option long_options [] = {
     { 0, 0, 0, 0}
 };
 
+/**
+ * Parse all command line options given to the server at startup. The server accepts both
+ * long and short version of command line options.
+ * @param argc
+ * @param argv
+ */
 void
 parsecmdline(int argc, char **argv) {
 
@@ -2111,6 +2129,16 @@ parsecmdline(int argc, char **argv) {
     }
 }
 
+/**
+ * We use a lockfile with the server PID stored to avoid that multiple
+ * daemons are started. Since the lock file is stored in the standard /var/run
+ * this also means that if the daemon is running as any other user than "root"
+ * the lock file cannot be removed once it has been created (sine the server
+ * changes ownert to a less powerfull user - it initially starts as root). However
+ * this is not terrible sinceat startup the daemon witll check the lockfile and
+ * if it exists also verify that the PID stored in the lockfile is a valid PID for a
+ * tvpvrd process. If not it is regarded as a stale lockfile and overwritten.
+ */
 void 
 deleteockfile(void) {
   
@@ -2265,6 +2293,9 @@ createlockfile(void) {
     return 0;
 }
 
+/**
+ * Exit handler. Automatically called when the process calls "exit()"
+ */
 void
 exithandler(void) {
 
@@ -2280,6 +2311,10 @@ exithandler(void) {
     }
 }
 
+/**
+ * Check what user we are running as and change the user (if allowed) to the
+ * specified tvpvrd user.
+ */
 void
 chkswitchuser(void) {      
     // Check if we are starting as root
@@ -2418,8 +2453,6 @@ read_inisettings(void) {
                                     iniparser_getint(dict, "config:weblogin_timeout", WEBLOGIN_TIMEOUT));
     weblogin_timeout *= 60; // Convert to seconds
 
-
-
     send_mail_on_transcode_end = iniparser_getboolean(dict,"config:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);
     send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SENDMAIL_ON_ERROR);
 
@@ -2537,6 +2570,11 @@ read_inisettings(void) {
     }
 }
 
+/**
+ * Initialize the recording database. This is a plain text file in XML format.
+ * The full structure of the DB is defined with an XML RNG (grammar) stored in the
+ * document folder in the distribution.
+ */
 void
 init_tvxmldb(void) {    
     // If an XML DB file was given as an argument use this location as the xml db file
@@ -2579,6 +2617,10 @@ init_tvxmldb(void) {
     }
 }
 
+/**
+ * Set the initial parameters for the TV-card so we know that they exist
+ * and have a known state.
+ */
 void
 init_capture_cards(void) {
 
@@ -2609,7 +2651,6 @@ int
 main(int argc, char *argv[]) {
     sigset_t signal_set;
     pthread_t signal_thread;
-
    
     // Set lockfile to avoid multiple instances running
     if( -1 == createlockfile() ) {
@@ -2624,9 +2665,11 @@ main(int argc, char *argv[]) {
     static char *val = "2";
     setenv(var,val,1);
 
-    // Keep rtack ourself of PCRE memory
-    //void *(*pcre_malloc)(size_t);
-    //void (*pcre_free)(void *);
+    // Keep track ourself of PCRE memory so we use our own
+    // memory routines. This is a necessary safety due to the way
+    // the PCRE library is implemeented. It is very easy to get a
+    // memory leak in the usage fo these routines unless one is
+    // very careful and never makes a single mistake ...
     pcre_malloc = tvp_malloc;
     pcre_free = tvp_free;
 
@@ -2680,9 +2723,8 @@ main(int argc, char *argv[]) {
 
     /* In case we are started as a daemon from a boot script we most likely
      * have a faulty locale. If the locale is set in the INI file we will use
-     * that one instead
+     * that one instead.
      */
-
     strncpy(locale_name,
             iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
             255);
@@ -2700,9 +2742,6 @@ main(int argc, char *argv[]) {
         syslog(LOG_DEBUG,"Current system locale at #1 : UNKNOWN");
     }
 */
-
-
-
 
     if( verbose_log == -1 ) {
         verbose_log = iniparser_getint(dict, "config:verbose_log", VERBOSE_LOG);
@@ -2747,8 +2786,6 @@ main(int argc, char *argv[]) {
     // - The global data structures must ne initialized after the ini filename
     // - The global data structures must exist before we read the xml db filename
     //----------------------------------------------------------------------------------------
-
-
 
     if( is_master_server ) {
         logmsg(LOG_NOTICE,"Starting server as MASTER");
