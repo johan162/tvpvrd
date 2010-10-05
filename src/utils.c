@@ -673,14 +673,29 @@ xstrlcat(char *dst, const char *src, size_t size) {
     return strnlen(dst,size);
 }
 
+/**
+ * Validate a given parameter against a min/max value
+ * @param min
+ * @param max
+ * @param name
+ * @param val
+ * @return val if in bounds
+ */
 int
 validate(const int min, const int max, const char *name, const int val) {
     if( val >= min && val <= max )
         return val;
     logmsg(LOG_ERR,"Value for '%s' is out of allowed range [%d,%d]. Aborting. \n",name,min,max);
     (void)exit(EXIT_FAILURE);
+    return -1;
 }
 
+/**
+ * Get system load
+ * @param avg1
+ * @param avg5
+ * @param avg15
+ */
 void
 getsysload(float *avg1, float *avg5, float *avg15) {
     char lbuff[24];
@@ -693,6 +708,11 @@ getsysload(float *avg1, float *avg5, float *avg15) {
     sscanf(lbuff, "%f%f%f", avg1, avg5, avg15);
 }
 
+/**
+ * Get total system uptime
+ * @param totaltime
+ * @param idletime
+ */
 void
 getuptime(int *totaltime, int *idletime) {
     int ld = open("/proc/uptime", O_RDONLY);
@@ -711,6 +731,13 @@ getuptime(int *totaltime, int *idletime) {
     *idletime = round(tmp2);
 }
 
+/**
+ * Set FD_CLOEXEC file flag. This will close a stream unconditoinally when
+ * a process is terminated
+ * @param desc
+ * @param value
+ * @return
+ */
 int
 set_cloexec_flag(int desc, int value) {
     int oldflags = fcntl(desc, F_GETFD, 0);
@@ -727,6 +754,17 @@ set_cloexec_flag(int desc, int value) {
     return fcntl(desc, F_SETFD, oldflags);
 }
 
+/**
+ * Get a realtive day specifeid by a weekday name. This will return a date
+ * within the following seven days. If the weekdat name is the same as the
+ * current day this will then refer to the next such day within the next
+ * seven days.
+ * @param wdayname
+ * @param y
+ * @param m
+ * @param d
+ * @return
+ */
 int
 getreldatefromdayname(const char *wdayname, int *y, int *m, int *d) {
     const char *wday[] = {
@@ -985,7 +1023,6 @@ char to_hex(char code) {
  * URL encode a buffer.
  * Note: Calling function is responsible to free returned string
  */
-
 char *url_encode(char *str) {
   char *pstr = str, *buf = malloc(strlen(str) * 3 + 1), *pbuf = buf;
   while (*pstr) {

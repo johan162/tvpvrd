@@ -1,8 +1,8 @@
 /*----------------------------------------------------------------------------------------------
- * File:    TVPVRD.CSS
+ * File: TVPVRD.CSS
  * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
- *            daemon.
- * SVN:   $Id$
+ *       daemon.
+ * SVN:  $Id$
  *----------------------------------------------------------------------------------------------
  */
 
@@ -34,6 +34,7 @@ div.top_banner {
     padding: 2px;
 }
 
+/* Left side with all commands */
 div.left_side {
     float: left;
     width:130px;

@@ -6,7 +6,7 @@
  *              broadcasting names. The channels names are standardized names
  *              for frequences. The names changes depending on geographic
  *              location and hence each geographic location uses its own
- *              frequency map. By defaylt the "west-euprope" map will be used.
+ *              frequency map. By default the "west-euprope" map will be used.
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
@@ -39,7 +39,7 @@ extern "C" {
 #define MAX_FMAPNAME_LENGTH    32
 
 /**
- * Current supported frequency maps
+ * Currently supported frequency maps
  */
 typedef enum freqm {FREQMAP_EUROPEWEST=0, FREQMAP_EUROPEEAST, FREQMAP_FRANCE,
                     FREQMAP_IRELAND, FREQMAP_ITALY, FREQMAP_AUSTRALIA,
