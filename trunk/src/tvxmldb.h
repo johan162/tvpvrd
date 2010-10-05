@@ -2,7 +2,8 @@
  * File:        TVXMLDB.H
  * Description: Module for reading/writing the database of all recordings
  *              to and from file. The database itself is stored in
- *              XML format in plain text files.
+ *              XML format in plain text files.  A RNG (CML) grammar for the
+ *              database format can be found in the doc/ directory
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *

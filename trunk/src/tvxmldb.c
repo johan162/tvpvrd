@@ -2,7 +2,8 @@
  * File:        TVXMLDB.C
  * Description: Module for reading/writing the database of all recordings
  *              to and from file. The database itself is stored in
- *              XML format in plain text files.
+ *              XML format in plain text files. A RNG (CML) grammar for the
+ *              database format can be found in the doc/ directory
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
@@ -83,9 +84,9 @@ static const xmlChar *xmldb_nameRecMangling =   (xmlChar *) "titlemangling";
 static const xmlChar *xmldb_propnameRecPrefix = (xmlChar *) "prefix";
 static const xmlChar *xmldb_nameTProfile =      (xmlChar *) "transcodeprofile";
 static const xmlChar *xmldb_nameRecStartNumber= (xmlChar *) "startnumber";
+
 /*
  * Process a <repeat> .. </repeat> block
- *
  */
 static void processRepeatingRecording(xmlDocPtr doc, xmlNodePtr node, int *rectype, int *recnbr, 
                                       int *recmangling, char *recprefix, int *startnumber) {
@@ -133,7 +134,7 @@ static void processRepeatingRecording(xmlDocPtr doc, xmlNodePtr node, int *recty
 }
 
 /*
- * Parse a tim string given as nn:nn[:nn] and store the values in
+ * Parse a time string given as nn:nn[:nn] and store the values in
  * the last three arguments. if seconds is not specified in the string
  * it is set to 0
  */
@@ -551,3 +552,5 @@ writeXMLFile(const char *filename) {
     }
     return 0;
 }
+
+/* tvxmldb.c */

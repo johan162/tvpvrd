@@ -56,6 +56,11 @@
  *
  */
 
+
+/* Some local forward declarations.
+ * Note: All functions prefixed with "html_" are used to generate HTML output
+ * indicated by the name.
+ */
 void
 html_element_input_text(int sockd, char *legend, char *name, char *id);
 
@@ -83,24 +88,34 @@ read_cssfile(char *buff, int maxlen, int mobile);
 void
 html_cmd_ongoingtransc(int sockd);
 
-#define TIME_RFC822_FORMAT "%a, %d %b %Y %T GMT"
+void
+html_commandlist_short(int sockd);
 
+void
+html_cmd_ongoing(int sockd);
+
+void
+html_cmd_next(int sockd);
+
+#define TIME_RFC822_FORMAT "%a, %d %b %Y %T GMT"
 
 // For some commands (like delete) we want to wait a little bit in order
 // for the command to have effect before we report back on the status in
-// the web interface. If we didnät do this some commands would not be visible
-// until the next referesh of the web page.
+// the web interface. If we didn't do this some commands would not be visible
+// until the next refresh of the web page. This could confuse the user.
 static int cmd_delay=0;
 
-
-
-/*
- * Parse the full HTTP header sent back from the browser to detect
- * if the corect cookie is set that indicates that the user has logged
- * in in this session
+/* The magic cookie seed used to generate the unique cookie that represents
+ * one particular login.
  */
 #define LOGIN_COOKIE "d_ye8aj82hApsj02njfuyysad"
 
+/**
+ * Validate submitted user/pwd with stored login credentials
+ * @param user
+ * @param pwd
+ * @return
+ */
 int
 validate_login(char *user, char *pwd) {
 
@@ -110,6 +125,12 @@ validate_login(char *user, char *pwd) {
         return 0;
 }
 
+/**
+ * Create a unique login cookie for this particular login
+ * @param user
+ * @param pwd
+ * @return
+ */
 static char *
 create_login_cookie(char *user, char *pwd) {
 
@@ -131,7 +152,9 @@ create_login_cookie(char *user, char *pwd) {
 
     int n = MIN(strlen(_cookie_buff), strlen(buff));
 
-
+    // Now use the "secret" cookie seed to scramble the combination
+    // os user,password and server name to create a unique cookie id
+    // consisting only of "normal" 33-127 (ASCII) characters.
     for (int i = 0; i < n; ++i) {
 
         _cookie_buff[i] += buff[i];
@@ -147,11 +170,16 @@ create_login_cookie(char *user, char *pwd) {
 
     _cookie_buff[n] = '\0';
 
-    // logmsg(LOG_DEBUG,"Created cookie: '%s' from %s",_cookie_buff, buff);
+    logmsg(LOG_DEBUG,"Created cookie: '%s' from %s",_cookie_buff, buff);
 
     return _cookie_buff;
 }
 
+/**
+ * Validate if the received cookie from the browser is valid
+ * @param cookie
+ * @return 1 (true) iof the cookie is valid, 0 (false) otherwise
+ */
 int
 validate_cookie(char *cookie) {
 
@@ -159,6 +187,15 @@ validate_cookie(char *cookie) {
 
 }
 
+/**
+ * Validate that the user is logged in before doing anything else when the
+ * WEB login is enabled. This function is called before any other WEB commands
+ * are executed.
+ * @param buffer
+ * @param cookie
+ * @param maxlen
+ * @return
+ */
 int
 user_loggedin(char *buffer, char *cookie, int maxlen) {
     char **field = (void *) NULL;
@@ -198,7 +235,9 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 }
 
 /* 
- * Try to determine if the connection is from a mobile phone by examine the headers
+ * Try to determine if the connection is from a mobile phone by examine the headers.
+ * If it is a mobile we use a different set of CSS formatting to make it more
+ * suitable for a mobiles smaller screen.
  */
 int
 is_mobile_connection(char *buffer) {
@@ -212,7 +251,7 @@ is_mobile_connection(char *buffer) {
 
     // Extract User-Agent String
     if (matchcmd("User-Agent: (.+)", buffer, &field) > 0) {
-        // logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
+        logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
 
         char *header = strdup(field[1]);
         matchcmd_free(field);
@@ -272,6 +311,8 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 
         } else if ((ret = matchcmd("^GET / HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
+            // When only the root directory is called we default the command
+            // to a "time" command.
             strncpy(cmd, "t", maxlen);
             found = 1;
 
@@ -298,6 +339,13 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
     return 0;
 }
 
+/**
+ * Upong receiveng the request to send back the CSS file this function reads
+ * the correct CSS file and writes it back to the client using the supplied socket.
+ * TODO : Add handling of "304 Not Modified" to save a bit of bandwidth
+ * @param sockd
+ * @param name
+ */
 void
 sendback_css_file(int sockd, char *name) {
     char *tmpbuff = calloc(1,16000);
@@ -334,13 +382,15 @@ sendback_css_file(int sockd, char *name) {
 
 }
 
-/*
+/**
  * This is the main routine that gets called from the connection handler
  * when a new browser connection has been detected and the command from
  * the browser have been received. Tis function is totally responsible to
  * execute the command and prepare the WEB-page to be sent back.
+ *
+ * @param my_socket
+ * @param inbuffer
  */
-
 void
 html_cmdinterp(const int my_socket, char *inbuffer) {
     char wcmd[1024];
@@ -357,7 +407,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
         // mobile phone.
         int mobile = is_mobile_connection(buffer);
 
-        // logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
+        logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
 
          if ((ret = matchcmd("GET /logout HTTP/1.1", buffer, &field)) == 1) {
 
@@ -367,7 +417,6 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
              return;
 
          }
-
 
         // First check if we should handle an add/delete command
         if ((ret = matchcmd("GET /addrec\\?"
@@ -470,7 +519,10 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             get_assoc_value(recid, maxvlen, "rid", &field[1], ret - 1);
             get_assoc_value(submit, maxvlen, "submit_killrec", &field[1], ret - 1);
             snprintf(wcmd, 1024, "! %s", recid);
-            cmd_delay = 400000;
+
+            // Wait half a second to allow the removal to be done and completed so that
+            // it will show when the WEB-page is refreshed.
+            cmd_delay = 500000;
 
         } else if ((ret = matchcmd("^GET /delrec\\?"
                 _PR_AN "=" _PR_ANO "&"
@@ -518,6 +570,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
             logmsg(LOG_DEBUG, "==== Translated to: %s", wcmd);
             static char logincookie[128];
+
+            // If user does not have a valid login then send back the login page
             if (!user_loggedin(buffer, logincookie, 127)) {
 
                 // Check if user just tried to login
@@ -537,20 +591,32 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     matchcmd_free(field);
                     
                     if (0 == strcmp(logsubmit, "Login")) {
+
                         if (!validate_login(user, pwd)) {
+
+                            // Validation of login details failed, send back the login screen
                             html_login_page(my_socket, mobile);
+
                         } else {
+
+                            // Login successfull. Show the main page and used the "version" command
+                            // as the default command to show in the output area.
                             html_main_page(my_socket, "v", create_login_cookie(user, pwd), mobile);
                         }
 
                     } else {
+
+                        // Unrecognized login command so go back to login page
                         html_login_page(my_socket, mobile);
                     }
                 } else {
 
+                    // Unrecognized login command so go back to login page
                     html_login_page(my_socket, mobile);
                 }
             } else {
+
+                // User has a valid login so send back the main page
                 html_main_page(my_socket, wcmd, logincookie, mobile);
             }
         } else {
@@ -568,7 +634,14 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
 
 #define CSSFILE_NAME "tvpvrd"
-
+/**
+ * Read a suitable CSS file depending on the client. An identified mobile browser
+ * will have a different CSS file compared with a stationary client.
+ * @param buff Buffer where the CSS file is stored
+ * @param maxlen MAximum length of buffer
+ * @param mobile Flag to indicate a mobile browser
+ * @return 0 on success, -1 on failure
+ */
 int
 read_cssfile(char *buff, int maxlen, int mobile) {
     char cssfile[255];
@@ -597,6 +670,10 @@ read_cssfile(char *buff, int maxlen, int mobile) {
     return 0;
 }
 
+/**
+ * Display the top banner in the WEB interface
+ * @param sockd
+ */
 void
 html_topbanner(int sockd) {
     _writef(sockd, "<div class=\"top_banner\">");
@@ -614,12 +691,17 @@ html_topbanner(int sockd) {
     _writef(sockd, "</div> <!-- top_banner -->\n");
 }
 
+/**
+ * Display the result of a command in the command output area
+ * @param sockd
+ * @param wcmd
+ */
 void
 html_cmd_output(int sockd, char *wcmd) {
 
     _writef(sockd, "<div class=\"cmd_output\"><pre>");
 
-    // We must cwait for the semphore since since commands
+    // We must wait for the semphore since since commands
     // might alter data structures and we can only have one
     // thread at a time accessing the data structures
     pthread_mutex_lock(&recs_mutex);
@@ -638,7 +720,10 @@ html_cmd_output(int sockd, char *wcmd) {
     _writef(sockd, "</pre>\n</div> <!-- cmd_output -->\n");
 
 }
-
+/**
+ * Send back the entities that mark the end of a page
+ * @param sockd
+ */
 void
 html_endpage(int sockd) {
     const char postamble[] =
@@ -648,6 +733,12 @@ html_endpage(int sockd) {
     _writef(sockd, postamble);
 }
 
+/**
+ * Send back the proper HTTP header with cookies and other HTTP protocol
+ * specific fields
+ * @param sockd
+ * @param cookie_val
+ */
 void
 http_header(int sockd, char *cookie_val) {
     // Initialize a new page
@@ -677,7 +768,7 @@ http_header(int sockd, char *cookie_val) {
     if (cookie_val && *cookie_val) {
 
         char *tmpbuff = url_encode(cookie_val);
-        // logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff);
+        logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff);
 
         if ( weblogin_timeout > 0 || texp < t ) {
             _writef(sockd,
@@ -711,6 +802,13 @@ http_header(int sockd, char *cookie_val) {
 
 }
 
+/**
+ * Initialize a new HTML page with the proper HTML headers which includes the
+ * DOCTYPE and the link to the CSS file.
+ * @param sockd
+ * @param cookie_val
+ * @param mobile
+ */
 void
 html_newpage(int sockd, char *cookie_val, int mobile) {
     const char preamble[] =
@@ -733,6 +831,17 @@ html_newpage(int sockd, char *cookie_val, int mobile) {
 
 }
 
+/**
+ * Output a HTML <select> entitie where the key and the display value is the same
+ * and populate it with the supplied list.
+ * @param sockd
+ * @param legend
+ * @param name
+ * @param selected
+ * @param list
+ * @param num
+ * @param id
+ */
 void
 html_element_select(int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id) {
     const int maxlen = 8192;
@@ -774,6 +883,17 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
     free(buffer);
 }
 
+/**
+ * Output a HTML <select> entitie where the key and the display value are different
+ * and populate it with the supplied list.
+ * @param sockd
+ * @param legend
+ * @param name
+ * @param selected
+ * @param list
+ * @param num
+ * @param id
+ */
 void
 html_element_select_code(int sockd, char *legend, char *name, char *selected, const struct skeysval_t list[], int num, char *id) {
     const int maxlen = 8192;
@@ -816,6 +936,13 @@ html_element_select_code(int sockd, char *legend, char *name, char *selected, co
     free(buffer);
 }
 
+/**
+ * Create a text input HTML field
+ * @param sockd
+ * @param legend
+ * @param name
+ * @param id
+ */
 void
 html_element_input_text(int sockd, char *legend, char *name, char *id) {
     const int maxlen = 8192;
@@ -841,6 +968,13 @@ html_element_input_text(int sockd, char *legend, char *name, char *id) {
     free(buffer);
 }
 
+/**
+ * Create a HTML submit button
+ * @param sockd
+ * @param name
+ * @param value
+ * @param id
+ */
 void
 html_element_submit(int sockd, char *name, char *value, char *id) {
 
@@ -860,6 +994,13 @@ html_element_submit(int sockd, char *name, char *value, char *id) {
     free(buffer);
 }
 
+/**
+ * Cretae a disabled HTML submit button
+ * @param sockd
+ * @param name
+ * @param value
+ * @param id
+ */
 void
 html_element_submit_disabled(int sockd, char *name, char *value, char *id) {
 
@@ -879,6 +1020,10 @@ html_element_submit_disabled(int sockd, char *name, char *value, char *id) {
     free(buffer);
 }
 
+/**
+ * Return a standard 404 error page (not found)
+ * @param sockd
+ */
 void
 html_notfound(int sockd) {
     _writef(sockd,
@@ -888,15 +1033,13 @@ html_notfound(int sockd) {
             "Content-Type: text/html\r\n\r\n<html><body><h3>404 - Not found.</h3></body></html>\r\n");
 }
 
-void
-html_commandlist_short(int sockd);
-
-void
-html_cmd_ongoing(int sockd);
-
-void
-html_cmd_next(int sockd);
-
+/**
+ * The full main page used when we are called from an ordinary browser
+ * @param sockd
+ * @param wcmd
+ * @param cookie_val
+ * @param mobile
+ */
 void
 html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     // Initialize a new page
@@ -933,6 +1076,13 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
 
 }
 
+/**
+ * The modified (smaller) main page used when we are called from a mobile
+ * browser.
+ * @param sockd
+ * @param wcmd
+ * @param cookie_val
+ */
 void
 html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     // Initialize a new page
@@ -951,6 +1101,11 @@ html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
 
 }
 
+/**
+ * Display the login page
+ * @param sockd
+ * @param mobile
+ */
 void
 html_login_page(int sockd, int mobile) {
     // Initialize a new page
@@ -988,7 +1143,10 @@ static const char *hourlength_list[] = {
     "0", "1", "2", "3"
 };
 
-
+/**
+ * Display the next recording area
+ * @param sockd
+ */
 void
 html_cmd_next(int sockd) {
     _writef(sockd, "<fieldset><legend>Next recording</legend>\n");
@@ -998,6 +1156,10 @@ html_cmd_next(int sockd) {
     _writef(sockd, "</fieldset>\n");
 }
 
+/**
+ * Display the ongoing transaction area
+ * @param sockd
+ */
 void
 html_cmd_ongoingtransc(int sockd) {
 
@@ -1030,6 +1192,10 @@ html_cmd_ongoingtransc(int sockd) {
     _writef(sockd, "</fieldset>\n");
 }
 
+/**
+ * Display the ongoing recordings area
+ * @param sockd
+ */
 void
 html_cmd_ongoing(int sockd) {
 
@@ -1065,6 +1231,10 @@ html_cmd_ongoing(int sockd) {
 
 }
 
+/**
+ * Display the quick add area
+ * @param sockd
+ */
 void
 html_cmd_qadd(int sockd) {
     const char *station_list[128];
@@ -1100,6 +1270,10 @@ html_cmd_qadd(int sockd) {
 
 }
 
+/**
+ * Display the delete recording area
+ * @param sockd
+ */
 void
 html_cmd_add_del(int sockd) {
     static const char *day_list[] = {
@@ -1187,11 +1361,31 @@ html_cmd_add_del(int sockd) {
     _writef(sockd, "</div> <!-- add_del_container -->");
 }
 
+
+/**
+ * =================================================================================
+ * The following section is used to handle the command menu in the WEB interface
+ * this is built up from a list structure to separate the content from the
+ * actual layout. This way it is easy to adjust the output depending on whether
+ * we are called from a mobile or from a stationary browser.
+ *
+ * We then have to sets of commands. One set to use for the mobile browser and one
+ * full set to be used for the ordinary browser.
+ *
+ * We also have different commands allowed depending on if the server is running
+ * in master or slave mode. (The slave does not support any recording commands)
+ * =================================================================================
+ */
+
+// An entry for a single command. The display name and the actual command string
+// to send back to the server
 struct cmd_entry {
     char *cmd_name;
     char *cmd_desc;
 };
 
+// Logically we group a set of commnds in groups with logically similair commands
+// to make it easier fro the user to navigate.
 struct cmd_grp {
     char *grp_name;
     char *grp_desc;
@@ -1200,6 +1394,7 @@ struct cmd_grp {
 };
 
 
+// Each structure below defines one command group
 static struct cmd_entry cmdfunc_master_recs[] = {
     {"lh", "List"}
 };
@@ -1282,70 +1477,12 @@ static struct cmd_grp cmd_grp_slave_short[] = {
     {"Trans", "Transcoding info", sizeof (cmdfunc_slave_transcoding) / sizeof (struct cmd_entry), cmdfunc_slave_transcoding}
 };
 
+/**
+ * Display the long command list (used for ordinary browsers)
+ * @param sockd
+ */
 void
 html_commandlist(int sockd) {
-
-    /*
-  static struct cmd_entry cmdfunc_master[] = {
-        {"ar","Add repeated"},
-        {"a","Add"},
-        {"dp","Display profile"},
-        {"dr","Delete repeated"},
-        {"d","Delete"},
-        {"h","Help"},
-        {"i","Information"},
-        {"ktf","Toggle kill transcoding flag at shutdown"},
-        {"kt", "Kill all transcodings"},
-        {"lq","List transocding file list"},
-        {"lc","List constrols for capture card"},
-        {"ls","List stations"},
-        {"lp","List profiles"},
-        {"log","Show last log"},
-        {"l","Upcoming recordings"},
-        {"n","Next immediate recordings"},
-        {"otl","Show ongoing transcoding list"},
-        {"ot","Show ongoing transcoding"},
-        {"o","Show ongoing recording"},
-        {"q","Quick recording"},
-        {"rst","Reset statistics"},
-        {"rp","Refresh transcoding profiles"},
-        {"sp","update transcoding profile for recording"},
-        {"st","Profile statistics"},
-        {"s","Status"},
-        {"tf","Transcode named file"},
-        {"tl","Transcode all files in named list file"},
-        {"t","Server time"},
-        {"u","Force DB update"},
-        {"vc","Show TV-Card information"},
-        {"v","Version"},
-        {"wt","List waiting transcodings"},
-        {"x","Show DB raw file"},
-        {"z","Show ini-file settings"},
-        {"!","Abort recording"}
-    };
-
-    static struct cmd_entry cmdfunc_slave[] = {
-        {"dp","Display profile"},
-        {"h","Help"},
-        {"ktf","Toggle kill transcoding flag at shutdown"},
-        {"kt","Kill ongoing transcodings"},
-        {"lp","List profiles"},
-        {"lq","List transocding file list"},
-        {"log","Show last log"},
-        {"otl","Show ongoing transcoding list"},
-        {"ot","Show ongoing transcodings"},
-        {"rst","Reset statistics"},
-        {"st","Profile statistics"},
-        {"s","Status"},
-        {"tf","Transcode named file"},
-        {"tl","Transcode files in list"},
-        {"t","Time"},
-        {"v","Version"},
-        {"wt","List waiting transcodings"},
-        {"z","Show ini-file settings"}        
-    };
-
-     */
 
     static struct cmd_grp *cmdgrp;
     int cmdgrplen;
@@ -1375,6 +1512,10 @@ html_commandlist(int sockd) {
 
 }
 
+/**
+ * Display the short version of the command list. Used for mobile browsers.
+ * @param sockd
+ */
 void
 html_commandlist_short(int sockd) {
 

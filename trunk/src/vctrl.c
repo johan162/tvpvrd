@@ -637,7 +637,7 @@ video_get_controlbyid(int fd, int id, int *val) {
  * specified in BITS and normally have a value between 1,000,000 - 8,000,000
  * As aguide the peak bitrate should be ~500,000 higher for good quality
  *
- * Note: The driver doesn't allow a bitrate to be set higher then the peak
+ * Note: The driver doesn't allow a bitrate to be set higher than the peak
  * bitrate nor does it allow the peak bit rate to be set lower than the current
  * bit rate. This means that we must read the current values and depending
  * on these either set the peak or the normal bitrate first to make sure
@@ -711,7 +711,7 @@ video_get_video_bitrate(int fd, int *bitrate, int *peak_bitrate) {
 }
 
 /*
- * Specify the audio parameter used bu the MP2 HW encoder. Both the sampling
+ * Specify the audio parameter used by the MP2 HW encoder. Both the sampling
  * and bitrate must be specifed using one of the following symbolic defines
  * 
  * Sampling rates:
