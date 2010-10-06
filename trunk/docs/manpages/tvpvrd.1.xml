@@ -641,6 +641,11 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
+                                role="bold">li</emphasis> - list all input sources available for the
+                            capture card</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
                                 role="bold">log &lt;n></emphasis> -show the last n lines of the
                             logfile</para>
                     </listitem>
@@ -1066,6 +1071,28 @@ killflag=n</screen>
                                 to show the last 10 lines. </para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term><command>li</command>
+                        <emphasis
+                            role="italic">n</emphasis> - <emphasis
+                            role="bold">List all video input sources command</emphasis></term>
+                    <listitem>
+                        <para>List a all video sources available for the specified card.The current
+                            selected input source is marked with an asterix. The type of input is
+                            shown in paranthesis in front of the textual name of the input. The type
+                            is either "tuner" or "camera".</para>
+                        <para>Output example:</para>
+                        <para>
+                            <screen>Hauppauge WinTV PVR-350 
+00 :*(tuner) Tuner 1 
+01 : (camera) S-Video 1 
+02 : (camera) Composite 1 
+03 : (camera) S-Video 2 
+04 : (camera) Composite 2 
+05 : (camera) Composite 3 </screen>
+                        </para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>lp</command>' - <emphasis
                                 role="bold">List profiles command</emphasis></term>
