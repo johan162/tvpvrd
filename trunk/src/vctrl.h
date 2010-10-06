@@ -260,6 +260,36 @@ int
 video_get_wh_fromname(int *width, int *height, char *name);
 
 /**
+ * Get a list of textual names of all available input sources for the
+ * specified video card. It is the calling routines responsibility to
+ * make sure that the buffer supplied can hod 32 string pointers
+ * @param fd
+ * @param nbrinputs
+ * @param buff
+ * @return
+ */
+int
+video_get_inputsources(const int fd, int *nbrinputs, char *buff[]);
+
+/**
+ * Get the index number for the current video input
+ * @param fd
+ * @param index
+ * @return 0 on success, -1 otherwise
+ */
+int
+video_get_input(const int fd, int *index);
+
+/**
+ * Set the wanted input video source
+ * @param fd
+ * @param index
+ * @return 0 on success, -1 otherwise
+ */
+int
+video_set_input(const int fd, int index);
+
+/**
  * Video Device Control: _vctrl_vidcontrol_tostr
  * Internal helper function. Implements a "toStr" method for a specific control and puts
  * a string representation of the control in the supplied buffr "buff" with maximum

@@ -202,11 +202,45 @@ _vctrl_closevideo(int fd) {
 }
 
 
+
+/**
+ * Return an array of v4l2_input structures for each of the available
+ * inputs available in the card identified with the file descriptor.
+ * The array of inputs is a read only static vector
+ * It is the calling routines responsibility to make sure that
+ * the array supplied have room for 32 v4l2_input structures
+ * @param fd Identifier for video card
+ * @param nbrinputs Number of inputs found on this card
+ * @param vinput A pointer ot an array of structs defining each input
+ * @return 0 on success, -1 on failure
+ */
+int
+_vctrl_enuminput(int fd, int *nbrinputs, struct v4l2_input *vinput[]) {
+
+    struct v4l2_input *ptr;
+    *nbrinputs = 0 ;
+    ptr = calloc(1,sizeof(struct v4l2_input));
+    ptr->index = *nbrinputs;
+    int ret = 0 ;
+    while( *nbrinputs < 32 && -1 != xioctl(fd, VIDIOC_ENUMINPUT, ptr) ) {
+        // We have found one valid video input so we need to remember this
+        vinput[*nbrinputs] = ptr;
+        (*nbrinputs)++;
+        ptr = calloc(1,sizeof(struct v4l2_input));
+        ptr->index = *nbrinputs;
+    }
+    if( *nbrinputs >= 32 ) {
+        ret = -1;
+    }
+    free(ptr);
+    return ret;
+}
+
 /**
  * Video Device Control: _vctrl_size
  * Get/Set the output size from the video MP2 encoder. A number of common
  * sizes are specified in the named_sizes array.
- * Normamly by default the card will use (for PAL B/G/I) 720x576
+ * By default the card will use (for PAL B/G/I) 720x576
  * 
  */
 int
@@ -233,6 +267,37 @@ _vctrl_size(int set, int fd, int *width, int *height) {
     }
     return 0;
 }
+
+/**
+ * Video Device Control: _vctrl_video_input
+ * Get or set the current video input to the encoder.
+ * See also _vctrl_list_video_input
+ * @param set
+ * @param fd
+ * @param index
+ * @return 
+ */
+int
+_vctrl_video_input(const int set, const int fd, int *index) {
+    // Sanity check
+    if( set ) {
+        if( *index < 0 || *index > 31 ) {
+            logmsg(LOG_ERR, "_vctrl_video_input : Cannot set video input with index > 31");
+            return -1;
+        }
+        if( -1 == xioctl(fd, VIDIOC_S_INPUT, index) ) {
+            logmsg(LOG_ERR, "(VIDIOC_S_INPUT) Cannot set video input. (%d : %s)", errno, strerror(errno));
+            return -1;
+        }
+    } else {
+        if( -1 == xioctl(fd, VIDIOC_G_INPUT, index) ) {
+            logmsg(LOG_ERR, "(VIDIOC_G_INPUT) Cannot get video input. (%d : %s)", errno, strerror(errno));
+            return -1;
+        }        
+    }
+    return 0;
+}
+
 
 /**
  * Video Device Control: _vctrl_tuner
@@ -628,6 +693,67 @@ video_set_controlbyid(int fd, int id, int val) {
 int
 video_get_controlbyid(int fd, int id, int *val) {
     return _vctrl_get_controlvalue(fd, id, val);
+}
+
+/**
+ * Return an array of strings with the name of all the avaialble inputs for
+ * the specified video card. It is the calling routines responsibility to make sure
+ * that the array can hold upt to 32 pointers to strings
+ * @param fd Identifier for video card
+ * @param nbrinputs Number of input found on this card
+ * @param buf Buffer with pointers to string describing each input
+ * @return 0 on success, -1 otherwise
+ */
+int
+video_get_inputsources(const int fd, int *nbrinputs, char *buff[]) {
+    struct v4l2_input **vinput = calloc(32,sizeof(struct v4l2_input *));
+    char strbuff[64];
+    int ret = _vctrl_enuminput(fd, nbrinputs, vinput);
+    if( 0 == ret ) {
+        for(int i=0; i < *nbrinputs; i++ ) {
+            snprintf(strbuff,63,"(%s) %s",
+                     vinput[i]->type == V4L2_INPUT_TYPE_TUNER ? "tuner" : "camera",
+                     vinput[i]->name);
+            strbuff[63] = '\0';
+            buff[i] = strdup(strbuff);
+        }
+        ret = 0;
+    } else {
+        logmsg(LOG_ERR,"Failed to determine video card inputs fd=%d ( %d : %s )",fd, errno, strerror(errno));
+        ret = -1;
+    }
+
+    // Free all memory
+    if( ret == 0 ) {
+        for(int i=0; i < *nbrinputs; i++ ) {
+            free(vinput[i]);
+        }
+    }
+    free(vinput);
+
+    return ret;
+}
+
+/**
+ * Get the index number for the current video input
+ * @param fd
+ * @param index
+ * @return 0 on success, -1 otherwise
+ */
+int
+video_get_input(const int fd, int *index) {
+    return _vctrl_video_input(FALSE, fd, index);
+}
+
+/**
+ * Set the wanted input video source
+ * @param fd
+ * @param index
+ * @return 0 on success, -1 otherwise
+ */
+int
+video_set_input(const int fd, int index) {
+    return _vctrl_video_input(TRUE, fd, &index);
 }
 
 

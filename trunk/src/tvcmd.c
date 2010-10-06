@@ -91,8 +91,9 @@
 #define CMD_LISTWAITINGTRANSC 31
 #define CMD_GETXMLHTML 32
 #define CMD_LIST_RECHUMAN 33
+#define CMD_LIST_VIDEO_INPUTS 34
 
-#define CMD_UNDEFINED 34
+#define CMD_UNDEFINED 35
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -145,6 +146,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
 			"  l    - list recordings\n"\
     			"  lh   - list recordings, human format\n"\
+                        "  li   - list all video inputs for the capture card\n"\
                         "  lc   - list all controls for the capture card\n"\
                         "  log n -show the last n lines of the logfile\n"\
                         "  ls   - list all stations\n"\
@@ -200,7 +202,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lh|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lh|li|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -790,7 +792,6 @@ _cmd_add(const char *cmd, int sockfd) {
                         }
                     }
 
-
                     if (!err) {
                         int pos = 7;
 
@@ -1191,8 +1192,66 @@ _cmd_list_stations(const char *cmd, int sockfd) {
 }
 
 /**
+ * Command: _cmd_list_video_inputs
+ * List all available video inputs for the capture card specified
+ * Syntax:
+ * li <video>
+ */
+static void
+_cmd_list_video_inputs(const char *cmd, int sockfd) {
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "li <video>   - List all video inputs for the capture card.\n"
+                 );
+        return;
+    }
+    char **field=(void *)NULL;
+    int ret = matchcmd("^li" _PR_S _PR_VIDEO _PR_E, cmd, &field);
+    if( ret == 2 ) {
+        int video = atoi(field[1]);
+        matchcmd_free(field);
+
+        int fd = video_open(video);
+        if( fd >= 0 ) {
+
+            // Print the identifier for the card as the first line
+            char *driver, *card, *version;
+            unsigned int capflags;
+            if( 0 == _vctrl_get_cardinfo(fd, &driver, &card, &version, &capflags) ) {
+                _writef(sockfd, "%s\n",card);
+            }
+
+            // Get current video input so we can mark this
+            int current = -1;
+            video_get_input(fd,&current);
+
+            // Now list all the available inputs
+            char *input_names[32];
+            int nbrinputs;
+            video_get_inputsources(fd, &nbrinputs, input_names);
+            for(int i=0; i < nbrinputs; i++) {
+                _writef(sockfd,"%02d :%s%s\n",
+                        i,
+                        current == i ? "*" : " ",
+                        input_names[i]);
+                free(input_names[i]);
+            }
+
+            // ... and close the cideo input
+            video_close(fd);
+        } else {
+            _writef(sockfd,"Cannot access video card '%d'.\n",video);
+        }
+
+    } else {
+        _cmd_undefined(cmd,sockfd);
+    }
+
+}
+
+/**
  * Command: _cmd_list_video_controls
- * List all settings for the capture specified
+ * List all settings for the capture card specified
  * Syntax:
  * lc
  */
@@ -1222,6 +1281,8 @@ _cmd_list_controls(const char *cmd, int sockfd) {
                 }
             }
             video_close(fd);
+        } else {
+            _writef(sockfd,"Cannot access video card '%d'.\n",video);
         }
     } else {
         _cmd_undefined(cmd,sockfd);
@@ -1753,8 +1814,6 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
     char **field=(void *)NULL;
     int ret = matchcmd("^vc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     
-    logmsg(LOG_INFO,"[vc] ret=%d",ret);
-
     if( ret == 2 ) {
         int video = atoi(field[1]);
 
@@ -1766,7 +1825,10 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
                 video_close(fd);
                 _writef(sockfd, "%s, driver=%s v%s\n",card,driver,version);
             }
+        } else {
+            _writef(sockfd,"Cannot access video card '%d'.\n",video);
         }
+
     } else {
         ret = matchcmd("^vc" _PR_SO _PR_E, cmd, &field);
         if( ret >= 1 ) {
@@ -2303,6 +2365,7 @@ cmdinit(void) {
     cmdtable[CMD_LIST_QUEUEDTRANSC] = _cmd_list_queued_transcodings;
     cmdtable[CMD_SHOW_LASTLOG]      = _cmd_show_last_log;
     cmdtable[CMD_LISTWAITINGTRANSC] = _cmd_list_waiting_transcodings;
+    cmdtable[CMD_LIST_VIDEO_INPUTS] = _cmd_list_video_inputs;
 }
 
 /**
@@ -2337,6 +2400,7 @@ _getCmdPtr(const char *cmd) {
         {"lc", CMD_LIST_CONTROLS},
         {"lh", CMD_LIST_RECHUMAN},
         {"ls", CMD_LIST_STATIONS},
+        {"li", CMD_LIST_VIDEO_INPUTS},
         {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},
         {"l",  CMD_LIST},
