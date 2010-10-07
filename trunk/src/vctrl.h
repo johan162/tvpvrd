@@ -45,6 +45,15 @@ extern "C" {
 #define VCTRL_SET 1
 
 /*
+ * An input source can be sepcified in the add command as one of the
+ * camer input on the cards as well. For example to select the
+ * video input with index 1 on card 0 the station is specified
+ * with this prefix followed by two digits, the first for the card
+ * and the second for the input source index.
+ */
+#define INPUT_SOURCE_PREFIX "_inp"
+
+/*
  * A menu item in a control
  */
 struct vidcontrol_menu_item {
@@ -269,7 +278,7 @@ video_get_wh_fromname(int *width, int *height, char *name);
  * @return
  */
 int
-video_get_inputsources(const int fd, int *nbrinputs, char *buff[]);
+video_get_input_source_list(const int fd, int *nbrinputs, char *buff[]);
 
 /**
  * Get the index number for the current video input
@@ -278,7 +287,7 @@ video_get_inputsources(const int fd, int *nbrinputs, char *buff[]);
  * @return 0 on success, -1 otherwise
  */
 int
-video_get_input(const int fd, int *index);
+video_get_input_source(const int fd, int *index);
 
 /**
  * Set the wanted input video source
@@ -287,7 +296,7 @@ video_get_input(const int fd, int *index);
  * @return 0 on success, -1 otherwise
  */
 int
-video_set_input(const int fd, int index);
+video_set_input_source(const int fd, int index);
 
 /**
  * Video Device Control: _vctrl_vidcontrol_tostr

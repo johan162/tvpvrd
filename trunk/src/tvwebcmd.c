@@ -214,11 +214,18 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
         int sucess=0;
         if (validate_cookie(tmpbuff)) {
+
+            logmsg(LOG_DEBUG, "Received cookie valdidated correctly.");
+
             strncpy(cookie, tmpbuff, maxlen);
             cookie[maxlen - 1] = '\0';
             free(tmpbuff);
             sucess = 1;
+
         } else {
+
+            logmsg(LOG_DEBUG, "Received cookie was NOT a valdid login cookie.");
+
             free(tmpbuff);
         }
 
@@ -226,8 +233,9 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
         return sucess;
 
-
     } else {
+
+        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header.");
 
         return 0;
 
@@ -1442,7 +1450,7 @@ static struct cmd_entry cmdfunc_slave_view[] = {
 
 static struct cmd_entry cmdfunc_master_menu_short[] = {
     {"s", "Status"},
-    {"l", "Recs"},
+    {"lh", "Recs"},
     {"n", "Next"},
     {"o", "Ongoing"}
 };
@@ -1460,13 +1468,6 @@ static struct cmd_grp cmd_grp_slave[] = {
     {"Server", "Show status", sizeof (cmdfunc_slave_status) / sizeof (struct cmd_entry), cmdfunc_slave_status},
     {"View", "View", sizeof (cmdfunc_slave_view) / sizeof (struct cmd_entry), cmdfunc_slave_view}
 };
-
-/*
-static struct cmd_grp cmd_grp_master_short[] = {
-    {"Server", "Server information", sizeof (cmdfunc_master_status) / sizeof (struct cmd_entry), cmdfunc_master_status},
-    {"Recs", "Stored recordings", sizeof (cmdfunc_master_recs) / sizeof (struct cmd_entry), cmdfunc_master_recs}
-};
- */
 
 static struct cmd_grp cmd_grp_master_menu_short[] = {
     {"Menu", "Server information", sizeof (cmdfunc_master_menu_short) / sizeof (struct cmd_entry), cmdfunc_master_menu_short}

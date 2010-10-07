@@ -308,6 +308,14 @@ extern "C" {
 #define MAX_LOAD_FOR_TRANSCODING 4
 
 /*
+ * TUNER_INPUT_INDEX integer
+ * This is the input index for the tuner on the capture card. A tuner card
+ * normally has multiple inputs and we must know which input is the tuner.
+ * This is normally found at index 0.
+ */
+#define DEFAULT_TUNER_INPUT_INDEX 0
+    
+/*
  * MAX_WAITING_TIME_TO_TRANSCODE integer
  * The maximum time in seconds that can be set to wait for the
  * server load to fall below MAX_LOAD_FOR_TRANSCODING
@@ -510,6 +518,10 @@ extern int require_web_password;
 extern char web_password[];
 extern char web_user[];
 extern int weblogin_timeout;
+
+// The input source index that corresponds to the tuner on the
+// capture card.
+extern int tuner_input_index ;
 
 
 void

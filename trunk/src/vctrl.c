@@ -705,7 +705,7 @@ video_get_controlbyid(int fd, int id, int *val) {
  * @return 0 on success, -1 otherwise
  */
 int
-video_get_inputsources(const int fd, int *nbrinputs, char *buff[]) {
+video_get_input_source_list(const int fd, int *nbrinputs, char *buff[]) {
     struct v4l2_input **vinput = calloc(32,sizeof(struct v4l2_input *));
     char strbuff[64];
     int ret = _vctrl_enuminput(fd, nbrinputs, vinput);
@@ -741,7 +741,7 @@ video_get_inputsources(const int fd, int *nbrinputs, char *buff[]) {
  * @return 0 on success, -1 otherwise
  */
 int
-video_get_input(const int fd, int *index) {
+video_get_input_source(const int fd, int *index) {
     return _vctrl_video_input(FALSE, fd, index);
 }
 
@@ -752,7 +752,7 @@ video_get_input(const int fd, int *index) {
  * @return 0 on success, -1 otherwise
  */
 int
-video_set_input(const int fd, int index) {
+video_set_input_source(const int fd, int index) {
     return _vctrl_video_input(TRUE, fd, &index);
 }
 
@@ -907,15 +907,49 @@ video_set_video_aspect(int fd, int aspect) {
 }
 
 /*
- * Set the video channel
+ * Set the video channel. The cannel name is either one of the predefined name for
+ * a frequency channel or the predefined name "_inpVN" where V is the video and N
+ * is the video input. It is assumed that the video is already the one corresponding
+ * to the file descriptor given.
  * @return 0 on success, -1 on failure
  */
+
 int
 video_set_channel(const int fd, char *ch) {
-    int ret = _vctrl_channel(VCTRL_SET, fd, ch, strlen(ch)+1);
-    if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set video channel fd=%d ( %d : %s )",fd,errno, strerror(errno));
-        return -1;
+    int pre_len = strlen(INPUT_SOURCE_PREFIX);
+    if( 0 == strncmp(INPUT_SOURCE_PREFIX,ch,pre_len) ) {
+
+        if( ch[pre_len+1] >= '0' && ch[pre_len+1] <= '7' ) {
+            video_set_input_source(fd,ch[pre_len+1]-'0');
+            logmsg(LOG_DEBUG,"Setting video input for fd=%d : index=%d",fd,ch[pre_len+1]-'0');
+        } else {
+            logmsg(LOG_ERR,"Video input source for fd=%d is out of range : index=%c",fd,ch[pre_len+1]);
+            return -1;
+        }
+
+    } else {
+
+        // First make sure the input is set to the tuner input.
+        // We make the assumption here that tuner input have index  0
+        int index;
+        if( -1 == video_get_input_source(fd,&index) ) {
+            logmsg(LOG_ERR,"Can not get input source index for fd=%d ( %d : %s )",fd,errno, strerror(errno));
+            return -1;
+        }
+
+        if( index != tuner_input_index ) {
+            // Not tuner. So switch back to input with index 0, i.e. tuner input
+            if( -1 == video_set_input_source(fd,tuner_input_index) ) {
+                logmsg(LOG_ERR,"Can not set input source to index 0 for fd=%d ( %d : %s )",fd,errno, strerror(errno));
+                return -1;
+            }
+        }
+
+        int ret = _vctrl_channel(VCTRL_SET, fd, ch, strlen(ch)+1);
+        if( ret != 0 ) {
+            logmsg(LOG_ERR,"Can not set video channel fd=%d ( %d : %s )",fd,errno, strerror(errno));
+            return -1;
+        }
     }
     return 0;
 }

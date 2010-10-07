@@ -385,6 +385,7 @@ _cmd_add(const char *cmd, int sockfd) {
     int repeat_type = 0, repeat_with_enddate=0;
     int repeat_nbr = 0;
     int err = 0;
+    int input_card = -1, input_idx = -1;
 
     for(int i=0; i < REC_MAX_TPROFILES; i++) {
         profiles[i] = calloc(1,16);
@@ -539,7 +540,6 @@ _cmd_add(const char *cmd, int sockfd) {
         if( ! err ) {
             int havemin=0, havesec=0;
             // Field 2 is always hour
-
 
             // Now determine how many more digits for time are specified
             int pos=2;
@@ -984,10 +984,36 @@ _cmd_add(const char *cmd, int sockfd) {
         // current frequence map
         unsigned tmp;
         strtolower(channel);
-        if( -1 == getfreqfromstr(&tmp, channel) ) {
-            sprintf(msgbuff, "Specified station/channel '%s' is not recognized.\n", channel);
-            logmsg(LOG_ERR, "Specified station/channel '%s' is not recognized.", channel);
-            err = 1;
+
+        // Check if this is a regular channel or a direct specifciation of a
+        // video input on the card, i.e. in the form "_inp01"
+
+        const int inp_len = strlen(INPUT_SOURCE_PREFIX);
+        if( strlen(channel) <= inp_len+2 && 0 == strncmp(INPUT_SOURCE_PREFIX, channel,inp_len) ) {
+
+            // Sanity check. Only allow card to be specified as an integer 0-4
+            // Only allow input source to be specified as integer 0-7
+            if( ( channel[inp_len] >= '0'  && channel[inp_len]-'0' <  max_video ) &&
+                ( channel[inp_len+1] >= '0' && channel[inp_len+1] <= '7'  ) ) {
+                input_card = channel[inp_len] - '0';
+                input_idx  = channel[inp_len+1] - '0';
+
+                logmsg(LOG_DEBUG, "Input source set to video=%d, source=%d", input_card, input_idx);
+
+            } else {
+
+                sprintf(msgbuff, "Specified video input source '%s' is not recognized.\n", channel);
+                logmsg(LOG_ERR, "Specified video input source '%s' is not recognized.", channel);
+                err = 1;
+                
+            }
+
+        } else {
+            if( -1 == getfreqfromstr(&tmp, channel) ) {
+                sprintf(msgbuff, "Specified station/channel '%s' is not recognized.\n", channel);
+                logmsg(LOG_ERR, "Specified station/channel '%s' is not recognized.", channel);
+                err = 1;
+            }
         }
     }
 
@@ -1044,10 +1070,20 @@ _cmd_add(const char *cmd, int sockfd) {
                     repeat_type, repeat_nbr, repeat_name_mangle_type,
                     profiles);
 
-            // Take the first video stream available
+
             ret = 0;
-            for (int video = 0; video < max_video && !ret; video++) {
-                ret = insertrec(video, entry);
+            if( input_card >= 0 ) {
+                // Recording should be made on the specific video card
+                // and input source
+
+                ret = insertrec(input_card, entry);
+
+            } else {
+                
+                // Take the first video stream available
+                for (int video = 0; video < max_video && !ret; video++) {
+                    ret = insertrec(video, entry);
+                }
             }
 
             if (ret) {
@@ -1223,12 +1259,12 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
 
             // Get current video input so we can mark this
             int current = -1;
-            video_get_input(fd,&current);
+            video_get_input_source(fd,&current);
 
             // Now list all the available inputs
             char *input_names[32];
             int nbrinputs;
-            video_get_inputsources(fd, &nbrinputs, input_names);
+            video_get_input_source_list(fd, &nbrinputs, input_names);
             for(int i=0; i < nbrinputs; i++) {
                 _writef(sockfd,"%02d :%s%s\n",
                         i,
