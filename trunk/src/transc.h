@@ -312,6 +312,14 @@ int
 dump_transcoding_profile(char *name, char *buff, int size);
 
 /**
+ * Kill_ongoing transcoding processes.
+ * Kill the specified ongoing transcoding
+ * @param idx
+ */
+int
+kill_ongoing_transcoding(int idx);
+
+/**
  * Kill all ongoing transcoding processes. This can be called either
  * via the kill command from a client or it can be automatically called
  * when the server shuts down. This beahviour is constrolled via the

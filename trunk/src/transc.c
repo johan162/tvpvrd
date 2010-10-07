@@ -88,12 +88,12 @@ check_ffmpeg_bin(void) {
  */
 int
 record_ongoingtranscoding(char *workingdir,char *short_filename,char *cmd_ffmpeg, 
-        struct transcoding_profile_entry *profile, pid_t pid) {
+                          struct transcoding_profile_entry *profile, pid_t pid) {
     int i;
     for(i=0; i < max_ongoing_transcoding && ongoing_transcodings[i]; i++)
        ;
     if( i>= max_ongoing_transcoding ) {
-        logmsg(LOG_ERR,"Can only record at most %d transcodings.",max_ongoing_transcoding);
+        logmsg(LOG_ERR,"Can only record at most %d ongoing transcodings.",max_ongoing_transcoding);
         return -1;
     }
     struct ongoing_transcoding *entry = calloc(1,sizeof(struct ongoing_transcoding));
@@ -891,6 +891,44 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 }
 
 /**
+ * Kille ongoing transcoding with index idx
+ * @param idx
+ */
+int
+kill_ongoing_transcoding(int idx) {
+
+    if( idx >= 0 && idx < max_ongoing_transcoding ) {
+        // First ask nicely
+        if (ongoing_transcodings[idx]) {
+            logmsg(LOG_NOTICE,"Stopping ffmpeg process %d",ongoing_transcodings[idx]->pid);
+            (void)killpg(ongoing_transcodings[idx]->pid,SIGSTOP);
+        }
+
+        // Wait a bit
+        usleep(1000);
+
+        // Then not so nicely, kill process
+        if (ongoing_transcodings[idx]) {
+
+            logmsg(LOG_NOTICE,"Killing 'ffmpeg' process %d",ongoing_transcodings[idx]->pid);
+            (void)killpg(ongoing_transcodings[idx]->pid,SIGKILL);
+            free(ongoing_transcodings[idx]);
+            ongoing_transcodings[idx] = (struct ongoing_transcoding *)NULL;
+            
+        }
+
+    } else {
+
+        logmsg(LOG_ERR,"No ongoing transcoding with index=%d",idx);
+        return -1;
+
+    }
+
+    return 0;
+
+}
+
+/**
  * Kill all ongoing transcoding processes
  */
 void
@@ -905,7 +943,7 @@ kill_all_ongoing_transcodings(void) {
     }
 
     // Wait a bit
-    usleep(800);
+    usleep(1000);
 
     // Then not so nicely, kill every process
     for (int i = 0; i < max_ongoing_transcoding; i++) {
@@ -1095,9 +1133,9 @@ _transcode_file(void *arg) {
             struct rusage usage;
             do {
                 // Transcoding usually takes hours so we don't bother
-                // waking up and check if we are done more often than once every two minute
-                sleep(120);
-                runningtime += 120;
+                // waking up and check if we are done more often than once every minute
+                sleep(60);
+                runningtime += 60;
                 rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
 
             } while (pid != rpid && runningtime < watchdog);
