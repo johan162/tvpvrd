@@ -309,6 +309,11 @@ char locale_name[255];
  */
 int enable_webinterface = 0 ;       
 
+/*
+ * The tuner input index on the card. This is necessaru so we know which
+ * input to select that is the tuner.
+ */
+int tuner_input_index;
 
 /*
  * The following memory routines are just used to double check that
@@ -474,7 +479,7 @@ _x_dbg_close(int fd) {
 }
 
 /**
- * Set the video encoding HW parameters on teh video card from the values specified in the
+ * Set the video encoding HW parameters on the video card from the values specified in the
  * supplied profile
  * @param fd
  * @param profile
@@ -557,9 +562,6 @@ setup_video(int video,struct transcoding_profile_entry *profile) {
 #ifndef DEBUG_SIMULATE
     char infobuff[256];
 #endif
-    unsigned int freq;
-
-    getfreqfromstr(&freq, ongoing_recs[video]->channel);
 
 #ifndef DEBUG_SIMULATE
     int fd = video_open(video);
@@ -569,25 +571,38 @@ setup_video(int video,struct transcoding_profile_entry *profile) {
 
     // Give the driver some breathing room after we open the device
     // and until we start changing the settings.
-    sleep(1);
+    usleep(500000);
 
     int ret,i=2;
-    ret = video_set_channel(fd,  ongoing_recs[video]->channel);
+    ret = video_set_channel(fd, ongoing_recs[video]->channel);
     while( ret == -1 && errno == EBUSY && i > 0 ) {
         usleep(500*(3-i));
-        ret = video_set_channel(fd,  ongoing_recs[video]->channel);
+        ret = video_set_channel(fd, ongoing_recs[video]->channel);
         i--;
     }
+
     if( ret == -1 ) {
         video_close(fd);
         return -1;
     }
 
-    snprintf(infobuff,255,
-                    "Tuner #%02d set to channel '%s' @ %.3fMHz",
-                    video,ongoing_recs[video]->channel, freq/1000000.0
-    );
-    logmsg(LOG_NOTICE,infobuff);
+    if( 0 == strncmp(ongoing_recs[video]->channel,INPUT_SOURCE_PREFIX,strlen(INPUT_SOURCE_PREFIX)) ) {
+
+        snprintf(infobuff,255,
+                "Setting up video %d HW MP2 encoder to take input from source '%s'",
+                video,ongoing_recs[video]->channel);
+
+    } else {
+
+        unsigned int freq=0;
+        getfreqfromstr(&freq, ongoing_recs[video]->channel);
+        snprintf(infobuff,255,
+                 "Tuner #%02d set to channel '%s' @ %.3fMHz",
+                 video,ongoing_recs[video]->channel, freq/1000000.0
+        );
+
+    }
+    logmsg(LOG_DEBUG,infobuff);
 
     if( allow_profiles_adj_encoder ) {
         if( -1 == set_enc_parameters(fd, profile) ) {
@@ -1219,7 +1234,7 @@ chkrec(void *arg) {
                 // oppportunity. We remove this recording to be able to try the next one in
                 // sequence.
 
-                // Flag to keep track if we should update the SML DB file or not
+                // Flag to keep track if we should update the XML DB file or not
                 // We only update the file in case we have actually a) ignored a recording or
                 // b) actually started a recording;
                 int update_xmldb = 0;
@@ -2412,6 +2427,9 @@ read_inisettings(void) {
         // Automatically determine the maximum number of cards
         max_video = _vctrl_getnumcards();
     }
+
+    tuner_input_index   = validate(0, 7,"tuner_input_index",
+                                   iniparser_getint(dict, "config:tuner_input_index", DEFAULT_TUNER_INPUT_INDEX));
 
     max_entries         = validate(1,4096,"max_entries",
                                    iniparser_getint(dict, "config:max_entries", MAX_ENTRIES));

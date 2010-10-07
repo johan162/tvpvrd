@@ -1,4 +1,4 @@
-AC_INIT([tvpvrd],[1.5.3],[johan162@gmail.com])
+AC_INIT([tvpvrd],[1.6.0],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_PROG_CC
 AC_PROG_CC_C99

@@ -580,6 +580,60 @@ channel = E8
                 ini-file.</para>
         </refsect1>
         <refsect1>
+            <title>Selecting alternative video inputs as source for the encoding</title>
+            <para>A video capture card has normally several possible input to the HW MP2 encoder.
+                When encoding TV the tuner is usually the selected input. However most cards also
+                have one or several external connects that can be used to encode other video
+                sources. For example Hauppauge analogue cards have one or more (depending on the
+                card) S-Video inputs that could be used as source for the video encoding.</para>
+            <para>The first thing to do if one wants to use one of these alternative input sources
+                is to determine exactly what input sources the combination of card and low level
+                driver supports. This can be done with the help of the command <command>li</command>
+                . This will list all the available input sources for the specified video card. For
+                example if your server have a Hauppauge 350 installed as the first card giving the
+                command</para>
+            <para><command>li 0</command></para>
+            <para>would generate output similar to</para>
+            <para>
+                <screen>Hauppauge WinTV PVR-350
+00 :*(tuner) Tuner 1
+01 : (camera) S-Video 1
+02 : (camera) Composite 1
+03 : (camera) S-Video 2
+04 : (camera) Composite 2
+05 : (camera) Composite 3</screen>
+            </para>
+            <para>This is a list of  all possible video sources supported by the card. The current
+                selected source is shown with an asterix just to the left of the type of
+                input.</para>
+            <para>In order to use one of these inputs as the source for the recoding instead of the
+                standard tuner a special station name is used "<emphasis
+                    role="italic">_inpXY</emphasis>". The 'X' should be replaced by the video card
+                to be used (starting at 0) and the 'Y' should be replaced by the index for the
+                wanted input source. So for example going back to the previous Hauppauge 350 above a
+                meta station name of "<code>_inp04</code>" would use the composite 2 input source
+                (assuming the card is the first card, i.e. 0).</para>
+            <para>In order for the server to know which input belongs to the tuner this is specified
+                in the config file with the setting <emphasis
+                    role="italic">tuner_input_index</emphasis>, by default this is 0. Since there is
+                only one setting this implies that all cards use the same index for the tuner. This
+                is a limitation of the current implementation. If you have several cards where the
+                tuner is located at different input indexes then the server can only work correctly
+                on one card. This is a very minor limitation since the number of users with multiple
+                cards with tuners on other indexes than 0 can be assumed to be very small.</para>
+            <para>A final example will make this crystal clear. Assume we want to record a CCTV
+                camer that is connected to composite input 1 on our Hauppauge 350 card. To
+                immediately start recording for 30 min using the default profile we could give the
+                command</para>
+            <para>
+                <screen>q _inp02 00:30 cctv_camera_one</screen>
+            </para>
+            <para>the command above would immediately start a recording using card 0 and input with
+                index 2, i.e.. the "<code>Composite 1</code>" input. The recording will be stored
+                with the name "<code>cctv_camera_one.mp4</code>" (assuming the default profile is
+                setup to do transcoding to MP4 format).</para>
+        </refsect1>
+        <refsect1>
             <title>Commands (in alphabetic order)</title>
             <para>The following is a list and detailed explanation of the commands that are
                 recognized by the server. Commands are specified by 1 to 3 letters followed by any

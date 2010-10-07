@@ -394,7 +394,7 @@ trim(char *string);
 
 #define _PR_VIDEO "([0-5])"
 #define _PR_DURATION "(0?[0-3]):([0-5][0-9])"
-#define _PR_CHANNEL "([\\p{L}][\\p{L}\\p{N}\\p{P}\\+]*)"
+#define _PR_CHANNEL "([\\p{L}_][\\p{L}\\p{N}\\p{P}\\+]*)"
 
 #define _PR_TITLE "(\\p{L}[\\p{L}\\p{N} _-]+)"
 #define _PR_OPTITLE "(" _PR_S "(\\p{L}[\\p{L}\\p{N} _-]*))?"
