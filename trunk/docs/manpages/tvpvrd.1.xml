@@ -1066,10 +1066,14 @@ FFMPEG:
                         </listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term>'<command>kt</command>' - <emphasis
-                                role="bold">Kill all ongoing transcoding command</emphasis></term>
+                        <term>'<command>kt</command>' <emphasis
+                            role="italic">n</emphasis> - <emphasis
+                            role="bold">Kill all ongoing transcoding command</emphasis></term>
                         <listitem>
-                            <para>Stop all ongoing transcoding processes.</para>
+                            <para>Stop specified ongoing transcoding processes. The index of the
+                            ongoing transcoding processes can be found via the <command>ot</command>
+                            command. If no specific index is given then all ongoing transcodings
+                            will be stopped so be careful !</para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
