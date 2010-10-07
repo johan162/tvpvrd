@@ -2071,24 +2071,50 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
         return;
     }
 
-    if( cmd[2] == 'f' ) {
-        int ret = matchcmd("^ktf" _PR_S "(y|n)"  _PR_E, cmd, &field);
+    int ret = matchcmd("^kt" _PR_S _PR_VIDEO _PR_E, cmd, &field);
 
-        if( ret > 0 ) {
-            dokilltranscodings = field[1][0] == 'y' ? 1 : 0 ;
+    if( ret == 2 ) {
 
-            matchcmd_free(field);
+        int tidx = atoi(field[1]);
+        char *filename = (char *)NULL;
+        if( ongoing_transcodings[tidx] && ongoing_transcodings[tidx]->filename ) {
 
-            _writef(sockfd,"killflag=%c\n",dokilltranscodings ? 'y' : 'n' );
+            filename = strdup(ongoing_transcodings[tidx]->filename);
+            if( -1 == kill_ongoing_transcoding(tidx) ) {
+                logmsg(LOG_ERR,"Transcoding with index=%d does not exist.",tidx);
+                _writef(sockfd,"Transcoding with index=%d does not exist.\n",tidx);
+            } else {
+                logmsg(LOG_DEBUG,"Stopped transcoding with index=%d ('%s')",tidx,filename);
+                _writef(sockfd,"Stopped transcoding of '%s'\n",filename);
+            }
+            free(filename);
 
         } else {
-            _writef(sockfd,"Syntax error.\n");
+            logmsg(LOG_ERR,"Transcoding with index=%d does not exist.",tidx);
+            _writef(sockfd,"Transcoding with index=%d does not exist.\n",tidx);
+            return;
         }
 
     } else {
-        kill_all_ongoing_transcodings();
-        _writef(sockfd,"All ongoing transcodings killed.\n");
+
+        if( cmd[2] == 'f' ) {
+            int ret = matchcmd("^ktf" _PR_S "(y|n)"  _PR_E, cmd, &field);
+
+            if( ret > 0 ) {
+                dokilltranscodings = field[1][0] == 'y' ? 1 : 0 ;
+                _writef(sockfd,"killflag=%c\n",dokilltranscodings ? 'y' : 'n' );
+
+            } else {
+                _writef(sockfd,"Syntax error.\n");
+            }
+
+        } else {
+            kill_all_ongoing_transcodings();
+            _writef(sockfd,"All ongoing transcodings killed.\n");
+        }
     }
+    
+    matchcmd_free(field);
 }
 
 /**

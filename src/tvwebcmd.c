@@ -951,8 +951,9 @@ html_element_select_code(int sockd, char *legend, char *name, char *selected, co
  * @param name
  * @param id
  */
+
 void
-html_element_input_text(int sockd, char *legend, char *name, char *id) {
+_html_element_input_text(int sockd, char *legend, char *name, char *id, int passwd) {
     const int maxlen = 8192;
     char *buffer = calloc(1, maxlen);
 
@@ -971,9 +972,19 @@ html_element_input_text(int sockd, char *legend, char *name, char *id) {
     }
     _writef(sockd, buffer);
 
-    snprintf(buffer, maxlen, "<input type=\"text\" name=\"%s\" class=\"input_text\"></input></div>\n", name);
+    snprintf(buffer, maxlen, "<input type=\"%s\" name=\"%s\" class=\"input_text\"></input></div>\n", passwd ? "password" : "text" , name);
     _writef(sockd, buffer);
     free(buffer);
+}
+
+void
+html_element_input_text(int sockd, char *legend, char *name, char *id) {
+    _html_element_input_text(sockd, legend, name, id, 0);
+}
+
+void
+html_element_input_password(int sockd, char *legend, char *name, char *id) {
+    _html_element_input_text(sockd, legend, name, id, 1);
 }
 
 /**
@@ -1128,7 +1139,7 @@ html_login_page(int sockd, int mobile) {
     _writef(sockd, "<div class=\"%s\">Welcome to tvpvrd</div>", "login_title");
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"login\">\n", "tvlogin");
     html_element_input_text(sockd, "User:", "user", "id_loginuser");
-    html_element_input_text(sockd, "Password:", "pwd", "id_loginpwd");
+    html_element_input_password(sockd, "Password:", "pwd", "id_loginpwd");
     html_element_submit(sockd, "submit_login", "Login", "id_submitlogin");
 
     _writef(sockd, "<form>");
@@ -1190,7 +1201,7 @@ html_cmd_ongoingtransc(int sockd) {
                 int rmin = (rtime - rh*3600)/60;
 
                 _writef(sockd, "<div class=\"ongoing_transc_title\">(%02d:%02d) %s</div>",rh,rmin,ongoing_transcodings[i]->filename);
-                _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"killtransc?tid=%d\">Stop</a></div>",i);
+                _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?kt%%20%d\">Stop</a></div>",i);
 
                 _writef(sockd, "</div>\n");
             }
@@ -1428,7 +1439,7 @@ static struct cmd_entry cmdfunc_master_view[] = {
 
 static struct cmd_entry cmdfunc_master_driver[] = {
     {"vc", "Driver"},
-    {"lc 0", "Settings #0"}
+    {"lc%200", "Settings #0"}
 };
 
 static struct cmd_entry cmdfunc_slave_transcoding[] = {
