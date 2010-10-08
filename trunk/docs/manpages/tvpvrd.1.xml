@@ -166,9 +166,11 @@
                         <emphasis>nnnn</emphasis>
                     </term>
                     <listitem>
-                        <para>Specify TCP/IP port number. This will override the
-                                '<emphasis>port</emphasis>' setting in the ini-file. By default the
-                            distribution uses port 9300.</para>
+                        <para>Specify TCP/IP port number that the server will listen on. This will
+                            override the '<emphasis>port</emphasis>' setting in the ini-file. By
+                            default the distribution uses port 9300. The port number of the
+                            WEB-interface will be <emphasis>nnnn</emphasis>+1 so by default the
+                            WEB-interface will be available on port 9301.</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -181,11 +183,11 @@
                 </varlistentry>
                 <varlistentry>
                     <term><option>-V</option>, <option>--verbose</option>
-                            [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>]</term>
+                            [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>|<emphasis>3</emphasis>]</term>
                     <listitem>
                         <para>Log verbosity level. 0 will only log error messages, 1 will log error
-                            and info messages, 2 will log errors, info and additional low volumne
-                            debug messages, 3 will also log high volume debug messages.</para>
+                            and info messages, 2 will log errors, info and additional notices
+                            finally 3 will also log high volume debug messages.</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -220,47 +222,51 @@
                 'root' user. This user should be a system user without login shell. Such a user can
                 normally be created by running the command '<emphasis>useradd</emphasis>'. (If the
                 server is installed via the RPM package this user will be automatically
-                created)</para>
-            <para>
-                <screen>$> useradd -r tvpvrd</screen>
-            </para>
+                created)</para>            
+                <screen>$> useradd -r tvpvrd</screen>            
             <para>To start the server as root the simplest way is to just call</para>
-            <para>
-                <screen>$root> tvpvrd</screen>
-            </para>
+                <screen>$root> tvpvrd</screen>            
             <para>In order to stop the server and allow it to do a clean shutdown the SIGHUP (or
                 SIGSTOP) signal should be sent to the process running the server (assuming tvpvrd
-                has been started as a daemon). The distribution includes a simple script
-                'stop-tvpvrd' which will read the server pid from
-                    '<filename>/var/run/tvpvrd.pid</filename>' and send the SIGHUP signal.</para>
+                has been started as a daemon). The distribution includes two support scripts to help
+                with this. </para>
+            <para>The first script will be automatically installed in
+                    "<filename>/etc/init.d/tvpvrd</filename>" and follows the normal guidelines for
+                a "<filename>init.d</filename>" service start/stopping script according to LSB
+                (Linux Standard Base). Using this script to start the server the command</para>
+                <screen>/etc/init.d/tvpvrd start</screen>            
+            <para>is given and to stop the server the command</para>
+                <screen>/etc/init.d/tvpvrd stop</screen>           
+            <para>should be given. The startup script also supports the "restart" and "status"
+                options.</para>
+            <para>The second script is '<filename>stop-tvpvrd</filename>' which will read the server
+                process pid from '<filename>/var/run/tvpvrd.pid</filename>' and send the SIGHUP
+                signal.</para>
             <para>In order to stop the server first switch to root user and then use the
-                command</para>
-            <para>
-                <screen>$root> stop-tvpvrd</screen>
-            </para>
-            <para>To manually kill the daemon process one can send the SIGHUP signal via the
-                    '<emphasis>kill</emphasis>'command as</para>
-            <para>
-                <screen>$> kill -SIGHUP &lt;pid></screen>
-            </para>
+                command</para>            
+                <screen>$root> stop-tvpvrd</screen>            
+            <para>Finally if for some reason you don't want to use any of these scripts it is
+                possible to manually kill the daemon process by sending the SIGHUP signal via the
+                    '<emphasis>kill</emphasis>'command as</para>            
+                <screen>$> kill -SIGHUP &lt;pid></screen>            
             <para>where &lt;pid> is the process id of the <emphasis>tvpvrd</emphasis> daemon. Use
                 'ps xa' to find the pid or if the server was started as root look in the file
                     '<filename>/var/run/tvpvrd.pid</filename>' </para>
-            <para>When the server is shutdown the DB will be updated and depending on the "Kill
-                transcoding flag" (see the <option>-ktf</option> command) any on-going transcodings
-                will be shutdown. Any potential ongoing recordings will be aborted and the
-                recordings up to the time the recording is shutdown will be left in the
-                    '<filename>&lt;data-dir>/vtmp</filename>' directory and must be removed
-                manually.</para>
-            <para>Hint: If the server gives the error message : "Server can not be started. See
-                system log" then more information about the details of the problem can be found in
-                the system log, normally <filename>/var/log/messages</filename>. One common issue
-                might be stale lock files (in <filename>/var/run/tvpvrd.pid</filename>). This is a
-                result of the fact that in order to write these lock files the server must run as a
-                root. Since normally the server only runs as a root at the startup phase (and then
-                switches over to the selected user) the lock/pid file cannot be removed. This is not
-                a problem is the server is again started as root but if the server is started from
-                the command line as a non-root user it will complain that the lock file already
+            <para>When the server is shutdown, depending on the "Kill transcoding flag" (see the
+                    <option>-ktf</option> command), any on-going transcodings will be shutdown. Any
+                potential ongoing recordings will be aborted and the recordings up to the time the
+                recording is shutdown will be left in the '<filename>&lt;data-dir>/vtmp</filename>'
+                directory and must be removed manually.</para>
+            <para>If the server gives the error message : "<emphasis>Server can not be started. See
+                    system log</emphasis>" then more information about the details of the problem
+                can be found in the system log, normally <filename>/var/log/messages</filename>. One
+                common issue might be a stale lock file (in
+                <filename>/var/run/tvpvrd.pid</filename>) in case the server is not started from the
+                root user. The reason is that in order to write these lock files the server must run
+                as a root. Since normally the server only runs as a root at the startup phase (and
+                then switches over to the selected user) the lock/pid file cannot be removed. This
+                is not a problem if the server is again started as root but if the server is started
+                from the command line as a non-root user it will complain that the lock file already
                 exists. The solution in this case is to manually remove the lockfile (as
                 root).</para>
         </refsect1>
@@ -295,10 +301,8 @@
                     <emphasis>tvpvrd</emphasis> server is running on the localhost the following
                 command will connect to the server (assuming the default port 9300 has not been
                 changed in the ini-file (e.g. <filename>/etc/tvpvrd.conf</filename>) or by a command
-                line argument).</para>
-            <para>
-                <screen>$> telnet localhost 9300</screen>
-            </para>
+                line argument).</para>            
+                <screen>$> telnet localhost 9300</screen>            
             <para>After a successful connection the server will reply with a short information
                 message. To help identify the server the first line returned is always
                     '<code>!TVPVRD!</code>'. The full returned information message at the connection
@@ -308,12 +312,11 @@ Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
 You are user number 1 out of 2 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
-Connection will be closed after 30 min of inactivity.
-</screen>
+Connection will be closed after 30 min of inactivity.</screen>
             <para>If password protection (see section "Security" below) the welcome message is not
                 be shown until the correct password has been specified. Instead when password
                 protection is enabled the connection sequence looks like this</para>
-            <para>
+            
                 <screen>$> telnet localhost 9300
 Password:<emphasis role="bold">xxxxxxx</emphasis>
 !TVPVRD!
@@ -321,9 +324,8 @@ Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
 You are user number 1 out of 2 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
-Connection will be closed after 30 min of inactivity.
-</screen>
-            </para>
+Connection will be closed after 30 min of inactivity.</screen>
+            
             <para>This means that the correct server password has to be given before the welcome
                 message is seen. The server is now ready to accept commands on this
                 connection.</para>
@@ -337,14 +339,19 @@ Connection will be closed after 30 min of inactivity.
                 to a more efficient format, usually an MP4 container using H.264 video codec (the
                 default in the distributed profiles). Depending on the quality settings it is common
                 to see reduction in original file size with 75%</para>
-            <para>Unfortunately the transcoding process is extremely CPU-intensive and with the
-                default settings in the distribution the normal profile will require roughly 1.5
-                times to transcode as the original play time on a high end machine (as of 2009) . In
-                order not to make the machine totally unresponsive the ini-file specifies a maximum
-                load for a transcoding to start in order not to load the server with too many
-                parallel transcoding processes. If the load is too high the transcoding processes
-                will be put in a queue waiting for the load to become acceptable.</para>
-            <para>Each transcoding is run as its own process with a 'nice' value of 20. </para>
+            <para>The transcoding process is very CPU-intensive and with the default settings in the
+                distribution the normal profile will require roughly 1.5 times the original
+                recording length to transcode on a high end machine (as of 2009) . In order not to
+                make the machine totally unresponsive the ini-file specifies a maximum load on the
+                server for a transcoding to start in order not to load the server with too many
+                parallel transcoding processes. The transcoding process is also run with a 'nice'
+                value of 20 to have the transcoding process interfer as little as possible with any
+                interactive use on the server. If the load is too high the transcoding processes
+                will be put in a queue waiting for the load to become acceptable. Note that the
+                serer will not wait forever and if the load has not dropped below the threshold for
+                a certain time  (as specified by the <code>max_waiting_time_to_transcode</code>
+                setting in the ini-file) the transcoding will be cancelled and the original MP2 file
+                left alone.</para>
             <para>When a recording is started a temporary directory will be created under
                     '<filename>&lt;data-dir>/vtmp/vid&lt;n>/</filename>' where &lt;n> is the number
                 of the video card used. The name of the temporary directory will be the same as the
@@ -352,8 +359,8 @@ Connection will be closed after 30 min of inactivity.
                 in a file in the temporary directory with the same name as the title (converted to
                 lower case) with the suffix ".mpg".</para>
             <para>The hardware capture card settings to be used (bitrate, frame size etc.) is read
-                from the primary profile (i.e. the first profile if multiple profiles are
-                specified).</para>
+                from the primary profile (i.e. the first profile if multiple transcoding profiles
+                are specified for one recording).</para>
             <para>When the recording has stopped the transcoding profile(s) is read and the
                 transcoding is started after a check that the server load is not higher than the
                 maximum allowed load in order to start a transcoding. If the load is too high the
@@ -452,9 +459,9 @@ Connection will be closed after 30 min of inactivity.
             </para>
             <para>After connecting to the server when the password has been enabled the first string
                 sent back from the server will be</para>
-            <para>
+            
                 <screen>Password:</screen>
-            </para>
+            
         </refsect1>
         <refsect1>
             <title>Stations, channels and frequencies</title>
@@ -530,7 +537,7 @@ Connection will be closed after 30 min of inactivity.
             <para>An example of a station-channel mapping file is shown below (this mapping file
                 happens to be the maps for a large Swedish distributor in the Stockholm
                 region):</para>
-            <para>
+            
                 <screen>[Kanal5]
 channel = SE11
 [Kanal8]
@@ -556,7 +563,7 @@ channel = SE14
 [TV6]
 channel = E8
 </screen>
-            </para>
+            
             <para>In some Unix distributions there are automatic frequency scanning helper programs
                 (for example <citerefentry>
                     <refentrytitle>scantv</refentrytitle>
@@ -594,7 +601,7 @@ channel = E8
                 command</para>
             <para><command>li 0</command></para>
             <para>would generate output similar to</para>
-            <para>
+            
                 <screen>Hauppauge WinTV PVR-350
 00 :*(tuner) Tuner 1
 01 : (camera) S-Video 1
@@ -602,7 +609,7 @@ channel = E8
 03 : (camera) S-Video 2
 04 : (camera) Composite 2
 05 : (camera) Composite 3</screen>
-            </para>
+            
             <para>This is a list of  all possible video sources supported by the card. The current
                 selected source is shown with an asterix just to the left of the type of
                 input.</para>
@@ -625,9 +632,9 @@ channel = E8
                 camer that is connected to composite input 1 on our Hauppauge 350 card. To
                 immediately start recording for 30 min using the default profile we could give the
                 command</para>
-            <para>
+            
                 <screen>q _inp02 00:30 cctv_camera_one</screen>
-            </para>
+            
             <para>the command above would immediately start a recording using card 0 and input with
                 index 2, i.e.. the "<code>Composite 1</code>" input. The recording will be stored
                 with the name "<code>cctv_camera_one.mp4</code>" (assuming the default profile is
@@ -1018,26 +1025,27 @@ channel = E8
                         <listitem>
                             <para>Display information on the settings of the specified profile. </para>
                             <para>Output example:</para>
-                            <screen>                     name: normal
+                            <screen>name                  : tnormal
 ENCODER:
-            video_bitrate: 3400000
-       video_peak_bitrate: 4000000
-           audio_sampling: 44.1
-            audio_bitrate: 192
-                   aspect: 4x3
-                     size: vga
+video_bitrate         : 3700000
+video_peak_bitrate    : 4700000
+audio_sampling        : 44.1
+audio_bitrate         : 256
+aspect                : 4x3
+size                  : pal
 FFMPEG:
-            video_bitrate: 700
-       video_peak_bitrate: 1000
-                   vcodec: libx264
-                     vpre: normal
-                     pass: 1
-                   acodec: copy
-            audio_bitrate: 196
-               video_size:
-                     crop: (l=2, r=2, t=8, b=8)
-     ffmpeg_extra_options:
-           file_extension: .mp4</screen>
+use_transcoding       : 1
+video_bitrate         : 800
+video_peak_bitrate    : 1100
+vcodec                : libx264
+vpre                  : normal
+pass                  : 2
+acodec                : aac
+audio_bitrate         : 128
+video_size            :
+crop                  : l=2, r=2, t=8, b=8
+ffmpeg_extra_options  :
+file_extension        : .mp4</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -1096,7 +1104,7 @@ killflag=n</screen>
                     <varlistentry>
                         <term>'<command>l</command>' <emphasis
                             role="italic">n</emphasis> - <emphasis
-                            role="bold">List coming recordings command</emphasis></term>
+                            role="bold">List future recordings command</emphasis></term>
                         <listitem>
                             <para>List coming recordings. If  <emphasis
                                 role="italic">n</emphasis> is specified as number in the range
@@ -1119,6 +1127,18 @@ killflag=n</screen>
 [039|kanal5 |2010-03-18|22:00|22:59|Fringe (18/20)                |@normal]</screen>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term>'<command>lh</command>' [<emphasis>n</emphasis>] - <emphasis
+                            role="bold">List future recordings in human readable
+                        format</emphasis></term>
+                    <listitem>
+                        <para>This is the same command as 'l' but with the output shortened and ore
+                            easily read by humans</para>
+                        <para>Output example:</para>
+                        <screen>Fri Oct 01 21:00-21:55 disc     Mountains
+Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>log</command>' [<emphasis>n</emphasis>] - <emphasis
                                 role="bold">Show last n lines of the log file</emphasis></term>
@@ -1130,17 +1150,17 @@ killflag=n</screen>
                         </listitem>
                     </varlistentry>
                 <varlistentry>
-                    <term><command>li</command>
-                        <emphasis
-                            role="italic">n</emphasis> - <emphasis
+                    <term><command>li</command> [<emphasis
+                            role="italic">n</emphasis>] - <emphasis
                             role="bold">List all video input sources command</emphasis></term>
                     <listitem>
                         <para>List a all video sources available for the specified card.The current
-                            selected input source is marked with an asterix. The type of input is
-                            shown in paranthesis in front of the textual name of the input. The type
-                            is either "tuner" or "camera".</para>
+                            selected input source is marked with an asterisk. The type of input is
+                            shown in parenthesis in front of the textual name of the input. The type
+                            is either "tuner" or "camera". If no card is specified then information
+                            on all installed card will be listed.</para>
                         <para>Output example:</para>
-                        <para>
+                        
                             <screen>Hauppauge WinTV PVR-350 
 00 :*(tuner) Tuner 1 
 01 : (camera) S-Video 1 
@@ -1148,7 +1168,7 @@ killflag=n</screen>
 03 : (camera) S-Video 2 
 04 : (camera) Composite 2 
 05 : (camera) Composite 3 </screen>
-                        </para>
+                        
                     </listitem>
                 </varlistentry>
                     <varlistentry>
@@ -1214,7 +1234,7 @@ SE14: tv4+
                                 list with, say 20 full length movie video files, can easily take up
                                 more than two days to transcode.</para>
                             <para>Output example:</para>
-                            <para>
+                            
                                 <screen>       Filelist: #01                                
           Total: 17 videos in list                  
       Processed: 02 (11%) files                     
@@ -1242,7 +1262,7 @@ Not processed:
   + /data/pvr/mp2/normal/vita_huset.mpg             
   + /data/pvr/mp2/normal/white_noise.mpg            
   + /data/pvr/mp2/normal/WildThings.mpg  </screen>
-                            </para>
+                            
                             <para>The fist set of information gives general information about the
                                 chosen file list. The last line of the first information block gives
                                 a rough estimate of the remaining time left needed to transcode the
@@ -1565,7 +1585,7 @@ total_mp4files          : 31</screen>
                                             the row being a ':' (colon) character.</para>
                                     
                             <para>Example input file:</para>
-                            <para>
+                            
                                 <programlisting>:/data/pvr/mp2/normal
 svu_001.mpg
 svu_2010-01-20_00.40.mpg
@@ -1583,7 +1603,7 @@ vita_huset_001.mpg
 vita_huset.mpg
 white_noise.mpg
 WildThings.mpg </programlisting>
-                            </para>
+                            
                             <para>In the above file all the video files will be read from the
                                 directory <filename>/data/pvr/mp2/normal</filename>. The result of
                                 the transcoding will (as usual) be stored under the corresponding
@@ -1686,7 +1706,8 @@ Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term>'<command>z</command>' - Display all ini-file settings command</term>
+                        <term>'<command>z</command>' - <emphasis
+                            role="bold">Display all ini-file settings command</emphasis></term>
                         <listitem>
                             <para>This will list all settings made in the ini-file as well as the
                                 location of the used ini file.</para>
@@ -1701,6 +1722,11 @@ sendmail_on_transcode_end     : 1
 sendmail_address              : johan162@gmail.com
 locale_name                   : en_US.UTF8
 daemonize                     : 1
+enable_webinterface           : 1
+require_web_password          : 1
+web_user                      : xxx
+web_password                  : yyy
+weblogin_timeout              : 0
 username                      : tvpvrd
 xmldbfile_name                : /data/pvr/xmldb/tvpvrd_db.xml
 max_video                     : 2
@@ -1708,7 +1734,7 @@ max_entries                   : 1024
 max_clients                   : 5
 client_idle_time              : 1800s
 port                          : 9300
-time_resolution               : 3s
+time_resolution               : 3
 video_buffer_size             : 204800 (0.2MB)
 default_recording_time        : 00:59 (h:min)
 xawtv_station file            : /etc/X11/xawtvrc
@@ -1807,7 +1833,7 @@ frequency_map                 : europe-west</screen>
                 <varlistentry>
                     <term>&lt;data-directory>/xmldb</term>
                     <listitem>
-                        <para>The database files are stored under this directory</para>
+                        <para>The database file are stored under this directory. </para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1863,12 +1889,23 @@ frequency_map                 : europe-west</screen>
                     <listitem>
                         <para>The <filename>/var/run/tvpvrd.pid</filename> file is not removed after
                             the program has shut down if the effective user is any other than
-                            'root', (by default the server will switch to the 'tvpvrd' user)</para>
+                            'root', (by default the server will switch to the 'tvpvrd' user) since
+                            only root has access to <filename>/var/run</filename></para>
                     </listitem>
                     <listitem>
                         <para>Maximum recording time is 4 hours (in order to keep maximum MP2 file
-                            size manageable). This can result in up to ~8GB MP2 files, of course
-                            depending on the HW bitrate defined.</para>
+                            size manageable). This can result in up to ~8GB MP2 files depending on
+                            the HW bitrate defined.</para>
+                    </listitem>
+                    <listitem>
+                        <para>All information and error messages are hard coded in English and
+                            cannot be easily localized.</para>
+                    </listitem>
+                    <listitem>
+                        <para>The server assumes that all installed capture cards uses the same
+                            index to specify the tuner as input among all the possible input sources
+                            (as specified by the config file setting
+                                <emphasis>tuner_input_index</emphasis>)</para>
                     </listitem>
                 </itemizedlist>
             </para>
@@ -1880,26 +1917,25 @@ frequency_map                 : europe-west</screen>
                     <para>The configuration file has too many settings. </para>
                 </listitem>
                 <listitem>
-                    <para>All information and error messages are hard coded in English and cannot be
-                        easily localized.</para>
-                </listitem>
-                <listitem>
                     <para>Theoretically if the server is extremely busy some newer recorded files
                         could be transcoded before older recordings. This is due to the fact that
                         there is not a central queue for the transcodings but each recording just
                         backs off and waits a (random) time until it tries to see if it can start
                         the transcoding (when the server load is below the set threshold).</para>
                 </listitem>
+                <listitem>
+                    <para>The '<command>i</command>' command is not yet implemented.</para>
+                </listitem>
             </itemizedlist>
         </refsect1>
         <refsect1>
             <title>Notes</title>
-            <para>There is currently no graphic client but writing a basic GUI (or WEB interface) is
-                fairly simple from a functional point of view since all necessary functionality is
-                available via the command language.</para>
             <para>Any errors that are discovered in the startup phase before a logfile has been
                 established will be written to the default system log (normally
                     <filename>/var/log/messages</filename>) </para>
+            <para>The formal grammar for the XML based DB file is specified as an RNG (Relax New
+                Grammar) XML specification included in the distribution in the docs
+                directory.</para>
         </refsect1>
         <refsect1>
             <title>Resources</title>
@@ -1919,8 +1955,7 @@ frequency_map                 : europe-west</screen>
         </refsect1>
         <refsect1>
             <title>Author</title>
-            <para>Originally written by Johan Persson &lt;johan162@gmail.com>, see the file AUTHORS
-                for more information</para>
+            <para>Written and maintained by Johan Persson &lt;johan162@gmail.com></para>
         </refsect1>
         <refsect1>
             <title>Copyright</title>
