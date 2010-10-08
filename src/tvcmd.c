@@ -1227,6 +1227,42 @@ _cmd_list_stations(const char *cmd, int sockfd) {
     list_stations(sockfd);
 }
 
+
+// Helper function for _cmd_list_video_inputs command
+void
+helper_list_video_inputs(int video, int sockfd) {
+    int fd = video_open(video);
+    if( fd >= 0 ) {
+
+        // Print the identifier for the card as the first line
+        char *driver, *card, *version;
+        unsigned int capflags;
+        if( 0 == _vctrl_get_cardinfo(fd, &driver, &card, &version, &capflags) ) {
+            _writef(sockfd, "%d: %s\n",video, card);
+        }
+
+        // Get current video input so we can mark this
+        int current = -1;
+        video_get_input_source(fd,&current);
+
+        // Now list all the available inputs
+        char *input_names[32];
+        int nbrinputs;
+        video_get_input_source_list(fd, &nbrinputs, input_names);
+        for(int i=0; i < nbrinputs; i++) {
+            _writef(sockfd,"%02d :%s%s\n",
+                    i,
+                    current == i ? "*" : " ",
+                    input_names[i]);
+            free(input_names[i]);
+        }
+
+        // ... and close the cideo input
+        video_close(fd);
+    } else {
+        _writef(sockfd,"Cannot access video card '%d'.\n",video);
+    }
+}
 /**
  * Command: _cmd_list_video_inputs
  * List all available video inputs for the capture card specified
@@ -1237,7 +1273,7 @@ static void
 _cmd_list_video_inputs(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "li <video>   - List all video inputs for the capture card.\n"
+                "li [<video>]   - List all video inputs for the capture card.\n"
                  );
         return;
     }
@@ -1245,44 +1281,18 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
     int ret = matchcmd("^li" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     if( ret == 2 ) {
         int video = atoi(field[1]);
-        matchcmd_free(field);
-
-        int fd = video_open(video);
-        if( fd >= 0 ) {
-
-            // Print the identifier for the card as the first line
-            char *driver, *card, *version;
-            unsigned int capflags;
-            if( 0 == _vctrl_get_cardinfo(fd, &driver, &card, &version, &capflags) ) {
-                _writef(sockfd, "%s\n",card);
-            }
-
-            // Get current video input so we can mark this
-            int current = -1;
-            video_get_input_source(fd,&current);
-
-            // Now list all the available inputs
-            char *input_names[32];
-            int nbrinputs;
-            video_get_input_source_list(fd, &nbrinputs, input_names);
-            for(int i=0; i < nbrinputs; i++) {
-                _writef(sockfd,"%02d :%s%s\n",
-                        i,
-                        current == i ? "*" : " ",
-                        input_names[i]);
-                free(input_names[i]);
-            }
-
-            // ... and close the cideo input
-            video_close(fd);
-        } else {
-            _writef(sockfd,"Cannot access video card '%d'.\n",video);
-        }
-
+        helper_list_video_inputs(video, sockfd);
     } else {
-        _cmd_undefined(cmd,sockfd);
+        ret = matchcmd("^li" _PR_E, cmd, &field);
+        if( ret == 1 ) {
+            for(int i=0; i < max_video; ++i ) {
+                helper_list_video_inputs(i, sockfd);
+            }
+        } else {
+            _cmd_undefined(cmd,sockfd);
+        }
     }
-
+    matchcmd_free(field);
 }
 
 /**
