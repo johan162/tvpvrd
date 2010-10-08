@@ -1,0 +1,1993 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+<?oxygen RNGSchema="http://www.oasis-open.org/docbook/xml/5.0/rng/docbook.rng" type="xml"?>
+<article
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    version="5.0">
+    <title>tvpvrd</title>
+    <refentry
+        xml:id="tvpvrd">
+        <info>
+            <author>
+                <personname>
+                    <firstname>Johan</firstname>
+                    <surname>Persson</surname>
+                </personname>
+                <email>johan162@gmail.com</email>
+                <contrib>Main author and maintainer</contrib>
+            </author>
+        </info>
+        <refmeta>
+            <refentrytitle>tvpvrd</refentrytitle>
+            <manvolnum>1</manvolnum>
+            <refmiscinfo
+                class="version">@VERSION@</refmiscinfo>
+            <refmiscinfo
+                class="source">http://sourceforge.net/projects/tvpvrd/</refmiscinfo>
+            <refmiscinfo
+                class="manual">http://sourceforge.net/projects/tvpvrd/docs/</refmiscinfo>
+        </refmeta>
+        <refnamediv>
+            <refname>tvpvrd</refname>
+            <refpurpose>TV Personal Video Recorder Server/Daemon</refpurpose>
+        </refnamediv>
+        <refsynopsisdiv
+            xml:id="tvpvrd.synopsis">
+            <title>Synopsis</title>
+            <cmdsynopsis>
+                <command>tvpvrd</command>
+                <arg
+                    choice="opt">options...</arg>
+            </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1
+            xml:id="tvpvrd.description">
+            <title>Description</title>
+            <para>The <citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry> command starts a video recording server that will make use of one or
+                more installed TV-Capture cards and, following a specified schedule, will record
+                broadcasted and encoded streams from the capture card to disk. In affect a digital
+                version of a programmable VHS.</para>
+            <para>The original stored HW encoded file (from the capture card) can then be
+                automatically transcoded (using <citerefentry>
+                    <refentrytitle>ffmpeg</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry> ) to a more efficient format. The specific details on both the
+                initial HW encoder settings as well as the transcoding options are bundled in a
+                'profile'. </para>
+            <para>Each recording is done using one (or multiple) profiles. Each recording will
+                always have at least one profile, the primary profile. In this way it is possible to
+                create multiple transcoded versions of one recording, for example one high quality
+                version for viewing on a computer and one low quality versions for viewing on a
+                mobile device. By default the distribution includes four profiles 'high', 'normal',
+                'low', 'mobile'. Additional profiles can easily be added by the user. A profile is
+                specified in the traditional ini-file text file format and is stored under the
+                'profiles' directory which is a subdirectory to the settings directory (normally
+                    <filename>/etc/tvpvrd</filename>). Each setting in the profile is well
+                documented in the profiles. The settings are also described in <citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>5</manvolnum>
+                </citerefentry> man page.</para>
+            <para>The primary interface to the server is via a TCP/IP connection to the server
+                running '<emphasis>tvpvrd</emphasis>' via a dedicated port (by default 9300). The
+                server is controlled via a simple (but efficient) command language which allows
+                manipulation of future recordings and various other administrative tasks. All
+                commands are extensively described in the section 'Command language' below. </para>
+            <para>As an optional way there is also a native simple WEB-interface that allows a
+                limited number of commands such as basic adding of new recording, deleting existing
+                recordings, viewing status, showing upcoming recordings etc.. The WEB-interface must
+                be enabled in the ini-file since it is by default disabled. The WEB interface is
+                accessed on port number (port+1), i.e. one more than the port number specified for
+                the full command interface. This means that by default the WEB-interface is
+                available on port 9301. Please note that as of this writing the WEB-interface does
+                not yet support authentication.  </para>
+            <para>To access the WEB interface from a browser simple give the server address and port
+                number. For example to access the daemon on the localhost with the default port
+                number use URL "<filename>http://localhost:9301</filename>". </para>
+            <para>The look and feel of the WEB-interface is entirely controlled by a CSS style sheet
+                stored in the configuration directory (usually specified as
+                    <filename>/etc</filename>). This is the same place as where the ini-file is
+                stored. This means it is very simple to change the look and feel from the default
+                colors and layout.</para>
+            <para>The WEB interface will also automatically adapt when it detects that a mobile
+                phone browser is trying to access the interface to a format more suitable for the
+                smaller screen on mobile phones. By necessity this means that only a subset of the
+                full command set is available from the browser on a phone in order to keep the
+                interface simple. The detection is based on the header that the browser sends and
+                should detect most phones. However, it is possible that some browsers used on mobile
+                phone will not be detected as mobile browsers and then the normal WEB interface will
+                be used.</para>
+            <para>The recordings specified are stored in a database which is a plain text file in
+                XML format (UTF-8 encoded).</para>
+            <para>Recorded and transcoded files are stored in a predefined directory structure. The
+                base directory for this directory structure is defined in the ini-file.</para>
+        </refsect1>
+        <refsect1
+            xml:id="tvpvrd.options">
+            <title>Arguments</title>
+            <para>The following arguments are supported</para>
+            <variablelist>
+                <varlistentry>
+                    <term><option>-d</option>, <option>--daemon</option>
+                            [<emphasis>y</emphasis>|<emphasis>n</emphasis>]</term>
+                    <listitem>
+                        <para>Determine whether the server should be disconnected from the
+                            controlling terminal (a.k.a. running as a daemon). If the server is run
+                            as a daemon the logfile cannot be '<emphasis>stdout</emphasis>'. This
+                            command line option will override the '<emphasis>daemon</emphasis>'
+                            setting in the ini-file. The default setting is to run as a
+                            daemon.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-f</option>, <option>--xmldbfile</option>
+                        <filename>filename</filename></term>
+                    <listitem>
+                        <para>Use the specified file as the database file where all the specified
+                            recordings are stored in XML format. This command line option will
+                            override the '<emphasis>xmldbfile</emphasis>' setting in the ini-file.
+                            The default location is '&lt;dataroot>/xmldb/tvpvrd_db.xml' </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-h</option>, <option>--help</option></term>
+                    <listitem>
+                        <para>Print a short help and exit.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-i</option>, <option>--inifile</option>
+                        <filename>filename</filename></term>
+                    <listitem>
+                        <para>Use the specified file as configuration file. This will override the
+                            location specified at compile time. The default location is
+                            '/etc/tvpvrd/tvpvrd.conf'</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-l</option>, <option>--logfile</option>
+                        <filename>filename</filename></term>
+                    <listitem>
+                        <para>Define what logfile to use. Two special names can be used
+                                <filename>stdout</filename> which will cause the log to be written
+                            to the <emphasis>stdout</emphasis> and <filename>syslog</filename> which
+                            will cause the logs to be written using the default system log. This
+                            command line option will override the '<emphasis>logfile</emphasis>'
+                            setting in the ini-file. The default location is
+                            '/tmp/tvpvrd.log'</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>-p</option>, <option>--port</option>
+                        <emphasis>nnnn</emphasis>
+                    </term>
+                    <listitem>
+                        <para>Specify TCP/IP port number that the server will listen on. This will
+                            override the '<emphasis>port</emphasis>' setting in the ini-file. By
+                            default the distribution uses port 9300. The port number of the
+                            WEB-interface will be <emphasis>nnnn</emphasis>+1 so by default the
+                            WEB-interface will be available on port 9301.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-s</option>, <option>--slave</option></term>
+                    <listitem>
+                        <para>Run the server in slave configuration. This will allow the server to
+                            be running on a machine with no video cards and be restricted to only do
+                            video transcodings.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-V</option>, <option>--verbose</option>
+                            [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>|<emphasis>3</emphasis>]</term>
+                    <listitem>
+                        <para>Log verbosity level. 0 will only log error messages, 1 will log error
+                            and info messages, 2 will log errors, info and additional notices
+                            finally 3 will also log high volume debug messages.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-v</option>, <option>--version</option></term>
+                    <listitem>
+                        <para>Print program version information and exit.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-x</option>, <option>--xawtvrc</option>
+                        <filename>filename</filename></term>
+                    <listitem>
+                        <para>Use the specified file to read the station names. The station name
+                            file maps the standardized frequency channel names to the more commonly
+                            used station names. See the section "Stations, channels and frequencies"
+                            below for more information. This will override the setting in the
+                            ini-file. The default location is '/etc/X11/xawtvrc'</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>The default arguments corresponds to starting the server with</para>
+            <para>
+                <programlisting>tvpvrd -d y -f tvpvrd_db.xml -i /etc/tvpvrd/tvpvrd.conf -p 9300 -V 1 -x /etc/X11/xawtvrc</programlisting>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Starting and stopping the server</title>
+            <para>While strictly speaking not necessary the server should normally be started by the
+                root user. As soon as the server doesn't need root privileges it will switch to run
+                as the user specified in the ini-file, by default this is the user
+                    <emphasis>tvpvrd</emphasis>. This user should for security reasons not be the
+                'root' user. This user should be a system user without login shell. Such a user can
+                normally be created by running the command '<emphasis>useradd</emphasis>'. (If the
+                server is installed via the RPM package this user will be automatically
+                created)</para>            
+                <screen>$> useradd -r tvpvrd</screen>            
+            <para>To start the server as root the simplest way is to just call</para>
+                <screen>$root> tvpvrd</screen>            
+            <para>In order to stop the server and allow it to do a clean shutdown the SIGHUP (or
+                SIGSTOP) signal should be sent to the process running the server (assuming tvpvrd
+                has been started as a daemon). The distribution includes two support scripts to help
+                with this. </para>
+            <para>The first script will be automatically installed in
+                    "<filename>/etc/init.d/tvpvrd</filename>" and follows the normal guidelines for
+                a "<filename>init.d</filename>" service start/stopping script according to LSB
+                (Linux Standard Base). Using this script to start the server the command</para>
+                <screen>/etc/init.d/tvpvrd start</screen>            
+            <para>is given and to stop the server the command</para>
+                <screen>/etc/init.d/tvpvrd stop</screen>           
+            <para>should be given. The startup script also supports the "restart" and "status"
+                options.</para>
+            <para>The second script is '<filename>stop-tvpvrd</filename>' which will read the server
+                process pid from '<filename>/var/run/tvpvrd.pid</filename>' and send the SIGHUP
+                signal.</para>
+            <para>In order to stop the server first switch to root user and then use the
+                command</para>            
+                <screen>$root> stop-tvpvrd</screen>            
+            <para>Finally if for some reason you don't want to use any of these scripts it is
+                possible to manually kill the daemon process by sending the SIGHUP signal via the
+                    '<emphasis>kill</emphasis>'command as</para>            
+                <screen>$> kill -SIGHUP &lt;pid></screen>            
+            <para>where &lt;pid> is the process id of the <emphasis>tvpvrd</emphasis> daemon. Use
+                'ps xa' to find the pid or if the server was started as root look in the file
+                    '<filename>/var/run/tvpvrd.pid</filename>' </para>
+            <para>When the server is shutdown, depending on the "Kill transcoding flag" (see the
+                    <option>-ktf</option> command), any on-going transcodings will be shutdown. Any
+                potential ongoing recordings will be aborted and the recordings up to the time the
+                recording is shutdown will be left in the '<filename>&lt;data-dir>/vtmp</filename>'
+                directory and must be removed manually.</para>
+            <para>If the server gives the error message : "<emphasis>Server can not be started. See
+                    system log</emphasis>" then more information about the details of the problem
+                can be found in the system log, normally <filename>/var/log/messages</filename>. One
+                common issue might be a stale lock file (in
+                <filename>/var/run/tvpvrd.pid</filename>) in case the server is not started from the
+                root user. The reason is that in order to write these lock files the server must run
+                as a root. Since normally the server only runs as a root at the startup phase (and
+                then switches over to the selected user) the lock/pid file cannot be removed. This
+                is not a problem if the server is again started as root but if the server is started
+                from the command line as a non-root user it will complain that the lock file already
+                exists. The solution in this case is to manually remove the lockfile (as
+                root).</para>
+        </refsect1>
+        <refsect1>
+            <title>Running as master or slave</title>
+            <para>Normally the daemon will do necessary checks to verify that one or several video
+                cards are present in order to startup. If no video cards are found the server will
+                print an error message and terminate. However it is still possible to run the daemon
+                on a server with no video cards by running the server in <emphasis
+                    role="italic">slave</emphasis> mode. This will restrict the functionality of the
+                server to only transcoding and status information commands.</para>
+            <para>The primary purpose of running the server in slave configuration is to make it
+                possible to use several servers to transcode video files. There are three commands "<emphasis
+                    role="bold">tf</emphasis>" (<emphasis
+                    role="italic">transcode file</emphasis>), "<emphasis
+                    role="bold">tl</emphasis>" (<emphasis
+                    role="italic">transcode list</emphasis>) and "<emphasis
+                    role="bold">td</emphasis>" (<emphasis
+                    role="italic">transcode directory</emphasis>) that can be used to transcode one
+                or more files in slave mode (see the command section below for details).</para>
+            <para>In future version of the server there will be possibility to configure a load
+                balancing setup among several servers for the transcoding but as of version 1.x this
+                has to be done manually.</para>
+            <para>The server can be run in slave mode by either giving the "<option>-s</option>"
+                option when starting the server or by setting the configuration alternative
+                    "<option>master=no</option>" in the configuration file.</para>
+        </refsect1>
+        <refsect1>
+            <title>Connecting to the server</title>
+            <para>Once the server is running the easiest way to connect to the server is by using
+                the '<emphasis>telnet</emphasis>' program. Assuming that the
+                    <emphasis>tvpvrd</emphasis> server is running on the localhost the following
+                command will connect to the server (assuming the default port 9300 has not been
+                changed in the ini-file (e.g. <filename>/etc/tvpvrd.conf</filename>) or by a command
+                line argument).</para>            
+                <screen>$> telnet localhost 9300</screen>            
+            <para>After a successful connection the server will reply with a short information
+                message. To help identify the server the first line returned is always
+                    '<code>!TVPVRD!</code>'. The full returned information message at the connection
+                time should look something similar to the following:</para>
+            <screen>!TVPVRD!
+Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
+You are user number 1 out of 2 allowed.
+Type 'exit' to disconnect.
+Type 'h' to list available commands.
+Connection will be closed after 30 min of inactivity.</screen>
+            <para>If password protection (see section "Security" below) the welcome message is not
+                be shown until the correct password has been specified. Instead when password
+                protection is enabled the connection sequence looks like this</para>
+            
+                <screen>$> telnet localhost 9300
+Password:<emphasis role="bold">xxxxxxx</emphasis>
+!TVPVRD!
+Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
+You are user number 1 out of 2 allowed.
+Type 'exit' to disconnect.
+Type 'h' to list available commands.
+Connection will be closed after 30 min of inactivity.</screen>
+            
+            <para>This means that the correct server password has to be given before the welcome
+                message is seen. The server is now ready to accept commands on this
+                connection.</para>
+            <para>To disconnect to the server just type '<command>exit</command>'</para>
+        </refsect1>
+        <refsect1>
+            <title>The recording and transcoding process</title>
+            <para>The recording process refers to the process of saving the generated MP2 video
+                stream from the capture card to a file.</para>
+            <para>The transcoding process refers to the re-coding of the original MP2 video stream
+                to a more efficient format, usually an MP4 container using H.264 video codec (the
+                default in the distributed profiles). Depending on the quality settings it is common
+                to see reduction in original file size with 75%</para>
+            <para>The transcoding process is very CPU-intensive and with the default settings in the
+                distribution the normal profile will require roughly 1.5 times the original
+                recording length to transcode on a high end machine (as of 2009) . In order not to
+                make the machine totally unresponsive the ini-file specifies a maximum load on the
+                server for a transcoding to start in order not to load the server with too many
+                parallel transcoding processes. The transcoding process is also run with a 'nice'
+                value of 20 to have the transcoding process interfer as little as possible with any
+                interactive use on the server. If the load is too high the transcoding processes
+                will be put in a queue waiting for the load to become acceptable. Note that the
+                serer will not wait forever and if the load has not dropped below the threshold for
+                a certain time  (as specified by the <code>max_waiting_time_to_transcode</code>
+                setting in the ini-file) the transcoding will be cancelled and the original MP2 file
+                left alone.</para>
+            <para>When a recording is started a temporary directory will be created under
+                    '<filename>&lt;data-dir>/vtmp/vid&lt;n>/</filename>' where &lt;n> is the number
+                of the video card used. The name of the temporary directory will be the same as the
+                base name of the recording. The MPEG stream is read from the video card and stored
+                in a file in the temporary directory with the same name as the title (converted to
+                lower case) with the suffix ".mpg".</para>
+            <para>The hardware capture card settings to be used (bitrate, frame size etc.) is read
+                from the primary profile (i.e. the first profile if multiple transcoding profiles
+                are specified for one recording).</para>
+            <para>When the recording has stopped the transcoding profile(s) is read and the
+                transcoding is started after a check that the server load is not higher than the
+                maximum allowed load in order to start a transcoding. If the load is too high the
+                transcoding is put in a queue of waiting transcodings that will be started when the
+                server load allows the transcoding to start. One transcoding will be made for each
+                of the associated profiles of this recording.</para>
+            <para>As a special case no transcoding will be made if the '<emphasis>ffmpeg</emphasis>'
+                profile bitrate is set to 0 Mbps in the profile. In this case only the original MP2
+                video file will be kept.</para>
+            <para>Once a transcoding has finished the resulting MP4 file will be moved to the
+                directory '<filename>&lt;data-dir>/mp4/&lt;profile>/</filename>' with the same file
+                basename as the title but with the filename suffix ".mp4".</para>
+            <para>When all the transcodings have been done and if the profile defines that the
+                original MP2 video stream should be kept it is moved to the directory
+                    '<filename>&lt;data-dir>/mp2/</filename>'. After that the temporary directory
+                (and the original MP2 file) is deleted.</para>
+            <para>Another possibility is to do the recording first and later decide to transcode one
+                or several video files. This is done by giving a separate transcode command to the
+                server and specify the full file path to the file to be transcoded. In order to make
+                this as convenient as possible there are three variants of this. One variant is to
+                transcode one video file, the other is to specify a directory where all the files
+                will be transcoded. The final way is to store a number of video file names in a text
+                file and use that text file as an input list of the files to transcode. See the
+                command description below for the commands "<option>tf</option>",
+                    "<option>td</option>" and "<option>tl</option>".</para>
+            <para>Note that it is possible to get notify by mail when a transcoding has finished.
+                The email address used is specified in the <filename>ini-file</filename></para>
+        </refsect1>
+        <refsect1>
+            <title>Directory structure</title>
+            <para>The root directory for where the video files (recordings) are stored is specified
+                in the ini-file (e.g. <filename>/etc/tvpvrd/tvpvrd.conf</filename>). Under this root
+                directory the following subdirectories and files are automatically created by the
+                server:</para>
+            <para>
+                <variablelist>
+                    <varlistentry>
+                        <term>&lt;dataroot>/mp2</term>
+                        <listitem>
+                            <para>If the profile specifies that the original MP2 files recorded from
+                                the capture card should be saved they are stored under this
+                                directory.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>&lt;dataroot>/mp4/&lt;profile></term>
+                        <listitem>
+                            <para>The transcoded original MP2 files are by default placed under a
+                                subdirectory under MP4 corresponding to the name of the profile used
+                                for the transcoding. This can be changed to a flat structure instead
+                                which will cause all transcoded files to be placed directly under
+                                the <filename>mp4/</filename>  ignoring the profile name. This is
+                                done by setting the option 'use_profile_directories' to false in the
+                                ini-file.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>&lt;dataroot>/stats/&lt;profile>.stats</term>
+                        <listitem>
+                            <para>The statistics recorded while transcoded is stored in a file
+                                corresponding to the name of the profile.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>&lt;dataroot>/vtmp</term>
+                        <listitem>
+                            <para>Temporary video directory used while recording and transcoding is
+                                performed. Each capture card used has its own subdirectory.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>&lt;dataroot>/xmldb/</term>
+                        <listitem>
+                            <para>The XML file which represents the recordings database is stored
+                                under this directory</para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Security</title>
+            <para>In order to prevent unauthorized access to the server the server have a basic
+                password protection. This means that a password can be configured to be used before
+                a client can start giving command to the server. This is configured in the ini-file.
+                The configuration uses the same password for all clients so the server does not
+                support multiple users/multiple password. Since the password is stored in plain text
+                format the configuration file should have restricted access. This should not be
+                considered strong security but rather a weak "stop-messing-with-my-recordings"
+                protection.</para>
+            <para>The setting whether password should be used or not and the actual password is
+                specified in the ini-file. For more information on the ini-file see <citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>5</manvolnum>
+                </citerefentry>
+            </para>
+            <para>After connecting to the server when the password has been enabled the first string
+                sent back from the server will be</para>
+            
+                <screen>Password:</screen>
+            
+        </refsect1>
+        <refsect1>
+            <title>Stations, channels and frequencies</title>
+            <para>All TV stations are broadcasted on a local unique frequency. The frequency
+                spectrum is divided in internationally standardized fixed width channels. A channel
+                is the same as a specified frequency. The distance between each assigned frequency
+                is different depending on both the frequency area and the TV standard used. This
+                depends on the fact that different TV standard requires different bandwidth. This
+                channel division is also different depending on the geographic location. </para>
+            <para>It is important to realize that these fixed frequencies are assigned according to
+                international standards. In each city (and city area) the broadcasting company is
+                then responsible for assigning local stations to appropriate frequency channels.
+                This is the difference between station and channel names. The channel names have
+                short names with 2 to 5 characters, for example 'SE14'. Even though the frequency
+                division is standardized the exact channel names are not always given with the
+                assigned names. For example a broadcasting company might claim (for example on their
+                home page) that the station 'BBC1' in a certain area can be found on channel '14'
+                when they actually should have said that the station can be found on channel 'SE14'
+                which is the official name of this channel.</para>
+            <para>To further complicate matters different countries uses different standardized
+                frequency maps. The program has built in knowledge of the frequency channels
+                available in the following geographic areas</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>FREQMAP_EUROPEWEST</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_EUROPEEAST</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_FRANCE</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_IRELAND</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_ITALY</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_AUSTRALIA</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_NEWZEALAND</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_USBCAST</para>
+                    </listitem>
+                    <listitem>
+                        <para>FREQMAP_USCABLE</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>Since the program has no way to automatically know which map to use this must be
+                specified in the application ini-file. This map file lists all the defined
+                frequencies and the official name for that country and frequency.</para>
+            <para>In order to record a specific station the tuner on the capture card must be tuned
+                to the correct frequency channel used by the station we want to record. Since it is
+                a lot easier to use the station names, for example "BBC1", than the official name on
+                the frequency channel, e.g. SE14, the program uses yet another mapping file so it is
+                possible to use station names when recording instead of frequency channels. </para>
+            <para>In order for maximum re-use <emphasis>tvpvrd</emphasis> uses the same format of
+                the station/channel mapping file as is done in '<emphasis>xawtvrc</emphasis>'. This
+                is a plain text file using ini-file format. In the distribution an example file is
+                included. Normally your TV provider provides a channel plan for your area.
+                Unfortunately, to make things a bit more difficult some broadcasting company is not
+                following the international naming convention. </para>
+            <para>If you are already viewing TV on your computer chances are very high that you
+                already have this 'xawtvrc' ini-file since it is used by many of the available TV
+                viewing programs. Common location for this file is either
+                    '<filename>/etc/X11/xawtvrc</filename>' or in your home directory
+                    '<filename>.xawtvrc</filename>'.</para>
+            <para>An example of a station-channel mapping file is shown below (this mapping file
+                happens to be the maps for a large Swedish distributor in the Stockholm
+                region):</para>
+            
+                <screen>[Kanal5]
+channel = SE11
+[Kanal8]
+channel = 57
+[Kanal9]
+channel = S36
+[MTV]
+channel = SE16
+[SVT24]
+channel = E10
+[SVTB/Kunsk]
+channel = SE13
+[TV1]
+channel = E5
+[TV2]
+channel = E7
+[TV3]
+channel = E11
+[TV4]
+channel = E6
+[TV4+]
+channel = SE14
+[TV6]
+channel = E8
+</screen>
+            
+            <para>In some Unix distributions there are automatic frequency scanning helper programs
+                (for example <citerefentry>
+                    <refentrytitle>scantv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>) which will search through a given frequency map and list all
+                channels where a broadcasting was find (this is identified as a high enough signal
+                strength). For example SuSE distribution have a TV channel scanning setup in the
+                yast2 configuration tool. The result of this channel scan is usually stored in a
+                file named 'xawtvrc'. This is usually stored in either '/etc/X11/xawtvrc' or in you
+                home directory, usually as '<filename>~/.awtvrc</filename>'. Of course even if the
+                channel with broadcastings can be found the station names must be manually given. </para>
+            <para>The somewhat strange name of the map file comes from an ancient TV viewer program
+                under X11 which is called 'xawtv'. For historic reason this name has stayed.</para>
+            <para>While it is possible to use either the station name or the channel name in a
+                recording there must be a 'xawtvrc' file in order for the server to start properly.
+                If the station file cannot be found an error message will be printed and the server
+                will not start.</para>
+            <para>The location of this file is normally specified in the ini-file but the location
+                can also be overridden with command line argument (<option>-x</option>) when the
+                server is started (see Options) which will override the setting in the
+                ini-file.</para>
+        </refsect1>
+        <refsect1>
+            <title>Selecting alternative video inputs as source for the encoding</title>
+            <para>A video capture card has normally several possible input to the HW MP2 encoder.
+                When encoding TV the tuner is usually the selected input. However most cards also
+                have one or several external connects that can be used to encode other video
+                sources. For example Hauppauge analogue cards have one or more (depending on the
+                card) S-Video inputs that could be used as source for the video encoding.</para>
+            <para>The first thing to do if one wants to use one of these alternative input sources
+                is to determine exactly what input sources the combination of card and low level
+                driver supports. This can be done with the help of the command <command>li</command>
+                . This will list all the available input sources for the specified video card. For
+                example if your server have a Hauppauge 350 installed as the first card giving the
+                command</para>
+            <para><command>li 0</command></para>
+            <para>would generate output similar to</para>
+            
+                <screen>Hauppauge WinTV PVR-350
+00 :*(tuner) Tuner 1
+01 : (camera) S-Video 1
+02 : (camera) Composite 1
+03 : (camera) S-Video 2
+04 : (camera) Composite 2
+05 : (camera) Composite 3</screen>
+            
+            <para>This is a list of  all possible video sources supported by the card. The current
+                selected source is shown with an asterix just to the left of the type of
+                input.</para>
+            <para>In order to use one of these inputs as the source for the recoding instead of the
+                standard tuner a special station name is used "<emphasis
+                    role="italic">_inpXY</emphasis>". The 'X' should be replaced by the video card
+                to be used (starting at 0) and the 'Y' should be replaced by the index for the
+                wanted input source. So for example going back to the previous Hauppauge 350 above a
+                meta station name of "<code>_inp04</code>" would use the composite 2 input source
+                (assuming the card is the first card, i.e. 0).</para>
+            <para>In order for the server to know which input belongs to the tuner this is specified
+                in the config file with the setting <emphasis
+                    role="italic">tuner_input_index</emphasis>, by default this is 0. Since there is
+                only one setting this implies that all cards use the same index for the tuner. This
+                is a limitation of the current implementation. If you have several cards where the
+                tuner is located at different input indexes then the server can only work correctly
+                on one card. This is a very minor limitation since the number of users with multiple
+                cards with tuners on other indexes than 0 can be assumed to be very small.</para>
+            <para>A final example will make this crystal clear. Assume we want to record a CCTV
+                camer that is connected to composite input 1 on our Hauppauge 350 card. To
+                immediately start recording for 30 min using the default profile we could give the
+                command</para>
+            
+                <screen>q _inp02 00:30 cctv_camera_one</screen>
+            
+            <para>the command above would immediately start a recording using card 0 and input with
+                index 2, i.e.. the "<code>Composite 1</code>" input. The recording will be stored
+                with the name "<code>cctv_camera_one.mp4</code>" (assuming the default profile is
+                setup to do transcoding to MP4 format).</para>
+        </refsect1>
+        <refsect1>
+            <title>Commands (in alphabetic order)</title>
+            <para>The following is a list and detailed explanation of the commands that are
+                recognized by the server. Commands are specified by 1 to 3 letters followed by any
+                necessary arguments. It is possible to get more detailed help/information for each
+                command by giving the help command 'h' followed by the command, e.g. 'h l', will
+                give more detailed help on the 'list' command.</para>
+            <para>Since there are quite a few commands we start with an overview with a one line
+                explanation of each command. Further details can be found below</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">a</emphasis> - add new recording command</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">ar</emphasis> - add new recurring recording</para>
+                    </listitem>                    
+                    <listitem>
+                        <para><emphasis
+                                role="bold">d</emphasis> - delete single recording</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">dp</emphasis> - display all settings for specified
+                            profile</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">dr</emphasis> - delete all repeated recording </para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">h</emphasis> - help</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">i</emphasis> - print detailed information on
+                            recording</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">kt</emphasis> - kill all ongoing transcoding(s)</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">ktf</emphasis> - set/unset kill transcoding flag at
+                            shutdown</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">l &lt;n></emphasis> - list all pending recordings,
+                            possibly restricted to the next &lt;n> recordings</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">lc</emphasis> - list all controls for the capture
+                            card</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">li</emphasis> - list all input sources available for the
+                            capture card</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">log &lt;n></emphasis> -show the last n lines of the
+                            logfile</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">ls</emphasis> - list all stations</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">lp</emphasis> - list all profiles</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">lq &lt;n></emphasis> - list queued transcodings for
+                            video card &lt;n></para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">n</emphasis> - list the immediate next recording on each
+                            video</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">o</emphasis> - list the ongoing recording(s)</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">ot</emphasis> - list the ongoing transcoding(s)</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">q</emphasis> - quick recording, start the recording
+                            immediately and continue the specified time</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">rst</emphasis> - reset all statistics</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">rp</emphasis> - refresh transcoding profiles from
+                            file</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">s</emphasis> - print server status</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">sp</emphasis> - set transcoding profile for specified
+                            recording</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">st</emphasis> - print profile statistics</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">t</emphasis> - print server time</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">tf</emphasis> - transcode specified file</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">tl</emphasis> - read list of videos to transcode from
+                            file</para>
+                    </listitem>                    
+                    <listitem>
+                        <para><emphasis
+                                role="bold">td</emphasis> - transcode all videos in directory</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">u</emphasis> - force update of database with
+                            recordings</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">v</emphasis> - print version</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">vc &lt;n></emphasis> - print information on TV-Card
+                            &lt;n></para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">wt</emphasis> - list waiting transcodings</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">x</emphasis> - view database (in XML format) with
+                            recordings</para>
+                    </listitem>                    
+                    <listitem>
+                        <para><emphasis
+                                role="bold">z</emphasis> - display all settings from ini-file</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">! &lt;n></emphasis> - cancel ongoing recording on video
+                            card &lt;n></para>
+                    </listitem>                    
+                </itemizedlist>
+            </para>
+            <para>The input and output has a format suitable for both human interactive use as well
+                as a programatically interfacing the server in order to build a UI that interacts
+                with the server.</para>
+
+                <variablelist>
+                    <varlistentry>
+                        <term>'<command>a</command>' - <emphasis
+                            role="bold">Add new recording command</emphasis></term>
+                        <listitem>
+                            <para>Add new recording. The date/time logic is fairly complete and will
+                                for example correctly handle date crossings when recording starts
+                                and ends on different sides on the midnight. For all recording
+                                formats both title and profile might be omitted. In such case the
+                                title will be constructed from the station/channel name and the
+                                start date/time.</para>
+                            <para>If no end time is given the recording will have the default
+                                recording length as defined in the ini-file. In the distribution
+                                this is set to 0:59 hours.</para>
+                            <para>For all variants the start and end time is specified as</para>
+                            <para>
+                            <emphasis>hh</emphasis> [:<emphasis>mm</emphasis>[:<emphasis>ss</emphasis>]]
+                            </para>
+                            <para>The maximum length for one recording is 4 hours in order to keep
+                                the file size manageable.</para>
+                            <para>The primary formats are described below. The syntactic element
+                                used have the following meaning:</para>
+                            <para>&lt;<emphasis
+                                    role="italic">ch</emphasis>> = Channel or station name</para>
+                            <para>&lt;<emphasis
+                                    role="italic">starttime</emphasis>> = Time for recording
+                                start</para>
+                            <para>&lt;<emphasis
+                                    role="italic">endtime</emphasis>> = Time for recording
+                                end</para>
+                            <para>&lt;<emphasis
+                                    role="italic">title</emphasis>> = Title of recording. This will
+                                also be used as the filename of the resulting file. Note that the
+                                filename will always be converted to lower case.</para>
+                            <para>&lt;<emphasis
+                                    role="italic">@profile</emphasis>> = Name of the profile(s) to
+                                be used to the recording. Up to 4 profiles can be specified for each
+                                recording.</para>
+                            <para>The three main variants of the add command are:</para>
+
+                            <para><emphasis>a &lt;ch> &lt;starttime> [&lt;title>]
+                                [&lt;@profile]</emphasis></para>
+                            
+                            <para>Specification of only start time. The end time
+                                will match the default recording length as specified
+                                in the ini-file.</para>
+                            <para>If the start time is after the current time the
+                                date will be assumed to be today. If the time is
+                                earlier than the current time the date is assumed to
+                                be tomorrow.</para>
+                            <para>If no title is specified the title will be
+                                constructed from the station/channel name and the
+                                start date and time.</para>
+                            <para>If no profile is specified then the default
+                                profile specified in the ini-file will be
+                                used.</para>
+                            
+                            <para><emphasis>a &lt;ch> &lt;starttime> &lt;endtime>
+                                [&lt;title>] [&lt;@profile]</emphasis></para>
+                            
+                            <para>Specification of both start and end time.</para>
+                            <para>If the start time is after the current time the
+                                date will be assumed to be today. If the time is
+                                earlier than the current time the date is assumed to
+                                be tomorrow.</para>
+                            <para>If no title is specified the title will be
+                                constructed from the station/channel name and the
+                                start date and time.</para>
+                            <para>If no profile is specified then the default
+                                profile specified in the ini-file will be
+                                used.</para>                            
+                            
+                            <para><emphasis>a &lt;ch> &lt;startdate> &lt;starttime>
+                                &lt;endtime> [&lt;title>]
+                                [&lt;@profile]</emphasis></para>
+                            
+                            <para>Full date and time specification. The date can be
+                                specified as either a numeric ordinary date (note the order!):</para>
+
+                                <para><emphasis>yyyy-mm-dd</emphasis></para>
+                                <para>Numerical date yyyy=year, mm=month [1-12],dd=day [1-31]</para>
+                            
+                                <para>or as week day in the coming week relative from todays date</para>
+                                                                
+                                <para>[<emphasis>today</emphasis>|<emphasis>tomorrow</emphasis>|<emphasis>mon</emphasis>|<emphasis>tue</emphasis>|<emphasis>wed</emphasis>|<emphasis>thu</emphasis>|<emphasis>fri</emphasis>|<emphasis>sat</emphasis>|<emphasis>sun</emphasis>]</para>
+                                <para>Relative date from today. The weekday name
+                                    refers to the coming 7 days. If the same day as
+                                    the current day is given then this refers to 7
+                                    days in the future.</para>
+                                                                
+                            
+                            <para>If the start time is after the current time the
+                                date will be assumed to be today. If the time is
+                                earlier than the current time the date is assumed to
+                                be tomorrow.</para>
+                            <para>If no title is specified the title will be
+                                constructed from the station/channel name and the
+                                start date and time.</para>
+                            <para>If no profile is specified then the default
+                                profile specified in the ini-file will be
+                                used.</para>                                                        
+                            
+                            <para><emphasis
+                                    role="bold">Examples</emphasis>:</para>
+                            <screen>a bbc1 19:30</screen>
+                            <para>Start a recording at 19:30 on station BBC1 which will have the
+                                default duration, default title and profile. </para>
+                            <screen>a bbc1 tue 19:30 News</screen>
+                            <para>Start a recording at 19:30 on station BBC1 the coming Tuesday
+                                which will have the default duration with title 'News' and profile. </para>
+                            <screen>a bbc1 19:30 21:15 News </screen>
+                            <para>Start a recording at 19:30 which will last until 21:15 on BBC1
+                                with title set to "News". The default profile will be used. </para>
+                            <screen>a ch4 wed 22:00 23:45 The Movie </screen>
+                            <para>Start a recording the coming Wednesday at 22:00 until 23:45 on CH4
+                                with title "The Movie". The default profile will be used. </para>
+                            <screen>a bbc2 tomorrow 18 20 "World in Focus" @mobile </screen>
+                            <para>Start a recording tomorrow at 18:00 until 20:00 on bbc2 with title
+                                "World in Focus". Using the mobile profile.</para>
+                            <screen>a bbc2 tomorrow 18 20 "World in Focus" @mobile @normal</screen>
+                            <para>Start a recording tomorrow at 18:00 until 20:00 on bbc2 with title
+                                "World in Focus". Using both the mobile and the normal profile.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>ar</command>' - <emphasis
+                                role="bold">Add recurring recording command</emphasis></term>
+                        <listitem>
+                            <para>Add a new repeated recording . The syntax is identical to the
+                                normal add command with the exception of the first two arguments
+                                which indicates the type of recurrence and the number of repeated
+                                occurrences or the end date. The full syntax is</para>
+                            <para><emphasis>ar &lt;repeat-type> &lt;repeat-count | end-date> &lt;normal add arguments></emphasis></para>
+                            <para><emphasis>repeat-type</emphasis></para>
+                            <para>This specifies how often the repetition should be
+                                done. This can be specified as one of the following
+                                arguments:</para>
+
+                            <para>'<option>d</option>' - Repeat daily (can
+                                also be specified as '1')</para>
+                            
+                            
+                            <para>'<option>w</option>' - Repeat weekly (can
+                                also be specified as '2')</para>
+                            
+                            
+                            <para>'<option>m</option>' - Repeat monthly (can
+                                also be specified as '3')</para>
+                            
+                            
+                            <para>'<option>f</option>' - Repeat Monday to
+                                Friday (can also be specified as '4')</para>
+                            
+                            
+                            <para>'<option>s</option>' - Repeat every Saturday
+                                to Sunday (can also be specified as '5')</para>
+                            
+                            
+                            <para>'<option>t</option>' - Repeat every Monday
+                                to Thursday (can also be specified as '6')</para>
+                                                        
+                            <para><emphasis>repeat-cnt | end-date</emphasis></para>
+                            <para>This specifies the number of repeated recordings
+                                by either specifying the number of repeats (as an
+                                integer) or by specifying the end date. If an end
+                                date is specified this includes the full final day
+                                up to 23:59:59</para>
+                            <para>Since only one title is given for multiple recording the titles
+                                will be mangled with the recording date and time. In the recording
+                                list the title will usually be shown as "Base title (xx/yy)" where
+                                xx is the sequence number and yy is the total number of recordings
+                                in this sequence.</para>
+                            <para><emphasis
+                                    role="bold">Examples:</emphasis></para>
+                            <screen>ar f 10 bbc1 18 18:30 News</screen>
+                            <para>Start recording every Mon-Tue at BBC1 between 18:00 and
+                                18:30</para>
+                            <screen>ar w 20 tv1 tue 21:15 22:10 John Adams</screen>
+                            <para>Start a recording once a week on Tuesday evening at 21:15 until
+                                22:10 with base title "John Adams". </para>
+                            <screen>ar s 10 BBC1 01:00 02:30 Night movie </screen>
+                            <para>Add a recording every weekend night between 01:00 and 02:30 with
+                                the base title "Night movie". The recording will be done for the
+                                next 5 weekends (2 recordings each weekend).</para>
+                            <para>ar t 2010-05-10 channel3 19:00 19:59 House</para>
+                            <para>This will make recordings every Mon-Thur at 19:00 until the 10:th
+                                of May 2010</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>d</command>
+                            <emphasis>nnn</emphasis>' - <emphasis
+                                role="bold">Delete specified recording</emphasis></term>
+                        <listitem>
+                            <para>Delete specified recording. <emphasis>nnn</emphasis> is the
+                                recoding id shown when a recording is added or by the list command.
+                                If the identified recording is part of a recurrent sequence the
+                                other recordings in the same sequence are untouched.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>dp</command> [<emphasis>@profile</emphasis>]' - Display
+                            profile information command</term>
+                        <listitem>
+                            <para>Display information on the settings of the specified profile. </para>
+                            <para>Output example:</para>
+                            <screen>name                  : tnormal
+ENCODER:
+video_bitrate         : 3700000
+video_peak_bitrate    : 4700000
+audio_sampling        : 44.1
+audio_bitrate         : 256
+aspect                : 4x3
+size                  : pal
+FFMPEG:
+use_transcoding       : 1
+video_bitrate         : 800
+video_peak_bitrate    : 1100
+vcodec                : libx264
+vpre                  : normal
+pass                  : 2
+acodec                : aac
+audio_bitrate         : 128
+video_size            :
+crop                  : l=2, r=2, t=8, b=8
+ffmpeg_extra_options  :
+file_extension        : .mp4</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>dr</command>
+                            <emphasis>nnn</emphasis>' - <emphasis
+                                role="bold">Delete all repeated recordings</emphasis></term>
+                        <listitem>
+                            <para>Delete all repeated recording that are part of the same repeating
+                                sequence as the id of the recording specified.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>exit</command> - <emphasis
+                                role="bold">Disconnect from the server</emphasis></term>
+                        <listitem>
+                            <para>This command terminates the client connection to the server. It
+                                will not affect any of the ongoing recordings or
+                                transcodings.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>h</command>' - <emphasis
+                                role="bold">Help command</emphasis></term>
+                        <listitem>
+                            <para>Print a summary of all commands available.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>kt</command>' <emphasis
+                            role="italic">n</emphasis> - <emphasis
+                            role="bold">Kill all ongoing transcoding command</emphasis></term>
+                        <listitem>
+                            <para>Stop specified ongoing transcoding processes. The index of the
+                            ongoing transcoding processes can be found via the <command>ot</command>
+                            command. If no specific index is given then all ongoing transcodings
+                            will be stopped so be careful !</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>ktf</command>
+                            [<emphasis>y</emphasis>|<emphasis>n</emphasis>]' - <emphasis
+                                role="bold">Kill transcoding flag set/unset
+                            command</emphasis></term>
+                        <listitem>
+                            <para>The kill transcoding flag determines whether or not the
+                                transcoding processes should be killed when the server is stopped.
+                                By default all transcoding processes are killed when the tvpvrd
+                                server is killed. By setting this flag to 'n' (No) the transcoding
+                                processes will be allowed to keep running after the server is
+                                stopped.</para>
+                            <para>Output example:</para>
+                            <screen>ktf n
+killflag=n</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>l</command>' <emphasis
+                            role="italic">n</emphasis> - <emphasis
+                            role="bold">List future recordings command</emphasis></term>
+                        <listitem>
+                            <para>List coming recordings. If  <emphasis
+                                role="italic">n</emphasis> is specified as number in the range
+                            [1,99] then the list will be limited to <emphasis
+                                role="italic">n</emphasis> recordings. Otherwise all pending
+                            recordings will be listed.</para>
+                            <para>Each record is listed with 7 fields. Each record starts with a '['
+                                and ends with a ']' character. Each field is separated with a bar
+                                '|'. The order of fields are</para>
+                            <para>
+                                <screen>&lt;id#> &lt;station/channel name> &lt;start-date> &lt;start-time> &lt;end-time> &lt;title> &lt;profile></screen>
+                            </para>
+                            <para>Output example:</para>
+                            <screen>[160|tv4    |2010-03-09|21:00|21:59|House (16/20)                 |@normal]
+[135|kanal5 |2010-03-11|21:00|21:59|Criminal minds (16/20)        |@normal]
+[038|kanal5 |2010-03-11|22:00|22:59|Fringe (17/20)                |@normal]
+[088|kanal5 |2010-03-14|22:25|23:19|Supernatural (18/21)          |@normal]
+[161|tv4    |2010-03-16|21:00|21:59|House (17/20)                 |@normal]
+[136|kanal5 |2010-03-18|21:00|21:59|Criminal minds (17/20)        |@normal]
+[039|kanal5 |2010-03-18|22:00|22:59|Fringe (18/20)                |@normal]</screen>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term>'<command>lh</command>' [<emphasis>n</emphasis>] - <emphasis
+                            role="bold">List future recordings in human readable
+                        format</emphasis></term>
+                    <listitem>
+                        <para>This is the same command as 'l' but with the output shortened and ore
+                            easily read by humans</para>
+                        <para>Output example:</para>
+                        <screen>Fri Oct 01 21:00-21:55 disc     Mountains
+Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
+                    </listitem>
+                </varlistentry>
+                    <varlistentry>
+                        <term>'<command>log</command>' [<emphasis>n</emphasis>] - <emphasis
+                                role="bold">Show last n lines of the log file</emphasis></term>
+                        <listitem>
+                            <para>If the logfile has been specified as a file (in
+                                    <filename>tvpvrd.conf</filename>) then this command will show
+                                the last n lines of the log. If no number is given it will default
+                                to show the last 10 lines. </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><command>li</command> [<emphasis
+                            role="italic">n</emphasis>] - <emphasis
+                            role="bold">List all video input sources command</emphasis></term>
+                    <listitem>
+                        <para>List a all video sources available for the specified card.The current
+                            selected input source is marked with an asterisk. The type of input is
+                            shown in parenthesis in front of the textual name of the input. The type
+                            is either "tuner" or "camera". If no card is specified then information
+                            on all installed card will be listed.</para>
+                        <para>Output example:</para>
+                        
+                            <screen>Hauppauge WinTV PVR-350 
+00 :*(tuner) Tuner 1 
+01 : (camera) S-Video 1 
+02 : (camera) Composite 1 
+03 : (camera) S-Video 2 
+04 : (camera) Composite 2 
+05 : (camera) Composite 3 </screen>
+                        
+                    </listitem>
+                </varlistentry>
+                    <varlistentry>
+                        <term>'<command>lp</command>' - <emphasis
+                                role="bold">List profiles command</emphasis></term>
+                        <listitem>
+                            <para>Print a comma separated list of all defined transcoding profiles
+                                (use '<command>dp</command>' command to display details of a
+                                specified profile)</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>ls</command>' - <emphasis
+                                role="bold">List stations command</emphasis></term>
+                        <listitem>
+                            <para>List all defined station names. The stations are specified in the
+                                    <filename>xawtvrc</filename> file and maps station names to
+                                channel names. When defining the frequency for a recording either
+                                the defined station name or channel (frequency) name can be
+                                used.</para>
+                            <para>Output example:</para>
+                            <screen>SE11: kanal5
+  57: kanal8
+ S36: kanal9
+SE16: mtv
+ E10: svt24
+SE13: svtb/kunsk
+  E5: tv1
+  E7: tv2
+ E11: tv3
+  E6: tv4
+SE14: tv4+
+  E8: tv6</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>lc</command> [<emphasis>#card</emphasis>]' - <emphasis
+                                role="bold">List all video capture card controls
+                            command</emphasis></term>
+                        <listitem>
+                            <para>This can be considered a low level command of limited use for an
+                                end user. This command will list all user controllable controls that
+                                can be adjusted on the specified video card. This is directly
+                                related to the discovered 'v4l2' interfaces. Since the output is
+                                quite long we do not include any example output here. The output is
+                                intentionally modeled to be of the same format as the one used in
+                                'v4l2' output.</para>
+                            <para>(This command is probably of little use for anything else than
+                                troubleshooting a video card and driver.)</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>lq</command> [<emphasis>#filelist</emphasis>]' - <emphasis
+                                role="bold">List information on the ongoing transcoding of file list <emphasis
+                                    role="italic">#filelist</emphasis></emphasis></term>
+                        <listitem>
+                            <para>List some useful information on the specified transcoding file
+                                list. The transcoding file list is a list with filenames that are
+                                queued up for transcoding. A transcoding file list is added with the <emphasis
+                                    role="bold">tr</emphasis> command. Up to five simultaneous lists
+                                may be added. However, since transcoding is such a heavy job there
+                                is little real reason to add more than one lists at a time since a
+                                list with, say 20 full length movie video files, can easily take up
+                                more than two days to transcode.</para>
+                            <para>Output example:</para>
+                            
+                                <screen>       Filelist: #01                                
+          Total: 17 videos in list                  
+      Processed: 02 (11%) files                     
+    Job started: Mon Jan 25 16:29:53 2010           
+   Running time: 00 days 00:14 h                    
+ Est. time left: -1 days ~-1 h (approx.)            
+                                    
+Processed:
+  * /data/pvr/mp2/normal/svu_001.mpg
+  * /data/pvr/mp2/normal/svu_2010-01-20_00.40.mpg
+                                    
+Not processed:
+  + /data/pvr/mp2/normal/svu_2010-01-21_00.40.mpg
+  + /data/pvr/mp2/normal/svu_2010-01-22_00.40.mpg
+  + /data/pvr/mp2/normal/svu2ggr.mpg             
+  + /data/pvr/mp2/normal/svu_k9_001.mpg          
+  + /data/pvr/mp2/normal/svu-k9_2010-01-21_00.05.mpg
+  + /data/pvr/mp2/normal/svu-k9_2010-01-22_00.05.mpg
+  + /data/pvr/mp2/normal/svu.mpg                    
+  + /data/pvr/mp2/normal/two_and_half_men_001.mpg   
+  + /data/pvr/mp2/normal/two_and_half_men_002.mpg   
+  + /data/pvr/mp2/normal/two_and_half_men.mpg       
+  + /data/pvr/mp2/normal/världens_undergång.mpg     
+  + /data/pvr/mp2/normal/vita_huset_001.mpg         
+  + /data/pvr/mp2/normal/vita_huset.mpg             
+  + /data/pvr/mp2/normal/white_noise.mpg            
+  + /data/pvr/mp2/normal/WildThings.mpg  </screen>
+                            
+                            <para>The fist set of information gives general information about the
+                                chosen file list. The last line of the first information block gives
+                                a rough estimate of the remaining time left needed to transcode the
+                                list. This is a very approximate estimation based on the time it has
+                                taken to transcode the files in the list up to now. In the example
+                                above the estimate is shown as -1 indicating that there are too few
+                                completed transcodings for any estimate to be done. At least 2
+                                transcoding must have been completed in order for the estimate to be
+                                shown.</para>
+                            <para>The next set of information is the "<code>Processed:</code>"
+                                files. This is the files that have been processed, meaning it has
+                                been submitted for transcoding. This means that they have either
+                                been completely transcoded or is in the process of being
+                                transcoded.</para>
+                            <para>The final block of information, the "<code>Not processed:</code>"
+                                block is the remainder of the files which are still waiting to be
+                                processed. No files are submitted for processing until the system
+                                load has fallen below the maximum limit for transcoding to start as
+                                specified in the <filename>tvpvrd.conf</filename> file.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>n</command>' - <emphasis
+                                role="bold">Next recording command</emphasis></term>
+                        <listitem>
+                            <para>List the immediate next recording(s) scheduled for the available
+                                video card(s). The first number in parenthesis is how long time
+                                until the recording will start.</para>
+                            <para>Output example:</para>
+                            <screen>(01:37) : [002|tv3    |2009-11-20|18:00|18:59|NCIS_18 (02/20)               |@normal]
+(52:37) : [143|tv4    |2009-11-22|21:00|22:00|Shooter 1                     |@normal]</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>o</command>' - <emphasis
+                                role="bold">Ongoing recordings command</emphasis></term>
+                        <listitem>
+                            <para>List all ongoing recording in ordinary list format for all video
+                                cards. If no recordings are ongoing the output will show
+                                "None"</para>
+                            <para>Output example:</para>
+                            <screen>Video #0: [175|tv1    |2009-11-20|16:26|16:27|tv1_20091120_1626             |@normal]
+Video #1: None.</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>ot</command>' - <emphasis
+                                role="bold">Ongoing transcodings command</emphasis></term>
+                        <listitem>
+                            <para>List all ongoing transcodings. The output format is</para>
+                            <para>
+                                <screen>&lt;#id> &lt;start-time> &lt;(duration)> &lt;filename> &lt;profile></screen>
+                            </para>
+                            <para>The start time identifies when the transcoding was started and
+                                duration shows for how long the transcoding has been running.</para>
+                            <para>Output example:</para>
+                            <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>otl</command>' - <emphasis
+                                role="bold">Ongoing transcoding long command</emphasis></term>
+                        <listitem>
+                            <para>List all ongoing transcoding in long format which includes the
+                                detailed 'ffmpeg' command used which is printed on the second
+                                line.</para>
+                            <para>Output example:</para>
+                            <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]
+(cmd: /usr/bin/ffmpeg -v 0 -i tv1_20091120_1626.mpg -threads 0 
+-vcodec libx264 -vpre normal -b 700k -bt 1000k  -croptop 8 -cropbottom 8 
+-cropleft 2 -cropright 2  -acodec copy -ab 196k  -y  
+tv1_20091120_1626.mp4 > /dev/null 2>&amp;1)</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>q</command>' - <emphasis
+                                role="bold">Quick recording command</emphasis></term>
+                        <listitem>
+                            <para>Add new recording that will start immediately. This is basically
+                                the same as a simplified '<emphasis>a</emphasis>' command where the
+                                start time and date is always the current date and time.</para>
+                            <para>The format of the command are</para>
+                            <para>
+                                <variablelist>
+                                    <varlistentry>
+                                        <term><emphasis>q &lt;ch> [&lt;duration>] [&lt;title>]
+                                                [&lt;@profile]</emphasis></term>
+                                        <listitem>
+                                            <para>The recording will start within a few seconds
+                                                (depending on the resolution time specified in the
+                                                ini-file) and will last for the duration specified.
+                                                If no duration is specified the default duration
+                                                time will be used. The duration is specified with
+                                                hours and minutes as</para>
+                                            <para><emphasis>hh:mm</emphasis></para>
+                                            <para> If no title is specified the title will be
+                                                constructed from the station/channel name and the
+                                                start date and time. </para>
+                                            <para>If no profile is specified then the default
+                                                profile specified in the ini-file will be used.
+                                            </para>
+                                        </listitem>
+                                    </varlistentry>
+                                </variablelist>
+                            </para>
+                            <para><emphasis
+                                    role="bold">Examples</emphasis>:</para>
+                            <screen>q bbc2  </screen>
+                            <para>Start a recording immediately on bbc2 using the default duration,
+                                title and profile.</para>
+                            <screen>q bbc2 1:30 </screen>
+                            <para>Start a recording immediately on bbc2 with duration 1 hour 30
+                                minutes, using default title and default profile. </para>
+                            <screen>q bbc2 News </screen>
+                            <para>Start a recording immediately on bbc2 with default duration using
+                                the title "News" and default profile.</para>
+                            <screen>q ch4 1:45 Newsfocus @high  </screen>
+                            <para>Start a new recording on station 'ch4' with title 'Newsfocus'
+                                using the 'high' profile. </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>rst</command>' - <emphasis
+                                role="bold">Reset statistics command</emphasis></term>
+                        <listitem>
+                            <para>Reset all statistics, i.e. set all statistics to 0.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>rp</command>' - <emphasis
+                                role="bold">Refresh profiles command</emphasis></term>
+                        <listitem>
+                            <para>This command will cause the profiles to be re-read from profile
+                                files. This can be used to refresh the profiles without having to
+                                restart the server.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>sp</command>
+                            <emphasis>nnn</emphasis>
+                            <emphasis>@profile</emphasis>' - <emphasis
+                                role="bold">Set profile command</emphasis></term>
+                        <listitem>
+                            <para>Specify the profiles to be used on the specified recording. This
+                                will replace any previous defined profiles for this recording. Up to
+                                four profiles per recording can be defined.</para>
+                            <para><emphasis
+                                    role="bold">Examples:</emphasis></para>
+                            <screen>sp 87 @normal @mobile</screen>
+                            <para>Use profiles <emphasis>normal</emphasis> and
+                                    <emphasis>mobile</emphasis> for recording
+                                    <emphasis>#87</emphasis></para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>s</command>' - <emphasis
+                                role="bold">Server status command</emphasis></term>
+                        <listitem>
+                            <para>Print a summary of the server status. This includes information on
+                                when the tvpvrd was started, how long it has been running for, the
+                                current server load, current server time, allocated virtual memory,
+                                number of running threads in the server and finally a list of
+                                clients currently connected to the server.</para>
+                            <para>Output example:</para>
+                            <screen>   Current time: Tue Jan 26 15:28:26 2010
+tvpvrd' started: Tue Jan 26 15:03:39 2010
+'tvpvrd' uptime: 00 days 00 hours 24 min
+    Server load: 0.1 0.8 2.0
+  Server uptime: 46 days 01 hours 59 min
+ Virtual memory: 29040 kB
+        Threads: 3
+        Clients: #01: 127.0.0.1, Tue Jan 26 15:28:24 2010</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>st</command>' - <emphasis
+                                role="bold">Print profile statistics</emphasis></term>
+                        <listitem>
+                            <para>Print transcoding statistics for the defined profiles. This
+                                statistics is gathered for every transcoding made. The statistics
+                                includes among other things the running time and average size per
+                                minute of the original MP2 and the transcoded file. The statistics
+                                for the transcoding can be used to predict how long time a
+                                transcoding will take. However since it is highly dependent on the
+                                load on the server it can be difficult to accurately predict the
+                                needed transcoding time.</para>
+                            <para>Output example:</para>
+                            <screen>profile_name            : 'normal'
+transcoding_speed       : 44 s transcoded / min
+mp2size_1min            : 27.5 Mb/min
+mp4size_1min            : 6.4 Mb/min
+comp_ratio              : 4.3
+total_ttime             : 3481 min
+total_mp2time           : 1779 min
+total_mp2files          : 31
+total_mp4files          : 31</screen>
+                            <para>The different fields have the following meaning</para>
+                            <para>
+                                <variablelist>
+                                    <varlistentry>
+                                        <term><emphasis>profile_name</emphasis></term>
+                                        <listitem>
+                                            <para>The name of the profile that this statistics apply
+                                                to.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>transcoding_speed</emphasis></term>
+                                        <listitem>
+                                            <para>How much play time the server on average can
+                                                transcode per minute run time of 'ffmpeg'.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>mp2size_1min</emphasis></term>
+                                        <listitem>
+                                            <para>The average size of 1 minute play time in the
+                                                original MP2 file.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>mp4size_1min</emphasis></term>
+                                        <listitem>
+                                            <para>The average size of 1 minute of play time in the
+                                                resulting transcoded MP4 size.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>comp_ratio</emphasis></term>
+                                        <listitem>
+                                            <para>The compression ration between the original MP2
+                                                size and the MP4 transcoded file.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_ttime</emphasis></term>
+                                        <listitem>
+                                            <para>Total running time that has been spent transcoding
+                                                files.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_mp2time</emphasis></term>
+                                        <listitem>
+                                            <para>Total recorded original MP2 time.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_mp2files</emphasis></term>
+                                        <listitem>
+                                            <para>Total number of mp2files recorded with this
+                                                profile.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term><emphasis>total_mp4files</emphasis></term>
+                                        <listitem>
+                                            <para>Total number of transcoded MP4 files with this
+                                                profile.</para>
+                                        </listitem>
+                                    </varlistentry>
+                                </variablelist>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>t</command>' - <emphasis
+                                role="bold">Current Time and Date command</emphasis></term>
+                        <listitem>
+                            <para>Print current time and date on the server where 'tvpvrd' is
+                                running</para>
+                            <para>Output example:</para>
+                            <screen>Fri Nov 20 15:51:20 2009</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>tf</command>
+                            <emphasis>filename</emphasis> [<emphasis>@profile</emphasis>]' - <emphasis
+                                role="bold">Transcode specified file using the named optional
+                                profile</emphasis></term>
+                        <listitem>
+                            <para>This command is used to transcode any file within the file system
+                                using a specified transcoding profile. If the profile name is not
+                                given the the system default transcoding profile will be
+                                used.</para>
+                            <para>filename is the full path to the (normally MP2) video file that
+                                should be encoded. The resulting transcoded file is stored in the
+                                    <filename>&lt;datadir>/mp4/&lt;profile>/</filename> directory.
+                                During the transcoding a temporary directory under
+                                    <filename>&lt;datadir>/vtmp/</filename> is created and used as a
+                                working directory. The original file is not chnaged in any ways.
+                                During the transcoding a symbolic link is created in the temporary
+                                directory which makes it in theory possible to have the original
+                                file on another file system.</para>
+                            <para>Example</para>
+                            <para>
+                                <screen>tf /data/pvr/mp2/normal/oldreccording.mpg @high</screen>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>tl</command>
+                            <emphasis>filename</emphasis> [<emphasis>@profile</emphasis>]' - <emphasis
+                                role="bold">Queue all files listed in file <emphasis
+                                    role="italic">filename</emphasis> for transcoding using the
+                                named optional profile</emphasis></term>
+                        <listitem>
+                            <para>This commands will queue all (video) files listed in the file
+                                specified in the command for transcoding. </para>
+                            <para>The list file consists of a number of lines (each line ending with
+                                a newline) with either</para>
+
+
+                                        <para>a fully specified video file name or</para>
+                                    
+
+                                        <para>a filepath which will be used for the following files
+                                            as prefix until the next filepath is specified. A
+                                            filepath is identified by having the first character on
+                                            the row being a ':' (colon) character.</para>
+                                    
+                            <para>Example input file:</para>
+                            
+                                <programlisting>:/data/pvr/mp2/normal
+svu_001.mpg
+svu_2010-01-20_00.40.mpg
+svu_2010-01-21_00.40.mpg
+svu_2010-01-22_00.40.mpg
+svu2ggr.mpg
+svu_k9_001.mpg
+svu-k9_2010-01-21_00.05.mpg
+svu-k9_2010-01-22_00.05.mpg
+svu.mpg
+two_and_half_men_001.mpg
+two_and_half_men_002.mpg
+two_and_half_men.mpg
+vita_huset_001.mpg
+vita_huset.mpg
+white_noise.mpg
+WildThings.mpg </programlisting>
+                            
+                            <para>In the above file all the video files will be read from the
+                                directory <filename>/data/pvr/mp2/normal</filename>. The result of
+                                the transcoding will (as usual) be stored under the corresponding
+                                mp4 profile directory. Up to 5 different file lists can be added
+                                simultaneous. There is no guarantee that files from all queued file
+                                lists will be fairly processed, i.e. one file from the first list,
+                                and when that is done, a file from the second file lists and so on.
+                                This is completely random. The only thing that is guaranteed is that
+                                the video files in each file lists will be processed
+                                sequentially.</para>
+                            <para>Remember that transcoding multiple files can take a long time. For
+                                example a file list with 10 video files can easily take ~2 days (~4
+                                hours transcoding time per video).</para>
+                            <para>To view the status of ongoing list transcodings the "<emphasis
+                                    role="bold">lq</emphasis>" (list-queue) command can be
+                                used.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>td</command>
+                            <emphasis>directory</emphasis> [<emphasis>@profile</emphasis>]' - <emphasis
+                                role="bold">Transcode all files in the specified
+                                directory</emphasis></term>
+                        <listitem>
+                            <para>This command will search the specified directory for files with
+                                recognized video suffix and submit all found files to
+                                transcoding.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>u</command>' - <emphasis
+                                role="bold">Update database file command</emphasis></term>
+                        <listitem>
+                            <para>Force update of the database file from memory. Normally this
+                            command is not necessary since in versions above v1.2 of tvpvrd the
+                            database is automatically updated whenever a new recording is added or
+                            removed. This command is kept for backwards compatibility but should not
+                            be used.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>v</command>' - <emphasis
+                                role="bold">Version command</emphasis></term>
+                        <listitem>
+                            <para>Print program version and name as well as the build date. The
+                                following lines will give information on how the server was
+                                compiled.</para>
+                            <para>Output example:</para>
+                            <screen>tvpvrd 1.1.2 [client] (Jan 26 2010)
+Compiled with Large File Support (files > 2GB).</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>vc</command>
+                                [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>|<emphasis>3</emphasis>|<emphasis>4</emphasis>]'
+                            - <emphasis
+                                role="bold">Video Card information command</emphasis></term>
+                        <listitem>
+                            <para>Print information on the specified video/capture cards. The
+                                command will print information of all available cards if no specific
+                                card number is specified. The information shown is the name of the
+                                card, driver and driver version.</para>
+                            <para>Output example:</para>
+                            <screen>Card 00: Hauppauge WinTV PVR-350, driver=ivtv v1.4.1
+Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>wt</command>' - <emphasis
+                                role="bold">List all transcoding waiting to start</emphasis></term>
+                        <listitem>
+                            <para>A transcoding is not started until the server load is below the
+                                specified treshold in the ini-file. By default this treshold is 4.
+                                This command will generate a list of all transcoding that are
+                                waiting..</para>
+                            <para>The listing uses the same format as the <command>ot</command>
+                            command and contains (in order from left to right)</para>
+                                <para>1. Sequence number</para>
+                                <para>2. Time when item was enqueued</para>
+                                <para>3. How long (hh:mm) the item has been waiting to be
+                                    transcoded</para>
+                                <para>4. Name of video file to be transcoded</para>
+                                <para>5. Profile name to be used for the transcoding</para>
+                            <para><emphasis
+                                    role="bold">Note:</emphasis> There is no guarantee that the
+                                files will be transcoded in the order indicated by the list.. </para>
+                            <para>Output example:</para>
+                            <screen>[#01|21:37|(00:04)|news_at_eight.mpg                          |@tnormal]
+[#02|21:38|(00:03)|commander.mpg                              |@tnormal]</screen>                           
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>x</command>' - <emphasis
+                                role="bold">View XML database command</emphasis></term>
+                        <listitem>
+                            <para>View the current specified recordings in raw XML DB format. See <citerefentry>
+                                    <refentrytitle>tvpvrd</refentrytitle>
+                                    <manvolnum>5</manvolnum>
+                                </citerefentry> for details about the format.</para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>z</command>' - <emphasis
+                            role="bold">Display all ini-file settings command</emphasis></term>
+                        <listitem>
+                            <para>This will list all settings made in the ini-file as well as the
+                                location of the used ini file.</para>
+                            <para>Output example:</para>
+                            <screen>datadir                       : /data/pvr
+use_profile_directories       : 0
+logfile                       : /tmp/tvpvrd.log
+verbose_log                   : 3
+inifile_name                  : /etc/tvpvrd/tvpvrd.conf
+sendmail_on_error             : 1
+sendmail_on_transcode_end     : 1
+sendmail_address              : johan162@gmail.com
+locale_name                   : en_US.UTF8
+daemonize                     : 1
+enable_webinterface           : 1
+require_web_password          : 1
+web_user                      : xxx
+web_password                  : yyy
+weblogin_timeout              : 0
+username                      : tvpvrd
+xmldbfile_name                : /data/pvr/xmldb/tvpvrd_db.xml
+max_video                     : 2
+max_entries                   : 1024
+max_clients                   : 5
+client_idle_time              : 1800s
+port                          : 9300
+time_resolution               : 3
+video_buffer_size             : 204800 (0.2MB)
+default_recording_time        : 00:59 (h:min)
+xawtv_station file            : /etc/X11/xawtvrc
+default_profile               : normal
+frequency_map                 : europe-west</screen>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>'<command>!</command> [<emphasis>#videocard</emphasis>]' - Stop
+                            recording on specified video card</term>
+                        <listitem>
+                            <para>Stop the recording on the specified video card. The aborted
+                                recording will be left in the '&lt;data-dir>/vtmp/vid&lt;n>/'
+                                directory and must be manually removed. </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            
+        </refsect1>
+        <refsect1
+            xml:id="tvpvrd.files">
+            <title>Files</title>
+            <para>Note: The system configuration directory to be used is a compile time settings and
+                specified with the '<emphasis>configuration</emphasis>' argument '--sysconfdir'. </para>
+            <variablelist>
+                <varlistentry>
+                    <term>/etc/X11/xawtvrc</term>
+                    <listitem>
+                        <para>A list in ini-file format which maps the commonly known station name
+                            to a frequency channel. This is the default location used by the package
+                            xawtv</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>&lt;log-directory>/tvpvrd.log</term>
+                    <listitem>
+                        <para>The logfile. The log-directory is specified in the ini-file. It can
+                            also be specified as a command line argument (<option>-l,
+                                --logfile</option>) which will then override the ini-file setting.
+                            By default the log file will be stored under
+                                <filename>/tmp/tvpvrd.log</filename> .(The reason not to use
+                                <filename>/var/log/tvpvrd.log</filename> is the fact that the server
+                            will not normally run as root and hence will not have write access to
+                            this directory.)</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>/var/run/tvpvrd.pid</term>
+                    <listitem>
+                        <para>The pid of the started 'tvpvrd' server. This is used to easily find
+                            the pid in order to shutdown the server. This is used by the
+                                <emphasis>stop-tvpvrd</emphasis> script. Note that in order to use
+                            this directory the daemon has to be started by the root user. </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>/etc/tvpvrd/tvpvrd.conf</term>
+                    <listitem>
+                        <para>Default configuration file</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>/etc/tvpvrd/profiles/</term>
+                    <listitem>
+                        <para>Directory with all profiles</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>&lt;data-directory>/</term>
+                    <listitem>
+                        <para>Directory where all recordings and temporary files are stored. The
+                            root directory is specified in the configuration file. </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>&lt;data-directory>/vtmp</term>
+                    <listitem>
+                        <para>Video temporary directory. Used to store ongoing recordings and as
+                            working directories while doing transcoding</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>&lt;data-directory>/mp2</term>
+                    <listitem>
+                        <para>If the profile specifies that the original mp2 files should be kept
+                            they are stored in this directory.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>&lt;data-directory>/mp4</term>
+                    <listitem>
+                        <para>The transcoded files are stored under this folder in a subfolder with
+                            the name of the profile used for the transcoding.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>&lt;data-directory>/xmldb</term>
+                    <listitem>
+                        <para>The database file are stored under this directory. </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>&lt;data-directory>/stats</term>
+                    <listitem>
+                        <para>The statistics for each profile is stored in a file in XML format with
+                            the same name as the profile and with the suffix '.stats'.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>Limitations</title>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>Numerical dates must be specified in European format,
+                            yyyy-mm-dd</para>
+                    </listitem>
+                    <listitem>
+                        <para>Not all international defined frequency maps are included. As of this
+                            writing the following maps is not yet defined in the distribution.<itemizedlist>
+                                <listitem>
+                                    <para>us-cable-hrc</para>
+                                </listitem>
+                                <listitem>
+                                    <para>us-cable-irc</para>
+                                </listitem>
+                                <listitem>
+                                    <para>japan-bcast</para>
+                                </listitem>
+                                <listitem>
+                                    <para>japan-cable</para>
+                                </listitem>
+                                <listitem>
+                                    <para>china-bcast</para>
+                                </listitem>
+                                <listitem>
+                                    <para>southafrica</para>
+                                </listitem>
+                                <listitem>
+                                    <para>argentina</para>
+                                </listitem>
+                                <listitem>
+                                    <para>australia-optus</para>
+                                </listitem>
+                            </itemizedlist></para>
+                        <para>Frequency maps are a simple vector defining the frequency as an
+                            integer and a string that defines the channel name. This is a compile
+                            time setting and adding new maps will require recompilation of the
+                            server. </para>
+                    </listitem>
+                    <listitem>
+                        <para>The <filename>/var/run/tvpvrd.pid</filename> file is not removed after
+                            the program has shut down if the effective user is any other than
+                            'root', (by default the server will switch to the 'tvpvrd' user) since
+                            only root has access to <filename>/var/run</filename></para>
+                    </listitem>
+                    <listitem>
+                        <para>Maximum recording time is 4 hours (in order to keep maximum MP2 file
+                            size manageable). This can result in up to ~8GB MP2 files depending on
+                            the HW bitrate defined.</para>
+                    </listitem>
+                    <listitem>
+                        <para>All information and error messages are hard coded in English and
+                            cannot be easily localized.</para>
+                    </listitem>
+                    <listitem>
+                        <para>The server assumes that all installed capture cards uses the same
+                            index to specify the tuner as input among all the possible input sources
+                            (as specified by the config file setting
+                                <emphasis>tuner_input_index</emphasis>)</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Bugs</title>
+            <itemizedlist>
+                <listitem>
+                    <para>The configuration file has too many settings. </para>
+                </listitem>
+                <listitem>
+                    <para>Theoretically if the server is extremely busy some newer recorded files
+                        could be transcoded before older recordings. This is due to the fact that
+                        there is not a central queue for the transcodings but each recording just
+                        backs off and waits a (random) time until it tries to see if it can start
+                        the transcoding (when the server load is below the set threshold).</para>
+                </listitem>
+                <listitem>
+                    <para>The '<command>i</command>' command is not yet implemented.</para>
+                </listitem>
+            </itemizedlist>
+        </refsect1>
+        <refsect1>
+            <title>Notes</title>
+            <para>Any errors that are discovered in the startup phase before a logfile has been
+                established will be written to the default system log (normally
+                    <filename>/var/log/messages</filename>) </para>
+            <para>The formal grammar for the XML based DB file is specified as an RNG (Relax New
+                Grammar) XML specification included in the distribution in the docs
+                directory.</para>
+        </refsect1>
+        <refsect1>
+            <title>Resources</title>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>SourceForge: &lt;http://sourceforge.net/projects/tvpvrd/></para>
+                    </listitem>
+                    <listitem>
+                        <para>ivtv-driver: &lt;http://ivtvdriver.org/></para>
+                    </listitem>
+                    <listitem>
+                        <para>Video for Linux: &lt;http://linux.bytesex.org/v4l2/></para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Author</title>
+            <para>Written and maintained by Johan Persson &lt;johan162@gmail.com></para>
+        </refsect1>
+        <refsect1>
+            <title>Copyright</title>
+            <para>Free use of this software is granted under the terms of the GNU General Public
+                License (GPL v3)., see the file COPYING included in the distribution archive for
+                details.</para>
+        </refsect1>
+        <refsect1
+            xml:id="tvpvrd.seealso">
+            <title>See also</title>
+            <para><citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>5</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>ffmpeg</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>scantv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4l-info</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4l-conf</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4lctl</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>xawtv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry></para>
+        </refsect1>
+    </refentry>
+</article>
