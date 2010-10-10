@@ -678,11 +678,6 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
-                                role="bold">i</emphasis> - print detailed information on
-                            recording</para>
-                    </listitem>
-                    <listitem>
-                        <para><emphasis
                                 role="bold">kt</emphasis> - kill all ongoing transcoding(s)</para>
                     </listitem>
                     <listitem>
@@ -692,8 +687,13 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
-                                role="bold">l &lt;n></emphasis> - list all pending recordings,
-                            possibly restricted to the next &lt;n> recordings</para>
+                                role="bold">l [n]</emphasis> - list all pending recordings, possibly
+                            restricted to the next &lt;n> recordings</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">lh [n]</emphasis> - list all pending record in a shorter
+                            more human readable format</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -702,8 +702,8 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
-                                role="bold">li</emphasis> - list all input sources available for the
-                            capture card</para>
+                                role="bold">li [n]</emphasis> - list all input sources available for
+                            the capture card</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1003,7 +1003,7 @@ channel = E8
                             <para>Add a recording every weekend night between 01:00 and 02:30 with
                                 the base title "Night movie". The recording will be done for the
                                 next 5 weekends (2 recordings each weekend).</para>
-                            <para>ar t 2010-05-10 channel3 19:00 19:59 House</para>
+                            <screen>ar t 2010-05-10 channel3 19:00 19:59 House</screen>
                             <para>This will make recordings every Mon-Thur at 19:00 until the 10:th
                                 of May 2010</para>
                         </listitem>

@@ -67,7 +67,7 @@ get_stats(char *name, struct profile_stat_entry **entry) {
 
 int
 stats_update(char *name,unsigned mp2size,unsigned recorded_time,unsigned mp4size,
-             struct timeall *transcode_time, unsigned transcode_and_copy_time) {
+             struct timeall *transcode_time, float avg_5load) {
              
     struct profile_stat_entry *entry;
     
@@ -92,7 +92,15 @@ stats_update(char *name,unsigned mp2size,unsigned recorded_time,unsigned mp4size
            name,mp2size/1024,mp4size/1024,recorded_time/60,
            t2_min,t2_sec,transcode_time->utime.tv_sec/60, transcode_time->utime.tv_sec%60,
            transcode_time->stime.tv_sec/60,transcode_time->stime.tv_sec%60);
-    
+
+    // Update average load
+    if( entry->avg_5load == 0 ) {
+        entry->avg_5load = avg_5load;
+    } else {
+        entry->avg_5load += avg_5load;
+        entry->avg_5load /= 2 ;
+    }
+
     // MP2 size per recorded minute
     if( entry->mp2size_1min == 0 ) {
         entry->mp2size_1min = mp2size / (recorded_time/60);
@@ -162,6 +170,7 @@ read_profile_stats(char *profilename) {
         entry->total_mp2time = iniparser_getint(stats, "stats:total_mp2time", 0);
         entry->total_mp2files = iniparser_getint(stats, "stats:total_mp2files", 0);
         entry->total_mp4files = iniparser_getint(stats, "stats:total_mp4files", 0);
+        entry->avg_5load = (float)iniparser_getdouble(stats, "stats:avg_5load", 0.0);
         iniparser_freedict(stats);
         profile_stats[num_stats++] = entry;
 
@@ -199,14 +208,16 @@ write_stats(void) {
                 "total_ttime=%d\n"
                 "total_mp2time=%d\n"
                 "total_mp2files=%d\n"
-                "total_mp4files=%d\n",
+                "total_mp4files=%d\n"
+                "avg_5load=%2.1f\n",
                 profile_stats[i]->transcoding_speed,
                 profile_stats[i]->mp2size_1min,
                 profile_stats[i]->mp4size_1min,
                 profile_stats[i]->total_ttime,
                 profile_stats[i]->total_mp2time,
                 profile_stats[i]->total_mp2files,
-                profile_stats[i]->total_mp4files
+                profile_stats[i]->total_mp4files,
+                profile_stats[i]->avg_5load
                );
         close(fd);
     }
@@ -226,6 +237,7 @@ clear_stats(void) {
         entry->total_mp2time        = 0;
         entry->total_mp2files       = 0;
         entry->total_mp4files       = 0;
+        entry->avg_5load            = 0.0;
     }
 
     // And then the stored stats on th disk
@@ -249,7 +261,8 @@ dump_profilestats(char *buff, int size) {
                     "%-24s: %d min\n"
                     "%-24s: %d min\n"
                     "%-24s: %d\n"
-                    "%-24s: %d\n\n",
+                    "%-24s: %d\n"
+                    "%-24s: %02.1f\n\n",
                     "profile_name", profile_stats[i]->profile_name,
                     "transcoding_speed", profile_stats[i]->transcoding_speed,
                     "mp2size_1min", (float)profile_stats[i]->mp2size_1min/1024.0/1024.0,
@@ -258,7 +271,8 @@ dump_profilestats(char *buff, int size) {
                     "total_ttime", profile_stats[i]->total_ttime,
                     "total_mp2time", profile_stats[i]->total_mp2time/60,
                     "total_mp2files", profile_stats[i]->total_mp2files,
-                    "total_mp4files", profile_stats[i]->total_mp4files
+                    "total_mp4files", profile_stats[i]->total_mp4files,
+                    "avg_5load", profile_stats[i]->avg_5load
                     );
             tmpbuff[511] = '\0';
             if( left > strlen(tmpbuff) ) {

@@ -335,11 +335,10 @@ kill_all_ongoing_transcodings(void);
  * for server load.
  * @param filename
  * @param profilename
- * @param wait
  * @return
  */
 int
-transcode_file(char *filename, char *profilename, int wait);
+transcode_file(char *filename, char *profilename);
 
 /**
  * Read a list of filenames to transcode. The list of files are read from the

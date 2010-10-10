@@ -2166,7 +2166,7 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
         }
         profile[31] = '\0';
         
-        (void)transcode_file(field[1], profile, 1);
+        (void)transcode_file(field[1], profile);
 
         _writef(sockfd,"Ok. Transcoding of '%s' using profile '%s' queued.\n",basename(field[1]),profile);
         

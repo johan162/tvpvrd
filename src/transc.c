@@ -967,7 +967,6 @@ pthread_mutex_t filetransc_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct transc_param {
     char *filename;
     char *profilename;
-    int wait;
 };
 
 /**
@@ -1001,21 +1000,18 @@ _transcode_file(void *arg) {
 
     logmsg(LOG_DEBUG,"_transcode_file() : profilename='%s'",profilename);
 
-    int wait = param->wait;
     free(param->filename);
     free(param->profilename);
     free(param);
 
-    if (wait) {
-        if (-1 == wait_to_transcode(filename)) {
-            logmsg(LOG_ERR, "Can not start transcoding of '%s'. Server too busy.", filename);
-            pthread_mutex_lock(&filetransc_mutex);
-            nfiletransc_threads--;
-            pthread_mutex_unlock(&filetransc_mutex);
+    if (-1 == wait_to_transcode(filename)) {
+        logmsg(LOG_ERR, "Can not start transcoding of '%s'. Server too busy.", filename);
+        pthread_mutex_lock(&filetransc_mutex);
+        nfiletransc_threads--;
+        pthread_mutex_unlock(&filetransc_mutex);
 
-            pthread_exit(NULL);
-            return (void *) 0;
-        }
+        pthread_exit(NULL);
+        return (void *) 0;
     }
 
     // Create a temporary directory which we will use as working directory during
@@ -1251,7 +1247,7 @@ _transcode_file(void *arg) {
  * @return
  */
 int
-transcode_file(char *filename, char *profilename, int wait) {
+transcode_file(char *filename, char *profilename) {
 
     struct transc_param *param = calloc(1,sizeof(struct transc_param));
 
@@ -1260,7 +1256,6 @@ transcode_file(char *filename, char *profilename, int wait) {
     // parent deletes the argument space
     param->filename = strdup(filename);
     param->profilename = strdup(profilename);
-    param->wait = wait;
 
     // Start the thread that will actually do the recording to the file system
 /*
@@ -1570,7 +1565,7 @@ _transcode_filelist(void *arg) {
     while( *buffer != '\0' ) {
         logmsg(LOG_INFO, "Submitting '%s' for transcoding using @%s",buffer,param->profilename);
         wait_to_transcode(buffer);
-        if( -1 == transcode_file(buffer, param->profilename, 1) ) {
+        if( -1 == transcode_file(buffer, param->profilename) ) {
             logmsg(LOG_ERR,"Unable to start transcoding of file '%s'. Aborting filelist.",buffer);
             break;
         }

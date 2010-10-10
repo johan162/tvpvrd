@@ -1419,7 +1419,6 @@ static struct cmd_entry cmdfunc_master_recs[] = {
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
-    {"ot", "Ongoing"},
     {"wt", "Queue"},
     {"st", "Statistics"},
     {"lp", "Profiles"}
@@ -1431,7 +1430,6 @@ static struct cmd_entry cmdfunc_master_status[] = {
 };
 
 static struct cmd_entry cmdfunc_master_view[] = {
-    {"xx", "DB file"},
     {"z", "Settings"},
     {"ls", "Station list"},
     {"log%20100", "Recent log"}
@@ -1439,6 +1437,7 @@ static struct cmd_entry cmdfunc_master_view[] = {
 
 static struct cmd_entry cmdfunc_master_driver[] = {
     {"vc", "Driver"},
+    {"li", "Inputs"},
     {"lc%200", "Settings #0"}
 };
 
