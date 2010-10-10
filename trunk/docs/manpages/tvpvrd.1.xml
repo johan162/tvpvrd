@@ -1175,9 +1175,17 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                         <term>'<command>lp</command>' - <emphasis
                                 role="bold">List profiles command</emphasis></term>
                         <listitem>
-                            <para>Print a comma separated list of all defined transcoding profiles
-                                (use '<command>dp</command>' command to display details of a
-                                specified profile)</para>
+                            <para>Print a list of all defined transcoding profiles numbered one per
+                            line(use '<command>dp</command>' command to display details of a
+                            specified profile)</para>
+                        <para>Output example:</para>
+                        <screen>#01 : mobile
+#02 : low
+#03 : cropnormal
+#04 : tnormal
+#05 : high
+#06 : normal
+#07 : wnormal</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -1210,12 +1218,12 @@ SE14: tv4+
                             command</emphasis></term>
                         <listitem>
                             <para>This can be considered a low level command of limited use for an
-                                end user. This command will list all user controllable controls that
-                                can be adjusted on the specified video card. This is directly
-                                related to the discovered 'v4l2' interfaces. Since the output is
-                                quite long we do not include any example output here. The output is
-                                intentionally modeled to be of the same format as the one used in
-                                'v4l2' output.</para>
+                            end user. This command will list all user controllable video/audio
+                            controls that can be adjusted on the specified video card. This is
+                            directly related to the discovered 'v4l2' interfaces. Since the output
+                            is quite long we do not include any example output here. The output is
+                            intentionally modeled to be of the same format as the one used in 'v4l2'
+                            output.</para>
                             <para>(This command is probably of little use for anything else than
                                 troubleshooting a video card and driver.)</para>
                         </listitem>
@@ -1342,8 +1350,8 @@ tv1_20091120_1626.mp4 > /dev/null 2>&amp;1)</screen>
                                 role="bold">Quick recording command</emphasis></term>
                         <listitem>
                             <para>Add new recording that will start immediately. This is basically
-                                the same as a simplified '<emphasis>a</emphasis>' command where the
-                                start time and date is always the current date and time.</para>
+                            the same as a simplified '<command>a</command>' command where the start
+                            time and start date is always the current date and time.</para>
                             <para>The format of the command are</para>
                             <para>
                                 <variablelist>
@@ -1358,9 +1366,9 @@ tv1_20091120_1626.mp4 > /dev/null 2>&amp;1)</screen>
                                                 time will be used. The duration is specified with
                                                 hours and minutes as</para>
                                             <para><emphasis>hh:mm</emphasis></para>
-                                            <para> If no title is specified the title will be
-                                                constructed from the station/channel name and the
-                                                start date and time. </para>
+                                            <para>If no title is specified the title will be
+                                            constructed from the station/channel name and the start
+                                            date and time. </para>
                                             <para>If no profile is specified then the default
                                                 profile specified in the ini-file will be used.
                                             </para>
@@ -1427,14 +1435,14 @@ tv1_20091120_1626.mp4 > /dev/null 2>&amp;1)</screen>
                                 number of running threads in the server and finally a list of
                                 clients currently connected to the server.</para>
                             <para>Output example:</para>
-                            <screen>   Current time: Tue Jan 26 15:28:26 2010
-tvpvrd' started: Tue Jan 26 15:03:39 2010
-'tvpvrd' uptime: 00 days 00 hours 24 min
-    Server load: 0.1 0.8 2.0
-  Server uptime: 46 days 01 hours 59 min
- Virtual memory: 29040 kB
-        Threads: 3
-        Clients: #01: 127.0.0.1, Tue Jan 26 15:28:24 2010</screen>
+                            <screen>Current time    : Sun Oct 10 09:48:24 2010
+tvpvrd started  : Fri Oct  8 08:53:00 2010
+tvpvrd uptime   : 02 days 00 hours 55 min
+Server uptime   : 03 days 02 hours 37 min
+Server load     : 0.1 0.1 0.0
+Virtual memory  : 56796 kB
+Threads         : 4
+Clients         : #01: 192.168.0.31, Sun Oct 10 09:48:24 2010</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
@@ -1442,13 +1450,12 @@ tvpvrd' started: Tue Jan 26 15:03:39 2010
                                 role="bold">Print profile statistics</emphasis></term>
                         <listitem>
                             <para>Print transcoding statistics for the defined profiles. This
-                                statistics is gathered for every transcoding made. The statistics
-                                includes among other things the running time and average size per
-                                minute of the original MP2 and the transcoded file. The statistics
-                                for the transcoding can be used to predict how long time a
-                                transcoding will take. However since it is highly dependent on the
-                                load on the server it can be difficult to accurately predict the
-                                needed transcoding time.</para>
+                            statistics is gathered for every transcoding made. The statistics
+                            includes among other things the running time and average size per minute
+                            of the original MP2 and the transcoded file. The statistics for the
+                            transcoding can be used to predict how long time a transcoding will
+                            take. However since it is highly dependent on the load on the server it
+                            can be difficult to accurately predict the needed transcoding time. </para>
                             <para>Output example:</para>
                             <screen>profile_name            : 'normal'
 transcoding_speed       : 44 s transcoded / min
