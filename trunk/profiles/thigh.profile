@@ -1,5 +1,5 @@
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-# CROPNORMAL Profile   (default)
+# NORMAL Profile   (default)
 # Profile setting for tvpvrd
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -37,10 +37,10 @@ keep_mp2file=no
 # DEFAULT_VIDEO_PEAK_BITRATE integer
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
 # Values must be in range 500,000 up to 10,000,000
-# Default values are 3.0Mbps, 3.7Mbps
+# Default values are 3.2Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=2800000
-video_peak_bitrate=3500000
+video_bitrate=6000000
+video_peak_bitrate=7000000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -103,7 +103,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=9
+audio_bitrate=11
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -144,10 +144,8 @@ use_transcoding=yes
 #----------------------------------------------------------------------------
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
-# Note: If the bitrate is set to 0 then no transcoding will take place and
-# only the original MP2 file will be available.
 #----------------------------------------------------------------------------
-video_bitrate=800
+video_bitrate=1500
 
 #----------------------------------------------------------------------------
 # VIDEO_PEAK_BITRATE integer [200,1800]
@@ -155,7 +153,7 @@ video_bitrate=800
 # doing one pass encoding. For two pass encoding this parameter has no
 # meaning.
 #----------------------------------------------------------------------------
-video_peak_bitrate=1100
+video_peak_bitrate=1800
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -195,7 +193,7 @@ acodec=aac
 # Audio bitrate in kbps for the encoder specified above
 # Note: If "acodec" is set to "copy" this option will have no effect
 #----------------------------------------------------------------------------
-audio_bitrate=128
+audio_bitrate=256
 
 #----------------------------------------------------------------------------
 # VIDEO_SIZE string-menu
@@ -223,10 +221,10 @@ video_size=
 # black top and bottom borders found in "letterbox" broadcastings.
 # Keep in mind that most modern encodings x264 etc. works most efficiently if
 # the width and height are multiples of 16. This means that the top and bottom
-" crop taken together should be a multiple of 16.
+# crop taken together should be a multiple of 16.
 #----------------------------------------------------------------------------
-crop_top=40
-crop_bottom=40
+crop_top=8
+crop_bottom=8
 crop_left=2
 crop_right=2
 

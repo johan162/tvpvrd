@@ -1,5 +1,5 @@
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-# TNORMAL Profile  (Transcode NORMAL profile)
+# NORMAL Profile   (default)
 # Profile setting for tvpvrd
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -39,8 +39,8 @@ keep_mp2file=no
 # Values must be in range 500,000 up to 10,000,000
 # Default values are 3.2Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3000000
-video_peak_bitrate=3500000
+video_bitrate=3700000
+video_peak_bitrate=4700000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -60,7 +60,6 @@ video_peak_bitrate=3500000
 #  
 # Supported named formats at the present are
 #  pal     = 720,576 (For PAL video standard)
-#  ntsc    = 720,480 (For NTSC video standard)
 #  vga     = 640,480
 #  qvga    = 320,240
 #  qqvga   = 160,120
@@ -171,7 +170,7 @@ vpre=normal
 # PASS integer [1,2]
 # Number of encoding pass. Must be 1 or 2
 #----------------------------------------------------------------------------
-pass=2
+pass=1
 
 #----------------------------------------------------------------------------
 # ACODEC string

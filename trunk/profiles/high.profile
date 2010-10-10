@@ -37,9 +37,10 @@ keep_mp2file=yes
 # DEFAULT_VIDEO_PEAK_BITRATE integer
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
 # Values must be in range 500,000 up to 10,000,000
+# Default values are 3.2Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=4500000
-video_peak_bitrate=5100000
+video_bitrate=6000000
+video_peak_bitrate=7000000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -65,7 +66,7 @@ video_peak_bitrate=5100000
 #  qqvga   = 160,120
 #  cif     = 352,288
 #  3q      = 480,384 ("3 quarter default size")
-#  3qmp4   = 480,352 ("3 quarter default size" optimized for MP4)
+#  3qmp4   = 480,352 ("3 quarter default size" optimized for ffmpeg MP4)
 #  half    = 360,288
 #----------------------------------------------------------------------------
 video_frame_size=pal
@@ -138,15 +139,13 @@ video_aspect=1
 # USE_TRANSCODING boolean
 # Should transcoding be used at all for this profile
 #----------------------------------------------------------------------------
-use_transcoding=yes
+use_transcoding=no
 
 #----------------------------------------------------------------------------
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
-# Note: If the bitrate is set to 0 then no transcoding will take place and
-# only the original MP2 file will be available.
 #----------------------------------------------------------------------------
-video_bitrate=1200
+video_bitrate=800
 
 #----------------------------------------------------------------------------
 # VIDEO_PEAK_BITRATE integer [200,1800]
@@ -154,7 +153,7 @@ video_bitrate=1200
 # doing one pass encoding. For two pass encoding this parameter has no
 # meaning.
 #----------------------------------------------------------------------------
-video_peak_bitrate=1700
+video_peak_bitrate=1100
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -166,13 +165,13 @@ vcodec=libx264
 # VPRE string
 # The preset used with the vcodec. Corresponds to the ffmpeg -vpre option
 #----------------------------------------------------------------------------
-vpre=hq
+vpre=normal
 
 #----------------------------------------------------------------------------
 # PASS integer [1,2]
 # Number of encoding pass. Must be 1 or 2
 #----------------------------------------------------------------------------
-pass=2
+pass=1
 
 #----------------------------------------------------------------------------
 # ACODEC string
@@ -194,7 +193,7 @@ acodec=aac
 # Audio bitrate in kbps for the encoder specified above
 # Note: If "acodec" is set to "copy" this option will have no effect
 #----------------------------------------------------------------------------
-audio_bitrate=160
+audio_bitrate=128
 
 #----------------------------------------------------------------------------
 # VIDEO_SIZE string-menu
@@ -222,12 +221,12 @@ video_size=
 # black top and bottom borders found in "letterbox" broadcastings.
 # Keep in mind that most modern encodings x264 etc. works most efficiently if
 # the width and height are multiples of 16. This means that the top and bottom
-" crop taken together should be a multiple of 16.
+# crop taken together should be a multiple of 16.
 #----------------------------------------------------------------------------
-crop_top=48
-crop_bottom=48
-crop_left=4
-crop_right=4
+crop_top=8
+crop_bottom=8
+crop_left=2
+crop_right=2
 
 #----------------------------------------------------------------------------
 # FFMPEG_EXTRA_OPTIONS string
