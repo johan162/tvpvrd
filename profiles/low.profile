@@ -30,17 +30,17 @@
 # KEEP_MP2FILE boolean
 # Keep the original MP2 file from the video card after transcoding
 #----------------------------------------------------------------------------
-keep_mp2file=no
+keep_mp2file=yes
 
 #----------------------------------------------------------------------------
 # DEFAULT_VIDEO_BITRATE integer [500 000, 10 000 000]
 # DEFAULT_VIDEO_PEAK_BITRATE integer
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
 # Values must be in range 500,000 up to 10,000,000
-# Default values are 3.0Mbps, 3.7Mbps
+# Default values are 3.2Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3000000
-video_peak_bitrate=3400000
+video_bitrate=1700000
+video_peak_bitrate=2100000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -66,10 +66,10 @@ video_peak_bitrate=3400000
 #  qqvga   = 160,120
 #  cif     = 352,288
 #  3q      = 480,384 ("3 quarter default size")
-#  3qmp4   = 480,352 ("3 quarter default size" optimized for MP4)
+#  3qmp4   = 480,352 ("3 quarter default size" optimized for ffmpeg MP4)
 #  half    = 360,288
 #----------------------------------------------------------------------------
-video_frame_size=3qmp4
+video_frame_size=pal
 
 #----------------------------------------------------------------------------
 # AUDIO_SAMPLING integer
@@ -103,7 +103,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=10
+audio_bitrate=9
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -139,15 +139,13 @@ video_aspect=1
 # USE_TRANSCODING boolean
 # Should transcoding be used at all for this profile
 #----------------------------------------------------------------------------
-use_transcoding=yes
+use_transcoding=no
 
 #----------------------------------------------------------------------------
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
-# Note: If the bitrate is set to 0 then no transcoding will take place and
-# only the original MP2 file will be available.
 #----------------------------------------------------------------------------
-video_bitrate=400
+video_bitrate=800
 
 #----------------------------------------------------------------------------
 # VIDEO_PEAK_BITRATE integer [200,1800]
@@ -155,7 +153,7 @@ video_bitrate=400
 # doing one pass encoding. For two pass encoding this parameter has no
 # meaning.
 #----------------------------------------------------------------------------
-video_peak_bitrate=600
+video_peak_bitrate=1100
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -167,7 +165,7 @@ vcodec=libx264
 # VPRE string
 # The preset used with the vcodec. Corresponds to the ffmpeg -vpre option
 #----------------------------------------------------------------------------
-vpre=default
+vpre=normal
 
 #----------------------------------------------------------------------------
 # PASS integer [1,2]
@@ -212,7 +210,7 @@ audio_bitrate=128
 #          vga        640x480
 # Note: The native (anamorphic) size for a PAL MP2 recording is 720x576
 #----------------------------------------------------------------------------
-video_size=qvga
+video_size=
 
 #----------------------------------------------------------------------------
 # CROP_TOP integer [0-160]
@@ -223,10 +221,10 @@ video_size=qvga
 # black top and bottom borders found in "letterbox" broadcastings.
 # Keep in mind that most modern encodings x264 etc. works most efficiently if
 # the width and height are multiples of 16. This means that the top and bottom
-" crop taken together should be a multiple of 16.
+# crop taken together should be a multiple of 16.
 #----------------------------------------------------------------------------
-crop_top=16
-crop_bottom=16
+crop_top=8
+crop_bottom=8
 crop_left=2
 crop_right=2
 
