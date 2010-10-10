@@ -189,7 +189,7 @@ xstrlcat(char *dst, const char *src, size_t size);
 
 
 /**
- * Validate an integer value read form the inifile. If outside the limits
+ * Validate an integer value. If outside the limits
  * terminate program and print error message to log
  * @param min
  * @param max

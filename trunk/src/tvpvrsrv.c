@@ -619,7 +619,7 @@ setup_video(int video,struct transcoding_profile_entry *profile) {
 int
 transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                         char *full_filename, struct transcoding_profile_entry *profile,
-                        int *filesize, struct timeall *transcode_time) {
+                        int *filesize, struct timeall *transcode_time, float *avg_5load) {
 
     struct rusage usage;
     CLEAR(*transcode_time);
@@ -708,6 +708,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                         short_filename, errno, strerror(errno));
             } else {
 
+                // In parent process
                 logmsg(LOG_INFO, "Successfully started process pid=%d for transcoding '%s'.",pid,short_filename);
 
                 pthread_mutex_lock(&recs_mutex);
@@ -726,15 +727,26 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     // that and we consider the transcoding process as hung
                     const int watchdog = 49 * 3600;
                     int ret;
+                    float avg1,avg5,avg15;
+                    getsysload(&avg1,&avg5,&avg15);
+                    *avg_5load = avg5;
+                    float avg_n = 1;
                     do {
                         // Transcoding usually takes hours so we don't bother
-                        // waking up and check if we are done more often than once every 2 minute
-                        sleep(120);
-                        runningtime += 120;
+                        // waking up and check if we are done more often than once
+                        // every minute. We also take the opportunity to record the
+                        // average 5 min load which we later add to the statistics
+                        sleep(60);
+                        runningtime += 60;
+                        getsysload(&avg1,&avg5,&avg15);
+                        *avg_5load += avg5;
+                        avg_n++;
                         rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
 
                     } while (pid != rpid && runningtime < watchdog);
 
+                    *avg_5load /= avg_n;
+                    
                     pthread_mutex_lock(&recs_mutex);
                     forget_ongoingtranscoding(tidx);
                     pthread_mutex_unlock(&recs_mutex);
@@ -1118,6 +1130,7 @@ startrec(void *arg) {
 
             transcoding_problem = 0;
             int mp4size=0;
+            float avg_5load;
             struct timeall transcode_time;
             CLEAR(transcode_time);
 
@@ -1129,17 +1142,16 @@ startrec(void *arg) {
                 keep_mp2_file |= profile->encoder_keep_mp2file | !profile->use_transcoding;
 
                 logmsg(LOG_NOTICE,"Transcoding using profile: %s",profile->name);
-                time_t start = time(NULL);
                 int ret = transcode_and_move_file(datadir,workingdir,short_filename,
                                                   full_filename,profile,
-                                                  &mp4size,&transcode_time);
+                                                  &mp4size,&transcode_time,&avg_5load);
                 transcoding_problem |= ret;
                 if( 0 == ret ) {
                     stats_update(recording->transcoding_profiles[i],
                                  mp2size,
                                  recording->ts_end - recording->ts_start,
                                  mp4size,
-                                 &transcode_time, time(NULL)-start);
+                                 &transcode_time, avg_5load);
                 }
             }
 

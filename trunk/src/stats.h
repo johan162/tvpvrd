@@ -45,6 +45,7 @@ struct profile_stat_entry {
     unsigned total_mp2time;         /* Total time in s recorded */
     unsigned total_mp2files;        /* Total MP2 files recorded with this profile */
     unsigned total_mp4files;        /* Total MP4 files recorded with this profile */
+    float avg_5load;                /* Average 5 min load on server while transcoding */
 };
 
 /**
@@ -80,12 +81,12 @@ write_stats(void);
  * @param recorded_time
  * @param mp4size
  * @param transcode_time
- * @param transcode_and_copy_time
+ * @param avg_5load
  * @return
  */
 int
 stats_update(char *name,unsigned mp2size,unsigned recorded_time,unsigned mp4size,
-             struct timeall *transcode_time, unsigned transcode_and_copy_time);
+             struct timeall *transcode_time, float avg_5load);
 
 /**
  * Read the statistics for the specified profile
