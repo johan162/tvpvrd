@@ -732,12 +732,20 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     *avg_5load = avg5;
                     float avg_n = 1;
                     do {
-                        // Transcoding usually takes hours so we don't bother
-                        // waking up and check if we are done more often than once
-                        // every minute. We also take the opportunity to record the
-                        // average 5 min load which we later add to the statistics
-                        sleep(60);
-                        runningtime += 60;
+                        // Transcoding usually takes hours so we don't bother waking up and check
+                        // if we are done more often than once every couple of seconds. This
+                        // might still seem like a short time but keep in mind that in the case the
+                        // user termintaes the transcoding process the server will not notice this
+                        // until this check is made. Therefore we want this to be reasonable
+                        // short as well. Ideally the wait4() should have a timeout argument in
+                        // which case we would have been notified sooner.
+
+                        // Why exactly 6s wait? Well, in case the user terminates the process it
+                        // means that on average it will take 3s before the structures are updated
+                        // with the removed transcoding which is the longest time a user ever should
+                        // have to waut for feedback.
+                        sleep(6);
+                        runningtime += 6;
                         getsysload(&avg1,&avg5,&avg15);
                         *avg_5load += avg5;
                         avg_n++;
@@ -758,7 +766,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     if (runningtime >= watchdog) {
                         // Something is terrible wrong if the transcoding haven't
                         // finished after the watchdog timeout
-                        logmsg(LOG_ERR, "Transcoding process for file '%s' seems hung. Have run more than %02d:%02d:%02d h",
+                        logmsg(LOG_NOTICE, "Transcoding process for file '%s' seems hung. Have run more than %02d:%02d:%02d h",
                                 short_filename, rh,rm,rs);
                         (void) kill(pid, SIGKILL);
                     } else {
@@ -767,7 +775,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                             transcoding_done = (WEXITSTATUS(ret) == 0);
                             if (WEXITSTATUS(ret) == 0) {
                                 if( runningtime < 60 ) {
-                                    logmsg(LOG_ERR, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
+                                    logmsg(LOG_NOTICE, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
                                         short_filename, rh,rm,rs);
 
                                 } else {
@@ -782,12 +790,12 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                             }
                         } else {
                             if (WIFSIGNALED(ret)) {
-                                logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly terminated by signal=%d after %02d:%02d:%02d h",
+                                logmsg(LOG_NOTICE, "Transcoding process for file '%s' was terminated by signal=%d (possibly by user) after %02d:%02d:%02d h",
                                         short_filename, WTERMSIG(ret),rh,rm,rs);
                                 return -1;
                             } else {
                                 // Child must have been stopped. If so we have no choice than to kill it
-                                logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
+                                logmsg(LOG_NOTICE, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
                                         short_filename, WSTOPSIG(ret),rh,rm,rs);
                                 (void) kill(pid, SIGKILL);
                                 return -1;
@@ -799,7 +807,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
             }
 #endif
         } else {
-            logmsg(LOG_ERR, "Can not start transcoding of '%s'. Server too busy.", short_filename);
+            logmsg(LOG_NOTICE, "Can not start transcoding of '%s'. Server too busy.", short_filename);
             return -1;
         }
 

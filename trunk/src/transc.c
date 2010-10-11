@@ -896,32 +896,16 @@ int
 kill_ongoing_transcoding(int idx) {
 
     if( idx >= 0 && idx < max_ongoing_transcoding ) {
-        // First ask nicely
         if (ongoing_transcodings[idx]) {
-            logmsg(LOG_NOTICE,"Stopping ffmpeg process %d",ongoing_transcodings[idx]->pid);
+            logmsg(LOG_NOTICE,"Killing 'ffmpeg' process group %d",ongoing_transcodings[idx]->pid);
             (void)killpg(ongoing_transcodings[idx]->pid,SIGSTOP);
-        }
-
-        // Wait a bit
-        usleep(1000);
-
-        // Then not so nicely, kill process
-        if (ongoing_transcodings[idx]) {
-
-            logmsg(LOG_NOTICE,"Killing 'ffmpeg' process %d",ongoing_transcodings[idx]->pid);
+            usleep(50000);
             (void)killpg(ongoing_transcodings[idx]->pid,SIGKILL);
-            free(ongoing_transcodings[idx]);
-            ongoing_transcodings[idx] = (struct ongoing_transcoding *)NULL;
-            
         }
-
     } else {
-
         logmsg(LOG_ERR,"No ongoing transcoding with index=%d",idx);
         return -1;
-
     }
-
     return 0;
 
 }
@@ -932,25 +916,9 @@ kill_ongoing_transcoding(int idx) {
 void
 kill_all_ongoing_transcodings(void) {
 
-    // First ask nicely
+    // Send the Kill signal to the process group of all ongoing transcodings
     for (int i = 0; i < max_ongoing_transcoding; i++) {
-        if (ongoing_transcodings[i]) {
-            logmsg(LOG_NOTICE,"Stopping ffmpeg process %d",ongoing_transcodings[i]->pid);
-            (void)killpg(ongoing_transcodings[i]->pid,SIGSTOP);
-        }
-    }
-
-    // Wait a bit
-    usleep(1000);
-
-    // Then not so nicely, kill every process
-    for (int i = 0; i < max_ongoing_transcoding; i++) {
-        if (ongoing_transcodings[i]) {
-            logmsg(LOG_NOTICE,"Killing 'ffmpeg' process %d",ongoing_transcodings[i]->pid);
-            (void)killpg(ongoing_transcodings[i]->pid,SIGKILL);
-            free(ongoing_transcodings[i]);
-            ongoing_transcodings[i] = (struct ongoing_transcoding *)NULL;
-        }
+        kill_ongoing_transcoding(i);
     }
 
 }
@@ -972,6 +940,8 @@ struct transc_param {
  * If profile is the empty string then the default profile will be used.
  * The transcoding will start immediately regardless of the server load
  * if the argument wait is = 0
+ *
+ * This function is run in its own thread.
  *
  * @param filename
  * @param profile
@@ -1102,6 +1072,7 @@ _transcode_file(void *arg) {
         
     } else {
 
+        // In parent which will be watching the ffmpeg command execution
         logmsg(LOG_INFO, "Successfully started process pid=%d for transcoding '%s'.", pid, basename(filename));
 
         pthread_mutex_lock(&recs_mutex);
@@ -1126,10 +1097,20 @@ _transcode_file(void *arg) {
             int ret;
             struct rusage usage;
             do {
-                // Transcoding usually takes hours so we don't bother
-                // waking up and check if we are done more often than once every minute
-                sleep(60);
-                runningtime += 60;
+                // Transcoding usually takes hours so we don't bother waking up and check
+                // if we are done more often than once every couple of seconds. This
+                // might still seem like a short time but keep in mind that in the case the
+                // user termintaes the transcoding process the server will not notice this
+                // until this check is made. Therefore we want this to be reasonable
+                // short as well. Ideally the wait4() should have a timeout argument in
+                // which case we would have been notified sooner.
+
+                // Why exactly 6s wait? Well, in case the user terminates the process it
+                // means that on average it will take 3s before the structures are updated
+                // with the removed transcoding which is the longest time a user ever should
+                // have to waut for feedback.
+                sleep(6);
+                runningtime += 6;
                 rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
 
             } while (pid != rpid && runningtime < watchdog);
@@ -1153,26 +1134,26 @@ _transcode_file(void *arg) {
                     transcoding_done = (WEXITSTATUS(ret) == 0);
                     if (WEXITSTATUS(ret) == 0) {
                         if (runningtime < 60) {
-                            logmsg(LOG_ERR, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
-                                    basename(filename), rh, rm, rs);
+                            logmsg(LOG_ERR, "Transcoding process %d for file '%s' aborted premature after after %02d:%02d:%02d h",
+                                    pid,basename(filename), rh, rm, rs);
 
                         } else {
-                            logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
-                                   basename(filename), rh, rm, rs, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
+                            logmsg(LOG_INFO, "Transcoding process %d for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
+                                   pid,basename(filename), rh, rm, rs, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
 
                         }
                     } else {
-                        logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
+                        logmsg(LOG_ERR, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
                                 basename(filename), rh, rm, rs);
                     }
                 } else {
                     if (WIFSIGNALED(ret)) {
-                        logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly terminated by signal=%d after %02d:%02d:%02d h",
-                                basename(filename), WTERMSIG(ret),rh,rm,rs);
+                        logmsg(LOG_NOTICE, "Transcoding process %d for file '%s' was terminated by signal=%d (possibly by user) after %02d:%02d:%02d",
+                                pid,basename(filename), WTERMSIG(ret),rh,rm,rs);
                     } else {
                         // Child must have been stopped. If so we have no choice than to kill it
-                        logmsg(LOG_ERR, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
-                                basename(filename), WSTOPSIG(ret),rh,rm,rs);
+                        logmsg(LOG_NOTICE, "Transcoding process %d for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
+                                pid, basename(filename), WSTOPSIG(ret),rh,rm,rs);
                         (void) kill(pid, SIGKILL);
                     }
                 }
