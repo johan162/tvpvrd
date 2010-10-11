@@ -457,7 +457,11 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
     static char menu[256];
 
     if( vctl->type == VCTRL_CLASS_TITLE ) {
-        snprintf(buff,size,"\n= %s =\n",vctl->name);
+        if( longformat ) {
+            snprintf(buff,size,"\n= %s =\n",vctl->name);
+        } else {
+            *buff = '\0';
+        }
     } else {
         if( longformat ) {
             snprintf(buff,size,

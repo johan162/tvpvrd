@@ -926,15 +926,32 @@ startrec(void *arg) {
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
     // the exit status until the thread is joined (or detached) which would mean
-    // loosing 8MB for exah created thread
+    // loosing 8MB for each created thread
     pthread_detach(pthread_self());
 
     int video = *(int *) arg;
     struct recording_entry *recording = ongoing_recs[video];
-    struct transcoding_profile_entry *profile;
-    
-    // Get primary profile
+    struct transcoding_profile_entry *profile, *tmp_profile;
+
+    // In case there are many profiles defined for this recording we use the profile with the
+    // highest video bitrate quality to set the HW MP2 encoder.
+    int chosen_profile_idx = 0 ;
+    int multi_prof_flag = FALSE; // This flasg get set if we find more than one profile
+                                 // Used to control the extra debug print out below
     get_transcoding_profile(recording->transcoding_profiles[0],&profile);
+    for(int i=1; i < REC_MAX_TPROFILES && strlen(recording->transcoding_profiles[i]) > 0; i++) {
+        multi_prof_flag = TRUE;
+        get_transcoding_profile(recording->transcoding_profiles[i],&tmp_profile);
+        if( tmp_profile->video_bitrate > profile->video_bitrate )
+            chosen_profile_idx = i;
+    }
+    get_transcoding_profile(recording->transcoding_profiles[chosen_profile_idx],&profile);
+    if( multi_prof_flag ) {
+        logmsg(LOG_DEBUG,"Using profile '%s' for HW MP2 settings for recording of '%s'",
+               recording->transcoding_profiles[chosen_profile_idx],
+               recording->title);
+    }
+
     int vh = setup_video(video,profile);
 
     abort_video[video] = 0;
