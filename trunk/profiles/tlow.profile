@@ -39,8 +39,8 @@ keep_mp2file=no
 # Values must be in range 500,000 up to 10,000,000
 # Default values are 3.2Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=1900000
-video_peak_bitrate=2300000
+video_bitrate=1500000
+video_peak_bitrate=2100000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -139,7 +139,7 @@ video_aspect=1
 # USE_TRANSCODING boolean
 # Should transcoding be used at all for this profile
 #----------------------------------------------------------------------------
-use_transcoding=no
+use_transcoding=yes
 
 #----------------------------------------------------------------------------
 # VIDEO_BITRATE integer [100,1500]
