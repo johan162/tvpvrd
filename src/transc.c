@@ -604,8 +604,6 @@ dump_transcoding_profile(char *name, char *buff, int size) {
 void
 get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
 
-    logmsg(LOG_DEBUG,"get_transcoding_profile() : name='%s'",name);
-
     int i=0;
     while( i < num_transcoding_profiles && strcmp(name,profiles[i]->name) )
         i++;
@@ -616,13 +614,13 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
         while( i < num_transcoding_profiles && strcmp(profiles[i]->name,DEFAULT_TRANSCODING_PROFILE) )
             i++;
         if( i >= num_transcoding_profiles ) {
-            logmsg(LOG_ERR,"FATAL: Default transcoding profile '%s' does not exist. Falling back on the first profile '%s'",
+            logmsg(LOG_ERR,"Default transcoding profile '%s' does not exist. Falling back on the first profile '%s'",
                    DEFAULT_TRANSCODING_PROFILE,profiles[0]->name);
             i=0;
         }
     }
 
-    logmsg(LOG_DEBUG,"get_transcoding_profile() : Found 'name' as index=%d",i);
+    logmsg(LOG_DEBUG,"get_transcoding_profile() : Found transcoding profil '%s' at index=%d",name,i);
 
     *entry = profiles[i];
 }
