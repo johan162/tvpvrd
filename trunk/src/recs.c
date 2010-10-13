@@ -524,7 +524,10 @@ insertrec(int video, struct recording_entry * entry) {
             if (entry->recurrence_mangling == 0) {
                 snprintf(tmpbuff, 512, "%s %d-%02d-%02d %02d.%02d", entry->title, sy, sm, sd, sh, smin);
             } else {
-                snprintf(tmpbuff, 512, "%s (%02d/%02d)", entry->title, i + entry->recurrence_start_number, entry->recurrence_num);
+                snprintf(tmpbuff, 512, "%s (%02d/%02d)", 
+                         entry->title,
+                         i + entry->recurrence_start_number,
+                         entry->recurrence_num+entry->recurrence_start_number-1);
             }
 
             // Name mangling of filename

@@ -204,7 +204,6 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
     int sh, smin, ssec;
     int eh, emin, esec;
     time_t ts_start, ts_end;
-//    char *bname, *dname;
     struct recording_entry *entry;
 
     node = node->xmlChildrenNode;
@@ -222,7 +221,6 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
     for(int i=0; i < REC_MAX_TPROFILES; i++) {
         profiles[i] = calloc(1,REC_MAX_TPROFILE_LEN);
     }
-
 
     while (node != NULL) {
 
@@ -304,7 +302,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
         ts_end = totimestamp(ey, em, ed, eh, emin, esec);
 
         if( num_profiles == 0 ) {
-            logmsg(LOG_ERR,"    -- Warning: No profiles defined for recording: '%s'. Adding default profile '%s' ",
+            logmsg(LOG_ERR,"No profiles defined for recording: '%s'. Adding default profile '%s' ",
                     title,default_transcoding_profile);
             num_profiles=1;
             strncpy(profiles[0],default_transcoding_profile,REC_MAX_TPROFILE_LEN);
@@ -312,7 +310,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
         }
         for( int k=0; k < num_profiles; k++) {
             if(!transcoding_profile_exist(profiles[k]) ) {
-                logmsg(LOG_NOTICE,"    -- Warning: Transcoding profile %s does not exist. Falling back on default profile.",profiles[k]);
+                logmsg(LOG_NOTICE,"Transcoding profile %s does not exist. Falling back on default profile.",profiles[k]);
                 strncpy(profiles[k],default_transcoding_profile,REC_MAX_TPROFILE_LEN-1);
                 profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
             }
@@ -320,8 +318,8 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
 
         entry = newrec(title, filename,
                        ts_start, ts_end,
-                       channel, recurrence,
-                       rectype, recnbr, recmangling,
+                       channel,
+                       recurrence, rectype, recnbr, recmangling,
                        profiles);
 
         entry->recurrence_start_number = startnumber;
@@ -330,7 +328,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
             free(profiles[i]);
         }
 
-        if (insertrec(video, entry) == 0) {
+        if ( FALSE == insertrec(video, entry) ) {
             snprintf(tmpbuff, 512, "Cannot insert record '%s' since it collides with existing recordings.", entry->title);
             tmpbuff[512-1] = '\0';
             logmsg(LOG_ERR, tmpbuff);
