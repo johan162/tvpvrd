@@ -20,12 +20,24 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>
  * =========================================================================
  */
+// We want the full POSIX and C99 standard
+#define _GNU_SOURCE
+
+// And we need to have support for files over 2GB in size
+#define _LARGEFILE_SOURCE
+#define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
+
 // Standard UNIX includes
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <locale.h>
 #include <time.h>
+#include <fcntl.h>
 
 #include "tvpvrd.h"
 #include "utils.h"
@@ -80,10 +92,13 @@ void
 html_notfound(int sockd);
 
 void
+html_notmodified(int sockd);
+
+void
 html_cmd_qadd(int sockd);
 
 int
-read_cssfile(char *buff, int maxlen, int mobile);
+read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince);
 
 void
 html_cmd_ongoingtransc(int sockd);
@@ -347,6 +362,76 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
     return 0;
 }
 
+#define CSSFILE_NAME "tvpvrd"
+/**
+ * Read a suitable CSS file depending on the client. An identified mobile browser
+ * will have a different CSS file compared with a stationary client.
+ * @param buff Buffer where the CSS file is stored
+ * @param maxlen MAximum length of buffer
+ * @param mobile Flag to indicate a mobile browser
+ * @return 0 on success, -1 on failure
+ */
+int
+read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
+    char cssfile[255];
+
+    if (mobile) {
+        snprintf(cssfile, 255, "%s/tvpvrd/%s_mobile.css", CONFDIR, CSSFILE_NAME);
+    } else {
+        snprintf(cssfile, 255, "%s/tvpvrd/%s.css", CONFDIR, CSSFILE_NAME);
+    }
+
+    cssfile[254] = '\0';
+    char linebuff[1024];
+    struct stat mstatbuf;
+    
+    if( -1 == stat(cssfile,&mstatbuf) ) {
+        logmsg(LOG_ERR,"Cannot stat CSS file '%s' ( %d : %s )",cssfile,errno,strerror(errno));
+        return FALSE;
+
+    } else {
+
+        struct tm t_tm1, t_tm2 ;
+        char f1time[256],f2time[256];
+
+        //gmtime_r(&mstatbuf.st_mtime, &t_tm1);
+        localtime_r(&mstatbuf.st_mtime, &t_tm1);
+        logmsg(LOG_DEBUG,"After localtime on filetime: hour=%d",t_tm1.tm_hour);
+        strftime(f1time, 128, "%a, %d %b %Y %T %Z", &t_tm1);
+
+        localtime_r(&modifiedSince, &t_tm2);
+        strftime(f2time, 128, "%a, %d %b %Y %T %Z", &t_tm2);
+
+        time_t t1 = mktime(&t_tm1);
+        time_t t2 = mktime(&t_tm2);
+
+        logmsg(LOG_DEBUG,"Comparing file time=%d (%s) with modifiedSince=%d (%s)",
+               t1,f1time,t2,f2time);
+
+        if( t1 < t2 ) {
+            logmsg(LOG_DEBUG,"CSS File not modified");
+            return FALSE; // Not modified
+        }
+        logmsg(LOG_DEBUG,"CSS File IS modified");
+    }
+
+    *buff = '\0';
+    FILE *fp = fopen(cssfile, "r");
+    if (fp == NULL) {
+        logmsg(LOG_ERR, "Cannot read CSS file '&s'", cssfile);
+        return FALSE;
+    }
+
+    while (maxlen > 0 && fgets(linebuff, 1023, fp)) {
+        linebuff[1023] = '\0';
+        strncat(buff, linebuff, maxlen);
+        maxlen -= strlen(linebuff);
+    }
+
+    fclose(fp);
+    return 1;
+}
+
 /**
  * Upong receiveng the request to send back the CSS file this function reads
  * the correct CSS file and writes it back to the client using the supplied socket.
@@ -355,38 +440,41 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
  * @param name
  */
 void
-sendback_css_file(int sockd, char *name) {
+sendback_css_file(int sockd, char *name, time_t modifiedSince) {
     char *tmpbuff = calloc(1,16000);
-    read_cssfile(tmpbuff,16000,strcmp(name,"tvpvrd_mobile")==0);
-
-    // Initialize a new page
-    char server_id[255];
-    snprintf(server_id, 254, "tvpvrd %s", server_version);
-    // Send back a proper HTTP header
-
-    time_t t = time(NULL);
-    struct tm t_tm;
-    char ftime[128];
+    const int ismobile = strcmp(name,"tvpvrd_mobile")==0;
     
-    (void) gmtime_r(&t, &t_tm);
-    strftime(ftime, 128, TIME_RFC822_FORMAT, &t_tm);
+    if( read_cssfile(tmpbuff,16000,ismobile,modifiedSince) ) {
+        // Initialize a new page
+        char server_id[255];
+        snprintf(server_id, 254, "tvpvrd %s", server_version);
+        // Send back a proper HTTP header
 
-    // Todo: Add handling of "304 Not Modified"
-    // When receiving the header "If-Modified-Since" from the client
+        time_t t = time(NULL);
+        struct tm t_tm;
+        char ftime[128];
 
-    _writef(sockd,
-                "HTTP/1.1 200 OK\r\n"
-                "Date: %s\r\n"
-                "Last-Modified: %s\r\n"
-                "Server: %s\r\n"
-                "Connection: close\r\n"
-                "Content-Type: text/css\r\n\r\n", ftime, ftime, server_id);
+        (void) gmtime_r(&t, &t_tm);
+        strftime(ftime, 128, TIME_RFC822_FORMAT, &t_tm);
+        _writef(sockd,
+                    "HTTP/1.1 200 OK\r\n"
+                    "Date: %s\r\n"
+                    "Last-Modified: %s\r\n"
+                    "Server: %s\r\n"
+                    "Connection: close\r\n"
+                    "Content-Type: text/css\r\n\r\n", ftime, ftime, server_id);
 
-    _writef(sockd,tmpbuff);
+        _writef(sockd,tmpbuff);
 
-    logmsg(LOG_DEBUG,"Sent back CSS sheet %s",name);
+        logmsg(LOG_DEBUG,"Sent back CSS sheet %s",name);
 
-    free(tmpbuff);
+        free(tmpbuff);
+
+    } else {
+
+        html_notmodified(sockd);
+    }
+
 
 }
 
@@ -405,6 +493,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
     char *buffer = url_decode(inbuffer);
     char **field = (void *) NULL;
     int ret=0;
+    int mobile=FALSE;
 
     if (webconnection(buffer, wcmd, 1023)) {
 
@@ -413,7 +502,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
         // Try to determiine if the connection originated from a
         // mobile phone.
-        int mobile = is_mobile_connection(buffer);
+        mobile = is_mobile_connection(buffer);
 
         logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
 
@@ -558,8 +647,48 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             // Check if this is a call for one of the CSS files that we recognize
             if( strcmp(field[1],"tvpvrd")==0 ||  strcmp(field[1],"tvpvrd_mobile")==0 ) {
 
-                sendback_css_file(my_socket,field[1]);
+                // Check if we have received the "If-Modified-Since:" header
+                // In that case we send beck the "Not Modified 304" reply
+                // HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
+                // RFC 1123 format
+                char *cssfile = strdup(field[1]);
+                matchcmd_free(field);
+                time_t mtime = 0;
+                struct tm tm_date;
+                if( (ret = matchcmd_ml("^If-Modified-Since\\: (.*)", buffer, &field)) > 1 ) {
+                    logmsg(LOG_DEBUG,"Found If-Modified-Since: header. Value=%s",field[1]);
 
+                    // Convert time to a timestamp to compare with file modified time
+                    // Match HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
+                    locale_t lc =  newlocale(LC_ALL_MASK,"en_US",NULL);
+                    char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
+                    freelocale(lc);
+                    
+                    //logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
+                    mtime = mktime(&tm_date);
+                    localtime_r(&mtime,&tm_date);
+                    
+                    //logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
+
+                    // Since the original time is given in GMT and we want it expressed
+                    // in the local time zone we must add the offset from GMTIME for the
+                    // current time zone
+                    mtime += tm_date.tm_gmtoff;
+                    localtime_r(&mtime,&tm_date);
+                    
+                    //logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
+
+                    if( ret == NULL ) {
+                        logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header");
+                    } else {                        
+                        sendback_css_file(my_socket,cssfile,mtime);
+                    }
+                    
+                } else {
+                    logmsg(LOG_DEBUG,"NOT Found If-Modified-Since:");
+                    sendback_css_file(my_socket,cssfile,mtime);
+                }
+                free(cssfile);
                 matchcmd_free(field);
                 free(buffer);
                 
@@ -587,7 +716,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                         _PR_AN "=" _PR_ANPO "&"
                         _PR_AN "=" _PR_ANPO "&"
                         _PR_AN "=" _PR_ANPO
-                        " HTTP/1.1",
+                        " HTTP/1.[1|0]",
                         buffer, &field)) > 1) {
 
                     const int maxvlen = 64;
@@ -614,16 +743,24 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
                     } else {
 
-                        // Unrecognized login command so go back to login page
+                        // Unrecognized login POST fields so go back to login page
                         html_login_page(my_socket, mobile);
                     }
                 } else {
-
-                    // Unrecognized login command so go back to login page
-                    html_login_page(my_socket, mobile);
+                    // If the user has given any other page than an index page
+                    //  we give a 404 Not Found error
+                    matchcmd_free(field);
+                    logmsg(LOG_DEBUG,"Checking possible login command");
+                    if( (0 == strncmp(buffer,"GET / HTTP",10)) || (0 == strncmp(buffer,"GET /index.html HTTP",19)) ) {
+                        logmsg(LOG_DEBUG," - Sending back login page (ret=%d)",ret);
+                        html_login_page(my_socket, mobile);
+                    } else {
+                        logmsg(LOG_DEBUG," - Sending back not found page(ret=%d)",ret);
+                        html_notfound(my_socket);
+                    }
+                    
                 }
             } else {
-
                 // User has a valid login so send back the main page
                 html_main_page(my_socket, wcmd, logincookie, mobile);
             }
@@ -640,43 +777,6 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
     free(buffer);
 }
 
-
-#define CSSFILE_NAME "tvpvrd"
-/**
- * Read a suitable CSS file depending on the client. An identified mobile browser
- * will have a different CSS file compared with a stationary client.
- * @param buff Buffer where the CSS file is stored
- * @param maxlen MAximum length of buffer
- * @param mobile Flag to indicate a mobile browser
- * @return 0 on success, -1 on failure
- */
-int
-read_cssfile(char *buff, int maxlen, int mobile) {
-    char cssfile[255];
-    if (mobile) {
-        snprintf(cssfile, 255, "%s/tvpvrd/%s_mobile.css", CONFDIR, CSSFILE_NAME);
-    } else {
-        snprintf(cssfile, 255, "%s/tvpvrd/%s.css", CONFDIR, CSSFILE_NAME);
-    }
-    cssfile[254] = '\0';
-    char linebuff[1024];
-
-    *buff = '\0';
-    FILE *fp = fopen(cssfile, "r");
-    if (fp == NULL) {
-        logmsg(LOG_ERR, "Cannot read CSS file '&s'", cssfile);
-        return -1;
-    }
-
-    while (maxlen > 0 && fgets(linebuff, 1023, fp)) {
-        linebuff[1023] = '\0';
-        strncat(buff, linebuff, maxlen);
-        maxlen -= strlen(linebuff);
-    }
-
-    fclose(fp);
-    return 0;
-}
 
 /**
  * Display the top banner in the WEB interface
@@ -1051,6 +1151,21 @@ html_notfound(int sockd) {
             "Connection: close\r\n"
             "Content-Type: text/html\r\n\r\n<html><body><h3>404 - Not found.</h3></body></html>\r\n");
 }
+
+/**
+ * Return a standard 304 Not Modified Page
+ * @param sockd
+ */
+void
+html_notmodified(int sockd) {
+    logmsg(LOG_DEBUG,"Sent back not modified header");
+    _writef(sockd,
+            "HTTP/1.1 304 Not Modified\r\n"
+            "Server: tvpvrd\r\n"
+            "Connection: close\r\n"
+            "Content-Type: text/html\r\n\r\n");
+}
+
 
 /**
  * The full main page used when we are called from an ordinary browser

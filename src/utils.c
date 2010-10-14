@@ -437,7 +437,34 @@ matchcmd(const char *regex, const char *cmd, char ***field) { //, const char *fu
     //logmsg(LOG_DEBUG, "matchcmd() called from '%s()' at line #%05d",func,line);
     cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_UTF8,&errptr,&erroff,NULL);
     if( cregex ) {
-        ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,0 /*PCRE_MULTILINE|PCRE_NEWLINE_ANYCRLF*/,ovector,90);
+        ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,0,ovector,90);
+        pcre_free(cregex);
+        if( ret > 0 ) {
+            (void)pcre_get_substring_list(cmd,ovector,ret,(const char ***)field);
+            return ret;
+        }
+    }
+    return -1;
+}
+
+/*
+ * Utility function that uses Perl Regular Expression library to match
+ * a string and return an array of the found subexpressions
+ * NOTE: It is the calling routines obligation to free the returned
+ * field with a call to
+ * pcre_free_substring_list((const char **)field);
+ */
+int
+matchcmd_ml(const char *regex, const char *cmd, char ***field) { //, const char *func, int line) {
+    pcre *cregex;
+    int ovector[100];
+    const char *errptr;
+    int erroff,ret;
+
+    //logmsg(LOG_DEBUG, "matchcmd() called from '%s()' at line #%05d",func,line);
+    cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_UTF8|PCRE_NEWLINE_CRLF|PCRE_MULTILINE,&errptr,&erroff,NULL);
+    if( cregex ) {
+        ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,0,ovector,90);
         pcre_free(cregex);
         if( ret > 0 ) {
             (void)pcre_get_substring_list(cmd,ovector,ret,(const char ***)field);

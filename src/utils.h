@@ -116,6 +116,14 @@ int
 matchcmd(const char *regex, const char *cmd, char ***field);
 
 /*
+ * Utility function that uses Perl Regular Expression library to match
+ * a string and return an array of the found subexpressions
+ * Match Command which is multiline
+ */
+int
+matchcmd_ml(const char *regex, const char *cmd, char ***field);
+
+/*
  * This must be called after matchcmd() in order to free the allocated
  * field array
  */
@@ -330,6 +338,10 @@ trim(char *string);
 /*
  * First a number of generic unicode regex defines
  */
+
+// Match HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
+#define _PR_HTTPHEADER_DATE "([\\p{L}]{3}, [\\p{N}]{2} [\\p{L}]{3} [\\p{N}]{4} [\\p{N}:]{8} [\\p{L}]{3})"
+
 // Required space(s)
 #define _PR_S "[\\p{Z}]+"
 
