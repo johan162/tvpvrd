@@ -1,3 +1,78 @@
+[r231] 2010-10-14 17:04  johan162
+
+ * Add functionality for 'HTTP 305 Not Modified' header to reduce bandwidth usage
+   for WEB-interface 
+   
+   tvwebcmd.c, utils.c, utils.h
+   
+[r230] 2010-10-13 05:09  johan162
+
+ * Fix title name mangling so that the total number of recordings is correct even
+   after server is restarted. This is purely a cosmetic problem in the title of
+   the recording and never affected any functionality. 
+   
+   recs.c, tvxmldb.c
+   
+[r229] 2010-10-11 14:23  johan162
+
+ * Modified the way stopping of transcoding process was internally handled to
+   avoid an unecessary warning in the log files 
+   
+   transc.c, tvpvrsrv.c
+   
+[r228] 2010-10-11 07:18  johan162
+
+ * Updated man page 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r227] 2010-10-11 06:44  johan162
+
+ * Forgot to enable transcoding in tlow profile 
+   
+   trunk/profiles/tlow.profile
+   
+[r226] 2010-10-11 06:40  johan162
+
+ * If many profiles are sepcified for the same recording use the highest video
+   bitrate in the profiles for the initial MP2 HW encoder 
+   
+   transc.c, tvpvrsrv.c, vctrl.c
+   
+[r225] 2010-10-10 18:11  johan162
+
+ * Updated man page 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r224] 2010-10-10 17:45  johan162
+
+ * Updated header with comments in profile files 
+   
+   trunk/profiles/high.profile, trunk/profiles/low.profile,
+   trunk/profiles/thigh.profile, trunk/profiles/tlow.profile,
+   trunk/profiles/tnormal.profile
+   
+[r223] 2010-10-10 17:42  johan162
+
+ * Changed default profile to a more structed default by having three profile
+   low,normal and high and a version of each profile with and withtout transcoding 
+   
+   trunk/profiles/cropnormal.profile, trunk/profiles/high.profile,
+   trunk/profiles/low.profile, trunk/profiles/mobile.profile,
+   trunk/profiles/normal.profile, trunk/profiles/thigh.profile,
+   trunk/profiles/tlow.profile, trunk/profiles/tnormal.profile,
+   trunk/profiles/wnormal.profile
+   
+[r222] 2010-10-10 10:21  johan162
+
+ * Updated statistics to include 5min avg load as a preparation to include
+   prediction of transcoding time 
+   
+   trunk/ChangeLog, trunk/configure, trunk/configure.in,
+   trunk/docs/manpages/tvpvrd.1.xml, stats.c, stats.h, transc.c, transc.h,
+   tvcmd.c, tvpvrsrv.c, tvwebcmd.c, utils.h
+   
 [r221] 2010-10-08 07:34  johan162
 
  * Bumped version to 1.6.1 
