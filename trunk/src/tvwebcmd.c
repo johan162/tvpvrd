@@ -30,14 +30,13 @@
 
 // Standard UNIX includes
 #include <stdio.h>
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <locale.h>
 #include <time.h>
-#include <fcntl.h>
 
 #include "tvpvrd.h"
 #include "utils.h"
@@ -573,6 +572,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
             }
 
+            matchcmd_free(field);
+
         } else if ((ret = matchcmd("GET /addqrec\\?"
                 _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_ANPSO "&"
@@ -606,6 +607,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 cmd_delay = 2400000;
             }
 
+            matchcmd_free(field);
+
         } else if ((ret = matchcmd("GET /killrec\\?"
                 _PR_AN "=" _PR_AN 
                 " HTTP/1.1",
@@ -620,6 +623,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             // Wait half a second to allow the removal to be done and completed so that
             // it will show when the WEB-page is refreshed.
             cmd_delay = 500000;
+
+            matchcmd_free(field);
 
         } else if ((ret = matchcmd("^GET /delrec\\?"
                 _PR_AN "=" _PR_ANO "&"
@@ -642,6 +647,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 }
             }
 
+            matchcmd_free(field);
+
         } else if ( (ret = matchcmd("^GET /" _PR_ANP ".css HTTP/1.1", buffer, &field)) > 1) {
                        
             // Check if this is a call for one of the CSS files that we recognize
@@ -653,6 +660,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 // RFC 1123 format
                 char *cssfile = strdup(field[1]);
                 matchcmd_free(field);
+
                 time_t mtime = 0;
                 struct tm tm_date;
                 if( (ret = matchcmd_ml("^If-Modified-Since\\: (.*)", buffer, &field)) > 1 ) {
@@ -663,6 +671,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     locale_t lc =  newlocale(LC_ALL_MASK,"en_US",NULL);
                     char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
                     freelocale(lc);
+                    matchcmd_free(field);
                     
                     //logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
                     mtime = mktime(&tm_date);
@@ -682,24 +691,21 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                         logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header");
                     } else {                        
                         sendback_css_file(my_socket,cssfile,mtime);
-                    }
+                    }                    
                     
                 } else {
                     logmsg(LOG_DEBUG,"NOT Found If-Modified-Since:");
                     sendback_css_file(my_socket,cssfile,mtime);
                 }
                 free(cssfile);
-                matchcmd_free(field);
                 free(buffer);
                 
                 return;
 
+            } else {
+                matchcmd_free(field);
             }
 
-        }
-
-        if( ret > 0 ) {
-            matchcmd_free(field);
         }
 
         if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) {
@@ -747,6 +753,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                         html_login_page(my_socket, mobile);
                     }
                 } else {
+                    
                     // If the user has given any other page than an index page
                     //  we give a 404 Not Found error
                     matchcmd_free(field);
