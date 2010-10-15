@@ -146,7 +146,7 @@ void logmsg(int priority, char *msg, ...) {
     }
 
     // We only print errors by default and info if the verbose flag is set
-    if ( (priority == LOG_ERR) ||
+    if ( (priority == LOG_ERR) || (priority == LOG_CRIT) ||
          ((priority == LOG_INFO)   && verbose_log > 0) ||
          ((priority == LOG_NOTICE) && verbose_log > 1) ||
          ((priority == LOG_DEBUG)  && verbose_log > 2)      ) {
@@ -157,9 +157,15 @@ void logmsg(int priority, char *msg, ...) {
         if( priority == LOG_ERR ) {
             tmpbuff[0] = '*';
             tmpbuff[1] = '*';
+            tmpbuff[2] = ' ';
+            erroffset = 3;
+        } else if(priority == LOG_CRIT) {
+            tmpbuff[0] = '*';
+            tmpbuff[1] = '*';
             tmpbuff[2] = '*';
-            tmpbuff[3] = ' ';
-            erroffset = 4;
+            tmpbuff[3] = '*';
+            tmpbuff[4] = ' ';
+            erroffset = 5;
         }
         vsnprintf(tmpbuff+erroffset,blen-1-erroffset,msg,ap);
         tmpbuff[blen-1] = 0 ;
