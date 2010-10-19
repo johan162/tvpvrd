@@ -243,7 +243,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
             free(tmpbuff);
         }
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
         return sucess;
 
@@ -267,7 +267,7 @@ is_mobile_connection(char *buffer) {
     char **field = (void *) NULL;
     if (matchcmd("X-Wap-Profile:", buffer, &field) > 0) {
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
         return TRUE;
     }
 
@@ -276,10 +276,10 @@ is_mobile_connection(char *buffer) {
         logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
 
         char *header = strdup(field[1]);
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
         if (matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung|blac|moto|doco|java|symb)", header, &field) > 0) {
-            matchcmd_free(field);
+            matchcmd_free(&field);
             return TRUE;
         }
 
@@ -352,7 +352,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
             found = ret > 1;
         }
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
         return found;
 
@@ -392,10 +392,8 @@ read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
 
         struct tm t_tm1, t_tm2 ;
         char f1time[256],f2time[256];
-
-        //gmtime_r(&mstatbuf.st_mtime, &t_tm1);
-        localtime_r(&mstatbuf.st_mtime, &t_tm1);
-        logmsg(LOG_DEBUG,"After localtime on filetime: hour=%d",t_tm1.tm_hour);
+        
+        localtime_r(&mstatbuf.st_mtime, &t_tm1);        
         strftime(f1time, 128, "%a, %d %b %Y %T %Z", &t_tm1);
 
         localtime_r(&modifiedSince, &t_tm2);
@@ -474,7 +472,6 @@ sendback_css_file(int sockd, char *name, time_t modifiedSince) {
         html_notmodified(sockd);
     }
 
-
 }
 
 /**
@@ -507,7 +504,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
          if ((ret = matchcmd("GET /logout HTTP/1.1", buffer, &field)) == 1) {
 
-             matchcmd_free(field);
+             matchcmd_free(&field);
              free(buffer);
              html_login_page(my_socket,mobile);
              return;
@@ -572,7 +569,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
             }
 
-            matchcmd_free(field);
+            matchcmd_free(&field);
 
         } else if ((ret = matchcmd("GET /addqrec\\?"
                 _PR_AN "=" _PR_ANPSO "&"
@@ -607,7 +604,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 cmd_delay = 2400000;
             }
 
-            matchcmd_free(field);
+            matchcmd_free(&field);
 
         } else if ((ret = matchcmd("GET /killrec\\?"
                 _PR_AN "=" _PR_AN 
@@ -624,7 +621,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             // it will show when the WEB-page is refreshed.
             cmd_delay = 500000;
 
-            matchcmd_free(field);
+            matchcmd_free(&field);
 
         } else if ((ret = matchcmd("^GET /delrec\\?"
                 _PR_AN "=" _PR_ANO "&"
@@ -647,7 +644,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 }
             }
 
-            matchcmd_free(field);
+            matchcmd_free(&field);
 
         } else if ( (ret = matchcmd("^GET /" _PR_ANP ".css HTTP/1.1", buffer, &field)) > 1) {
                        
@@ -659,7 +656,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 // HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
                 // RFC 1123 format
                 char *cssfile = strdup(field[1]);
-                matchcmd_free(field);
+                matchcmd_free(&field);
 
                 time_t mtime = 0;
                 struct tm tm_date;
@@ -671,7 +668,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     locale_t lc =  newlocale(LC_ALL_MASK,"en_US",NULL);
                     char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
                     freelocale(lc);
-                    matchcmd_free(field);
+                    matchcmd_free(&field);
                     
                     //logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
                     mtime = mktime(&tm_date);
@@ -703,7 +700,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 return;
 
             } else {
-                matchcmd_free(field);
+                matchcmd_free(&field);
             }
 
         }
@@ -731,7 +728,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     get_assoc_value(pwd, maxvlen, "pwd", &field[1], ret - 1);
                     get_assoc_value(logsubmit, maxvlen, "submit_login", &field[1], ret - 1);
 
-                    matchcmd_free(field);
+                    matchcmd_free(&field);
                     
                     if (0 == strcmp(logsubmit, "Login")) {
 
@@ -756,7 +753,8 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     
                     // If the user has given any other page than an index page
                     //  we give a 404 Not Found error
-                    matchcmd_free(field);
+                    // matchcmd_free(&field);
+
                     logmsg(LOG_DEBUG,"Checking possible login command");
                     if( (0 == strncmp(buffer,"GET / HTTP",10)) || (0 == strncmp(buffer,"GET /index.html HTTP",19)) ) {
                         logmsg(LOG_DEBUG," - Sending back login page (ret=%d)",ret);
@@ -773,7 +771,7 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
             }
         } else {
             // Ignore GET favicon.ico
-            matchcmd_free(field);
+            matchcmd_free(&field);
             html_notfound(my_socket);
         }
     } else {
@@ -1205,9 +1203,9 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     _writef(sockd, "<div class=\"right_side\">");
     html_cmd_output(sockd, wcmd);
     usleep(cmd_delay); // Give some time for the command to execute
+    html_cmd_next(sockd);
     html_cmd_ongoing(sockd);
     html_cmd_ongoingtransc(sockd);
-    html_cmd_next(sockd);
     html_cmd_qadd(sockd);
     html_cmd_add_del(sockd);
 

@@ -29,6 +29,14 @@
 extern "C" {
 #endif
 
+#ifdef DEBUG_SIMULATE
+#define _dbg_close(fd) _x_dbg_close(fd)
+#else
+#define _dbg_close(fd) close(fd)
+#endif
+
+int
+_x_dbg_close(int fd);
 
 /*
  * Always holds a copy of the last log message printed to log
@@ -128,7 +136,7 @@ matchcmd_ml(const char *regex, const char *cmd, char ***field);
  * field array
  */
 void
-matchcmd_free(char **field);
+matchcmd_free(char ***field);
 
 /*
  * Return a pointer to a statically allocated string which are filled with

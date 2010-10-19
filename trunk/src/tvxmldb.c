@@ -154,7 +154,7 @@ parseTime(const char *time, int *h, int *m, int *s) {
         } else {
             *s = 0;
         }
-        matchcmd_free(field);
+        matchcmd_free(&field);
         return 1;
     } else {
         *h = 0;
@@ -180,7 +180,7 @@ parseDate(const char *date, int *y, int *m, int *d) {
         *y = atoi(field[1]);
         *m = atoi(field[2]);
         *d = atoi(field[3]);
-        matchcmd_free(field);
+        matchcmd_free(&field);
         return 1;
     } else {
         *y = 0;

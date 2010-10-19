@@ -333,12 +333,6 @@ extern "C" {
 #define FFMPEG_BIN "/usr/bin/ffmpeg"
 
 /*
- * TVPVRD_LOCKFILE string
- * Full name for lockfile to use
- */
-#define TVPVRD_LOCKFILE "/var/run/tvpvrd.pid"
-
-/*
  * WELCOM_MSG
  * Server welcome message
  */

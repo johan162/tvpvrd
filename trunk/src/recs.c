@@ -640,6 +640,10 @@ dumprecord_header(int style, char *buffer, int bufflen) {
  * 2		Record, several lines, long format
  * 3            Brief only channel,start,title (human readable)
  * 4            Fancy, use "today" and "tomorrow" as applicable
+ * 9            Just list timestamp for start and stop time for each recording
+ *              this is a special format used for the shutdown daemon to get
+ *              as list of upcoming recordings in order to know when to start up
+ *              and when to shut down recording server automatically
  */
 void
 dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) {
@@ -723,6 +727,10 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
                     entry->channel,
                     entry->title);
         }
+
+    } else if ( style == 9 ) {
+        // Only return timestamp
+        snprintf(buffer, bufflen, "%ld %ld %s\n",entry->ts_start,entry->ts_end,entry->title);
 
     } else {
         // Format 1 or 2 so we must differntiate a recurring and single record
