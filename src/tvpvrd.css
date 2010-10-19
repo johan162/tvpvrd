@@ -330,10 +330,10 @@ div.ongoing_transc_stop_disabled a {
 div.next_rec_container {
     margin-bottom:3pt;
     margin-left: 2pt;
-    color: #444;
+    color: #f7ef61;
     font-weight:bold;
     font-family:monospace;
-    background: white;
+    background: black;
     margin-right:0.5em;
     padding-left: 2pt;
     padding-bottom: 1pt;

@@ -50,7 +50,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_tvpvrd_OBJECTS = freqmap.$(OBJEXT) recs.$(OBJEXT) stats.$(OBJEXT) \
 	transc.$(OBJEXT) tvcmd.$(OBJEXT) tvpvrsrv.$(OBJEXT) \
 	tvxmldb.$(OBJEXT) utils.$(OBJEXT) vctrl.$(OBJEXT) \
-	tvwebcmd.$(OBJEXT)
+	tvwebcmd.$(OBJEXT) lockfile.$(OBJEXT)
 tvpvrd_OBJECTS = $(am_tvpvrd_OBJECTS)
 tvpvrd_LDADD = $(LDADD)
 tvpvrd_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(tvpvrd_LDFLAGS) \
@@ -155,10 +155,10 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -pthread -pedantic -Wpointer-arith -Wstrict-prototypes -Wall -Werror -D_FORTIFY_SOURCE=2
-tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c tvwebcmd.c
+tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c tvwebcmd.c lockfile.c
 tvpvrd_LDFLAGS = -liniparser -lxml2 -lpcre
 EXTRA_DIST = tvpvrd.conf tvpvrd.css
-noinst_HEADERS = freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h
+noinst_HEADERS = freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h lockfile.h
 DISTCLEANFILES = confpath.h
 CLEANFILES = *~
 all: config.h
@@ -261,6 +261,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/freqmap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lockfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/transc.Po@am__quote@

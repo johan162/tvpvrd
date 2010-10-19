@@ -61,6 +61,19 @@ char last_logmsg[MAX_LASTLOGMSG] = {'\0'};
 static int inlogfunction=0;
 int htmlencode_flag=0;
 
+/**
+ * Debug version of close()
+ * @param fd
+ * @return
+ */
+int
+_x_dbg_close(int fd) {
+
+    logmsg(LOG_NOTICE,"dbg_close() : fd=%d",fd);
+    return close(fd);
+
+}
+
 /*
  * _writef
  * Utility function
@@ -481,10 +494,11 @@ matchcmd_ml(const char *regex, const char *cmd, char ***field) { //, const char 
 }
 
 void
-matchcmd_free(char **field) { //,const char *func, int line) {
+matchcmd_free(char ***field) { //,const char *func, int line) {
     //logmsg(LOG_DEBUG, "matchcmd_free() called from '%s()' at line #%05d",func,line);
     if( field != (void *)NULL ) {
-        pcre_free_substring_list((const char **)field);
+        pcre_free_substring_list((const char **)*field);
+        *field = NULL;
     }
 }
 

@@ -92,8 +92,9 @@
 #define CMD_GETXMLHTML 32
 #define CMD_LIST_RECHUMAN 33
 #define CMD_LIST_VIDEO_INPUTS 34
+#define CMD_LIST_TS 35
 
-#define CMD_UNDEFINED 35
+#define CMD_UNDEFINED 36
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -146,6 +147,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
 			"  l    - list recordings\n"\
     			"  lh   - list recordings, human format\n"\
+                        "  lh   - list recordings, using timestamps good for m2m communications\n"\
                         "  li   - list all video inputs for the capture card\n"\
                         "  lc   - list all controls for the capture card\n"\
                         "  log n -show the last n lines of the logfile\n"\
@@ -210,7 +212,7 @@ _cmd_help(const char *cmd, int sockfd) {
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);
         
-        matchcmd_free(field);
+        matchcmd_free(&field);
     }
     else {
         _writef(sockfd, msgbuff);
@@ -258,7 +260,7 @@ _cmd_setprofile(const char *cmd, int sockfd) {
             snprintf(msgbuff,255,"Failed to set profile '%s' on recording %03d\n",field[2],atoi(field[1]));
         }
         _writef(sockfd,msgbuff);
-        matchcmd_free(field);
+        matchcmd_free(&field);
     } else {
         _writef(sockfd,"ret=%d\n",ret);
         _cmd_undefined(cmd,sockfd);
@@ -306,7 +308,7 @@ _cmd_delete(const char *cmd, int sockfd) {
         else
             snprintf(msgbuff, 256, "Can not delete record #%02d", id);
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
     } else {
         snprintf(msgbuff, 256, "Command not recognized.");
@@ -442,7 +444,7 @@ _cmd_add(const char *cmd, int sockfd) {
             repeat_nbr = atoi(field[2]);
             snprintf(cmdbuff,255, "a %s", field[3]);
             cmdbuff[255] = 0;
-            matchcmd_free(field);
+            matchcmd_free(&field);
 
         }
         else {
@@ -511,7 +513,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     snprintf(cmdbuff,255, "a %s", field[5]);
                     cmdbuff[255] = 0;
 
-                    matchcmd_free(field);
+                    matchcmd_free(&field);
 
                 }
             } else {
@@ -617,7 +619,7 @@ _cmd_add(const char *cmd, int sockfd) {
             title[128-1] = '\0';
             channel[64-1] = '\0';
 
-            matchcmd_free(field);
+            matchcmd_free(&field);
 
         } else {
             // Variant 1 :
@@ -729,7 +731,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     fromtimestamp(ts_end, &ey, &em, &ed, &eh, &emin, &esec);
                 }
 
-                matchcmd_free(field);
+                matchcmd_free(&field);
 
             } else {
 
@@ -869,7 +871,7 @@ _cmd_add(const char *cmd, int sockfd) {
                             }
                         }
 
-                        matchcmd_free(field);
+                        matchcmd_free(&field);
                     }
                 } else {
 
@@ -971,7 +973,7 @@ _cmd_add(const char *cmd, int sockfd) {
                             }
                         }
 
-                        matchcmd_free(field);
+                        matchcmd_free(&field);
                     }
 
                 }
@@ -1151,7 +1153,7 @@ _cmd_list(const char *cmd, int sockfd) {
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
-            matchcmd_free(field);
+            matchcmd_free(&field);
             return;
         }
 
@@ -1166,7 +1168,7 @@ _cmd_list(const char *cmd, int sockfd) {
 
     }
     
-    matchcmd_free(field);
+    matchcmd_free(&field);
     listrecs(n, 0, sockfd);
 }
 
@@ -1189,7 +1191,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
-            matchcmd_free(field);
+            matchcmd_free(&field);
             return;
         }
 
@@ -1204,10 +1206,36 @@ _cmd_list_human(const char *cmd, int sockfd) {
 
     }
 
-    matchcmd_free(field);
+    matchcmd_free(&field);
     listrecs(n, 3, sockfd);
 }
 
+static void
+_cmd_list_ts(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "lts         - List all pending recordings in timestamp format\n"
+                 );
+        return;
+    }
+
+    int ret = matchcmd("^lts" _PR_E, cmd, &field);
+    int n;
+     if ( ret == 1 ) {
+
+        matchcmd_free(&field);
+        n = -1; // Default to all records
+
+    } else {
+
+        _writef(sockfd,"Syntax error.\n",ret);
+        return;
+
+    }
+
+    listrecs(n, 9, sockfd);
+}
 
 
 /**
@@ -1292,7 +1320,7 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
             _cmd_undefined(cmd,sockfd);
         }
     }
-    matchcmd_free(field);
+    matchcmd_free(&field);
 }
 
 /**
@@ -1314,7 +1342,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
     int ret = matchcmd("^lc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     if( ret == 2 ) {
         int video = atoi(field[1]);
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
         int fd = video_open(video);
         if( fd >= 0 ) {
@@ -1685,7 +1713,7 @@ _cmd_dump_tprofile(const char *cmd, int sockfd) {
     int ret = matchcmd("^dp" _PR_S _PR_PROFN _PR_E, cmd, &field);
     if( ret == 2 ) {
         dump_transcoding_profile(&field[1][1], msgbuff, 1024);
-        matchcmd_free(field);
+        matchcmd_free(&field);
 	_writef(sockfd,msgbuff);
     } else {
         snprintf(msgbuff,1024,"Syntax error. Please specify '@profile' to display.\n");
@@ -1896,7 +1924,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
         }
     }
 
-    matchcmd_free(field);
+    matchcmd_free(&field);
 }
 
 
@@ -1939,7 +1967,7 @@ _cmd_abort(const char *cmd, int sockfd) {
         _cmd_undefined(cmd,sockfd);
     }
 
-    matchcmd_free(field);
+    matchcmd_free(&field);
 }
 
 
@@ -2061,7 +2089,7 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
     } else {
         _cmd_undefined(cmd, sockfd);
     }
-    matchcmd_free(field);
+    matchcmd_free(&field);
 }
 
 /**
@@ -2124,7 +2152,7 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
         }
     }
     
-    matchcmd_free(field);
+    matchcmd_free(&field);
 }
 
 /**
@@ -2170,7 +2198,7 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
 
         _writef(sockfd,"Ok. Transcoding of '%s' using profile '%s' queued.\n",basename(field[1]),profile);
         
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
     } else {
 
@@ -2214,7 +2242,7 @@ _cmd_transcodefilelist(const char *cmd, int sockfd) {
         (void)read_transcode_filelist(field[1],profile);
         _writef(sockfd,"Ok. Transcoding of filelist started.\n");
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
     } else {
         _writef(sockfd,"Syntax error.\n");
@@ -2255,7 +2283,7 @@ _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
         (void)transcode_whole_directory(field[1],profile);
         _writef(sockfd,"Ok. Transcoding of directory.\n");
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
     } else {
         _writef(sockfd,"Syntax error.\n");
@@ -2288,7 +2316,7 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
             _writef(sockfd,buffer);
         }
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
     } else {
 
@@ -2301,7 +2329,7 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
                 _writef(sockfd,buffer);
             }
 
-            matchcmd_free(field);
+            matchcmd_free(&field);
 
         } else {
             _writef(sockfd,"Syntax error.\n");
@@ -2329,13 +2357,13 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
             return;
         }
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
     } else if ( ret == 1 ) {
 
         n = 10; // Default to the last 10 lines
 
-        matchcmd_free(field);
+        matchcmd_free(&field);
 
     } else {
 
@@ -2438,6 +2466,7 @@ cmdinit(void) {
     cmdtable[CMD_SHOW_LASTLOG]      = _cmd_show_last_log;
     cmdtable[CMD_LISTWAITINGTRANSC] = _cmd_list_waiting_transcodings;
     cmdtable[CMD_LIST_VIDEO_INPUTS] = _cmd_list_video_inputs;
+    cmdtable[CMD_LIST_TS]           = _cmd_list_ts;
 }
 
 /**
@@ -2468,6 +2497,7 @@ _getCmdPtr(const char *cmd) {
         {"i",  CMD_INFO},
         {"ktf",CMD_KILLTRANSCODING},
         {"kt", CMD_KILLTRANSCODING},
+        {"lts",CMD_LIST_TS},
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"lc", CMD_LIST_CONTROLS},
         {"lh", CMD_LIST_RECHUMAN},
