@@ -2526,7 +2526,12 @@ int
 main(int argc, char *argv[]) {
     sigset_t signal_set;
     pthread_t signal_thread;
-   
+
+/*
+ * #define TVPVRD_LOCKFILE "/var/run/tvpvrd.pid"
+ */
+    strcpy(lockfilename,"/var/run/tvpvrd.pid");
+
     // Set lockfile to avoid multiple instances running
     if( -1 == createlockfile() ) {
         fprintf(stderr,"Cannot start server. Check system log for more information.\n");
