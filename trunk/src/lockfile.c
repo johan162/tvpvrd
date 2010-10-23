@@ -56,7 +56,7 @@
  * Lockfile
  * Used to store the name of the lockfile used when starting up the server
  */
-static char lockfilename[256] = {0};
+char lockfilename[256] = {0};
 
 
 /**
@@ -87,7 +87,7 @@ updatelockfilepid(void) {
     char buff[256];
     pid_t pid = getpid();
     *buff = '\0';
-    snprintf(buff,255,"%s",TVPVRD_LOCKFILE);
+    snprintf(buff,255,"%s",lockfilename);
     buff[255] = '\0';
     int fd = open(buff,O_CREAT|O_WRONLY,fmode);
     if( fd == -1 ) {
@@ -107,7 +107,7 @@ createlockfile(void) {
 
     // First try to create it under "/var/run"
     *buff = '\0';
-    snprintf(buff,255,"%s",TVPVRD_LOCKFILE);
+    snprintf(buff,255,"%s",lockfilename);
     if( stat(buff,&fstat) == 0 ) {
         // File exists
         // Another instance of us are already running
@@ -156,7 +156,7 @@ createlockfile(void) {
             // Try using current working directory
             char *ret = getcwd(cwd,256);
             if( ret != NULL ) {
-                snprintf(buff,255,"%s/%s",cwd,basename(TVPVRD_LOCKFILE));
+                snprintf(buff,255,"%s/%s",cwd,basename(lockfilename));
                 if( stat(buff,&fstat) == 0 ) {
                     // File exists
                     // Another instance of us could possible be running but to

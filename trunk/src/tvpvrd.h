@@ -338,7 +338,7 @@ extern "C" {
  */
 #define WELCOM_MSG \
         "!TVPVRD!\n"\
-	"Welcome to TVPVR-%s [%s] (%s)\n"\
+	"Welcome to tvpvrd-%s [%s] (%s)\n"\
 	"You are user number %d out of %d allowed.\n"\
 	"Type 'exit' to disconnect.\n"\
 	"Type 'h' to list available commands.\n"\

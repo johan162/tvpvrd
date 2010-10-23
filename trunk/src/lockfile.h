@@ -35,7 +35,7 @@ extern "C" {
  * TVPVRD_LOCKFILE string
  * Full name for lockfile to use
  */
-#define TVPVRD_LOCKFILE "/var/run/tvpvrd.pid"
+extern char lockfilename[] ;
 
 /**
  * Delete exising lockfile (if we have the permission to do so)
