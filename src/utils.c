@@ -1047,11 +1047,17 @@ send_mail(const char *subject, const char *to, const char *message) {
     }
 
     snprintf(buffer,blen-1,
-	"echo '%s' | /usr/bin/mail -s '%s' '%s'",message, subject, to);
+	"echo \"%s\" | /usr/bin/mail -s '%s' '%s'",message, subject, to);
 
     logmsg(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
 
-    return system(buffer);
+    int rc=system(buffer);
+
+    if( rc ) {
+        logmsg(LOG_ERR,"Failed to send mail. ( %d : %s )",errno,strerror(errno));
+    }
+
+    return rc;
 
 }
 
