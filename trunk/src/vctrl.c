@@ -46,7 +46,9 @@
 #include <string.h>
 #include <syslog.h>
 #include <math.h>
-#include <stropts.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 // Needed for all the video stuff
@@ -86,7 +88,6 @@ static const int num_named_sizes = sizeof(named_size)/sizeof(struct framesize);
  * actual value, min/max  range and type.
  */
 static struct vidcontrol vidcontrols[32];
-
 
 /**
  * Special version of ioctl() that can handle an interrupt in the middle
@@ -1023,6 +1024,5 @@ video_get_wh_fromname(int *width, int *height, char *name) {
     *height = named_size[i].height;
     return 0;
 }
-
 
 /* vctrl.c */
