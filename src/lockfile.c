@@ -42,6 +42,7 @@
 #include <getopt.h>
 #include <dirent.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <grp.h>
 #include <sys/resource.h>
