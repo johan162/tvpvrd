@@ -131,7 +131,7 @@ _vsyslogf(int priority, char *msg, ...) {
     }
     vsnprintf(tmpbuff+erroffset,blen-1-erroffset,msg,ap);
     tmpbuff[blen-1] = 0 ;
-    syslog(priority,tmpbuff);
+    syslog(priority,"%s", tmpbuff);
 }
 
 /*
@@ -188,7 +188,7 @@ void logmsg(int priority, char *msg, ...) {
                 openlog(server_program_name, LOG_PID | LOG_CONS, LOG_DAEMON);
                 _loginit = 1;
             }
-            syslog(priority, tmpbuff);
+            syslog(priority, "%s", tmpbuff);
             // Syslogger
         } else {
             mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
@@ -208,7 +208,7 @@ void logmsg(int priority, char *msg, ...) {
                     _loginit = 1;
                 }
                 syslog(LOG_ERR, "Couldn't open specified log file. Falling back to syslog.");
-                syslog(priority, tmpbuff);
+                syslog(priority, "%s", tmpbuff);
             } else {
                 static const int tblen = 32;
                 char timebuff[tblen] ;
@@ -257,7 +257,7 @@ void logmsg(int priority, char *msg, ...) {
 
             if( send_mail(subjbuff,send_mailaddress,msgbuff) ) {
                 syslog(priority, "'tvpvrd' Failed sending error notification mail. ");
-                syslog(priority, tmpbuff);
+                syslog(priority, "%s", tmpbuff);
             } else {
                 logmsg(LOG_DEBUG,"Mail notification on error sent to '%s'",send_mailaddress);
             }
