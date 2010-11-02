@@ -88,7 +88,7 @@ static const xmlChar *xmldb_nameRecStartNumber= (xmlChar *) "startnumber";
 /*
  * Process a <repeat> .. </repeat> block
  */
-static void processRepeatingRecording(xmlDocPtr doc, xmlNodePtr node, int *rectype, int *recnbr, 
+static void processRepeatingRecording(xmlNodePtr node, int *rectype, int *recnbr, 
                                       int *recmangling, char *recprefix, int *startnumber) {
     xmlNodePtr childnode;
     xmlChar *xmlval;
@@ -194,7 +194,7 @@ parseDate(const char *date, int *y, int *m, int *d) {
  * Parse a single recording in the XML file. Extract the necessary fields
  * and add this as a proper entry in the list of recordings.
  */
-static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
+static void processRecording(xmlNodePtr node) {
     char directory[512], tmpbuff[512], bname_buffer[512];
     char filename[REC_MAX_NFILENAME], title[REC_MAX_NTITLE], channel[REC_MAX_NCHANNEL];
     char recprefix[REC_MAX_NPREFIX], *profiles[REC_MAX_TPROFILES];
@@ -279,7 +279,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameRecurrence) == 0) {
                 recurrence = 1;
-                processRepeatingRecording(doc, node,
+                processRepeatingRecording(node,
                         &rectype, &recnbr, &recmangling, recprefix, &startnumber);
             } else {
                 logmsg(LOG_ERR, "Unknown XML node name: %s", node->name);
@@ -292,7 +292,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
     bname_buffer[511] = '\0';
     strncpy(filename, basename(bname_buffer), REC_MAX_NFILENAME);
 
-    if( video >= max_video || video < 0 ) {
+    if( video >= (int)max_video || video < 0 ) {
         logmsg(LOG_ERR, "Cannot insert record: '%s' invalid video card specified (%d)", title,video);
     }
     else {
@@ -332,7 +332,7 @@ static void processRecording(xmlDocPtr doc, xmlNodePtr node) {
             snprintf(tmpbuff, 512, "Cannot insert record '%s' since it collides with existing recordings.", entry->title);
             tmpbuff[512-1] = '\0';
             logmsg(LOG_ERR, tmpbuff);
-            freerec(entry,"processRecording()");
+            freerec(entry);
             entry = NULL;
         } else {
             logmsg(LOG_NOTICE, "  -- inserted record '%s'", title);
@@ -398,7 +398,7 @@ readXMLFile(const char *filename) {
     node = node->xmlChildrenNode;
     while (node != NULL) {
         if (xmlStrcmp(node->name, xmldb_nameRecording) == 0) {
-            processRecording(doc, node);
+            processRecording(node);
         }
         node = node->next;
     }
@@ -424,9 +424,9 @@ _writeXMLFile(const int fd) {
 
 int
 _writeXMLFileHTML(const int fd) {
-    int j, nsaved_recrec;
+    unsigned j, nsaved_recrec;
     int y, m, d, h, min, sec;
-    int saved_recrec[2 * MAX_ENTRIES];
+    unsigned saved_recrec[2 * MAX_ENTRIES];
     char tmpbuff[256];
     time_t now;
 
@@ -443,9 +443,9 @@ _writeXMLFileHTML(const int fd) {
     _writef(fd, "<!-- Created: %s -->\n", ctime(&now));
     _writef(fd, "<%s %s=\"1\">\n",xmldb_root,xmldb_nameVersion);
 
-    for (int video = 0; video < max_video; video++) {
+    for (unsigned video = 0; video < max_video; video++) {
 
-        for (int i = 0; i < num_entries[video]; i++) {
+        for (unsigned i = 0; i < num_entries[video]; i++) {
 
             if (recs[REC_IDX(video, i)]->recurrence == 0) {
                 // Process a single recording
@@ -482,8 +482,8 @@ _writeXMLFileHTML(const int fd) {
 
                     // Start by finding the lowest start number in the sequence, this will be th start
                     // number that we save in the master record
-                    int min_start_number = recs[REC_IDX(video, i)]->recurrence_start_number;
-                    for(int k=i+1; k <  num_entries[video]; k++) {
+                    unsigned min_start_number = recs[REC_IDX(video, i)]->recurrence_start_number;
+                    for(unsigned k=i+1; k <  num_entries[video]; k++) {
                         if( recs[REC_IDX(video, k)]->recurrence &&
                             recs[REC_IDX(video, k)]->recurrence_id == recs[REC_IDX(video, i)]->recurrence_id ) {
                             min_start_number = MIN(recs[REC_IDX(video, k)]->recurrence_start_number,min_start_number);

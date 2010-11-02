@@ -116,7 +116,7 @@ increcdays(int rectype, time_t *ts_start, time_t *ts_end,
 //_matchcmd_free(char **field,const char *func, int line);
 
 
-/*
+/*1016
  * Utility function that uses Perl Regular Expression library to match
  * a string and return an array of the found subexpressions
  */
@@ -144,7 +144,7 @@ matchcmd_free(char ***field);
  * statically allocated buffer which will be the same for all threads
  */
 char *
-rptchr_r(char c, unsigned int num, char *buf);
+rptchr_r(char c, size_t num, char *buf);
 
 
 /*
@@ -172,7 +172,7 @@ removedir(const char *dir);
  * name.
  */
 int
-mv_and_rename(char *from, char *to, char *newname, int size);
+mv_and_rename(char *from, char *to, char *newname, size_t maxlen);
 
 /**
  * Copy the string src to dst, but no more than size - 1 bytes, and
@@ -182,11 +182,11 @@ mv_and_rename(char *from, char *to, char *newname, int size);
  *
  * @param dst destination buffer
  * @param src source string
- * @param size size of destination buffer
+ * @param maxlen size of destination buffer
  * @return the length of src
  */
 size_t
-xstrlcpy(char *dst, const char *src, size_t size);
+xstrlcpy(char *dst, const char *src, size_t maxlen);
 
 /**
  * Append the string src to the string dst, but to a total length of
@@ -296,7 +296,7 @@ getwsetsize(int pid, int *size, char *unit, int *threads);
  * @return
  */
 int
-tail_logfile(int n, char *buffer, int maxlen);
+tail_logfile(unsigned n, char *buffer, size_t maxlen);
 
 /**
  * Send a simple text mail to the specified recepients
@@ -325,11 +325,11 @@ extern int htmlencode_flag;
  * @param maxlen
  * @param key
  * @param list
- * @param n
+ * @param listlen
  * @return
  */
 int
-get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
+get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t listlen);
 
 /**
  * Trim a string by removing beginning and ending psaces
@@ -337,6 +337,15 @@ get_assoc_value(char *value,int maxlen,char *key,char *list[],int n);
  */
 void
 trim(char *string);
+
+/**
+ * Escape doublequotes in a string
+ * @param tostr
+ * @param fromstr
+ * @param maxlen
+ */
+void
+escape_quotes(char *tostr, char *fromstr, size_t maxlen);
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands

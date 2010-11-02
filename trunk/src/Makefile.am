@@ -1,4 +1,4 @@
-AM_CFLAGS = -pthread -pedantic -Wpointer-arith -Wstrict-prototypes -Wall -Werror -Wformat=2 -D_FORTIFY_SOURCE=2 `xml2-config --cflags`
+AM_CFLAGS = -pthread -pedantic -Wpointer-arith -Wstrict-prototypes -Wall -Werror -Wextra -Wformat=2 -D_FORTIFY_SOURCE=2 `xml2-config --cflags`
 bin_PROGRAMS = tvpvrd
 
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c tvwebcmd.c lockfile.c

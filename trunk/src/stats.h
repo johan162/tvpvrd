@@ -85,7 +85,7 @@ write_stats(void);
  * @return
  */
 int
-stats_update(char *name,unsigned mp2size,unsigned recorded_time,unsigned mp4size,
+stats_update(char *name, unsigned mp2size, unsigned recorded_time, unsigned mp4size,
              struct timeall *transcode_time, float avg_5load);
 
 /**
@@ -104,7 +104,7 @@ get_stats(char *name, struct profile_stat_entry **entry);
  * @return
  */
 int
-dump_profilestats(char *buff, int size);
+dump_profilestats(char *buff, size_t size);
 
 /**
  * Reset all statics (to 0). This will not affect the stored statistics until

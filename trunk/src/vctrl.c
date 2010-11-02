@@ -95,7 +95,7 @@ static struct vidcontrol vidcontrols[32];
  * @return 0 on successs, -1 otherwise 
  */
 static int
-xioctl(int fd, int request, void * arg) {
+xioctl(int fd, unsigned long request, void * arg) {
     int r;
 
     do {
@@ -363,7 +363,7 @@ _vctrl_gettunerinfo(const int fd, double *frequnits,
  * _vctrl_channel(VCTR_GET,fd,ch,16);
  */
 int
-_vctrl_channel(const int set, const int fd, char *ch, int size) {
+_vctrl_channel(const int set, const int fd, char *ch, size_t size) {
     unsigned int freq;
     struct v4l2_frequency vfreq;
     char *static_ch;
@@ -477,7 +477,7 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
                      vctl->value,vctl->defval,vctl->minval,vctl->maxval,vctl->step);
         }
         if( vctl->type == VCTRL_MENU ) {
-            for(int i=0; i < vctl->num_menu; i++) {
+            for(unsigned i=0; i < vctl->num_menu; i++) {
                 if( longformat ) {
                     snprintf(menu,255,"%-41s : %d = %s\n"," ",vctl->menu[i].index,vctl->menu[i].name);
                 } else {
@@ -499,11 +499,11 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
  * @return The number of controls found, -1 on error
  */
 int
-_vctrl_getcontrols(int fd, struct vidcontrol vctl[], int size) {
+_vctrl_getcontrols(int fd, struct vidcontrol vctl[], size_t size) {
     struct v4l2_queryctrl qctl;
     struct v4l2_control ctl;
     struct v4l2_querymenu qmenu;
-    int vci;
+    size_t vci;
 
     CLEAR(qctl);
     qctl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
@@ -534,7 +534,7 @@ _vctrl_getcontrols(int fd, struct vidcontrol vctl[], int size) {
                     CLEAR(qmenu);
                     qmenu.id = qctl.id;
                     int midx=0;
-                    for (qmenu.index = qctl.minimum; qmenu.index <= qctl.maximum; qmenu.index++) {
+                    for (qmenu.index = (unsigned)qctl.minimum; qmenu.index <= (unsigned)qctl.maximum; qmenu.index++) {
                         if (0 == ioctl(fd, VIDIOC_QUERYMENU, &qmenu)) {
                             vctl[vci].menu[midx].index = qmenu.index;
                             strncpy(vctl[vci].menu[midx].name, (char *)qmenu.name,31);
@@ -785,7 +785,7 @@ video_set_input_source(const int fd, int index) {
  * }
  */
 int
-video_set_video_bitrate(int fd, int bitrate, int peak_bitrate) {
+video_set_video_bitrate(int fd, unsigned bitrate, unsigned peak_bitrate) {
 
     // First some sanity check on the parameters
     if (bitrate < 500000 || peak_bitrate < 500000) {
@@ -797,7 +797,7 @@ video_set_video_bitrate(int fd, int bitrate, int peak_bitrate) {
         return -1;
     }
 
-    int old_bitrate, old_peakbitrate;
+    unsigned old_bitrate, old_peakbitrate;
     int ret = video_get_video_bitrate(fd, &old_bitrate, &old_peakbitrate);
     if( ret != 0 ) {
         logmsg(LOG_ERR, "Can not read old video bitrate before setting new fd=%d ( %d : %s )", fd, errno, strerror(errno));
@@ -834,11 +834,11 @@ video_set_video_bitrate(int fd, int bitrate, int peak_bitrate) {
  * Get the current bitrate used by the card
  */
 int
-video_get_video_bitrate(int fd, int *bitrate, int *peak_bitrate) {
-    int ret = video_get_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
+video_get_video_bitrate(int fd, unsigned *bitrate, unsigned *peak_bitrate) {
+    int ret = video_get_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE, (int *)bitrate);
     if( ret != 0 )
         return ret;
-    return video_get_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
+    return video_get_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, (int *)peak_bitrate);
 }
 
 /*
@@ -860,8 +860,10 @@ video_get_video_bitrate(int fd, int *bitrate, int *peak_bitrate) {
  * @return -1 on error, 0 on success 
  */
 int
-video_set_audio_bitrate(int fd, int sampling, int bitrate) {
-    if( sampling < V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 || sampling > V4L2_MPEG_AUDIO_SAMPLING_FREQ_32000 )
+video_set_audio_bitrate(int fd, unsigned sampling, unsigned bitrate) {
+    if( sampling != V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000 &&
+        sampling != V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 &&
+        sampling != V4L2_MPEG_AUDIO_SAMPLING_FREQ_32000 )
         return -1;
     int ret = video_set_controlbyid(fd, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ, sampling);
     if( ret != 0 ) {
@@ -882,11 +884,11 @@ video_set_audio_bitrate(int fd, int sampling, int bitrate) {
  * Return the current audio parameters used
  */
 int
-video_get_audio_bitrate(int fd, int *sampling, int *bitrate) {
-    int ret = video_get_controlbyid(fd, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ, sampling);
+video_get_audio_bitrate(int fd, unsigned *sampling, unsigned *bitrate) {
+    int ret = video_get_controlbyid(fd, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ, (int *)sampling);
     if( ret != 0 )
         return ret;
-    return video_get_controlbyid(fd, V4L2_CID_MPEG_AUDIO_L2_BITRATE, bitrate);
+    return video_get_controlbyid(fd, V4L2_CID_MPEG_AUDIO_L2_BITRATE, (int *)bitrate);
 }
 
 /*
@@ -902,7 +904,7 @@ video_get_audio_bitrate(int fd, int *sampling, int *bitrate) {
  * @return -1 on fail, 0 on success
  */
 int
-video_set_video_aspect(int fd, int aspect) {
+video_set_video_aspect(int fd, unsigned aspect) {
     int ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_ASPECT, aspect);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video aspect fd=%d ( %d : %s )",fd,errno, strerror(errno));
@@ -964,7 +966,7 @@ video_set_channel(const int fd, char *ch) {
  * @return 0 on suceess, -1 on failure
  */
 int
-video_get_channel(const int fd, char *ch, int size) {
+video_get_channel(const int fd, char *ch, size_t size) {
     return _vctrl_channel(VCTRL_GET, fd, ch, size);
 }
 

@@ -994,7 +994,7 @@ struct station_map_entry {
 };
 
 static struct station_map_entry station_map[256] ;
-static int num_stations = 0 ;
+static size_t num_stations = 0 ;
 
 /**
  * Try to read broadcast names mapping to channel names
@@ -1034,7 +1034,7 @@ read_xawtvfile(const char *name) {
 
 void
 list_stations(int fd) {
-    for(int i=0; i<num_stations; i++) {
+    for(unsigned i=0; i<num_stations; i++) {
         _writef(fd,"%-5s: %s\n",station_map[i].channel,station_map[i].name);
     }
 }
@@ -1047,15 +1047,15 @@ _qstrcmp(const void *s1, const void *s2) {
 }
 
 int
-get_stations(const char *stations[],int maxlen) {
-    int n = MIN(num_stations,maxlen);
-    for(int i=0; i < n; i++) {
+get_stations(const char *stations[],size_t maxlen) {
+    unsigned n = MIN(num_stations,maxlen);
+    for(unsigned i=0; i < n; i++) {
         stations[i] = station_map[i].name;
     }
 
     qsort(stations,n,sizeof(char *),_qstrcmp);
 
-    return n;
+    return (int)n;
 }
 
 /**
@@ -1066,8 +1066,8 @@ get_stations(const char *stations[],int maxlen) {
  * @return 0 on success, -1 on failure
  */
 int
-get_chfromstation(const char *station, char *chbuffer, int size) {
-    for(int i=0; i < num_stations; i++) {
+get_chfromstation(const char *station, char *chbuffer, size_t size) {
+    for(unsigned i=0; i < num_stations; i++) {
         if( stricmp(station,station_map[i].name) == 0  ) {
             strncpy(chbuffer, station_map[i].channel, size);
             chbuffer[size-1]='\0';
@@ -1099,7 +1099,7 @@ set_current_freqmap(const char *name) {
  * @return The current map index
  */
 int
-get_current_freqmap(char *name, int size) {
+get_current_freqmap(char *name, size_t size) {
     strncpy(name,frequence_map[curr_fmap].name,size);
     name[size-1] = '\0';
     return curr_fmap;
@@ -1111,9 +1111,9 @@ get_current_freqmap(char *name, int size) {
  */
 int
 getfmapidx(const char *name) {
-    for (int i = 0; i < num_fmap; i++) {
+    for (unsigned i = 0; i < num_fmap; i++) {
         if (stricmp(name, frequence_map[i].name) == 0  && frequence_map[i].size > 0)
-            return i;
+            return (int)i;
     }
     return -1;
 }
@@ -1129,7 +1129,7 @@ getchfromfreq(char **ch, const unsigned int freq) {
     if (curr_fmap >= num_fmap) {
         return -1;
     }
-    for (unsigned int i = 0; i < frequence_map[curr_fmap].size; ++i) {
+    for (unsigned i = 0; i < frequence_map[curr_fmap].size; ++i) {
         if (freq == frequence_map[curr_fmap].tbl[i].freq*1000) {
             *ch = &frequence_map[curr_fmap].tbl[i].ch[0];
             return 0;
@@ -1185,8 +1185,9 @@ getfreqfromstr(unsigned int *freq,const char *name) {
  * with pointer to statically alocated buffers with the name of 
  * all the defined frequency maps
  */
-int getfmapnames(char *names[], int size) {
-    int i;
+unsigned
+getfmapnames(char *names[], size_t size) {
+    unsigned i;
     for(i=0; i < size && i < num_fmap; i++) {
         names[i] = frequence_map[i].name;
     }

@@ -54,7 +54,7 @@ static unsigned num_stats = 0 ;
 
 int
 get_stats(char *name, struct profile_stat_entry **entry) {
-    int i;
+    unsigned i;
     for(i=0; i < num_stats && strncmp(name,profile_stats[i]->profile_name,32); i++)
         ;
     if( i >= num_stats ) {
@@ -84,8 +84,8 @@ stats_update(char *name,unsigned mp2size,unsigned recorded_time,unsigned mp4size
     //unsigned t1_sec = (transcode_time->utime.tv_sec + transcode_time->stime.tv_sec) % 60;
 
     // The user experienced running time (including when the process has been waiting)
-    unsigned t2_min = transcode_time->rtime.tv_sec / 60 ;
-    unsigned t2_sec = transcode_time->rtime.tv_sec % 60;
+    unsigned t2_min = (unsigned)transcode_time->rtime.tv_sec / 60 ;
+    unsigned t2_sec = (unsigned)transcode_time->rtime.tv_sec % 60;
 
     logmsg(LOG_NOTICE,"Adding stats. ['%s', mp2size=%6d kB, mp4size=%6d kB, rec.time=%3d min,"
             " trans.rtime=%03d:%02d min, trans.utime=%3d:%02d min, trans.stime=%3d:%02d min]",
@@ -141,7 +141,7 @@ read_profile_stats(char *profilename) {
 
     // First check that this stats doesn't already exist. This could happen if we try to re-read
     // the stats and we don't want that since it would erase all updated stats in the memory.
-    int i;
+    unsigned i;
     for (i = 0; i < num_stats && strncmp(profilename, profile_stats[i]->profile_name, 32); i++)
         ;
     if (i < num_stats) {
@@ -162,14 +162,14 @@ read_profile_stats(char *profilename) {
     dictionary *stats = iniparser_load(filename);
     if (stats) {
 
-        entry->num_samples = iniparser_getint(stats, "stats:num_samples", 0);
-        entry->transcoding_speed = iniparser_getint(stats, "stats:transcoding_speed", 0);
-        entry->mp2size_1min = iniparser_getint(stats, "stats:mp2size_1min", 0);
-        entry->mp4size_1min = iniparser_getint(stats, "stats:mp4size_1min", 0);
-        entry->total_ttime = iniparser_getint(stats, "stats:total_ttime", 0);
-        entry->total_mp2time = iniparser_getint(stats, "stats:total_mp2time", 0);
-        entry->total_mp2files = iniparser_getint(stats, "stats:total_mp2files", 0);
-        entry->total_mp4files = iniparser_getint(stats, "stats:total_mp4files", 0);
+        entry->num_samples = (unsigned)iniparser_getint(stats, "stats:num_samples", 0);
+        entry->transcoding_speed = (unsigned)iniparser_getint(stats, "stats:transcoding_speed", 0);
+        entry->mp2size_1min = (unsigned)iniparser_getint(stats, "stats:mp2size_1min", 0);
+        entry->mp4size_1min = (unsigned)iniparser_getint(stats, "stats:mp4size_1min", 0);
+        entry->total_ttime = (unsigned)iniparser_getint(stats, "stats:total_ttime", 0);
+        entry->total_mp2time = (unsigned)iniparser_getint(stats, "stats:total_mp2time", 0);
+        entry->total_mp2files = (unsigned)iniparser_getint(stats, "stats:total_mp2files", 0);
+        entry->total_mp4files = (unsigned)iniparser_getint(stats, "stats:total_mp4files", 0);
         entry->avg_5load = (float)iniparser_getdouble(stats, "stats:avg_5load", 0.0);
         iniparser_freedict(stats);
         profile_stats[num_stats++] = entry;
@@ -191,7 +191,7 @@ int
 write_stats(void) {
     char filename[256];
     
-    for(int i=0; i < num_stats; i++) {
+    for(unsigned i=0; i < num_stats; i++) {
         snprintf(filename,255,"%s/%s/%s.stats",datadir,STATS_DIR,profile_stats[i]->profile_name);
         filename[255] = '\0';
         
@@ -227,7 +227,7 @@ write_stats(void) {
 void
 clear_stats(void) {
     // First clear memory
-    for(int i=0; i < num_stats; i++) {
+    for(unsigned i=0; i < num_stats; i++) {
         struct profile_stat_entry *entry = profile_stats[i];
         entry->num_samples          = 0;
         entry->transcoding_speed    = 0;
@@ -245,12 +245,12 @@ clear_stats(void) {
 }
 
 int
-dump_profilestats(char *buff, int size) {
+dump_profilestats(char *buff, size_t size) {
     char tmpbuff[512];
     *buff = '\0';
 
-    int left = size-1;
-    for (int i = 0; i < num_stats; i++) {
+    unsigned left = size-1;
+    for (unsigned i = 0; i < num_stats; i++) {
         if (profile_stats[i]) {
             snprintf(tmpbuff, 511,
                     "%-24s: '%s'\n"

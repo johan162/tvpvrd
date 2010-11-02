@@ -59,7 +59,7 @@ extern "C" {
  */
 struct recording_entry {
     // A unique sequence number for all recordings in memory
-    int seqnbr;
+    unsigned seqnbr;
 
     // Title of recording
     char title[REC_MAX_NTITLE];
@@ -85,11 +85,11 @@ struct recording_entry {
     // Flag if this is a recurrent recording or not
     int recurrence;
 
-    // Teh repeat type, daily, weekly, end so on
+    // The repeat type, daily, weekly, end so on
     int recurrence_type;
 
     // The number of recurrenceies in this serie
-    int recurrence_num;
+    unsigned recurrence_num;
 
     // How should the recurrene title be created,
     // 0 - add date/time to the base title
@@ -100,7 +100,7 @@ struct recording_entry {
     char recurrence_mangling_prefix[REC_MAX_NPREFIX];
 
     // The unique id for this recurrent sequence
-    int recurrence_id; // A unique id for each recurrence sequence
+    unsigned recurrence_id; // A unique id for each recurrence sequence
 
     // The basename, i.e. the filename without the sequence information added
     char recurrence_filename[REC_MAX_NFILENAME]; // The basename
@@ -109,10 +109,10 @@ struct recording_entry {
     char recurrence_title[REC_MAX_NTITLE]; // The basename
 
     // The start number to use when mangling title/file names as 01 / 99
-    int recurrence_start_number; // What start number to use in the title mangling
+    unsigned recurrence_start_number; // What start number to use in the title mangling
 
     // What video card should be used for this recording
-    int video;
+    unsigned video;
 };
 
 /* Basic key/val structure. Used with listreckeyval to return a list of recordings
@@ -132,7 +132,7 @@ extern struct recording_entry **recs; // [MAX_VIDEO][MAX_ENTRIES];
 /**
  * The number of entries/recordings for each video card
  */
-extern int *num_entries; //[MAX_VIDEO];
+extern unsigned *num_entries; //[MAX_VIDEO];
 
 /**
  * A list of current ongogin recordings. When a recording is started
@@ -160,7 +160,7 @@ freerecs(void);
  * @see removetoprec
  */
 void
-deletetoprec(const int video);
+deletetoprec(const unsigned video);
 
 
 /**
@@ -170,7 +170,7 @@ deletetoprec(const int video);
  * @see deletetoprec
  */
 void
-removetoprec(const int video);
+removetoprec(const unsigned video);
 
 /**
  * Create a new recording post
@@ -189,7 +189,7 @@ removetoprec(const int video);
 struct recording_entry *
 newrec(const char *title, const char *filename, const time_t start,
         const time_t end, const char *channel, const int recurrence,
-        const int recurrence_type, const int recurrence_num,
+        const int recurrence_type, const unsigned recurrence_num,
         const int recurrence_mangling,
         char *profiles[]);
 
@@ -198,7 +198,7 @@ newrec(const char *title, const char *filename, const time_t start,
  * @param entry The entry to be freed
  * @param caller The name of the calling function. USed in memory tracing
  */
-void freerec(struct recording_entry *entry,char *caller);
+void freerec(struct recording_entry *entry); //,char *caller);
 
 /**
  * Try to insert a recording into the list for the specified video card
@@ -207,7 +207,7 @@ void freerec(struct recording_entry *entry,char *caller);
  * @return Boolean., 0 = failed to insert, 1 sucess
  */
 int
-insertrec(int video, struct recording_entry * entry);
+insertrec(unsigned video, struct recording_entry * entry);
 
 /**
  * Dumpa  string that can serve as the title headline for a table of
@@ -217,7 +217,7 @@ insertrec(int video, struct recording_entry * entry);
  * @param bufflen
  */
 void
-dumprecord_header(int style, char *buffer, int bufflen);
+dumprecord_header(int style, char *buffer, size_t bufflen);
 
 /**
  * Dump a string representation of the given recording to the stated buffer
@@ -226,7 +226,7 @@ dumprecord_header(int style, char *buffer, int bufflen);
  * @param buffer
  * @param bufflen
  */
-void dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen);
+void dumprecord(struct recording_entry* entry, int style, char *buffer, size_t bufflen);
 
 /**
  * Dump a string representation of the record with the specified id to the stated buffer
@@ -238,7 +238,7 @@ void dumprecord(struct recording_entry* entry, int style, char *buffer, int buff
  * @return
  */
 int
-dumprecordid(int seqnbr, int repeats, int style, char *buffer, int bufflen);
+dumprecordid(unsigned seqnbr, int repeats, int style, char *buffer, size_t bufflen);
 
 /**
  * Dump a list of all future recordings to the given file descriptor
@@ -246,7 +246,7 @@ dumprecordid(int seqnbr, int repeats, int style, char *buffer, int bufflen);
  * @param fd
  */
 void
-listrecs(int maxrecs, int style, int fd);
+listrecs(size_t maxrecs, int style, int fd);
 
 /**
  * Dump a list of all future recordings in the specified buffer
@@ -256,7 +256,7 @@ listrecs(int maxrecs, int style, int fd);
  * @param style
  */
 void
-listrecsbuff(char *buffer, int maxlen, int maxrecs, int style);
+listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style);
 
 /**
  * Create a list of all currnet recordings
@@ -274,7 +274,7 @@ listrecskeyval(struct skeysval_t **list, int style);
  * @return Boolean. 0 if failed, 1 otherwise
  */
 int
-deleterecid(int seqnbr, int allrecurrences);
+deleterecid(unsigned seqnbr, int allrecurrences);
 
 /**
  * Update the current profile settings for the recording with the specified seqnbr
@@ -283,7 +283,7 @@ deleterecid(int seqnbr, int allrecurrences);
  * @return Boolean. 0 if failed, 1 otherwise
  */
 int
-updateprofile(int seqnbr, char *profile);
+updateprofile(unsigned seqnbr, char *profile);
 
 /**
  * Adjust the given start and end date for a recording so that it actually starts

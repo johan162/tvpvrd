@@ -445,13 +445,13 @@ extern time_t *client_tsconn; //[MAX_CLIENTS];
 extern int is_master_server;
 
 // Maximum sizes
-extern int max_entries, max_video, max_clients, max_idle_time;
+extern unsigned max_entries, max_video, max_clients, max_idle_time;
 
 // Default recording length if nothing else is specified
 extern int defaultDurationHour, defaultDurationMin;
 
 // TVP/IP Port to listen to
-extern int tcpip_port;
+extern unsigned short int tcpip_port;
 
 // Should we run as a daemon or not
 extern int daemonize;
@@ -464,7 +464,7 @@ extern int verbose_log;
 extern char logfile_name[];
 
 // Time resolution for checks
-extern int time_resolution;
+extern unsigned time_resolution;
 
 // The size of the memory buffer used when reading video data from the device
 extern int video_bufsize;
