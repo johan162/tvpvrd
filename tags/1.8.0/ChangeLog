@@ -1,0 +1,1042 @@
+[r231] 2010-10-14 17:04  johan162
+
+ * Add functionality for 'HTTP 305 Not Modified' header to reduce bandwidth usage
+   for WEB-interface 
+   
+   tvwebcmd.c, utils.c, utils.h
+   
+[r230] 2010-10-13 05:09  johan162
+
+ * Fix title name mangling so that the total number of recordings is correct even
+   after server is restarted. This is purely a cosmetic problem in the title of
+   the recording and never affected any functionality. 
+   
+   recs.c, tvxmldb.c
+   
+[r229] 2010-10-11 14:23  johan162
+
+ * Modified the way stopping of transcoding process was internally handled to
+   avoid an unecessary warning in the log files 
+   
+   transc.c, tvpvrsrv.c
+   
+[r228] 2010-10-11 07:18  johan162
+
+ * Updated man page 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r227] 2010-10-11 06:44  johan162
+
+ * Forgot to enable transcoding in tlow profile 
+   
+   trunk/profiles/tlow.profile
+   
+[r226] 2010-10-11 06:40  johan162
+
+ * If many profiles are sepcified for the same recording use the highest video
+   bitrate in the profiles for the initial MP2 HW encoder 
+   
+   transc.c, tvpvrsrv.c, vctrl.c
+   
+[r225] 2010-10-10 18:11  johan162
+
+ * Updated man page 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r224] 2010-10-10 17:45  johan162
+
+ * Updated header with comments in profile files 
+   
+   trunk/profiles/high.profile, trunk/profiles/low.profile,
+   trunk/profiles/thigh.profile, trunk/profiles/tlow.profile,
+   trunk/profiles/tnormal.profile
+   
+[r223] 2010-10-10 17:42  johan162
+
+ * Changed default profile to a more structed default by having three profile
+   low,normal and high and a version of each profile with and withtout transcoding 
+   
+   trunk/profiles/cropnormal.profile, trunk/profiles/high.profile,
+   trunk/profiles/low.profile, trunk/profiles/mobile.profile,
+   trunk/profiles/normal.profile, trunk/profiles/thigh.profile,
+   trunk/profiles/tlow.profile, trunk/profiles/tnormal.profile,
+   trunk/profiles/wnormal.profile
+   
+[r222] 2010-10-10 10:21  johan162
+
+ * Updated statistics to include 5min avg load as a preparation to include
+   prediction of transcoding time 
+   
+   trunk/ChangeLog, trunk/configure, trunk/configure.in,
+   trunk/docs/manpages/tvpvrd.1.xml, stats.c, stats.h, transc.c, transc.h,
+   tvcmd.c, tvpvrsrv.c, tvwebcmd.c, utils.h
+   
+[r221] 2010-10-08 07:34  johan162
+
+ * Bumped version to 1.6.1 
+   
+   trunk/configure.in
+   
+[r219] 2010-10-08 07:19  johan162
+
+ * Man page cleanup 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r218] 2010-10-08 06:54  johan162
+
+ * Impove li command so that without video card it will list all cards 
+   
+   tvcmd.c
+   
+[r216] 2010-10-07 21:55  johan162
+
+ * Updated man page for 1.6.0 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r215] 2010-10-07 21:51  johan162
+
+ * Updated kt command to make it possible to kill a specific ongoging transcoding 
+   
+   transc.c, transc.h, tvcmd.c, tvwebcmd.c
+   
+[r214] 2010-10-07 19:56  johan162
+
+ * Bumped version to 1.6.0. Added option to use other input soucres beside the
+   tuner. See man page for details 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml, tvcmd.c,
+   tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, tvwebcmd.c, utils.h, vctrl.c, vctrl.h
+   
+[r213] 2010-10-06 22:10  johan162
+
+ * Added description of li - command in the man page 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r212] 2010-10-06 21:57  johan162
+
+ * Added li command to list all available video input sources on a card. This is a
+   preparation to make it possible to specify an other source than the tuner to
+   schedule a recording on 
+   
+   tvcmd.c, vctrl.c, vctrl.h
+   
+[r211] 2010-10-05 23:08  johan162
+
+ * Various clean up in comments and added comments where needed 
+   
+   freqmap.c, freqmap.h, stats.c, tvpvrd.conf, tvpvrd.css, tvpvrd_mobile.css,
+   tvwebcmd.c, tvxmldb.c, tvxmldb.h, utils.c, vctrl.c
+   
+[r210] 2010-10-04 18:36  johan162
+
+ * Added some more comments in the code 
+   
+   recs.c, tvpvrsrv.c
+   
+[r209] 2010-09-27 16:26  johan162
+
+ * Removed WEB debugging output and fix a PCRE memory leak in the log command when
+   no argument was given 
+   
+   tvcmd.c, tvwebcmd.c
+   
+[r208] 2010-09-26 08:13  johan162
+
+ * Inactivated some extra debugging information and improved layout for listing
+   format to make it easier to read 
+   
+   recs.c, tvpvrsrv.c
+   
+[r206] 2010-08-29 07:11  johan162
+
+ * Fixed month+1 error in human readable listings, made the driver detailed
+   settings more readable, added fancy-date format for next-recording in
+   web-interface 
+   
+   recs.c, tvcmd.c, tvwebcmd.c, vctrl.c, vctrl.h
+   
+[r205] 2010-08-24 19:25  johan162
+
+ * Added display of ongoing transcodings in the web interface 
+   
+   transc.c, transc.h, tvpvrd.css, tvwebcmd.c, utils.c, utils.h
+   
+[r203] 2010-08-13 10:33  johan162
+
+ * Small adjustment for mobile CSS 
+   
+   tvpvrd_mobile.css
+   
+[r202] 2010-08-13 10:27  johan162
+
+ * Adjusting WEB CSS 
+   
+   tvpvrd.css, tvwebcmd.c
+   
+[r201] 2010-08-12 10:22  johan162
+
+ * Update of mobile CSS to look better 
+   
+   tvpvrd_mobile.css
+   
+[r199] 2010-08-12 07:55  johan162
+
+ * Bumped version to 1.5.3, added logout command for WEB interface 
+   
+   trunk/configure, trunk/configure.in, tvpvrd.css, tvwebcmd.c, tvxmldb.c,
+   utils.c, utils.h
+   
+[r197] 2010-08-11 09:01  johan162
+
+ * Bumped version to 1.5.2 
+   
+   trunk/configure, trunk/configure.in
+   
+[r196] 2010-08-11 09:00  johan162
+
+ * Fixed mismatch PCRE alloc/dealloc 
+   
+   tvcmd.c, tvpvrd.h, tvpvrsrv.c, tvwebcmd.c
+   
+[r195] 2010-08-10 20:45  johan162
+
+ * Fixed braindead string trim function to allow spaces in titles from the WEB
+   interface 
+   
+   tvwebcmd.c, utils.c
+   
+[r193] 2010-08-10 19:56  johan162
+
+ * Fixed a memory leak in PCRE regexp handling of commands 
+   
+   trunk/configure, trunk/configure.in, recs.c, tvcmd.c, tvpvrd.css, tvwebcmd.c,
+   utils.c, utils.h
+   
+[r191] 2010-08-10 15:24  johan162
+
+ * Bumped version to 1.5.0 
+   
+   trunk/configure, trunk/configure.in
+   
+[r190] 2010-08-10 15:23  johan162
+
+ * Fixed minor layout issues, updated CSS and fixed a small memory leak in the
+   regexp API handling 
+   
+   recs.c, tvpvrd.css, tvwebcmd.c
+   
+[r188] 2010-08-10 12:49  johan162
+
+ * Bumped version to 1.4.9 
+   
+   trunk/configure, trunk/configure.in
+   
+[r187] 2010-08-10 12:42  johan162
+
+ * Added ongoing and next recording to WEB interface 
+   
+   tvcmd.c, tvpvrd.css, tvwebcmd.c
+   
+[r185] 2010-08-09 19:37  johan162
+
+ * Bumped version to 1.4.8 
+   
+   trunk/configure, trunk/configure.in
+   
+[r184] 2010-08-09 19:24  johan162
+
+ * Added quick recording box 
+   
+   tvpvrd.css, tvpvrd_mobile.css, tvwebcmd.c, utils.h
+   
+[r183] 2010-08-09 16:08  johan162
+
+ * propset 
+   
+   tvpvrd_mobile.css
+   
+[r181] 2010-08-09 15:46  johan162
+
+ * Update for 1.4.7 
+   
+   trunk/configure, trunk/configure.in, tvpvrd.css, tvpvrd_mobile.css, tvwebcmd.c,
+   utils.h
+   
+[r180] 2010-08-09 10:51  johan162
+
+ * Propset Id 
+   
+   tvpvrd_mobile.css
+   
+[r179] 2010-08-09 10:49  johan162
+
+ * Updates for 1.4.6 - Better mobile phone expereince with the WEB interface 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml,
+   tvpvrd_mobile.css, tvwebcmd.c, utils.c
+   
+[r178] 2010-08-08 20:00  johan162
+
+ * Added adaptation for mobile phone WEB-Interface with automatic phone detection 
+   
+   recs.c, tvpvrd_mobile.css, tvwebcmd.c, tvwebcmd.h, utils.h
+   
+[r177] 2010-08-06 07:52  johan162
+
+ * Minor CSS layout improvements 
+   
+   tvcmd.c, tvpvrd.css, tvwebcmd.c
+   
+[r175] 2010-08-05 21:05  johan162
+
+ * Bumped version 1.4.5 
+   
+   trunk/configure, trunk/configure.in
+   
+[r174] 2010-08-05 21:02  johan162
+
+ * Added weblogin_timout inifile setting 
+   
+   tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, tvwebcmd.c
+   
+[r172] 2010-08-05 13:06  johan162
+
+ * Bumped version to 1.4.4 
+   
+   trunk/configure, trunk/configure.in
+   
+[r171] 2010-08-05 13:05  johan162
+
+ * Minor CSS layout improvements for WEb interface 
+   
+   tvpvrd.css, tvwebcmd.c
+   
+[r170] 2010-08-05 10:26  johan162
+
+ * Added confirmation dialogue when deleting a record 
+   
+   tvwebcmd.c
+   
+[r169] 2010-08-05 09:10  johan162
+
+ * Fixed problem with display of XML file via WEb interface that wasn't properly
+   HTML encoded. Updated CSS file. 
+   
+   tvcmd.c, tvpvrd.css, tvwebcmd.c, tvxmldb.c, tvxmldb.h
+   
+[r167] 2010-08-05 07:11  johan162
+
+ * Bumped version to 1.4.3 
+   
+   trunk/configure, trunk/configure.in
+   
+[r166] 2010-08-05 07:07  johan162
+
+ * Corrected handling of HTTP headers and cookies 
+   
+   tvcmd.c, tvwebcmd.c, tvwebcmd.h
+   
+[r164] 2010-08-02 13:23  johan162
+
+ * Bumbed version 1.4.2 
+   
+   trunk/configure, trunk/configure.in, tvxmldb.c
+   
+[r163] 2010-08-02 13:06  johan162
+
+ * Improved WEB-authentication cookie handling 
+   
+   tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, tvwebcmd.c, utils.c, utils.h
+   
+[r162] 2010-08-02 03:28  johan162
+
+ * Added part I of WEB-authentication 
+   
+   tvpvrd.css, tvwebcmd.c, utils.c
+   
+[r160] 2010-08-01 19:44  johan162
+
+ * Updated manpage 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r159] 2010-08-01 19:41  johan162
+
+ * Improved WEB-interface to allow easy add and delete of recordings 
+   
+   freqmap.c, recs.c, recs.h, tvpvrd.css, tvwebcmd.c, utils.h
+   
+[r158] 2010-07-30 00:13  johan162
+
+ * Updated WEB-interface to allow adding/deleting recordings. Bumped version to
+   1.4.1 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml,
+   freqmap.c, freqmap.h, transc.c, transc.h, tvpvrd.css, tvpvrsrv.c, tvwebcmd.c,
+   tvwebcmd.h, utils.c, utils.h
+   
+[r157] 2010-07-29 17:12  johan162
+
+ * Updated command output for ot, updated WEB CSS format 
+   
+   tvcmd.c, tvpvrd.css
+   
+[r156] 2010-07-29 16:09  johan162
+
+ * Added WEB command files 
+   
+   tvwebcmd.c, tvwebcmd.h
+   
+[r154] 2010-07-29 15:04  johan162
+
+ * Updated build files to include CSS format file in distribution 
+   
+   trunk/configure, Makefile.am, Makefile.in
+   
+[r153] 2010-07-29 14:56  johan162
+
+ * Updated CSS for WEB output 
+   
+   tvpvrd.css
+   
+[r152] 2010-07-29 14:36  johan162
+
+ * Correct IP address when browser is connected 
+   
+   tvcmd.c, tvpvrd.css, tvpvrsrv.c
+   
+[r151] 2010-07-29 14:17  johan162
+
+ * Some improvements on the WEB-output 
+   
+   Makefile.am, tvcmd.c, tvcmd.h, tvpvrd.css, tvpvrsrv.c, utils.c, utils.h
+   
+[r150] 2010-07-29 10:55  johan162
+
+ * Added basic WEb-interface 
+   
+   trunk/configure, trunk/configure.in, trunk/src, Makefile.am, Makefile.in,
+   recs.c, recs.h, tvcmd.c, tvpvrd.conf, tvpvrd.css, tvpvrd.h, tvpvrsrv.c,
+   utils.c, utils.h
+   
+[r149] 2010-07-27 09:55  johan162
+
+ * Modify format of waiting transcoding listing output when no transcodings are in
+   queue 
+   
+   transc.c, tvpvrsrv.c
+   
+[r147] 2010-07-26 15:35  johan162
+
+ * Add option to restrict listing to the next n records, update docs to reflect
+   this and bump version to 1.3.7 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml, recs.c,
+   recs.h, tvcmd.c
+   
+[r146] 2010-07-26 09:00  johan162
+
+ * Added witing monitor 
+   
+   trunk/configure, trunk/configure.in, freqmap.c, transc.c, transc.h, tvcmd.c,
+   tvpvrd.conf, tvpvrsrv.c
+   
+[r145] 2010-07-25 23:05  johan162
+
+ * Updated manpage to reflect updates 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r144] 2010-07-25 12:44  johan162
+
+ * Bump version to 1.3.5 
+   
+   trunk/configure, trunk/configure.in
+   
+[r143] 2010-07-25 12:44  johan162
+
+ * Added possibility to specify the locale in the ini file in order to get correct
+   encoding when sending notification mails 
+   
+   trunk/src, tvcmd.c, tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, utils.c, utils.h
+   
+[r142] 2010-06-21 20:48  johan162
+
+ * Bumped version to 1.3.4 
+   
+   trunk/configure.in
+   
+[r141] 2010-06-21 20:47  johan162
+
+ * Added mail on transcode finished, added automatic recognition of video cards,
+   some minor cleanup 
+   
+   transc.c, tvcmd.c, tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, vctrl.c, vctrl.h
+   
+[r139] 2010-06-19 11:39  johan162
+
+ * Bump version to 1.3.3 
+   
+   trunk/configure.in
+   
+[r138] 2010-06-19 11:39  johan162
+
+ * Set default in high profile to 4:3 
+   
+   trunk/profiles/high.profile
+   
+[r137] 2010-06-19 11:17  johan162
+
+ * Removed setting of buffer size from config file, not really a user setting.
+   Added last log messages in automatic error mail, some minor cleanups 
+   
+   transc.c, tvcmd.c, tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, utils.c, vctrl.c
+   
+[r136] 2010-06-19 08:38  johan162
+
+ * Some cleanups and fixing of spelling errors in the code 
+   
+   tvcmd.c, tvpvrsrv.c, tvxmldb.c, utils.c, vctrl.c
+   
+[r135] 2010-06-10 20:18  johan162
+
+ * Spelling in default server config file 
+   
+   tvpvrd.conf
+   
+[r134] 2010-06-07 16:39  johan162
+
+ * Bump version to 1.3.1 
+   
+   trunk/configure.in
+   
+[r133] 2010-06-07 16:39  johan162
+
+ * Fixed typo in XMl formatting 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r132] 2010-06-06 21:27  johan162
+
+ * - Added comment for "NTSC" video frame size option in profile templates 
+   
+   trunk/profiles/cropnormal.profile, trunk/profiles/high.profile,
+   trunk/profiles/low.profile, trunk/profiles/mobile.profile,
+   trunk/profiles/normal.profile, trunk/profiles/tnormal.profile,
+   trunk/profiles/wnormal.profile
+   
+[r131] 2010-06-06 21:24  johan162
+
+ * - Added mail on error - DB is now immediately updated on file to reflect
+   changes - Added NTSC video frame format - Added option to specify recurring
+   repeat with long names e.g "Weekly" instead of just "w" - Updated standard
+   config file to reflect added option of mail on error 
+   
+   recs.c, tvcmd.c, tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, utils.c, utils.h, vctrl.c
+   
+[r130] 2010-03-04 11:14  johan162
+
+ * Code cleanup 
+   
+   tvpvrsrv.c
+   
+[r129] 2010-03-04 11:06  johan162
+
+ * Code cleanup 
+   
+   freqmap.c
+   
+[r128] 2010-03-04 11:04  johan162
+
+ * Code cleanup 
+   
+   transc.c
+   
+[r127] 2010-03-04 10:50  johan162
+
+ * Code cleanup 
+   
+   vctrl.c
+   
+[r126] 2010-03-04 10:49  johan162
+
+ * Code cleanup 
+   
+   stats.c, utils.c
+   
+[r124] 2010-02-23 08:41  johan162
+
+ * Updates for 1.3.0. Fixed hardcoded ffmpeg_bin path, only check for existance of
+   ffmpeg_bin if transcoding is needed, fix a issue with the statistics if a new
+   profile is added 
+   
+   trunk/configure, trunk/configure.in, freqmap.c, stats.c, transc.c, tvcmd.c,
+   tvpvrsrv.c, tvxmldb.c, vctrl.c
+   
+[r122] 2010-02-18 09:21  johan162
+
+ * Added missing dependency on confpath.h in Makefile.am 
+   
+   trunk/configure, trunk/configure.in, Makefile.am, Makefile.in, transc.c
+   
+[r121] 2010-02-17 22:20  johan162
+
+ * fix end date specification for recurring recordings, fix hard coded location of
+   profiles which wasn't obeying the sysconfdir config option, added week day name
+   to displayed list of recording, added infromatoin message on what recording is
+   colliding with a new recording, added description of 'exit' command in the
+   manual 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml, recs.c,
+   transc.c, tvcmd.c, utils.c, utils.h
+   
+[r119] 2010-02-12 09:36  johan162
+
+ * fixed a problem with profile selectiong in transcode file command, added 'lp'
+   command, renamed 'zp' to 'dp', updated manual page 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml,
+   transc.c, transc.h, tvcmd.c
+   
+[r118] 2010-02-10 11:41  johan162
+
+ * Some minor code cleanup and some additional log messages 
+   
+   recs.c, transc.c, tvcmd.c, tvpvrsrv.c, utils.c
+   
+[r117] 2010-02-03 21:51  johan162
+
+ * Fix problem with directory not being closed. Fixed problem with time estimation
+   of transcoding file list 
+   
+   recs.c, recs.h, transc.c, tvcmd.c, tvpvrsrv.c, utils.c
+   
+[r116] 2010-02-01 17:03  johan162
+
+ * Make sure 't' (Mon-Tue) is recognized. Make sure all comands at least gives an
+   Ok. of they have ben performed. 
+   
+   recs.c, tvcmd.c, utils.c, utils.h
+   
+[r115] 2010-02-01 05:56  johan162
+
+ * The dr command was removed by mistake 
+   
+   tvcmd.c
+   
+[r114] 2010-01-30 07:32  johan162
+
+ * Re-enable the ar command and release 1.2.2 
+   
+   tvcmd.c
+   
+[r113] 2010-01-28 22:23  johan162
+
+ * Updates for 1.2.2. Added 'log' command to show the last n lines in the log file 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml, tvcmd.c,
+   utils.c, utils.h
+   
+[r112] 2010-01-26 20:53  johan162
+
+ * Updated docs and added recurrence Mon-Thu as well, bumped version to 1.2.1 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml, recs.c,
+   tvcmd.c
+   
+[r111] 2010-01-26 15:07  johan162
+
+ * Updated for v1.2.0. Added support for running in slave/master mode 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.xml,
+   transc.c, tvcmd.c, tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, utils.c, utils.h
+   
+[r110] 2010-01-25 16:50  johan162
+
+ * Fixed some typos and added some more comments 
+   
+   transc.c, tvcmd.c
+   
+[r109] 2010-01-25 15:32  johan162
+
+ * Added option to get information about ongoing list transcoding 
+   
+   transc.c, transc.h, tvcmd.c
+   
+[r108] 2010-01-24 20:08  johan162
+
+ * Bumped version to 1.1.1 
+   
+   trunk/configure, trunk/configure.in, trunk/rpm-build/opensuse/tvpvrd.spec,
+   transc.c, tvpvrsrv.c
+   
+[r107] 2010-01-22 17:29  johan162
+
+ * Fixed a potential memory leak in recording thread, make sure file transcoding
+   thread is detached 
+   
+   transc.c, tvpvrd.h, tvpvrsrv.c
+   
+[r106] 2010-01-20 13:06  johan162
+
+ * Added td, tl commands + some cleanup 
+   
+   recs.c, transc.c, transc.h, tvcmd.c, tvpvrd.h, tvpvrsrv.c, utils.c
+   
+[r105] 2010-01-11 13:44  johan162
+
+ * Bumped version to 1.0.7 
+   
+   trunk/ChangeLog, trunk/configure.in, trunk/rpm-build/opensuse/tvpvrd.spec
+   
+[r104] 2010-01-11 13:40  johan162
+
+ * Added SO_REUSEADDR option when creating the initial listening socket to make it
+   possible to restart the server more quickly and not be waiting in the TIME_WAIT
+   safety state 
+   
+   tvpvrsrv.c
+   
+[r103] 2010-01-06 16:35  johan162
+
+ * Updated manual page 
+   
+   trunk/docs/manpages/tvpvrd.1.xml
+   
+[r99] 2010-01-06 01:32  johan162
+
+ * Added transcode file command, updates status command, improved online help,
+   bumpled version to 1.0.6 
+   
+   trunk/ChangeLog, trunk/configure, trunk/configure.in,
+   trunk/rpm-build/opensuse/tvpvrd.spec, transc.c, tvcmd.c, tvpvrsrv.c, utils.c,
+   utils.h
+   
+[r98] 2010-01-05 13:45  johan162
+
+ * Updates for 1.0.5 - Fix wrong type for sprintf() format specifier whcih could
+   cause a crash 
+   
+   trunk, trunk/configure, trunk/configure.in, trunk/profiles/cropnormal.profile,
+   trunk/profiles/high.profile, trunk/profiles/low.profile,
+   trunk/profiles/mobile.profile, trunk/profiles/normal.profile,
+   trunk/profiles/tnormal.profile, trunk/rpm-build/opensuse/tvpvrd.spec, stats.c,
+   transc.c, transc.h, tvcmd.c, tvpvrsrv.c
+   
+[r97] 2010-01-04 15:50  johan162
+
+ * Bumpled version in RPM spec file 
+   
+   trunk/rpm-build/opensuse/tvpvrd.spec
+   
+[r96] 2010-01-04 15:38  johan162
+
+ * Updated Changelog 
+   
+   trunk/ChangeLog
+   
+[r95] 2010-01-04 15:37  johan162
+
+ * Bump version for 1.0.3 in configure.in 
+   
+   trunk/configure.in
+   
+[r94] 2010-01-04 15:37  johan162
+
+ * Updated profiels for 1.0.3 
+   
+   trunk/profiles/high.profile, trunk/profiles/normal.profile,
+   trunk/profiles/wnormal.profile
+   
+[r93] 2010-01-04 15:36  johan162
+
+ * Updated man page for 1.0.3 
+   
+   trunk/docs/manpages/tvpvrd.1, trunk/docs/manpages/tvpvrd.1.html,
+   trunk/docs/manpages/tvpvrd.1.pdf, trunk/docs/manpages/tvpvrd.1.xml
+   
+[r92] 2010-01-04 15:35  johan162
+
+ * Updates for 1.0.3 
+   
+   transc.c, tvcmd.c, tvpvrsrv.c, vctrl.c
+   
+[r91] 2009-12-09 09:53  johan162
+
+ * Updates to the default profiles 
+   
+   trunk/profiles/cropnormal.profile, trunk/profiles/high.profile,
+   trunk/profiles/normal.profile
+   
+[r90] 2009-12-08 09:19  johan162
+
+ * Longer wait time when waiting for transcoding 
+   
+   tvpvrsrv.c
+   
+[r89] 2009-12-08 09:18  johan162
+
+ * Added transcode_file 
+   
+   transc.c
+   
+[r88] 2009-12-08 09:17  johan162
+
+ * Made recs_mutex global 
+   
+   tvpvrd.h
+   
+[r87] 2009-12-08 09:16  johan162
+
+ * Added CMD_TRANSCODE 
+   
+   tvcmd.c
+   
+[r86] 2009-12-08 09:16  johan162
+
+ * Added transcode_file 
+   
+   transc.h
+   
+[r85] 2009-12-08 09:15  johan162
+
+ * Added more notices for recs collision checking 
+   
+   recs.c
+   
+[r84] 2009-12-02 07:35  johan162
+
+ * Make /init.d./tvpvrd system script use SIGHUP instead of SIGTERM 
+   
+   trunk/scripts/init.d.tvpvrd
+   
+[r83] 2009-11-29 09:43  johan162
+
+ * Clean up of RPM build script 
+   
+   trunk/rpm-build/opensuse/tvpvrd.spec
+   
+[r81] 2009-11-28 00:11  johan162
+
+ * Updated RPM spec to mroe strictly follow SuSE spec conventions and add init.d
+   daemon config script. Bumped version to 1.0.2 
+   
+   trunk/configure, trunk/configure.in, trunk/docs/manpages/tvpvrd.1.pdf,
+   trunk/rpm-build/opensuse/tvpvrd.spec
+   
+[r80] 2009-11-28 00:09  johan162
+
+ * Updated list server setting command with some missing settings 
+   
+   trunk/src, tvcmd.c, tvpvrd.h, tvpvrsrv.c
+   
+[r79] 2009-11-28 00:06  johan162
+
+ * Added SuSE daemon init.d/ configuration start,stop script 
+   
+   trunk/scripts/Makefile.am, trunk/scripts/Makefile.in,
+   trunk/scripts/init.d.tvpvrd
+   
+[r78] 2009-11-26 22:41  johan162
+
+ * Added missing max_clients ini-setting 
+   
+   tvpvrd.conf
+   
+[r57] 2009-11-26 20:24  johan162
+
+ * Final 1.0.1 version 
+   
+   trunk/docs/manpages/Makefile.am, trunk/docs/manpages/Makefile.in,
+   trunk/docs/manpages/tvpvrd.1.pdf, trunk/rpm-build/opensuse/tvpvrd.spec,
+   tvpvrsrv.c, utils.c
+   
+[r56] 2009-11-26 18:06  johan162
+
+ * Doc and spec update for final 1.0.1 
+   
+   trunk/docs/manpages/tvpvrd.1, trunk/docs/manpages/tvpvrd.1.html,
+   trunk/docs/manpages/tvpvrd.1.pdf, trunk/docs/manpages/tvpvrd.1.xml,
+   trunk/rpm-build/opensuse/tvpvrd.spec
+   
+[r55] 2009-11-26 15:37  johan162
+
+ * Updated Changelog for 1.0.1 
+   
+   trunk/ChangeLog
+   
+[r54] 2009-11-26 15:27  johan162
+
+ * Updated RPM spec file 
+   
+   trunk/rpm-build/opensuse/tvpvrd.spec
+   
+[r53] 2009-11-26 10:33  johan162
+
+ * Updated NEWS and Changelog files 
+   
+   trunk/ChangeLog, trunk/NEWS
+   
+[r52] 2009-11-26 10:22  johan162
+
+ * Update build structure to work better with RPM building 
+   
+   trunk/Makefile.am, trunk/Makefile.in, trunk/configure, trunk/configure.in,
+   trunk/docs/manpages/Makefile.am, trunk/docs/manpages/Makefile.in,
+   trunk/docs/manpages/tvpvrd.1, trunk/docs/manpages/tvpvrd.1.html,
+   trunk/docs/manpages/tvpvrd.1.pdf
+   
+[r51] 2009-11-26 10:21  johan162
+
+ * Add build structure for RPM 
+   
+   trunk/rpm-build, trunk/rpm-build/opensuse, trunk/rpm-build/opensuse/tvpvrd.spec
+   
+[r50] 2009-11-26 10:20  johan162
+
+ * Make all source build clean with fortify_source=2 flag 
+   
+   Makefile.am, Makefile.in, tvcmd.c, tvpvrsrv.c, utils.c
+   
+[r49] 2009-11-22 23:52  johan162
+
+ * Add 'Id' svn:keyword on all source and documentation files 
+   
+   trunk/AUTHORS, trunk/INSTALL, trunk/NEWS, trunk/README,
+   trunk/docs/manpages/tvpvrd.1.xml, trunk/scripts/stop-tvpvrd, freqmap.c,
+   freqmap.h, recs.c, recs.h, stats.c, stats.h, transc.c, transc.h, tvcmd.c,
+   tvcmd.h, tvpvrd.conf, tvpvrd.h, tvpvrsrv.c, tvxmldb.c, tvxmldb.h, utils.c,
+   utils.h, vctrl.c, vctrl.h
+   
+[r48] 2009-11-22 23:41  johan162
+
+ * Added RNG grammar to describe and document the XML DB file format 
+   
+   trunk/docs/tvpvrd-db-grammar.rng
+   
+[r47] 2009-11-22 18:20  johan162
+
+ * Added generated manpage(s) in respository as well 
+   
+   trunk/docs/manpages/tvpvrd.1, trunk/docs/manpages/tvpvrd.1.html,
+   trunk/docs/manpages/tvpvrd.1.pdf
+   
+[r27] 2009-11-22 15:10  johan162
+
+ * Fix Subversion file structure 
+   
+   docs, trunk/docs
+   
+[r26] 2009-11-22 15:10  johan162
+
+ * Fix Subversion file structure 
+   
+   profiles, trunk/profiles
+   
+[r25] 2009-11-22 15:10  johan162
+
+ * Fix Subversion file structure 
+   
+   scripts, trunk/scripts
+   
+[r24] 2009-11-22 15:09  johan162
+
+ * Fix Subversion file structure 
+   
+   src, trunk/src
+   
+[r23] 2009-11-22 15:09  johan162
+
+ * Fix Subversion file structure 
+   
+   missing, trunk/missing
+   
+[r22] 2009-11-22 15:08  johan162
+
+ * Fix Subversion file structure 
+   
+   install-sh, trunk/install-sh
+   
+[r21] 2009-11-22 15:08  johan162
+
+ * Fix Subversion file structure 
+   
+   depcomp, trunk/depcomp
+   
+[r20] 2009-11-22 15:07  johan162
+
+ * Fix Subversion file structure 
+   
+   configure.in, trunk/configure.in
+   
+[r19] 2009-11-22 15:07  johan162
+
+ * Fix Subversion file structure 
+   
+   configure, trunk/configure
+   
+[r18] 2009-11-22 15:07  johan162
+
+ * Fix Subversion file structure 
+   
+   aclocal.m4, trunk/aclocal.m4
+   
+[r17] 2009-11-22 15:06  johan162
+
+ * Fix Subversion file structure 
+   
+   README, trunk/README
+   
+[r16] 2009-11-22 15:06  johan162
+
+ * Fix Subversion file structure 
+   
+   NEWS, trunk/NEWS
+   
+[r15] 2009-11-22 15:05  johan162
+
+ * Fix Subversion file structure 
+   
+   Makefile.in, trunk/Makefile.in
+   
+[r14] 2009-11-22 15:05  johan162
+
+ * Fix Subversion file structure 
+   
+   Makefile.am, trunk/Makefile.am
+   
+[r13] 2009-11-22 15:04  johan162
+
+ * Fix Subversion file structure 
+   
+   INSTALL, trunk/INSTALL
+   
+[r12] 2009-11-22 15:04  johan162
+
+ * Fix Subversion file structure 
+   
+   ChangeLog, trunk/ChangeLog
+   
+[r11] 2009-11-22 15:04  johan162
+
+ * Fix Subversion file structure 
+   
+   COPYING, trunk/COPYING
+   
+[r10] 2009-11-22 15:03  johan162
+
+ * Fix Subversion file structure 
+   
+   AUTHORS, trunk/AUTHORS
+   
+[r8] 2009-11-22 15:01  johan162
+
+ * Fix Subversion file structure 
+   
+   trunk
+   
