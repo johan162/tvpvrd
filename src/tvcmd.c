@@ -229,7 +229,7 @@ static void
 _cmd_undefined(const char *cmd, int sockfd) {
     char msgbuff[1024];
 
-    snprintf(msgbuff, 1024,  "Unrecognized command. Try 'h' for a list of available commands.\n");
+    snprintf(msgbuff, 1024,  "Unrecognized command '%s'. Try 'h' for a list of available commands.\n",cmd);
     _writef(sockfd, msgbuff);
 
 }
@@ -385,7 +385,7 @@ _cmd_add(const char *cmd, int sockfd) {
     };
     time_t end_repeat_time = 0;
     int repeat_type = 0, repeat_with_enddate=0;
-    int repeat_nbr = 0;
+    unsigned repeat_nbr = 0;
     int err = 0;
     int input_card = -1, input_idx = -1;
 
@@ -441,7 +441,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     case 't': repeat_type = 6; break;
                 }
             }
-            repeat_nbr = atoi(field[2]);
+            repeat_nbr = (unsigned)atoi(field[2]);
             snprintf(cmdbuff,255, "a %s", field[3]);
             cmdbuff[255] = 0;
             matchcmd_free(&field);
@@ -991,11 +991,12 @@ _cmd_add(const char *cmd, int sockfd) {
         // video input on the card, i.e. in the form "_inp01"
 
         const int inp_len = strlen(INPUT_SOURCE_PREFIX);
-        if( strlen(channel) <= inp_len+2 && 0 == strncmp(INPUT_SOURCE_PREFIX, channel,inp_len) ) {
+        if( (int)strlen(channel) <= inp_len+2 &&
+            0 == strncmp(INPUT_SOURCE_PREFIX, channel,inp_len) ) {
 
             // Sanity check. Only allow card to be specified as an integer 0-4
             // Only allow input source to be specified as integer 0-7
-            if( ( channel[inp_len] >= '0'  && channel[inp_len]-'0' <  max_video ) &&
+            if( ( channel[inp_len] >= '0'  && (unsigned)(channel[inp_len]-'0') <  max_video ) &&
                 ( channel[inp_len+1] >= '0' && channel[inp_len+1] <= '7'  ) ) {
                 input_card = channel[inp_len] - '0';
                 input_idx  = channel[inp_len+1] - '0';
@@ -1041,7 +1042,7 @@ _cmd_add(const char *cmd, int sockfd) {
             // Since we don't need a real character count (only the end of the
             // string as a byte position it is safe to use strlen() even for
             // multi-byte locales.
-            int k=strlen(title)-1;
+            int k = (int)strlen(title)-1;
             while( k >= 0 && title[k] == ' ') {
                 k--;
             }
@@ -1051,7 +1052,7 @@ _cmd_add(const char *cmd, int sockfd) {
             // TODO: This is not multi-byte character safe !
             strncpy(filename, title,123);
             filename[123-1] = '\0';
-            for (int i = 0; i < strlen(filename); i++) {
+            for (unsigned i = 0; i < strlen(filename); i++) {
                 if (filename[i] == ' ' || filename[i] == '&' ||
                     filename[i] == ':' || filename[i] == '!' ||
                     filename[i] == '#' || filename[i] == '?' ||
@@ -1078,12 +1079,12 @@ _cmd_add(const char *cmd, int sockfd) {
                 // Recording should be made on the specific video card
                 // and input source
 
-                ret = insertrec(input_card, entry);
+                ret = insertrec((unsigned)input_card, entry);
 
             } else {
                 
                 // Take the first video stream available
-                for (int video = 0; video < max_video && !ret; video++) {
+                for (unsigned video = 0; video < max_video && !ret; video++) {
                     ret = insertrec(video, entry);
                 }
             }
@@ -1091,7 +1092,7 @@ _cmd_add(const char *cmd, int sockfd) {
             if (ret) {
                 dumprecordid(ret, 1, 0, msgbuff, 2047);
             } else {
-                freerec(entry,"_cmd_add()");
+                freerec(entry);
                 err = 5;
             }
         }
@@ -1169,7 +1170,7 @@ _cmd_list(const char *cmd, int sockfd) {
     }
     
     matchcmd_free(&field);
-    listrecs(n, 0, sockfd);
+    listrecs((size_t)n, 0, sockfd);
 }
 
 static void
@@ -1207,7 +1208,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
     }
 
     matchcmd_free(&field);
-    listrecs(n, 3, sockfd);
+    listrecs((size_t)n, 3, sockfd);
 }
 
 static void
@@ -1234,7 +1235,7 @@ _cmd_list_ts(const char *cmd, int sockfd) {
 
     }
 
-    listrecs(n, 9, sockfd);
+    listrecs((size_t)n, 9, sockfd);
 }
 
 
@@ -1258,7 +1259,7 @@ _cmd_list_stations(const char *cmd, int sockfd) {
 
 // Helper function for _cmd_list_video_inputs command
 void
-helper_list_video_inputs(int video, int sockfd) {
+helper_list_video_inputs(unsigned video, int sockfd) {
     int fd = video_open(video);
     if( fd >= 0 ) {
 
@@ -1308,12 +1309,12 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
     char **field=(void *)NULL;
     int ret = matchcmd("^li" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     if( ret == 2 ) {
-        int video = atoi(field[1]);
+        unsigned video = (unsigned)atoi(field[1]);
         helper_list_video_inputs(video, sockfd);
     } else {
         ret = matchcmd("^li" _PR_E, cmd, &field);
         if( ret == 1 ) {
-            for(int i=0; i < max_video; ++i ) {
+            for(unsigned i=0; i < (unsigned)max_video; ++i ) {
                 helper_list_video_inputs(i, sockfd);
             }
         } else {
@@ -1341,7 +1342,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
     char **field=(void *)NULL;
     int ret = matchcmd("^lc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     if( ret == 2 ) {
-        int video = atoi(field[1]);
+        unsigned video = (unsigned)atoi(field[1]);
         matchcmd_free(&field);
 
         int fd = video_open(video);
@@ -1434,7 +1435,7 @@ _cmd_refresh_profiles(const char *cmd, int sockfd) {
 static void
 _cmd_ongoingrec(const char *cmd, int sockfd) {
     char tmpbuff[512], msgbuff[2048];
-    int i, left=2047;
+    unsigned i, left=2047;
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
@@ -1443,7 +1444,7 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
         return;
     }
     *msgbuff = '\0';
-    for (i = 0; i < max_video; i++) {
+    for (i = 0; i < (unsigned)max_video; i++) {
         if (ongoing_recs[i]) {
             dumprecord(ongoing_recs[i], 0, tmpbuff, 511);
             strncat(msgbuff, tmpbuff, left);
@@ -1537,7 +1538,7 @@ _cmd_status(const char *cmd, int sockfd) {
 
     // Get IP from all current connected clients:
     char ctitle[16] = {"Clients"};
-    for (int i = 0, clinbr = 1; i < max_clients; i++) {
+    for (unsigned i = 0, clinbr = 1; i < max_clients; i++) {
         if (cli_threads[i]) {
             snprintf(msgbuff, 511,"%-16s: %s%02d: %s, %s", ctitle, "#",  clinbr, client_ipadr[i], ctime(&client_tsconn[i]));
             tmpbuff[511] = 0 ;
@@ -1784,7 +1785,7 @@ _cmd_nextrec(const char *cmd, int sockfd) {
         return;
     }
 
-    for (int video = 0; video < max_video; video++) {
+    for (unsigned video = 0; video < max_video; video++) {
         if (num_entries[video] > 0) {
             /*
             time_t ts_now = time(NULL);
@@ -1889,7 +1890,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
     int ret = matchcmd("^vc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     
     if( ret == 2 ) {
-        int video = atoi(field[1]);
+        unsigned video = (unsigned)atoi(field[1]);
 
         int fd = video_open(video);
         if( fd >= 0 ) {
@@ -1907,7 +1908,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
         ret = matchcmd("^vc" _PR_SO _PR_E, cmd, &field);
         if( ret >= 1 ) {
             // Print info for all available cards
-            for(int video=0; video < max_video; video++) {
+            for(unsigned video=0; video < (unsigned)max_video; video++) {
                 int fd = video_open(video);
                 if( fd >= 0 ) {
                     char *driver, *card, *version;
@@ -1948,8 +1949,8 @@ _cmd_abort(const char *cmd, int sockfd) {
 
     int ret = matchcmd("^!" _PR_SO _PR_ID _PR_E,cmd,&field);
     if( ret == 2)  {
-        int video = atoi(field[1]);
-        if( video >= 0 && video < max_video ) {
+        unsigned video = (unsigned)atoi(field[1]);
+        if( video < max_video ) {
             if( ongoing_recs[video] ) {
                 _writef(sockfd, "Cancelling recording to '%s' on video %d on user request\n",
                         ongoing_recs[video]->filename,video);
@@ -2348,10 +2349,10 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
     }
 
     int ret = matchcmd("^log" _PR_SO _PR_OPID _PR_E, cmd, &field);
-    int n;
+    unsigned n;
     if( ret > 1 ) {
 
-        n = atoi(field[1]);
+        n = (unsigned)atoi(field[1]);
         if( n < 1 || n > 999 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,999]\n");
             return;
@@ -2372,7 +2373,7 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
         
     }
 
-    int len = 1024*(n+1);
+    unsigned len = 1024*(n+1);
     char *buffer = calloc(1,len*sizeof(char));
     if( buffer == NULL ) {
         logmsg(LOG_ERR,"Out of memory. Cannot allocate buffer to view logfile.");
@@ -2571,7 +2572,7 @@ _getCmdPtr(const char *cmd) {
     }
 
     while (i < cmdlen ) {
-        int len = strlen(cmdfunc[i].cmd_name);
+        size_t len = strlen(cmdfunc[i].cmd_name);
         if( 0 == strncmp(cmd,cmdfunc[i].cmd_name,len) ) {
             if( cmd[len] == ' ' || cmd[len]=='\0' )
                 break;
@@ -2598,7 +2599,7 @@ void
 cmdinterp(char *cmd, int sockfd) {
 
     // Remove trailing spaces
-    int n=strlen(cmd);
+    size_t n=strlen(cmd);
     if( n>=1 && cmd[n-1] == ' ' ) {
         while( n > 0 && cmd[n-1] == ' ')
             --n;

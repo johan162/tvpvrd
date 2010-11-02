@@ -1341,14 +1341,14 @@ html_cmd_ongoing(int sockd) {
     _writef(sockd, "<fieldset><legend>Ongoing recordings</legend>\n");
 
     int num=0;
-    for (int i = 0; i < max_video; i++) {
+    for (unsigned i = 0; i < max_video; i++) {
         num += ongoing_recs[i] ? 1 : 0 ;
     }
     if( num == 0 ) {
         _writef(sockd, "<div class=\"ongoing_transc_title_disabled\">None.</div>");
     } else {
 
-        for (int i = 0; i < max_video; i++) {
+        for (unsigned i = 0; i < max_video; i++) {
 
             if (ongoing_recs[i]) {
 

@@ -120,7 +120,7 @@ int video_close(int fd);
  * @return
  */
 int
-video_set_controlbyname(int fd, char *name,int val);
+video_set_controlbyname(int fd, char *name, int val);
 
 /**
  * Set contro9l value by using the id for the control
@@ -153,7 +153,7 @@ video_get_controlbyid(int fd, int id, int *val);
  * @return
  */
 int
-video_set_video_bitrate(int fd, int bitrate,int peak_bitrate);
+video_set_video_bitrate(int fd, unsigned bitrate, unsigned peak_bitrate);
 
 /**
  * Get the current bitrate used by the card
@@ -163,7 +163,7 @@ video_set_video_bitrate(int fd, int bitrate,int peak_bitrate);
  * @return -1 on error, 0 on success
  */
 int
-video_get_video_bitrate(int fd, int *bitrate, int *peak_bitrate);
+video_get_video_bitrate(int fd, unsigned *bitrate, unsigned *peak_bitrate);
 
 /**
  * Specify the audio parameter used bu the MP2 HW encoder. Both the sampling
@@ -186,7 +186,7 @@ video_get_video_bitrate(int fd, int *bitrate, int *peak_bitrate);
  * @return -1 on error, 0 on success 
  */
 int
-video_set_audio_bitrate(int fd, int sampling, int bitrate);
+video_set_audio_bitrate(int fd, unsigned sampling, unsigned bitrate);
 
 /**
  * Return the current audio parameters used
@@ -196,7 +196,7 @@ video_set_audio_bitrate(int fd, int sampling, int bitrate);
  * @return -1 failure, 0 success
  */
 int
-video_get_audio_bitrate(int fd, int *sampling, int *bitrate);
+video_get_audio_bitrate(int fd, unsigned *sampling, unsigned *bitrate);
 
 /*
  * Set the video aspect for the M2 HW encoder. The aspect should be one of the
@@ -211,7 +211,7 @@ video_get_audio_bitrate(int fd, int *sampling, int *bitrate);
  * @return -1 on fail, 0 on success
  */
 int
-video_set_video_aspect(int fd, int aspect);
+video_set_video_aspect(int fd, unsigned aspect);
 
 /**
  * Set the video channel
@@ -231,7 +231,7 @@ video_set_channel(const int fd, char *ch);
  * @return
  */
 int
-video_get_channel(const int fd, char *ch, int size);
+video_get_channel(const int fd, char *ch, size_t size);
 
 /**
  * Set the output size ffrom the MP2 HW encoder using one
@@ -256,7 +256,7 @@ video_set_named_size(int fd, const char *name);
  * @return 0 On success, -1 on failure
  */
 int
-video_get_sizename(int width,int height,char **buf);
+video_get_sizename(int width, int height, char **buf);
 
 /**
  * Translate a named size to its WxH
@@ -315,7 +315,7 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
  * @return The number of controls found, -1 on error
  */
 int
-_vctrl_getcontrols(int fd, struct vidcontrol vctl[], int size);
+_vctrl_getcontrols(int fd, struct vidcontrol vctl[], size_t size);
 
 /**
  *

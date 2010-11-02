@@ -212,10 +212,12 @@ void logmsg(int priority, char *msg, ...) {
             } else {
                 static const int tblen = 32;
                 char timebuff[tblen] ;
+                char *envloc = getenv("LC_ALL");
+
                 time_t now = time(NULL);
                 ctime_r(&now,timebuff);
                 timebuff[strnlen(timebuff,tblen)-1] = 0;
-                snprintf(msgbuff, blen-1, "%s: %s\n", timebuff, tmpbuff);
+                snprintf(msgbuff, blen-1, "(%ld) (%s) %s: %s\n", now, envloc, timebuff, tmpbuff);
                 msgbuff[blen-1] = 0 ;
                 inlogfunction = 1;
                 _writef(fd, msgbuff);
@@ -508,9 +510,9 @@ matchcmd_free(char ***field) { //,const char *func, int line) {
  * Fill the supplied buffer with 'num' repeats of character 'c'
  */
 char *
-rptchr_r(char c, unsigned int num, char *buf) {
+rptchr_r(char c, size_t num, char *buf) {
     num = MIN(255, num);
-    for (int i = 0; i < num; i++)
+    for (unsigned i = 0; i < num; i++)
         buf[i] = c;
     buf[num] = '\0';
     return buf;
@@ -613,7 +615,7 @@ removedir(const char *dir) {
  * @return 0 on sucess, -1 on fail
  */
 int
-mv_and_rename(char *from, char *to, char *newname, int size) {
+mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
     struct stat fstat;
     char buff1[256],short_filename[128],to_directory[256], suffix[8];
 
@@ -676,8 +678,8 @@ mv_and_rename(char *from, char *to, char *newname, int size) {
         logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' (%d : %s)",
               from,buff1,errno,strerror(errno));
     }
-    strncpy(newname,buff1,size);
-    newname[size-1] = '\0';
+    strncpy(newname,buff1,maxlen);
+    newname[maxlen-1] = '\0';
     return ret;
 }
 
@@ -983,7 +985,7 @@ getwsetsize(int pid, int *size, char *unit, int *threads) {
  * @return 0 success, -1 failure
  */
 int
-tail_logfile(int n, char *buffer, int maxlen) {
+tail_logfile(unsigned n, char *buffer, size_t maxlen) {
     if( n < 1 || n > 999 )
         return -1;
 
@@ -1003,7 +1005,7 @@ tail_logfile(int n, char *buffer, int maxlen) {
         return -1;
     }
 
-    const int maxbuff=512;
+    const size_t maxbuff=512;
     char linebuffer[maxbuff];
     *buffer = '\0';
     while( maxlen > 1024 && NULL != fgets(linebuffer,maxbuff,fp) ) {
@@ -1022,6 +1024,28 @@ tail_logfile(int n, char *buffer, int maxlen) {
 }
 
 /**
+ * Escape quotes in a string as necessary
+ * @param tostr
+ * @param fromstr
+ * @param maxlen
+ */
+void
+escape_quotes(char *tostr, char *fromstr, size_t maxlen) {
+    size_t i=0;
+    while( i < maxlen-1 && *fromstr ) {
+        if( *fromstr == '"' ) {
+            *tostr++ = '\\';
+            *tostr++ = '"';
+            i += 2;
+        } else {
+            *tostr++ = *fromstr++;
+            i++;
+        }
+    }
+    *tostr = '\0';
+}
+
+/**
  * Send a simple text mail to the specified recepients
  * @param subject
  * @param to
@@ -1030,7 +1054,7 @@ tail_logfile(int n, char *buffer, int maxlen) {
  */
 int
 send_mail(const char *subject, const char *to, const char *message) {
-    const int blen=20*1024;
+    const size_t blen=20*1024;
     char buffer[blen];
 
     /*
@@ -1049,12 +1073,16 @@ send_mail(const char *subject, const char *to, const char *message) {
     snprintf(buffer,blen-1,
 	"echo \"%s\" | /usr/bin/mail -s '%s' '%s'",message, subject, to);
 
-    logmsg(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
+    const size_t blen2 = 2*strlen(buffer);
+    char *qbuffer = calloc(blen2, sizeof(char));
+    escape_quotes(qbuffer,buffer,blen2);
 
-    int rc=system(buffer);
+    int rc=system(qbuffer);
 
     if( rc ) {
-        logmsg(LOG_ERR,"Failed to send mail. ( %d : %s )",errno,strerror(errno));
+        logmsg(LOG_ERR,"Failed to send mail. rc=%d ( %d : %s )",rc,errno,strerror(errno));
+    } else {
+        logmsg(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
     }
 
     return rc;
@@ -1196,11 +1224,11 @@ void strtrim(char *str) {
  * @return
  */
 int
-get_assoc_value(char *value,int maxlen,char *key,char *list[],int n) {
-    int i = 0;
-    while( i < n ) {
+get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t listlen) {
+    size_t i = 0;
+    while( i < listlen ) {
         if( 0 == strcmp(key,list[i]) ) {
-            strncpy(value,list[i+1],maxlen);
+            strncpy(value,list[i+1], maxlen);
             strtrim(value);
             return 0;
         }

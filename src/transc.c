@@ -37,6 +37,7 @@
 #include <dirent.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <math.h>
 
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -61,7 +62,7 @@ struct waiting_transcoding_t wtrans[MAX_WAITING_TRANSCODINGS] ;
 // We store all the details about a specific transcoding profile in an array
 // as well. In theory there is no limit to how many profiles a user may define
 static struct transcoding_profile_entry *profiles[MAX_TRANS_PROFILES];
-static int num_transcoding_profiles=0;
+static unsigned num_transcoding_profiles=0;
 
 /**
  * Check if ffmpeg binaries can be found at the specified location
@@ -147,7 +148,7 @@ get_num_ongoing_transcodings(void) {
  * @return number of currently ongoing transcodings
  */
 int
-list_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
+list_ongoing_transcodings(char *obuff, size_t size, int show_ffmpegcmd) {
     char tmpbuff[512];
     int y, m, d, h, min, sec;
     time_t now = time(NULL);
@@ -206,7 +207,7 @@ list_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd) {
  * @param start
  * @return The total number of defined profiles
  */
-int
+unsigned
 get_transcoding_profile_list(struct transcoding_profile_entry **start[]) {
     *start = profiles;
     return num_transcoding_profiles;
@@ -221,7 +222,7 @@ int
 transcoding_profile_exist(char *name) {
     if( strlen(name) == 0 ) 
         return 0;
-    for(int i=0; i < num_transcoding_profiles; i++ ) {
+    for(unsigned i=0; i < num_transcoding_profiles; i++ ) {
         if( strncmp(name,profiles[i]->name,31) == 0 ) {
             return 1;
         }
@@ -237,7 +238,7 @@ transcoding_profile_exist(char *name) {
  * @return
  */
 int
-_read_transcoding_profile(char *filename,int idx) {
+_read_transcoding_profile(char *filename,unsigned idx) {
     // Find all the sections named ffmpeg_profile_<profile-name>
     // Loop through all sections to find the corresponding channel
 
@@ -254,7 +255,7 @@ _read_transcoding_profile(char *filename,int idx) {
 
     strncpy(profname,basename(filename),255);
     profname[255] = '\0';
-    int k=strnlen(profname,255);
+    int k=(int)strnlen(profname,255);
     while( k>0 && profname[k] != '.' )
         k--;
     if( k <= 0 ) {
@@ -284,34 +285,34 @@ _read_transcoding_profile(char *filename,int idx) {
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":keep_mp2file",bufsize-1);
     buffer[bufsize-1] = '\0';     
-    entry->encoder_keep_mp2file = iniparser_getboolean(profile, buffer, KEEP_MP2FILE);
+    entry->encoder_keep_mp2file = (unsigned)iniparser_getboolean(profile, buffer, KEEP_MP2FILE);
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0'; 
-    entry->encoder_video_bitrate = validate(500000,8000000,"video_bitrate",
-                                                  iniparser_getint(profile, buffer, DEFAULT_VIDEO_BITRATE));
+    entry->encoder_video_bitrate = (unsigned)validate(500000,8000000,"video_bitrate",
+                                            iniparser_getint(profile, buffer, DEFAULT_VIDEO_BITRATE));
                             
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_peak_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';  
-    entry->encoder_video_peak_bitrate = validate(500000,8000000,"video_peak_bitrate",
-                                                  iniparser_getint(profile, buffer, DEFAULT_VIDEO_PEAK_BITRATE));
+    entry->encoder_video_peak_bitrate = (unsigned)validate(500000,8000000,"video_peak_bitrate",
+                                                 iniparser_getint(profile, buffer, DEFAULT_VIDEO_PEAK_BITRATE));
                          
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":audio_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';                                   
-    entry->encoder_audio_bitrate = validate(9,13,"audio_bitrate",
+    entry->encoder_audio_bitrate = (unsigned)validate(9,13,"audio_bitrate",
                                             iniparser_getint(profile, buffer, DEFAULT_AUDIO_BITRATE));
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":audio_sampling",bufsize-1);
     buffer[bufsize-1] = '\0';                                      
-    entry->encoder_audio_sampling = validate(0,2,"audio_sampling",
+    entry->encoder_audio_sampling = (unsigned)validate(0,2,"audio_sampling",
                                              iniparser_getint(profile, buffer, DEFAULT_AUDIO_SAMPLING));
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_aspect",bufsize-1);
     buffer[bufsize-1] = '\0';                                    
-    entry->encoder_video_aspect = validate(0,3,"video_aspect",
+    entry->encoder_video_aspect = (unsigned)validate(0,3,"video_aspect",
                                            iniparser_getint(profile, buffer, DEFAULT_VIDEO_ASPECT));
 
     strncpy(buffer,sname,bufsize-1);
@@ -331,54 +332,54 @@ _read_transcoding_profile(char *filename,int idx) {
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":use_transcoding",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->use_transcoding = iniparser_getboolean(profile, buffer, DEFAULT_USE_TRANSCODING);
+    entry->use_transcoding = (unsigned)iniparser_getboolean(profile, buffer, DEFAULT_USE_TRANSCODING);
     
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->video_bitrate = validate(100,1500,"ffmpeg_video_bitrate",
+    entry->video_bitrate = (unsigned)validate(100,1500,"ffmpeg_video_bitrate",
                                     iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_peak_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->video_peak_bitrate = validate(100,1800,"ffmpeg_video_peak_bitrate",
+    entry->video_peak_bitrate = (unsigned)validate(100,1800,"ffmpeg_video_peak_bitrate",
                                          iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_PEAK_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":audio_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->audio_bitrate = validate(32,320,"ffmpeg_audio_bitrate",
+    entry->audio_bitrate = (unsigned)validate(32,320,"ffmpeg_audio_bitrate",
                                     iniparser_getint(profile, buffer,DEFAULT_PROFILE_AUDIO_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":pass",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->pass = validate(1,2,"ffmpeg_pass",
+    entry->pass = (unsigned)validate(1,2,"ffmpeg_pass",
                            iniparser_getint(profile, buffer,DEFAULT_PROFILE_PASS));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":crop_top",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->crop_top = validate(0,160,"ffmpeg_crop_top",
+    entry->crop_top = (unsigned)validate(0,160,"ffmpeg_crop_top",
                                iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_TOP));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":crop_bottom",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->crop_bottom = validate(0,160,"ffmpeg_crop_bottom",
+    entry->crop_bottom = (unsigned)validate(0,160,"ffmpeg_crop_bottom",
                                   iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_BOTTOM));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":crop_left",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->crop_left = validate(0,160,"ffmpeg_crop_left",
+    entry->crop_left = (unsigned)validate(0,160,"ffmpeg_crop_left",
                                 iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_LEFT));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":crop_right",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->crop_right = validate(0,160,"ffmpeg_crop_right",
+    entry->crop_right = (unsigned)validate(0,160,"ffmpeg_crop_right",
                                  iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_RIGHT));
 
     strncpy(buffer,sname,bufsize-1);
@@ -475,7 +476,7 @@ read_transcoding_profiles(void) {
         if ((strcmp(dirp->d_name, ".") != 0) && (strcmp(dirp->d_name, "..") != 0)) {
 
             // Only read files with suffix ".profile"
-            int len = strnlen(dirp->d_name,512);
+            unsigned len = strnlen(dirp->d_name,512);
             if( len > 8 && (strncmp(".profile",dirp->d_name+len-8,9) == 0) ) {
 
                 snprintf(tmpbuff, 512, "%s/%s", dirbuff, dirp->d_name);
@@ -511,7 +512,7 @@ read_transcoding_profiles(void) {
 void
 refresh_transcoding_profiles(void) {
     // Re-read allexisting profiles
-    for(int i=0; i < num_transcoding_profiles; i++) {
+    for(unsigned i=0; i < num_transcoding_profiles; i++) {
         (void)_read_transcoding_profile(profiles[i]->filename,i);
     }
 }
@@ -524,8 +525,8 @@ refresh_transcoding_profiles(void) {
  * @param size Max length of the supplied buffer
  */
 void
-_dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff, int size) {
-    float sampling[] = {44.1, 48.0, 32.0};
+_dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff, size_t size) {
+    double sampling[] = {44.1, 48.0, 32.0};
     int abps[] = {192, 224, 256, 320, 384};
     char *aspect[] = {"1x1","4x3","16x9","221x100"};
 
@@ -584,8 +585,8 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
  * @return
  */
 int 
-dump_transcoding_profile(char *name, char *buff, int size) {
-    int i;
+dump_transcoding_profile(char *name, char *buff, size_t size) {
+    unsigned i;
     for(i=0; i < num_transcoding_profiles && strcmp(name,profiles[i]->name); i++)
         ;
     if( i < num_transcoding_profiles ) {
@@ -604,7 +605,7 @@ dump_transcoding_profile(char *name, char *buff, int size) {
 void
 get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
 
-    int i=0;
+    unsigned i=0;
     while( i < num_transcoding_profiles && strcmp(name,profiles[i]->name) )
         i++;
     if( i >= num_transcoding_profiles ) {
@@ -631,8 +632,8 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
  * @param maxlen
  */
 int
-list_profile_names(char *buff,int maxlen) {
-    int idx=0;
+list_profile_names(char *buff,size_t maxlen) {
+    unsigned idx=0;
     char tmpbuff[255];
     *buff = '\0';
     while( idx < num_transcoding_profiles ) {
@@ -649,10 +650,10 @@ list_profile_names(char *buff,int maxlen) {
     return 0;
 }
 
-int
-get_profile_names(const char *list[],int maxlen) {
-    int n = MIN(maxlen,num_transcoding_profiles);
-    for( int i=0; i < n; ++i ) {
+unsigned
+get_profile_names(const char *list[],size_t maxlen) {
+    unsigned n = MIN(maxlen,num_transcoding_profiles);
+    for( unsigned i=0; i < n; ++i ) {
         list[i] = profiles[i]->name;
     }
     return n;
@@ -666,9 +667,9 @@ get_profile_names(const char *list[],int maxlen) {
 int
 wait_to_transcode(char *filename) {
     // We will not start transcoding until the 5 min load average is below max_load_for_transcoding
-    int waiting_time = 0;
-    int backoff_time = 7*60;
-    int logcnt=0;
+    unsigned waiting_time = 0;
+    unsigned backoff_time = 7*60;
+    unsigned logcnt=0;
     float avg1 = 0, avg5 = 0, avg15 = 0;
     getsysload(&avg1, &avg5, &avg15);
 
@@ -677,7 +678,8 @@ wait_to_transcode(char *filename) {
                filename, avg5, max_load_for_transcoding);
     }
 
-    while (avg5 > max_load_for_transcoding && (max_waiting_time_to_transcode==0 || waiting_time < max_waiting_time_to_transcode)) {
+    while (avg5 > max_load_for_transcoding && 
+           (max_waiting_time_to_transcode==0 || waiting_time < (unsigned)max_waiting_time_to_transcode)) {
         sleep(backoff_time);
         waiting_time += backoff_time;
         getsysload(&avg1, &avg5, &avg15);
@@ -691,7 +693,7 @@ wait_to_transcode(char *filename) {
         }
         
     }
-    return waiting_time < max_waiting_time_to_transcode || max_waiting_time_to_transcode==0 ? 0 : -1;
+    return waiting_time < (unsigned)max_waiting_time_to_transcode || max_waiting_time_to_transcode==0 ? 0 : -1;
 }
 
 /*
@@ -738,7 +740,7 @@ forget_waiting_transcoding(int idx) {
  * Return a list of all transcoding waiting in queue
  */
 int
-list_waiting_transcodings(char *buffer,int maxlen) {
+list_waiting_transcodings(char *buffer,size_t maxlen) {
     int num=0;
     int idx=0;
     char tmpbuff[1024];
@@ -785,11 +787,11 @@ list_waiting_transcodings(char *buffer,int maxlen) {
  * @return
  */
 int
-create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, int destsize, char *cmd, int size) {
+create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
 
     // Build command line for ffmpeg
     strcpy(destfile, filename);
-    int l = strlen(filename)-1;
+    int l = (int)strlen(filename)-1;
     while(l >= 0 && destfile[l] != '.') {
         l--;
     }
@@ -1402,7 +1404,7 @@ incidx_fillist(struct transc_filelistparam *filelist) {
  * @return
  */
 int
-get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
+get_queued_transc_filelists_info(int num,char *buffer,size_t len,int incfiles) {
     char tmpbuff[512] = {'\0'};
     // Return information on transcoding filelist with ordinal number 'num'
     // in the supplied buffer as a string
@@ -1441,7 +1443,7 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
     logmsg(LOG_NOTICE,"Filelist transcoding has been running for %d day(s) %02d:%02d (%d s)",sday,sh,smin,ts_tmp);
 
     // Try to estimate the remaining time (very, very roughly)
-    float ts_left = 0.0;
+    double ts_left = 0.0;
     int lh=-1;
     int lday = -1;
     if( ongoing_filelist_transcodings[idx]->idx > 2 ) {
@@ -1453,8 +1455,8 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles) {
         ts_left = ts_tmp / (ongoing_filelist_transcodings[idx]->idx) * 1.0;
         ts_left *= nleft;
 
-        lday = ts_left / (24*3600) ;
-        lh = (ts_left-lday*24*3600)/3600+1;
+        lday = (int)round(ts_left / (24*3600)) ;
+        lh = (int)round((ts_left-lday*24*3600)/3600+1);
     }
 
 
@@ -1802,7 +1804,7 @@ transcode_whole_directory(char *dirpath, char *profilename) {
 
                 // Check that the file ends in a recognized video format suffix
                 // .mpg, .mpeg, .mp2, .mp4, .rm, .avi, .flv,
-                int k = strlen(dirp->d_name)-1;
+                size_t k = strlen(dirp->d_name)-1;
                 while( k >  0 && dirp->d_name[k] != '.' ) {
                     k--;
                 }

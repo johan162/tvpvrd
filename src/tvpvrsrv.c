@@ -105,13 +105,35 @@ char server_program_name[32] = {0};
 /*
  * The value of these variables are read from the ini-file and initialized in
  * the main() function. They hold various run time limits and settings that
- * the user can adjust.
+ * the user can adjust. Some of these values can also be overridden by being
+ * given as options when the daemon starts
  */
+
+// Time delay before the daemon really starts doing stuff if
+// thje dameon is started within 3 minutes of the machine power
+// on.
+// This might seem a really odd thing to have but it has one
+// really useful purpose. On older machines where the bios clock
+// is not correctly updated by the ntpd daemon at shutdown it
+// could be that in the few seconds after the machine starts up
+// and until the ntpd daemon kicks in the time is wrong. This is
+// especially annoying when the switch to/from daylight saving time
+// takes place. If the bios clock is not correctly updated at shutdown
+// the first few seconds aefter the server starts the time will be off
+// by one hour.
+// This variable species a suitable number of seconds for the daemon to
+// sleep at startup so that the ntpd daemons has had time to correct the
+// machine time. Of course this delay is only really necessary when the
+// daaemon is started up just after the server has been powered on. So
+// this delay only kicks in if the daemon is started within 3 minutes of the
+// machine power on.
+int tdelay=30;
+
 // Should we run as a daemon or nothing
 int daemonize=-1;
 
 // Maximum sizes
-int max_entries, max_video, max_clients, max_idle_time;
+unsigned max_entries, max_video, max_clients, max_idle_time;
 
 // Default recording length if nothing else is specified
 int defaultDurationHour, defaultDurationMin;
@@ -120,14 +142,14 @@ int defaultDurationHour, defaultDurationMin;
 int is_master_server;
 
 // TVP/IP Port to listen to
-int tcpip_port;
+unsigned short int tcpip_port;
 
 // Logfile details
 int verbose_log;
 char logfile_name[256] = {'\0'};
 
 // Time resolution for checks
-int time_resolution;
+unsigned time_resolution;
 
 // The video buffer (used when reading the video stream from the capture card)
 // One buffer for each video card. We support up to 4 simultaneous cards
@@ -225,7 +247,7 @@ static int received_signal = 0;
 /*
  * Keep track of the socket that each client uses
  */
-static int *client_socket; 
+static int *client_socket;
 
 /*
  * video_idx
@@ -319,7 +341,7 @@ int tuner_input_index;
 int pcre_mem_count=0;
 struct tvp_mem_entry {
     void *ptr;
-    int size;
+    size_t size;
     struct tvp_mem_entry *next;
 };
 
@@ -397,10 +419,10 @@ init_globs(void) {
         video_idx       =       (int *) calloc(max_video,   sizeof (int));
         abort_video     =       (int *) calloc(max_video,   sizeof (int));
 
-        for (int i = 0; i < max_video; ++i) {
+        for (unsigned i = 0; i < max_video; ++i) {
             // Index of video stream. Used to avoid local stack based variables
             // to be sent in the pthread_create() call
-            video_idx[i] = i;
+            video_idx[i] = (int)i;
         }
     }
 
@@ -410,7 +432,7 @@ init_globs(void) {
     client_socket   =       (int *) calloc(max_clients, sizeof (int));
 
     if( is_master_server ) {
-        for(int i=0; i < max_video; ++i) {
+        for(unsigned i=0; i < max_video; ++i) {
             video_buffer[i] = calloc(VIDBUFSIZE, sizeof(char *));
             if( video_buffer[i] == NULL ) {
                 fprintf(stderr,"Cannot allocate video buffer memory. (%d : %s)",errno,strerror(errno));
@@ -440,7 +462,7 @@ free_globs(void) {
     cmdfree();
     freerecs();
 
-    for(int i=0; i < max_clients; i++) {
+    for(unsigned i=0; i < max_clients; i++) {
         if( client_ipadr[i] )
             free(client_ipadr[i]);
         free(video_buffer[i]);
@@ -469,7 +491,7 @@ free_globs(void) {
 int
 set_enc_parameters(int fd, struct transcoding_profile_entry *profile) {
     char infobuff[256];
-    float sampling[] = {44.1, 48.0, 32.0};
+    double sampling[] = {44.1, 48.0, 32.0};
     int abps[] = {192, 224, 256, 320, 384};
     char *aspect[] = {"1x1","4x3","16x9","221x100"};
     int w,h;
@@ -484,7 +506,7 @@ set_enc_parameters(int fd, struct transcoding_profile_entry *profile) {
     int i=2;
     ret = video_set_video_bitrate(fd, profile->encoder_video_bitrate, profile->encoder_video_peak_bitrate);
     while( ret == -1 && errno == EBUSY && i > 0 ) {
-        usleep(700*(3-i));
+        usleep((unsigned)(700*(3-i)));
         ret = video_set_video_bitrate(fd, profile->encoder_video_bitrate, profile->encoder_video_peak_bitrate);
         i--;
     }
@@ -539,7 +561,7 @@ set_enc_parameters(int fd, struct transcoding_profile_entry *profile) {
 }
 
 int
-setup_video(int video,struct transcoding_profile_entry *profile) {
+setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 #ifndef DEBUG_SIMULATE
     char infobuff[256];
 #endif
@@ -557,7 +579,7 @@ setup_video(int video,struct transcoding_profile_entry *profile) {
     int ret,i=2;
     ret = video_set_channel(fd, ongoing_recs[video]->channel);
     while( ret == -1 && errno == EBUSY && i > 0 ) {
-        usleep(500*(3-i));
+        usleep((unsigned)(500*(3-i)));
         ret = video_set_channel(fd, ongoing_recs[video]->channel);
         i--;
     }
@@ -599,8 +621,8 @@ setup_video(int video,struct transcoding_profile_entry *profile) {
 
 int
 transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
-                        char *full_filename, struct transcoding_profile_entry *profile,
-                        int *filesize, struct timeall *transcode_time, float *avg_5load) {
+                        struct transcoding_profile_entry *profile,
+                        unsigned *filesize, struct timeall *transcode_time, float *avg_5load) {
 
     struct rusage usage;
     CLEAR(*transcode_time);
@@ -816,7 +838,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                 // Find out the size of the transcoded file
                 if( 0 == stat(newname,&fstat) ) {
                     
-                    *filesize = fstat.st_size;
+                    *filesize = (unsigned)fstat.st_size;
                     transcode_time->rtime.tv_sec = runningtime ;
                     transcode_time->utime.tv_sec = usage.ru_utime.tv_sec;
                     transcode_time->stime.tv_sec = usage.ru_stime.tv_sec;
@@ -840,7 +862,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     char timebuff[tblen] ;
                     time_t now = time(NULL);
                     ctime_r(&now,timebuff);
-                    timebuff[strnlen(timebuff,tblen)-1] = 0;
+                    timebuff[strnlen(timebuff,(size_t)(tblen-1))] = 0;
 
                     // Include the server name in the mail
                     char hostname[80];
@@ -887,6 +909,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
                     snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
                     subjectbuff[255] = '\0';
+                    logmsg(LOG_DEBUG,"Mail subject: %s",subjectbuff);
+                    logmsg(LOG_DEBUG,"Mail body: %s",mailbuff);
                     send_mail(subjectbuff,send_mailaddress,mailbuff);
 
                 }
@@ -903,13 +927,14 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
  * new recording should be started. After the recording have been sucessfully finished
  * the transcoding is initiated.
  */
+
 void *
 startrec(void *arg) {
-    int nread, nwrite;
+    ssize_t nread, nwrite;
     char full_filename[256], workingdir[256], short_filename[256];
     const mode_t dmode =  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
     const mode_t fmode =  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-    int mp2size = 0;
+    unsigned mp2size = 0;
     volatile int doabort = 0 ;
 
     // To avoid reserving ~8MB after the thread terminates we
@@ -918,7 +943,7 @@ startrec(void *arg) {
     // loosing 8MB for each created thread
     pthread_detach(pthread_self());
 
-    int video = *(int *) arg;
+    unsigned video = *(unsigned *) arg;
     struct recording_entry *recording = ongoing_recs[video];
     struct transcoding_profile_entry *profile, *tmp_profile;
 
@@ -958,7 +983,7 @@ startrec(void *arg) {
 
     } else {
 
-        int k = strnlen(recording->filename,REC_MAX_NFILENAME)-1;
+        int k = (int)strnlen(recording->filename,REC_MAX_NFILENAME)-1;
         while ( k>0 && recording->filename[k] != '.' )
             k--;
         if( k <= 0 ) {
@@ -1075,7 +1100,7 @@ startrec(void *arg) {
                             }
                     } else {
 
-                        nwrite = write(fh, video_buffer[video], nread);
+                        nwrite = write(fh, video_buffer[video], (size_t)nread);
                         //logmsg(LOG_DEBUG,"    -- [%02d] nwrite=%d after writing to '%s'",video,nwrite,full_filename);
 
                         if( nwrite == -1 ) {
@@ -1083,7 +1108,7 @@ startrec(void *arg) {
                                     full_filename,errno,strerror(errno));
                             doabort = 1;
                         } else {
-                            mp2size += nwrite;
+                            mp2size += (unsigned)nwrite;
                             doabort = abort_video[video];
                         }
 
@@ -1130,12 +1155,12 @@ startrec(void *arg) {
 
         // Now do the transcoding for each profile associated with this recording
         int transcoding_problem = 1 ;
-        int keep_mp2_file = 0 ;
+        unsigned keep_mp2_file = 0 ;
 
         if( !doabort && (nread == nwrite) ) {
 
             transcoding_problem = 0;
-            int mp4size=0;
+            unsigned mp4size=0;
             float avg_5load;
             struct timeall transcode_time;
             CLEAR(transcode_time);
@@ -1149,13 +1174,13 @@ startrec(void *arg) {
 
                 logmsg(LOG_NOTICE,"Transcoding using profile: %s",profile->name);
                 int ret = transcode_and_move_file(datadir,workingdir,short_filename,
-                                                  full_filename,profile,
+                                                  profile,
                                                   &mp4size,&transcode_time,&avg_5load);
                 transcoding_problem |= ret;
                 if( 0 == ret ) {
                     stats_update(recording->transcoding_profiles[i],
                                  mp2size,
-                                 recording->ts_end - recording->ts_start,
+                                 (unsigned)(recording->ts_end - recording->ts_start),
                                  mp4size,
                                  &transcode_time, avg_5load);
                 }
@@ -1204,6 +1229,10 @@ startrec(void *arg) {
     return (void *) 0;
 }
 
+
+
+
+
 /*
  * This is the main thread to watch for starting new recordings. It is started at the beginning
  * of the server and run until the server is shut down. It will loop and check every 'time_resolution'
@@ -1214,7 +1243,9 @@ void *
 chkrec(void *arg) {
     time_t now;
     int diff, ret;
-    volatile int video;
+    volatile unsigned video;
+
+    arg = NULL;  // Avoid warning on unused variable
 
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
@@ -1269,7 +1300,7 @@ chkrec(void *arg) {
                     // away. It will also take a few ms to setup the card and tuner so we
                     // err on the safe side here. So in general this means that on average the
                     // recording will start ~TIME_RESOLUTION s before the scheduled time.
-                    if (diff >= -time_resolution) {
+                    if (diff >= -(int)time_resolution) {
                         volatile void  *active;
                         active = ongoing_recs[video];
 
@@ -1328,7 +1359,9 @@ chkrec(void *arg) {
  */
 void *
 clientsrv(void *arg) {
-    int numreads, i, ret;
+    int ret;
+    unsigned i;
+    ssize_t numreads;
     int my_socket = *(int *) arg;
     char buffer[1024];
     fd_set read_fdset;
@@ -1433,7 +1466,7 @@ clientsrv(void *arg) {
     _writef(my_socket, buffer);
 
     // Keep track of client idle time
-    int idle_time=0;
+    unsigned idle_time=0;
 
     do  {
 
@@ -1521,7 +1554,9 @@ clientsrv(void *arg) {
  */
 void *
 webclientsrv(void *arg) {
-    int numreads, i, ret;
+    ssize_t numreads;
+    unsigned i;
+    int ret;
     int my_socket = *(int *) arg;
     char buffer[1024];
     fd_set read_fdset;
@@ -1617,7 +1652,8 @@ webclientsrv(void *arg) {
  */
 int
 startupsrv(void) {
-    int sockd=-1, websockd=-1, newsocket=-1, i;
+    int sockd=-1, websockd=-1, newsocket=-1;
+    unsigned i;
     unsigned tmpint;
     struct sockaddr_in socketaddress, websocketaddress;
     int ret;
@@ -1819,9 +1855,10 @@ startupsrv(void) {
  * signals. The function then sets the global variable handled_signal
  */
 void *
-sighand_thread(void *ptr) {
+sighand_thread(void *arg) {
     sigset_t signal_set;
     int sig;
+    arg = NULL;
 
     while (1) {
 
@@ -1947,7 +1984,7 @@ chkdirstructure(void) {
         exit(EXIT_FAILURE);
     }
 
-    for(int i=0; i < max_video; i++) {
+    for(unsigned i=0; i < max_video; i++) {
         snprintf(bdirbuff,511,"vtmp/vid%d",i) ;
         if( -1 == chkcreatedir(datadir,bdirbuff) ) {
             exit(EXIT_FAILURE);
@@ -1958,8 +1995,8 @@ chkdirstructure(void) {
     // profile subdirectory hierachy
     if( use_profiledirectories ) {
         struct transcoding_profile_entry **profiles;
-        int nprof = get_transcoding_profile_list(&profiles);
-        for( int i=0; i < nprof; i++) {
+        unsigned nprof = get_transcoding_profile_list(&profiles);
+        for( unsigned i=0; i < nprof; i++) {
             snprintf(bdirbuff,511,"mp4/%s",profiles[i]->name);
             if( -1 == chkcreatedir(datadir,bdirbuff) ) {
                 exit(EXIT_FAILURE);
@@ -1975,7 +2012,7 @@ chkdirstructure(void) {
 #define INIFILE_BUFFERSIZE 4096
 static char inibuffer[INIFILE_BUFFERSIZE] = {0};
 
-static const char short_options [] = "d:f:hi:l:p:vx:V:s";
+static const char short_options [] = "d:f:hi:l:p:vx:V:st:";
 static const struct option long_options [] = {
     { "daemon",  required_argument,     NULL, 'd'},
     { "xmldb",   required_argument,     NULL, 'f'},
@@ -1984,9 +2021,10 @@ static const struct option long_options [] = {
     { "version", no_argument,           NULL, 'v'},
     { "logfile", required_argument,     NULL, 'l'},
     { "port",    required_argument,     NULL, 'p'},
+    { "slave",   no_argument,           NULL, 's'},
+    { "tdelay",  required_argument,     NULL, 't'},
     { "verbose", required_argument,     NULL, 'V'},
     { "xawtvrc", required_argument,     NULL, 'x'},
-    { "slave",   no_argument,           NULL, 's'},
     { 0, 0, 0, 0}
 };
 
@@ -2006,7 +2044,7 @@ parsecmdline(int argc, char **argv) {
     *logfile_name='\0';
     *xawtv_channel_file='\0';
     verbose_log = -1;
-    tcpip_port = -1;
+    tcpip_port = 0;
     is_master_server = -1;
     opterr = 0; // Supress error string from getopt_long()
     if( argc > 8 ) {
@@ -2053,7 +2091,9 @@ parsecmdline(int argc, char **argv) {
                         " -V n,    --verbose=n       Override inifile and set verbose level\n"
                         " -p n,    --port=n          Override inifile and set TCP/IP listen port\n"
                         " -x file, --xawtvrc=file    Override inifile and set station file\n"
-                        " -s,      --slave           Run with slave configuration\n",
+                        " -s,      --slave           Run with slave configuration\n"
+                        " -t,      --tdelay          Extra wait time when daemon is started\n",
+
                         server_program_name, server_program_name);
                 exit(EXIT_SUCCESS);
                 break;
@@ -2126,7 +2166,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'p':
                 if( optarg != NULL ) {
-                    tcpip_port = validate(0,99999,"TCP/IP port on command line",atoi(optarg));
+                    tcpip_port = (short unsigned int)validate(0,99999,"TCP/IP port on command line",atoi(optarg));
                 }
                 break;
 
@@ -2144,7 +2184,13 @@ parsecmdline(int argc, char **argv) {
                     }
                 }
                 break;
-                
+
+            case 't':
+                if( optarg != NULL ) {
+                    tdelay = validate(2,600,"tdelay on command line",atoi(optarg));
+                }
+                break;
+
             case ':':
                 fprintf(stderr, "Option `%c' needs a file name.\n", optopt);
                 exit(EXIT_FAILURE);
@@ -2277,20 +2323,20 @@ read_inisettings(void) {
         is_master_server    = iniparser_getboolean(dict,"config:master",MASTER_SERVER);
     }
 
-    max_video           = validate(0, 5,"max_video",
+    max_video           = (unsigned)validate(0, 5,"max_video",
                                    iniparser_getint(dict, "config:max_video", MAX_VIDEO));
 
     if( 0 == max_video ) {
         // Automatically determine the maximum number of cards
-        max_video = _vctrl_getnumcards();
+        max_video = (unsigned)_vctrl_getnumcards();
     }
 
     tuner_input_index   = validate(0, 7,"tuner_input_index",
                                    iniparser_getint(dict, "config:tuner_input_index", DEFAULT_TUNER_INPUT_INDEX));
 
-    max_entries         = validate(1,4096,"max_entries",
+    max_entries         = (unsigned)validate(1,4096,"max_entries",
                                    iniparser_getint(dict, "config:max_entries", MAX_ENTRIES));
-    max_clients         = validate(1,10,"max_clients",
+    max_clients         = (unsigned)validate(1,10,"max_clients",
                                    iniparser_getint(dict, "config:max_clients", MAX_CLIENTS));
 
     defaultDurationHour = validate(0,4,"recording_timehour",
@@ -2298,16 +2344,16 @@ read_inisettings(void) {
     defaultDurationMin  = validate(0,59,"recording_timemin",
                                    iniparser_getint(dict, "config:recording_timemin", DEFAULT_DURATIONMIN));    
 
-    if( tcpip_port == -1 ) {
+    if( tcpip_port == 0 ) {
         // Not specified on the command line
-        tcpip_port          = validate(1025,99999,"port",
+        tcpip_port          = (short unsigned)validate(1025,99999,"port",
                                        iniparser_getint(dict, "config:port", PORT));
     }
 
-    max_idle_time       = validate(2*60,30*60,"client_idle_time",
+    max_idle_time       = (unsigned)validate(2*60,30*60,"client_idle_time",
                                     iniparser_getint(dict, "config:client_idle_time", CLIENT_IDLE_TIME));
 
-    time_resolution     = validate(1,30,"time_resolution",
+    time_resolution     = (unsigned)validate(1,30,"time_resolution",
                                     iniparser_getint(dict, "config:time_resolution", TIME_RESOLUTION));
 
     allow_profiles_adj_encoder = iniparser_getboolean(dict,"config:allow_profiles_adj_encoder",0);
@@ -2411,7 +2457,7 @@ read_inisettings(void) {
 #ifndef DEBUG_SIMULATE
     if( is_master_server ) {
         // Verify that we can really open all the videos we are requsted to use
-        for( int i=0; i < max_video; i++ ) {
+        for( unsigned i=0; i < max_video; i++ ) {
             int vh = video_open(i);
             if( vh == -1 ) {
                 logmsg(LOG_ERR,
@@ -2504,7 +2550,7 @@ init_capture_cards(void) {
     if( !allow_profiles_adj_encoder ) {
         struct transcoding_profile_entry *profile;
         get_transcoding_profile(default_transcoding_profile,&profile);
-        for(int video=0; video < max_video; video++) {
+        for(unsigned video=0; video < max_video; video++) {
             int fd = video_open(video);
             int ret = set_enc_parameters(fd,profile);
             video_close(fd);
@@ -2538,6 +2584,8 @@ main(int argc, char *argv[]) {
         _exit(EXIT_FAILURE);
     }
 
+    syslog(LOG_INFO,"%s","Starting tvpvrd daemon");
+
     // Setup MALLOC to dump in case of memory corruption, i.e. double free
     // or overrun. This might be less efficient but this will be enabled
     // until we are 101% sure there are no mistakes in the code.
@@ -2561,9 +2609,6 @@ main(int argc, char *argv[]) {
     strncpy(server_program_name,basename(inibuffer),31);
     server_program_name[31] = '\0';
     
-    // Remember when the server was started
-    ts_serverstart = time(NULL);
-   
     // Initialize the static frequency map. 
     initfreqtable();
     
@@ -2605,12 +2650,31 @@ main(int argc, char *argv[]) {
      * have a faulty locale. If the locale is set in the INI file we will use
      * that one instead.
      */
+
     strncpy(locale_name,
             iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
             255);
     logfile_name[255] = '\0';
     setenv("LC_ALL",locale_name,1);
     logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
+
+
+    // Hold the virtual breath if the dameon is started the same time as the server
+    // is powerd on to allow for the ntpd time daemon to correct a potential wrong
+    // system time.
+    int uptime=0, idletime=0;
+    getuptime(&uptime,&idletime);
+    if( uptime < 180 ) {
+        syslog(LOG_DEBUG,"Sleeping an extra %d seconds before we go to work",tdelay);
+        sleep((unsigned)tdelay);
+    }
+
+
+    // Remember when the server was started
+    tzset();
+    ts_serverstart = time(NULL);
+
+
 
 /*
     char *_loc = getenv("LC_ALL");
@@ -2732,7 +2796,7 @@ main(int argc, char *argv[]) {
     pthread_mutex_lock(&recs_mutex);
     // Shutdown all ongoing recordings
     if( is_master_server ) {
-        for(int i=0; i < max_video; i++) {
+        for(unsigned i=0; i < max_video; i++) {
             if( ongoing_recs[i] && abort_video[i] == 0 ) {
                 abort_video[i] = 1;
                 logmsg(LOG_INFO,"  -- Aborting recording on video %d",i);
@@ -2743,7 +2807,7 @@ main(int argc, char *argv[]) {
     }
 
     // Close all clients
-    for(int i=0; i < max_clients; i++ ) {
+    for(unsigned i=0; i < max_clients; i++ ) {
         if( cli_threads[i] ) {
             _dbg_close(client_socket[i]);
             logmsg(LOG_INFO,"  -- Disconnecting client from %s",client_ipadr[i]);
@@ -2763,12 +2827,12 @@ main(int argc, char *argv[]) {
         // Wait until all recordings have stopped or we have waited more than 15s
         int watchdog = 15;
         volatile int ongoing = 0;
-        for(int i=0; i < max_video; i++) {
+        for(unsigned i=0; i < max_video; i++) {
             ongoing |= abort_video[i];
         }
         while( ongoing && watchdog > 0 ) {
             ongoing=0;
-            for(int i=0; i < max_video; i++) {
+            for(unsigned i=0; i < max_video; i++) {
                 ongoing |= abort_video[i];
             }
             sleep(1);

@@ -1,4 +1,4 @@
-AC_INIT([tvpvrd],[1.7.0],[johan162@gmail.com])
+AC_INIT([tvpvrd],[1.8.0],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_PROG_CC
 AC_PROG_CC_C99
@@ -18,7 +18,7 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
 AC_CHECK_HEADER(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "pcre-devel" package))
 AC_CHECK_HEADER(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
-AC_CHECK_HEADER(iniparser.h,,AC_MSG_ERROR(iniparser.h not available. Please install "iniparser-devel" package. Unfortunately there doesnt seem like there is a pre-built pckage available for Ubuntu which means that you have to build and download it yourself))
+AC_CHECK_HEADER(iniparser.h,,AC_MSG_ERROR(iniparser.h not available. Please install "iniparser-devel" package. Unfortunately there doesnt seem like there is a pre-built package available for Ubuntu which means that you have to build and download it yourself if you are using Ubuntu))
 AC_CHECK_HEADER(errno.h,,AC_MSG_ERROR(errno.h not available))
 AC_CHECK_HEADER(syslog.h,,AC_MSG_ERROR(syslog.h not available))
 AC_CHECK_HEADER(getopt.h,,AC_MSG_ERROR(getopt.h not available))
@@ -63,7 +63,7 @@ if test -n "$XSLTPROC"; then
 
         DOCBOOK_XSL_SCHEMA="$DOCBOOK_XSL/manpages/docbook.xsl"
 
-	$XSLTPROC $DOCBOOK_XSL_SCHEMA > /dev/null 2>&1 << END
+	$XSLTPROC --nonet $DOCBOOK_XSL_SCHEMA > /dev/null 2>&1 << END
 <?xml version="1.0" encoding='ISO-8859-1'?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 <book id="test">

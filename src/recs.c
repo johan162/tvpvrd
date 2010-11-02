@@ -63,7 +63,7 @@ struct recording_entry **recs; // [MAX_VIDEO][MAX_ENTRIES];
  * num_entries
  * Number of pending recording entries per video stream
  */
-int *num_entries; //[MAX_VIDEO];
+unsigned *num_entries; //[MAX_VIDEO];
 
 /*
  * ongoing_recs
@@ -83,7 +83,7 @@ static int seqnbr = 1;
  * Unique id for each recurrence sequence. This is used to know if a recording is
  * part of a recurrent sequence.
  */
-static int recurrence_id = 1;
+static unsigned recurrence_id = 1;
 
 /**
  * Check if the submitted entry is colliding/overlapping with an existing
@@ -93,13 +93,13 @@ static int recurrence_id = 1;
  * Return 1 if there is a collision 0 otherwise
  */
 int
-isentryoverlapping(int video, struct recording_entry* entry) {
+isentryoverlapping(unsigned video, struct recording_entry* entry) {
     // Check all existing entries if the start or stop
     // time is in between the existing start and stop time
 
     if (entry->recurrence == 0) {
         // No recurrence
-        for (int i = 0; i < num_entries[video]; ++i) {
+        for (unsigned i = 0; i < num_entries[video]; ++i) {
             if (entry->ts_start >= recs[REC_IDX(video, i)]->ts_start &&
                 entry->ts_start <= recs[REC_IDX(video, i)]->ts_end) {
 
@@ -153,9 +153,9 @@ isentryoverlapping(int video, struct recording_entry* entry) {
         time_t ts_start = entry->ts_start;
         time_t ts_end = entry->ts_end;
 
-        for (int j = 0; j < entry->recurrence_num; j++) {
+        for (unsigned j = 0; j < entry->recurrence_num; j++) {
 
-            for (int i = 0; i < num_entries[video]; ++i) {
+            for (unsigned i = 0; i < num_entries[video]; ++i) {
                 if (ts_start >= recs[REC_IDX(video, i)]->ts_start &&
                     ts_start <= recs[REC_IDX(video, i)]->ts_end) {
 
@@ -221,9 +221,9 @@ isentryoverlapping(int video, struct recording_entry* entry) {
  */
 void
 initrecs(void) {
-    recs            = (struct recording_entry **) calloc(max_video, max_entries * sizeof (struct recording_entry *));
-    ongoing_recs    = (struct recording_entry **) calloc(max_video, sizeof (struct recording_entry *));
-    num_entries     = (int *) calloc(max_video, sizeof (int));
+    recs            = (struct recording_entry **) calloc((unsigned)max_video, (unsigned)max_entries * sizeof (struct recording_entry *));
+    ongoing_recs    = (struct recording_entry **) calloc((unsigned)max_video, sizeof (struct recording_entry *));
+    num_entries     = (unsigned *) calloc((unsigned)max_video, sizeof (int));
 
     if( recs == NULL || ongoing_recs == NULL || num_entries == NULL ) {
         fprintf(stderr,"FATAL: Out of memory. Aborting program.\n");
@@ -236,19 +236,19 @@ initrecs(void) {
  */
 void
 freerecs(void) {
-    for (int i = 0; i < max_video; ++i) {
-        for (int j = 0; j < num_entries[i]; ++j) {
+    for (unsigned i = 0; i < max_video; ++i) {
+        for (unsigned j = 0; j < num_entries[i]; ++j) {
             if( recs[REC_IDX(i,j)] ) {
-                freerec(recs[REC_IDX(i,j)] ,"freerecs()" );
+                freerec(recs[REC_IDX(i,j)]);
                 recs[REC_IDX(i,j)] = NULL ;
             }
         }
     }
     free(recs);
 
-    for (int i = 0; i < max_video; ++i) {
+    for (unsigned i = 0; i < max_video; ++i) {
         if( ongoing_recs[i] )
-            freerec(ongoing_recs[i],"freerecs(),II");
+            freerec(ongoing_recs[i]);
     }
     free(ongoing_recs);
     free(num_entries);    
@@ -259,7 +259,7 @@ freerecs(void) {
  * @param entry Pointer to record entry to erase
  * @param caller String for name of caller (used for enhanced memory debugging)
  */
-void freerec(struct recording_entry *entry ,char *caller) {
+void freerec(struct recording_entry *entry ) { // ,char *caller) {
     //logmsg(LOG_DEBUG,"freerec() called from '%s'",caller);
     for(int i=0; i < REC_MAX_TPROFILES ; i++) {
         free(entry->transcoding_profiles[i]);
@@ -274,7 +274,7 @@ void freerec(struct recording_entry *entry ,char *caller) {
 struct recording_entry *
 newrec(const char *title, const char *filename, const time_t start,
         const time_t end, const char *channel, const int recurrence,
-        const int recurrence_type, const int recurrence_num,
+        const int recurrence_type, const unsigned recurrence_num,
         const int recurrence_mangling,
         char *profiles[]) {
 
@@ -363,8 +363,8 @@ _cmprec(const void *r1, const void *r2) {
  * Sort list of pending recordings according to start timestamp
  */
 void
-sortrecs(const int video) {
-    qsort(&recs[video * max_entries], num_entries[video], sizeof (struct recording_entry *), _cmprec);
+sortrecs(const unsigned video) {
+    qsort(&recs[video * max_entries], (size_t)num_entries[video], sizeof (struct recording_entry *), _cmprec);
 }
 
 /*
@@ -372,7 +372,7 @@ sortrecs(const int video) {
  * be called directly.
  */
 int
-_insertrec(int video, struct recording_entry* entry) {
+_insertrec(unsigned video, struct recording_entry* entry) {
 
     if (num_entries[video] >= max_entries) {
         logmsg(LOG_ERR, "Can not store more recordings on video %d. Maximum %d allowed.",video, max_entries);
@@ -475,8 +475,8 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
  * collide with an existing recording
  */
 int
-insertrec(int video, struct recording_entry * entry) {
-    int len;
+insertrec(unsigned video, struct recording_entry * entry) {
+    size_t len;
     char *filetype;
     char *bname, *dname;
     char bnamecore[256];
@@ -505,7 +505,7 @@ insertrec(int video, struct recording_entry * entry) {
         dname = dirname(dname_buffer);
 
         filetype = strchr(bname, '.');
-        len = MIN((filetype - bname), 255);
+        len = (size_t)MIN((filetype - bname), 255);
         strncpy(bnamecore, bname, len);
         bnamecore[len] = 0;
 
@@ -518,7 +518,7 @@ insertrec(int video, struct recording_entry * entry) {
 
         assert(entry->recurrence_num > 0);
 
-        for (int i = 0; i < entry->recurrence_num; i++) {
+        for (unsigned i = 0; i < entry->recurrence_num; i++) {
 
             // Name mangling for title
             if (entry->recurrence_mangling == 0) {
@@ -567,7 +567,7 @@ insertrec(int video, struct recording_entry * entry) {
 
         }
         recurrence_id++;
-        freerec(entry,"insertrec()");
+        freerec(entry);
     } else {
         entry->seqnbr = seqnbr++;
         _insertrec(video, entry);
@@ -583,7 +583,7 @@ insertrec(int video, struct recording_entry * entry) {
  * @return 1 on success, 0 on failure
  */
 int
-getrectypestr(const int type, const int longformat, char *buffer, int maxlen) {
+getrectypestr(const int type, const int longformat, char *buffer, size_t maxlen) {
     // d=daily, w=weekly, m=monthly, f=Mon-Fri, s=Sat-Sun, t=Mon-Thu
     static char *names[] = {"-","d","w","m","f","s","t"};
     static char *longnames[] = {"-","daily","weekly","monthly","Mon-Fri","Sat-Sun","Mon-Thu"};
@@ -606,12 +606,13 @@ getrectypestr(const int type, const int longformat, char *buffer, int maxlen) {
  * 'dumprecord()'
  */
 void
-dumprecord_header(int style, char *buffer, int bufflen) {
+dumprecord_header(int style, char *buffer, size_t bufflen) {
     char tmpbuff[512];
     char r[256];
-    const int header_length=65;
+    const unsigned header_length=65;
 
     snprintf(tmpbuff, 511, "%s\n", rptchr_r('-', header_length,r));
+    
     strncpy(buffer, tmpbuff, bufflen);
     buffer[bufflen-1] = '\0';
 
@@ -646,7 +647,7 @@ dumprecord_header(int style, char *buffer, int bufflen) {
  *              and when to shut down recording server automatically
  */
 void
-dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) {
+dumprecord(struct recording_entry* entry, int style, char *buffer, size_t bufflen) {
     int sy, sm, sd, sh, smi, ss;
     int ey, em, ed, eh, emi, es;
     char rectypename[16];
@@ -672,7 +673,7 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
     if (style == 0) {
         char profbuff[256], profile[REC_MAX_TPROFILE_LEN+1];
         profbuff[0] = '\0';
-        int left=255;
+        unsigned left=255;
         for(int k=0; k < REC_MAX_TPROFILES && strlen(entry->transcoding_profiles[k]) > 0; k++) {
             snprintf(profile,REC_MAX_TPROFILE_LEN,"@%s",entry->transcoding_profiles[k]);
             if( k > 0 ) {
@@ -824,8 +825,9 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, int bufflen) 
  * all be dumped to the specified buffer
  */
 int
-dumprecordid(int seqnbr, int repeats, int style, char *buffer, int bufflen) {
-    int i, video, found, rid;
+dumprecordid(unsigned seqnbr, int repeats, int style, char *buffer, size_t bufflen) {
+    int found;
+    unsigned i, video, rid;
     struct recording_entry *entry=NULL;
     char tmpbuff[512];
 
@@ -844,7 +846,7 @@ dumprecordid(int seqnbr, int repeats, int style, char *buffer, int bufflen) {
     --video;
     *buffer = 0;
     if (found) {
-        int left = bufflen ;
+        size_t left = bufflen ;
         if (entry->recurrence && repeats) {
             rid = entry->recurrence_id;
             for (i = 0; i < num_entries[video]; i++) {
@@ -875,11 +877,11 @@ dumprecordid(int seqnbr, int repeats, int style, char *buffer, int bufflen) {
  * Print a list of all recordings to specified file for the specified video stream
  */
 void
-listrecs(int maxrecs, int style, int fd) {
+listrecs(size_t maxrecs, int style, int fd) {
     struct recording_entry **entries;
     char buffer[2048];
 
-    entries = calloc(max_video*max_entries,sizeof (struct recording_entry *));
+    entries = calloc((size_t)(max_video*max_entries), sizeof (struct recording_entry *));
     if( entries == NULL ) {
         logmsg(LOG_ERR,"listrecs() : Out of memory. Aborting program.");
         exit(EXIT_FAILURE);
@@ -888,9 +890,9 @@ listrecs(int maxrecs, int style, int fd) {
 
     // We combine all recordings on all videos in order to
     // give a combined sorted list of pending recordings
-    int k=0;
-    for (int video = 0; video < max_video; video++) {
-        for (int i = 0; i < num_entries[video]; ++i) {
+    size_t k=0;
+    for (unsigned video = 0; video < max_video; video++) {
+        for (unsigned i = 0; i < num_entries[video]; ++i) {
             entries[k++] = recs[REC_IDX(video, i)];
         }
     }
@@ -900,7 +902,7 @@ listrecs(int maxrecs, int style, int fd) {
     if( maxrecs > 0 )
         k = MIN(k,maxrecs);
 
-    for(int i=0; i < k; i++ ) {
+    for(size_t i=0; i < k; i++ ) {
         dumprecord(entries[i], style, buffer, 2048);
         _writef(fd, buffer);
     }
@@ -913,11 +915,11 @@ listrecs(int maxrecs, int style, int fd) {
  * of a file descriptor
  */
 void
-listrecsbuff(char *buffer, int maxlen, int maxrecs, int style) {
+listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style) {
     struct recording_entry **entries;
     char tmpbuffer[2048];
 
-    entries = calloc(max_video*max_entries,sizeof (struct recording_entry *));
+    entries = calloc((size_t)(max_video*max_entries),sizeof (struct recording_entry *));
     if( entries == NULL ) {
         logmsg(LOG_ERR,"_listrecs() : Out of memory. Aborting program.");
         exit(EXIT_FAILURE);
@@ -927,9 +929,9 @@ listrecsbuff(char *buffer, int maxlen, int maxrecs, int style) {
 
     // We combine all recordings on all videos in order to
     // give a combined sorted list of pending recordings
-    int k=0;
-    for (int video = 0; video < max_video; video++) {
-        for (int i = 0; i < num_entries[video]; ++i) {
+    size_t k=0;
+    for (unsigned video = 0; video < max_video; video++) {
+        for (unsigned i = 0; i < num_entries[video]; ++i) {
             entries[k++] = recs[REC_IDX(video, i)];
         }
     }
@@ -939,8 +941,8 @@ listrecsbuff(char *buffer, int maxlen, int maxrecs, int style) {
     if( maxrecs > 0 )
         k = MIN(k,maxrecs);
 
-    int max = maxlen;
-    for(int i=0; i < k; i++ ) {
+    size_t max = maxlen;
+    for(size_t i=0; i < k; i++ ) {
         dumprecord(entries[i], style, tmpbuffer, 2048);
         strncat(buffer,tmpbuffer,max-1);
         max -= strlen(tmpbuffer);
@@ -963,13 +965,13 @@ listrecskeyval(struct skeysval_t **list, int style) {
     struct recording_entry **entries;
     char tmpbuffer[2048];
 
-    entries = calloc(max_video*max_entries,sizeof (struct recording_entry *));
+    entries = calloc((size_t)(max_video*max_entries),sizeof (struct recording_entry *));
     if( entries == NULL ) {
         logmsg(LOG_ERR,"_listrecskeyval() : Out of memory. Aborting program.");
         exit(EXIT_FAILURE);
     }
 
-    *list = calloc(2*max_entries,sizeof (struct skeysval_t));
+    *list = calloc((size_t)(2*max_entries),sizeof (struct skeysval_t));
     if( *list == NULL ) {
         logmsg(LOG_ERR,"_listrecskeyval() : Out of memory. Aborting program.");
         exit(EXIT_FAILURE);
@@ -977,16 +979,16 @@ listrecskeyval(struct skeysval_t **list, int style) {
 
     // We combine all recordings on all videos in order to
     // give a combined sorted list of pending recordings
-    int k=0;
-    for (int video = 0; video < max_video; video++) {
-        for (int i = 0; i < num_entries[video]; ++i) {
+    size_t k=0;
+    for (unsigned video = 0; video < max_video; video++) {
+        for (unsigned i = 0; i < num_entries[video]; ++i) {
             entries[k++] = recs[REC_IDX(video, i)];
         }
     }
 
     qsort(entries, k, sizeof (struct recording_entry *), _cmprec);
 
-    for(int i=0; i < k; i++ ) {
+    for(size_t i=0; i < k; i++ ) {
         dumprecord(entries[i], style, tmpbuffer, 2048);
         (*list)[i].val = strdup(tmpbuffer);
         snprintf(tmpbuffer,2048,"%d",(*entries[i]).seqnbr);
@@ -995,7 +997,7 @@ listrecskeyval(struct skeysval_t **list, int style) {
 
     free(entries);
     
-    return k;
+    return (int)k;
 }
 
 
@@ -1004,12 +1006,12 @@ listrecskeyval(struct skeysval_t **list, int style) {
  * NOTE: This will also free the memory occupied by that record
  */
 void
-deletetoprec(const int video) {
+deletetoprec(const unsigned video) {
     if (num_entries[video] < 1) {
         logmsg(LOG_ERR, "Cannot delete records since there are no recordings for video %d\n", video);
     } else {
         if( recs[REC_IDX(video, 0)] ) {
-            freerec(recs[REC_IDX(video, 0)],"deletetoprec()");
+            freerec(recs[REC_IDX(video, 0)]);
             recs[REC_IDX(video, 0)] = recs[REC_IDX(video, num_entries[video] - 1)];
             recs[REC_IDX(video, num_entries[video] - 1)] = NULL;
             num_entries[video]--;
@@ -1028,7 +1030,7 @@ deletetoprec(const int video) {
  * we want to remove it from the waiting que but not delete the record.
  */
 void
-removetoprec(const int video) {
+removetoprec(const unsigned video) {
     if (num_entries[video] < 1) {
         logmsg(LOG_ERR, "Cannot delete records since there are no recordings for video %d.",video);
     } else {
@@ -1046,7 +1048,7 @@ removetoprec(const int video) {
  * @return
  */
 int 
-updateprofile(int seqnbr, char *profile) {
+updateprofile(unsigned seqnbr, char *profile) {
 
     // Check that the named profile really exists
     if( ! transcoding_profile_exist(profile) ) {
@@ -1055,20 +1057,22 @@ updateprofile(int seqnbr, char *profile) {
 
     // First find the record with this sequence number
     int foundidx=-1, foundvideo=-1,found = 0;
-    for (int video = 0; video < max_video && !found; video++) {
-        for (int i = 0; i < num_entries[video] && !found; i++) {
+    for (unsigned video = 0; video < max_video && !found; video++) {
+        for (unsigned i = 0; i < num_entries[video] && !found; i++) {
             if (recs[REC_IDX(video, i)]->seqnbr == seqnbr) {
                 found = 1;
-                foundidx = i;
-                foundvideo = video;
+                foundidx = (int)i;
+                foundvideo = (int)video;
             }
         }
     }
     if (!found) {
         return 0;
     } else {
-        strncpy(recs[REC_IDX(foundvideo, foundidx)]->transcoding_profiles[0],profile,REC_MAX_TPROFILE_LEN-1);
-        recs[REC_IDX(foundvideo, foundidx)]->transcoding_profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
+        strncpy(recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]->transcoding_profiles[0],
+                profile,
+                (size_t)(REC_MAX_TPROFILE_LEN-1));
+        recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]->transcoding_profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
         return seqnbr;
     }
 }
@@ -1080,17 +1084,18 @@ updateprofile(int seqnbr, char *profile) {
  * (recurrent recording)
  */
 int
-deleterecid(int seqnbr, int allrecurrences) {
-    int nbr, found=0, foundidx=-1, foundvideo=-1, rid;
+deleterecid(unsigned seqnbr, int allrecurrences) {
+    int found=0, foundidx=-1, foundvideo=-1;
+    unsigned rid, nbr;
 
     // First find the record with this sequence number
     found = 0;
-    for (int video = 0; video < max_video && !found; video++) {
-        for (int i = 0; i < num_entries[video] && !found; i++) {
+    for (unsigned video = 0; video < max_video && !found; video++) {
+        for (unsigned i = 0; i < num_entries[video] && !found; i++) {
             if (recs[REC_IDX(video, i)]->seqnbr == seqnbr) {
                 found = 1;
-                foundidx = i;
-                foundvideo = video;
+                foundidx = (int)i;
+                foundvideo = (int)video;
             }
         }
     }
@@ -1102,40 +1107,40 @@ deleterecid(int seqnbr, int allrecurrences) {
     } else {
 
         // Check if the is part of a recurrence sequence
-        if (recs[REC_IDX(foundvideo, foundidx)]->recurrence && allrecurrences) {
+        if (recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]->recurrence && allrecurrences) {
 
             // Delete all recordings part of this repeated recording
-            rid = recs[REC_IDX(foundvideo, foundidx)]->recurrence_id;
-            for (int i = 0; i < num_entries[foundvideo]; i++) {
-                if (recs[REC_IDX(foundvideo, i)]->recurrence_id == rid) {
-                    freerec(recs[REC_IDX(foundvideo, i)],"deleterecid()");
-                    recs[REC_IDX(foundvideo, i)] = NULL;
+            rid = recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]->recurrence_id;
+            for (unsigned i = 0; i < num_entries[foundvideo]; i++) {
+                if (recs[REC_IDX((unsigned)foundvideo, i)]->recurrence_id == rid) {
+                    freerec(recs[REC_IDX((unsigned)foundvideo, i)]);
+                    recs[REC_IDX((unsigned)foundvideo, i)] = NULL;
                 }
             }
 
             // Now we need to compact the array of recordings
             nbr = 0;
-            struct recording_entry **tmprecs = calloc(max_entries, sizeof (struct recording_entry *));
-            for (int i = 0; i < num_entries[foundvideo]; i++) {
-                if (recs[REC_IDX(foundvideo, i)]) {
-                    tmprecs[nbr] = recs[REC_IDX(foundvideo, i)];
+            struct recording_entry **tmprecs = calloc((size_t)max_entries, sizeof (struct recording_entry *));
+            for (unsigned i = 0; i < num_entries[foundvideo]; i++) {
+                if (recs[REC_IDX((unsigned)foundvideo, i)]) {
+                    tmprecs[nbr] = recs[REC_IDX((unsigned)foundvideo, i)];
                     nbr++;
                 }
             }
-            for (int i = 0; i < nbr; i++) {
-                recs[REC_IDX(foundvideo, i)] = tmprecs[i];
+            for (unsigned i = 0; i < nbr; i++) {
+                recs[REC_IDX((unsigned)foundvideo, i)] = tmprecs[i];
             }
             num_entries[foundvideo] = nbr;
             free(tmprecs);
 
         } else {
             // Just delete this record
-            freerec(recs[REC_IDX(foundvideo, foundidx)],"deleterecid(), II");
-            recs[REC_IDX(foundvideo, foundidx)] = recs[REC_IDX(foundvideo, num_entries[foundvideo] - 1)];
-            recs[REC_IDX(foundvideo, num_entries[foundvideo] - 1)] = NULL;
+            freerec(recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]);
+            recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)] = recs[REC_IDX((unsigned)foundvideo, num_entries[foundvideo] - 1)];
+            recs[REC_IDX((unsigned)foundvideo, num_entries[foundvideo] - 1)] = NULL;
             num_entries[foundvideo]--;
         }
-        sortrecs(foundvideo);
+        sortrecs((unsigned)foundvideo);
         return 1;
     }
 }

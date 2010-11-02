@@ -216,7 +216,7 @@ check_ffmpeg_bin(void);
  */
 int
 record_ongoingtranscoding(char *workingdir,char *short_filename,char *cmd_ffmpeg,
-        struct transcoding_profile_entry *profile, pid_t pid);
+                          struct transcoding_profile_entry *profile, pid_t pid);
 
 /**
  * Forget an ongoing transcoding
@@ -233,7 +233,7 @@ forget_ongoingtranscoding(int idx);
  * @return -1 failure, 0 on success
  */
 int
-list_ongoing_transcodings(char *obuff, int size, int show_ffmpegcmd);
+list_ongoing_transcodings(char *obuff, size_t size, int show_ffmpegcmd);
 
 /**
  * read all transcoding profiles from file
@@ -269,14 +269,15 @@ wait_to_transcode(char *filename);
  * @return -1 failure, 0 on success
  */
 int
-create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, int destsize, char *cmd, int size);
+create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
+                      char *destfile, size_t destsize, char *cmd, size_t size);
 
 /**
  * Get a list of all currently specified transcodings
  * @param start
- * @return -1 failure, 0 on success
+ * @return number of entries in list
  */
-int
+unsigned
 get_transcoding_profile_list(struct transcoding_profile_entry **start[]);
 
 /**
@@ -309,7 +310,7 @@ refresh_transcoding_profiles(void);
  * @return -1 failure, 0 on success
  */
 int 
-dump_transcoding_profile(char *name, char *buff, int size);
+dump_transcoding_profile(char *name, char *buff, size_t size);
 
 /**
  * Kill_ongoing transcoding processes.
@@ -369,7 +370,7 @@ transcode_whole_directory(char *dirpath, char *profilename);
  * @return -1 on error 0 otherwise
  */
 int
-get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles);
+get_queued_transc_filelists_info(int num, char *buffer, size_t len, int incfiles);
 
 /**
  * Return a list of all defined profiles
@@ -377,17 +378,17 @@ get_queued_transc_filelists_info(int num,char *buffer,int len,int incfiles);
  * @param maxlen
  */
 int
-list_profile_names(char *buff,int maxlen);
+list_profile_names(char *buff, size_t maxlen);
 
 /**
  * Store a list of pointers to profile names in the supplied buffer
  * Note: The profile names cannot be modified in any way
  * @param list
  * @param maxlen
- * @return
+ * @return number of names in list
  */
-int
-get_profile_names(const char *list[],int maxlen);
+unsigned
+get_profile_names(const char *list[], size_t maxlen);
 
 
 /**
@@ -397,7 +398,7 @@ get_profile_names(const char *list[],int maxlen);
  * @return
  */
 int
-remember_waiting_transcoding(char *short_filename,char *profile_name);
+remember_waiting_transcoding(char *short_filename, char *profile_name);
 
 /**
  *
@@ -414,7 +415,7 @@ forget_waiting_transcoding(int idx);
  * @return
  */
 int
-list_waiting_transcodings(char *buffer,int maxlen);
+list_waiting_transcodings(char *buffer, size_t maxlen);
 
 #ifdef	__cplusplus
 }

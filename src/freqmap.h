@@ -52,7 +52,7 @@ typedef enum freqm {FREQMAP_EUROPEWEST=0, FREQMAP_EUROPEEAST, FREQMAP_FRANCE,
  * file at startup.
  */
 struct freqch {
-    int freq;
+    unsigned freq;
     char ch[5];
 };
 
@@ -63,7 +63,7 @@ struct freqch {
  */
 struct freqmap {
     char name[MAX_FMAPNAME_LENGTH];
-    int size;
+    unsigned size;
     struct freqch *tbl;
 };
 
@@ -89,7 +89,7 @@ set_current_freqmap(const char *name);
  * @return The current map index
  */
 int
-get_current_freqmap(char *name, int size);
+get_current_freqmap(char *name, size_t size);
 
 /**
  * Get the corresponding frequency map index from a map name
@@ -127,7 +127,7 @@ getfreqfromch(unsigned int *freq, const char *ch);
  * @return number of stations
  */
 int
-get_stations(const char *stations[],int maxlen);
+get_stations(const char *stations[],size_t maxlen);
 
 /*
  * Fill the supplied buffer (array of string pointers)
@@ -135,10 +135,10 @@ get_stations(const char *stations[],int maxlen);
  * all the defined frequency maps.
  * @param names Array of defined frequency maps
  * @param size Maximum size of buffert
- * @return -1 failure, o otherwise
+ * @return number of names read
  */
-int
-getfmapnames(char *names[], int size);
+unsigned
+getfmapnames(char *names[], size_t size);
 
 /**
  * Read the station top channel mapping fil
@@ -163,7 +163,7 @@ list_stations(int fd);
  * @return -1 on failure , 0 otherwise
  */
 int
-get_chfromstation(const char *station, char *chbuffer, int size);
+get_chfromstation(const char *station, char *chbuffer, size_t size);
 
 /**
  * Translate a symbolic name to a frequency. The string can be given as
