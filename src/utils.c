@@ -212,12 +212,13 @@ void logmsg(int priority, char *msg, ...) {
             } else {
                 static const int tblen = 32;
                 char timebuff[tblen] ;
-                char *envloc = getenv("LC_ALL");
+                //char *envloc = getenv("LC_ALL");
 
                 time_t now = time(NULL);
                 ctime_r(&now,timebuff);
                 timebuff[strnlen(timebuff,tblen)-1] = 0;
-                snprintf(msgbuff, blen-1, "(%ld) (%s) %s: %s\n", now, envloc, timebuff, tmpbuff);
+                //snprintf(msgbuff, blen-1, "(%ld) (%s) %s: %s\n", now, envloc, timebuff, tmpbuff);
+                snprintf(msgbuff, blen-1, "%s: %s\n", timebuff, tmpbuff);
                 msgbuff[blen-1] = 0 ;
                 inlogfunction = 1;
                 _writef(fd, msgbuff);

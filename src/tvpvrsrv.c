@@ -110,7 +110,7 @@ char server_program_name[32] = {0};
  */
 
 // Time delay before the daemon really starts doing stuff if
-// thje dameon is started within 3 minutes of the machine power
+// the dameon is started within 3 minutes of the machine power
 // on.
 // This might seem a really odd thing to have but it has one
 // really useful purpose. On older machines where the bios clock
@@ -119,14 +119,15 @@ char server_program_name[32] = {0};
 // and until the ntpd daemon kicks in the time is wrong. This is
 // especially annoying when the switch to/from daylight saving time
 // takes place. If the bios clock is not correctly updated at shutdown
-// the first few seconds aefter the server starts the time will be off
+// the first few seconds after the server starts the time will be off
 // by one hour.
 // This variable species a suitable number of seconds for the daemon to
 // sleep at startup so that the ntpd daemons has had time to correct the
 // machine time. Of course this delay is only really necessary when the
 // daaemon is started up just after the server has been powered on. So
 // this delay only kicks in if the daemon is started within 3 minutes of the
-// machine power on.
+// machine power on. This can also be adjusted as an argument when starting
+// the daemon (-t)
 int tdelay=30;
 
 // Should we run as a daemon or nothing
@@ -2092,7 +2093,7 @@ parsecmdline(int argc, char **argv) {
                         " -p n,    --port=n          Override inifile and set TCP/IP listen port\n"
                         " -x file, --xawtvrc=file    Override inifile and set station file\n"
                         " -s,      --slave           Run with slave configuration\n"
-                        " -t,      --tdelay          Extra wait time when daemon is started\n",
+                        " -t,      --tdelay          Extra wait time when daemon is started at system power on\n",
 
                         server_program_name, server_program_name);
                 exit(EXIT_SUCCESS);
@@ -2573,6 +2574,15 @@ main(int argc, char *argv[]) {
     sigset_t signal_set;
     pthread_t signal_thread;
 
+
+    // Remember the program name we are started as
+    strncpy(inibuffer,argv[0],256);
+    strncpy(server_program_name,basename(inibuffer),31);
+    server_program_name[31] = '\0';
+
+    // Parse and set cmd line options
+    parsecmdline(argc,argv);
+    
 /*
  * #define TVPVRD_LOCKFILE "/var/run/tvpvrd.pid"
  */
@@ -2604,16 +2614,11 @@ main(int argc, char *argv[]) {
     // Setup exit() handler
     atexit(exithandler);
 
-    // Remember the program name we are started as
-    strncpy(inibuffer,argv[0],256);
-    strncpy(server_program_name,basename(inibuffer),31);
-    server_program_name[31] = '\0';
     
     // Initialize the static frequency map. 
     initfreqtable();
     
-    // Parse and set cmd line options
-    parsecmdline(argc,argv);
+
 
     // Get current directory
     char cwd_buff[256];
