@@ -1086,6 +1086,8 @@ send_mail(const char *subject, const char *to, const char *message) {
         logmsg(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
     }
 
+    free(qbuffer);
+
     return rc;
 
 }
