@@ -1,5 +1,5 @@
 /* =========================================================================
- * File:        TVPPWRD.C
+ * File:        TVPOWERD.C
  * Description: A watcher daemon which is meant to run on a separate machine
  *              from the tvpvrd. This watcher daemon communicates with
  *              the tvpvrd and if the server running tvpvrd has nothing
@@ -72,6 +72,7 @@
 #include "confpath.h"
 #include "../lockfile.h"
 #include "../config.h"
+#include "wakelan.h"
 
 // #define _DEBUG
 
@@ -213,53 +214,6 @@ static const struct option long_options [] = {
     { 0, 0, 0, 0}
 };
 
-/**
- * Parse a MAC address
- * @param mac The parsed MAC address
- * @param str The string to be parsed
- * @return 1 if the string was succesfully parsed
- */
-int
-parse_mac(unsigned char *mac, char *str) {
-    int count;
-    char c;
-    unsigned char val;
-    int colon_ok = 1;
-
-    if( strlen(str) < 17 )
-        return 0;
-
-    for (int i = 0; i < 6; i++) {
-        mac[i] = 0;
-    }
-
-    for (int i = 0; i < 6; i++) {
-        count = 0;
-        val = 0;
-        do {
-            c = toupper(*str++);
-            if (c >= '0' && c <= '9') {
-                val = (val * 16) + (c - '0');
-            } else if (c >= 'A' && c <= 'F') {
-                val = (val * 16) + (c - 'A') + 10;
-            } else if (c == ':') {
-                if (colon_ok || count-- != 0)
-                    break;
-            } else if (c == '\0') {
-                str--;
-                break;
-            } else {
-                return 0;
-            }
-            colon_ok = 1;
-        } while (++count < 2);
-        colon_ok = (count < 2);
-        *mac++ = val;
-    }
-    if (*str)
-        return 0;
-    return 1;
-}
 
 /**
  * Parse all command line options given to the server at startup. The server accepts both
@@ -618,77 +572,6 @@ void startdaemon(void) {
     int dummy=dup(i);
     dummy=dup(i);
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
-}
-
-/**
- * Send a wakeup network package to the specified network card in order
- * to power on the server. Obviously the network card must support wake-on-lan
- * @param mac
- * @param target
- * @param str_bport
- * @return
- */
-int
-wakelan(char *mac, char *target, int str_bport) {
-
-    struct in_addr inaddr;
-    unsigned char macaddr[6];
-
-    if (!parse_mac(macaddr, mac)) {
-        logmsg(LOG_ERR,"Illegal MAC address ( %s )",mac);
-        return -1;
-    }
-
-    if ( !inet_aton(target, &inaddr) ) {
-        struct hostent *he = gethostbyname(target);
-        if( he ) {
-            inaddr = *(struct in_addr *)he->h_addr_list[0];
-        } else {
-            logmsg(LOG_ERR,"Illegal target host name ( %d  %s )",errno,strerror(errno));
-            return -1;
-        }
-    }
-
-    size_t msglen=0;
-    char msg[1024];
-    for (int i = 0; i < 6; i++) {
-        msg[msglen++] = (char)0xff;
-    }
-
-    for (size_t i = 0; i < 16; i++) {
-        for (size_t j = 0; j < sizeof(macaddr); j++) {
-            msg[msglen++] = macaddr[j];
-        }
-    }
-
-    short bport = -1;
-    if( str_bport ) {
-        bport = htons(str_bport);
-    }
-
-    struct sockaddr_in bcast;
-    memset(&bcast, 0, sizeof(bcast));
-    bcast.sin_family      = AF_INET;
-    bcast.sin_addr.s_addr = inaddr.s_addr;
-    bcast.sin_port        = bport;
-
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) {
-        logmsg(LOG_ERR,"Cannot allocate socket for wakeup datagram ( %d : %s)",errno, strerror(errno));
-        return -1;
-    }
-
-    int optval = 1;
-    int rc=setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(optval));
-    if ( rc < 0) {
-        logmsg(LOG_ERR, "Can'tset  socket option SO_BROADCAST: rc = %d, ( %d : %s )\n",
-               rc,  errno, strerror(errno));
-        return -1;
-    }
-    
-    sendto(sock, &msg, msglen, 0, (struct sockaddr *)&bcast, sizeof(bcast));
-    return 0;
-
 }
 
 /*
