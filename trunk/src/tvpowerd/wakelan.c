@@ -52,7 +52,7 @@
 int
 parse_mac(unsigned char *mac, char *str) {
     int count;
-    char c;
+    unsigned char c;
     unsigned char val;
     int colon_ok = 1;
 
@@ -67,11 +67,11 @@ parse_mac(unsigned char *mac, char *str) {
         count = 0;
         val = 0;
         do {
-            c = toupper(*str++);
+            c = (unsigned char)toupper(*str++);
             if (c >= '0' && c <= '9') {
-                val = (val * 16) + (c - '0');
+                val = (unsigned char)((val * 16) + (c - '0'));
             } else if (c >= 'A' && c <= 'F') {
-                val = (val * 16) + (c - 'A') + 10;
+                val = (unsigned char)((val * 16) + (c - 'A') + 10);
             } else if (c == ':') {
                 if (colon_ok || count-- != 0)
                     break;
@@ -101,7 +101,7 @@ parse_mac(unsigned char *mac, char *str) {
  * @return
  */
 int
-wakelan(char *mac, char *target, int str_bport) {
+wakelan(char *mac, char *target, uint16_t target_bport) {
 
     struct in_addr inaddr;
     unsigned char macaddr[6];
@@ -122,9 +122,9 @@ wakelan(char *mac, char *target, int str_bport) {
     }
 
     size_t msglen=0;
-    char msg[1024];
+    unsigned char msg[1024];
     for (size_t i = 0; i < 6; i++) {
-        msg[msglen++] = (char)0xff;
+        msg[msglen++] = (unsigned char)0xff;
     }
 
     for (size_t i = 0; i < 16; i++) {
@@ -133,9 +133,9 @@ wakelan(char *mac, char *target, int str_bport) {
         }
     }
 
-    short bport = -1;
-    if( str_bport ) {
-        bport = htons(str_bport);
+    uint16_t bport = 0;
+    if( target_bport ) {
+        bport = htons(target_bport);
     }
 
     struct sockaddr_in bcast;
@@ -151,16 +151,21 @@ wakelan(char *mac, char *target, int str_bport) {
     }
 
     int optval = 1;
-    int rc = setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(optval));
+    ssize_t rc = setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(optval));
     if ( rc < 0) {
         logmsg(LOG_ERR, "Can'tset  socket option SO_BROADCAST: rc = %d, ( %d : %s )\n",
                rc,  errno, strerror(errno));
         return -1;
     }
     
-    sendto(sock, &msg, msglen, 0, (struct sockaddr *)&bcast, sizeof(bcast));
-
-    return 0;
+    rc = sendto(sock, &msg, msglen, 0, (struct sockaddr *)&bcast, sizeof(bcast));
+    if ( rc < 0) {
+        logmsg(LOG_ERR, "Cant send wakeup message on socket: rc = %d, ( %d : %s )\n",
+               rc,  errno, strerror(errno));
+        return -1;
+    } else {
+        return 0;
+    }
 
 }
 

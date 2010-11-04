@@ -35,5 +35,5 @@ int
 parse_mac(unsigned char *mac, char *str);
 
 int
-wakelan(char *mac, char *target, int str_bport);
+wakelan(char *mac, char *target, uint16_t target_bport);
 
