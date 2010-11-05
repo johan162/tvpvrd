@@ -6,10 +6,10 @@ all: tvpvrd.1 tvpvrd.1.html
 
 if have_xsltproc
 tvpvrd.1.html: tvpvrd.1.xml
-	${XSLTPROC} --output tvpvrd.1.html ${DOCBOOK_XSL}html/docbook.xsl $<
+	${XSLTPROC} --output tvpvrd.1.html ${DOCBOOK_XSL}/html/docbook.xsl $<
 
 tvpvrd.1: tvpvrd.1.xml
-	${XSLTPROC} ${DOCBOOK_XSL}manpages/docbook.xsl $<
+	${XSLTPROC} ${DOCBOOK_XSL}/manpages/docbook.xsl $<
 
 tvpvrd.1.pdf: tvpvrd.1.xml
 	${XSLTPROC} --nonet --output tvpvrd.fo \
@@ -17,7 +17,7 @@ tvpvrd.1.pdf: tvpvrd.1.xml
 		--stringparam body.start.indent 0pt \
 		--stringparam title.margin.left 0pt \
 		--stringparam variablelist.as.blocks 1 \
-		${DOCBOOK_XSL}fo/docbook.xsl $<
+		${DOCBOOK_XSL}/fo/docbook.xsl $<
 	fop tvpvrd.fo $@
 
 install-data-local: 
