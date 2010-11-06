@@ -164,8 +164,9 @@ _vctrl_openvideo(unsigned int video) {
  */
 int
 _vctrl_getnumcards(void) {
-    const int maxcards=5;
-    int found=0,fd;
+    const unsigned maxcards=5;
+    unsigned found=0;
+    int fd;
     struct stat st;
     char vdevice[64];
 
@@ -174,10 +175,12 @@ _vctrl_getnumcards(void) {
         if ( (stat(vdevice, &st) == -1) || (!S_ISCHR(st.st_mode)) )
             break;
         fd = open(vdevice, O_RDONLY | O_NONBLOCK , 0);
-        if (fd == -1) break;
+        if (fd == -1)
+            break;
         close(fd);
         ++found;
     }
+    logmsg(LOG_DEBUG,"Found %d video card(s) using device basename=%s",found,device_basename);
     return found;
 }
 

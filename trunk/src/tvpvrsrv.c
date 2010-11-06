@@ -2324,14 +2324,6 @@ read_inisettings(void) {
         is_master_server    = iniparser_getboolean(dict,"config:master",MASTER_SERVER);
     }
 
-    max_video           = (unsigned)validate(0, 5,"max_video",
-                                   iniparser_getint(dict, "config:max_video", MAX_VIDEO));
-
-    if( 0 == max_video ) {
-        // Automatically determine the maximum number of cards
-        max_video = (unsigned)_vctrl_getnumcards();
-    }
-
     tuner_input_index   = validate(0, 7,"tuner_input_index",
                                    iniparser_getint(dict, "config:tuner_input_index", DEFAULT_TUNER_INPUT_INDEX));
 
@@ -2428,6 +2420,16 @@ read_inisettings(void) {
             iniparser_getstring(dict, "config:video_device_basename", VIDEO_DEVICE_BASENAME),
             127);
     device_basename[127] = '\0';
+
+    max_video           = (unsigned)validate(0, 5,"max_video",
+                                   iniparser_getint(dict, "config:max_video", MAX_VIDEO));
+
+    if( 0 == max_video ) {
+        // Automatically determine the maximum number of cards
+        max_video = (unsigned)_vctrl_getnumcards();
+    }
+
+
 
     /*--------------------------------------------------------------------------
      * FFMPEG Section
