@@ -806,6 +806,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 
     if (profile->pass == 1) {
         if( strlen(profile->size) > 0 ) {
+#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
                     "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
                     " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
@@ -819,7 +820,22 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     profile->size,
                     profile->extra_ffmpeg_options, 
                     destfile);
+#else
+            snprintf(cmd, size,
+                    "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
+                    " -acodec %s -ab %dk "
+                    " -s %s"
+                    " -y %s %s > /dev/null 2>&1",
+                    ffmpeg_bin, filename,
+                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->size,
+                    profile->extra_ffmpeg_options,
+                    destfile);
+
+#endif
         } else {
+#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
                     "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
                     " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
@@ -830,11 +846,23 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     profile->crop_top, profile->crop_bottom, profile->crop_left, profile->crop_right,
                     profile->acodec, profile->audio_bitrate,
                     profile->extra_ffmpeg_options, 
-                    destfile);        
+                    destfile);
+#else
+            snprintf(cmd, size,
+                    "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
+                    " -acodec %s -ab %dk "
+                    " -y %s %s > /dev/null 2>&1",
+                    ffmpeg_bin, filename,
+                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->extra_ffmpeg_options,
+                    destfile);
+#endif
         }
         
     } else {
         if( strlen(profile->size) > 0 ) {
+#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
                     "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
                     " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
@@ -859,7 +887,30 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     profile->size,
                     profile->extra_ffmpeg_options,
                     destfile);
+#else
+            snprintf(cmd, size,
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
+                    " -an "
+                    " -s %s "
+                    " -f rawvideo -y %s "
+                    "/dev/null > /dev/null 2>&1; "
+                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk -bt %dk "
+                    "-acodec %s -ab %dk "
+                    " -s %s "
+                    " -y %s %s > /dev/null 2>&1",
+                    ffmpeg_bin, filename,
+                    profile->vcodec, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->size,
+                    profile->extra_ffmpeg_options,
+                    ffmpeg_bin, filename,
+                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->size,
+                    profile->extra_ffmpeg_options,
+                    destfile);
+#endif
         } else {
+#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
                     "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
                     " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
@@ -880,11 +931,32 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     profile->acodec, profile->audio_bitrate,
                     profile->extra_ffmpeg_options,
                     destfile);
+#else
+            snprintf(cmd, size,
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
+                    " -an "
+                    " -f rawvideo -y %s "
+                    "/dev/null > /dev/null 2>&1; "
+                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk -bt %dk "
+                    "-acodec %s -ab %dk "
+                    " -y %s %s > /dev/null 2>&1",
+                    ffmpeg_bin, filename,
+                    profile->vcodec, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->extra_ffmpeg_options,
+                    ffmpeg_bin, filename,
+                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->extra_ffmpeg_options,
+                    destfile);
+#endif
             
         }
     }
-
+#ifdef OLDER_FFMPEG
+    logmsg(LOG_NOTICE, "[Using old style] ffpmeg command: %s", cmd);
+#else
     logmsg(LOG_NOTICE, "ffpmeg command: %s", cmd);
+#endif
 
     return 0;
 

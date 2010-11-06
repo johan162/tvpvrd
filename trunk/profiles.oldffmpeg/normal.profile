@@ -1,5 +1,5 @@
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-# HIGH Profile   Just records MP2 stream with high quality
+# NORMAL Profile   (default)
 # Profile setting for tvpvrd
 #;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -39,8 +39,8 @@ keep_mp2file=yes
 # Values must be in range 500,000 up to 10,000,000
 # Default values are 3.2Mbps, 4.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=6000000
-video_peak_bitrate=7000000
+video_bitrate=3700000
+video_peak_bitrate=4700000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -103,7 +103,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=11
+audio_bitrate=9
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -165,7 +165,7 @@ vcodec=libx264
 # VPRE string
 # The preset used with the vcodec. Corresponds to the ffmpeg -vpre option
 #----------------------------------------------------------------------------
-vpre=medium
+vpre=normal
 
 #----------------------------------------------------------------------------
 # PASS integer [1,2]
@@ -186,7 +186,7 @@ pass=1
 # file. Note on this note: Windows mediaplyer have problem decoding a copied
 # stream by ffmpeg. 
 #----------------------------------------------------------------------------
-acodec=libfaac
+acodec=aac
 
 #----------------------------------------------------------------------------
 # AUDIO_BITRATE integer [32,320]
@@ -211,6 +211,22 @@ audio_bitrate=128
 # Note: The native (anamorphic) size for a PAL MP2 recording is 720x576
 #----------------------------------------------------------------------------
 video_size=
+
+#----------------------------------------------------------------------------
+# CROP_TOP integer [0-160]
+# CROP_BOTTOM integer [0-160]
+# CROP_LEFT integer [0-160]
+# CROP_RIGHT integer [0-160]
+# Crop settings for the resulting video image. This is useful to get rid of
+# black top and bottom borders found in "letterbox" broadcastings.
+# Keep in mind that most modern encodings x264 etc. works most efficiently if
+# the width and height are multiples of 16. This means that the top and bottom
+# crop taken together should be a multiple of 16.
+#----------------------------------------------------------------------------
+crop_top=8
+crop_bottom=8
+crop_left=2
+crop_right=2
 
 #----------------------------------------------------------------------------
 # FFMPEG_EXTRA_OPTIONS string

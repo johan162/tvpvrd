@@ -60,7 +60,7 @@ fi
 AC_CHECK_PROG(XSLTPROC,xsltproc,xsltproc,)
 XSLTPROC_WORKS=no
 if test -n "$XSLTPROC"; then
-	AC_MSG_CHECKING([if Docbook environment is installed ... ])
+	AC_MSG_CHECKING([if Docbook 5 is installed])
 
         DOCBOOK_XSL_SCHEMA="$DOCBOOK_XSL/html/docbook.xsl"
 
@@ -72,9 +72,9 @@ if test -n "$XSLTPROC"; then
 END
 	if test "$?" = 0; then
 		XSLTPROC_WORKS=yes
-                AC_MSG_RESULT(YES. Working docbook 5.0 environment found. Documentation can be rebuilt.)
+                AC_MSG_RESULT([yes.])
         else
-        	AC_MSG_RESULT(NO. No working docbook 5.0 environment. Documentation can not be reubilt. )
+        	AC_MSG_RESULT([no.])
 	fi
 fi
 
@@ -84,6 +84,42 @@ AC_SUBST(DOCBOOK_XSL)
 
 ])
 
+AC_DEFUN([AC_CHECK_FFMPEG],[
+AC_CHECK_PROG(FFMPEGBIN,ffmpeg,ffmpeg,)
+MEDIUM_EXISTS=
+AC_MSG_CHECKING([If ffmpeg works])
+for i in /usr/share/ffmpeg/libx264-medium.ffpreset /usr/local/share/ffmpeg/libx264-medium.ffpreset
+do
+        if test -f "$i"; then
+                MEDIUM_EXISTS=yes
+        fi
+done
+if test "$MEDIUM_EXISTS" = "yes"; then
+        AC_MSG_RESULT([yes])
+        AM_CONDITIONAL(have_old_ffmpeg, test 0 = 1)
+else
+        NORMAL_EXISTS=
+        for i in /usr/share/ffmpeg/libx264-normal.ffpreset /usr/local/share/ffmpeg/libx264-normal.ffpreset
+        do
+                if test -f "$i"; then
+                        NORMAL_EXISTS=yes
+                fi
+        done
+
+        if test "$NORMAL_EXISTS" = "yes"; then
+                AC_MSG_RESULT([yes])
+                AC_MSG_NOTICE([Your version of ffmpeg is rather old. Please consider upgrading it])
+                AC_DEFINE(HAVE_OLD_FFMPEG,1,[Whether we are restricted to old style syntax when invoking ffmpeg])
+                AM_CONDITIONAL(have_old_ffmpeg, test 1 = 1)
+        else
+                AC_MSG_RESULT([no.])
+                AC_MSG_ERROR([No working ffmpeg. Please install or check your configuration of ffmpeg.])
+        fi
+fi
+
+])
+
 AC_CHECK_XSLDOCBOOK
+AC_CHECK_FFMPEG
 
 AC_OUTPUT
