@@ -1057,12 +1057,18 @@ send_mail(const char *subject, const char *to, const char *message) {
         syslog(LOG_ERR,"Truncating mail sent from 'tvpvrd'");
     }
 
-    const size_t blen2 = 2*strlen(message);
-    char *qmessage = calloc(blen2, sizeof(char));
-    escape_quotes(qmessage,message,blen2);
+    const size_t msglen2 = 2*strlen(message);
+    char *qmessage = calloc(msglen2, sizeof(char));
+    escape_quotes(qmessage,message,msglen2);
+
+    const size_t sublen2 = 2*strlen(subject);
+    char *qsubject = calloc(sublen2, sizeof(char));
+    escape_quotes(qsubject,subject,sublen2);
+
     snprintf(buffer,blen-1,
-	     "echo \"%s\" | /usr/bin/mail -s \"%s\" \"%s\"",qmessage, subject,to);
+	     "echo \"%s\" | /usr/bin/mail -s \"%s\" \"%s\"",qmessage, qsubject, to);
     free(qmessage);
+    free(qsubject);
 
     int rc=system(buffer);
     free(buffer);
@@ -1070,7 +1076,7 @@ send_mail(const char *subject, const char *to, const char *message) {
     if( rc ) {
         syslog(LOG_ERR,"Failed to send mail. rc=%d ( %d : %s )",rc,errno,strerror(errno));
     } else {
-        syslog(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
+        syslog(LOG_INFO,"Mail sent to: '%s' with subject: '%s'",to,subject);
     }
 
     return rc;
