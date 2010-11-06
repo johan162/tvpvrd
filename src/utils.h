@@ -345,7 +345,7 @@ trim(char *string);
  * @param maxlen
  */
 void
-escape_quotes(char *tostr, char *fromstr, size_t maxlen);
+escape_quotes(char *tostr, const char *fromstr, const size_t maxlen);
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands

@@ -1024,6 +1024,7 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen) {
     return 0;
 }
 
+
 /**
  * Escape quotes in a string as necessary
  * @param tostr
@@ -1031,7 +1032,7 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen) {
  * @param maxlen
  */
 void
-escape_quotes(char *tostr, char *fromstr, size_t maxlen) {
+escape_quotes(char *tostr, const char *fromstr, const size_t maxlen) {
     size_t i=0;
     while( i < maxlen-1 && *fromstr ) {
         if( *fromstr == '"' ) {
@@ -1039,54 +1040,38 @@ escape_quotes(char *tostr, char *fromstr, size_t maxlen) {
             *tostr++ = '"';
             i += 2;
         } else {
-            *tostr++ = *fromstr++;
+            *tostr++ = *fromstr;
             i++;
         }
+	fromstr++;
     }
     *tostr = '\0';
 }
 
-/**
- * Send a simple text mail to the specified recepients
- * @param subject
- * @param to
- * @param message
- * @return 0 on success -1 otherwise
- */
 int
 send_mail(const char *subject, const char *to, const char *message) {
     const size_t blen=20*1024;
-    char buffer[blen];
-
-    /*
-    char *loc = getenv("LC_ALL");
-    if( loc ) {
-        logmsg(LOG_DEBUG,"Current system LC_ALL=%s",loc);
-    } else {
-        logmsg(LOG_DEBUG,"Current system UNKNOWN",loc);
-    }
-    */
+    char *buffer = calloc(blen,sizeof(char));
 
     if( strlen(message) >= blen ) {
         syslog(LOG_ERR,"Truncating mail sent from 'tvpvrd'");
     }
 
+    const size_t blen2 = 2*strlen(message);
+    char *qmessage = calloc(blen2, sizeof(char));
+    escape_quotes(qmessage,message,blen2);
     snprintf(buffer,blen-1,
-	"echo \"%s\" | /usr/bin/mail -s '%s' '%s'",message, subject, to);
+	     "echo \"%s\" | /usr/bin/mail -s \"%s\" \"%s\"",qmessage, subject,to);
+    free(qmessage);
 
-    const size_t blen2 = 2*strlen(buffer);
-    char *qbuffer = calloc(blen2, sizeof(char));
-    escape_quotes(qbuffer,buffer,blen2);
-
-    int rc=system(qbuffer);
+    int rc=system(buffer);
+    free(buffer);
 
     if( rc ) {
-        logmsg(LOG_ERR,"Failed to send mail. rc=%d ( %d : %s )",rc,errno,strerror(errno));
+        syslog(LOG_ERR,"Failed to send mail. rc=%d ( %d : %s )",rc,errno,strerror(errno));
     } else {
-        logmsg(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
+        syslog(LOG_DEBUG,"Mail sent to: '%s' with subject: '%s'",to,subject);
     }
-
-    free(qbuffer);
 
     return rc;
 
