@@ -4,16 +4,11 @@ bin_PROGRAMS = tvpowerd
 tvpowerd_SOURCES = ../utils.c  ../lockfile.c tvpowerd.c wakelan.c
 tvpowerd_LDFLAGS = -liniparser -lpcre -lm
 EXTRA_DIST = tvpowerd.conf 
-noinst_HEADERS = tvpowerd.h 
-
-DISTCLEANFILES = confpath.h 
+noinst_HEADERS = tvpowerd.h wakelan.h
 
 CLEANFILES = *~
 
-tvpowerd.c : confpath.h
 
-confpath.h: Makefile.in Makefile
-	echo '#define CONFDIR "$(sysconfdir)"' >$@
 
 
 
