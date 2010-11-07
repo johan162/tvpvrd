@@ -1,0 +1,154 @@
+$Id$
+
+Installation Instructions
+*************************
+
+Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
+2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+
+   This file is free documentation; the Free Software Foundation gives
+unlimited permission to copy, distribute and modify it.
+
+Basic Installation
+==================
+
+   Briefly, the shell commands `./configure; make; make install' should
+configure, build, and install this package.  The following
+more-detailed instructions are generic; see the `README' file for
+instructions specific to this package.
+
+We recommend the following basic configuration arguments for a modern
+installation 
+
+$> ./configure --prefix=/usr --sysconfdir=/etc
+
+This will put the executable in '/usr/bin' and the create the 
+configuration directory '/etc/tvpvrd/'. Without these argument the 
+default base installation location will be '/usr/local' 
+(and '/usr/local/etc')
+
+The simplest way to compile this package is:
+
+  1. `cd' to the directory containing the package's source code and type
+     `./configure' (see above) to configure the package for your system.
+
+     Running `configure' might take a while.  While running, it prints
+     some messages telling which features it is checking for.
+
+  2. Type `make' to compile the package.
+
+  3. Type `make install' to install the programs and any data files and
+     documentation.
+
+  4. You can remove the program binaries and object files from the
+     source code directory by typing `make clean'.  To also remove the
+     files that `configure' created (so you can compile the package for
+     a different kind of computer), type `make distclean'.  There is
+     also a `make maintainer-clean' target, but that is intended mainly
+     for the package's developers.  If you use it, you may have to get
+     all sorts of other programs in order to regenerate files that came
+     with the distribution.
+
+Notes on Specific Linux distributions
+=====================================
+
+Generic
+-------
+The package requires the two libraries libpcre (Perl Compatible Regular
+expressions) and libiniparser (a library to read ini files). For most
+Linux distributions those packages are available under names
+similar to "pcre-devel" and "iniparser-devel". The development 
+version of these packages must be installed in order for the
+necessary development header files to be installed on the system.
+
+OpenSuSE
+--------
+The package is known to build and install without any problems.
+The two necessary libraries are available as packages
+ - libiniparser-devel and 
+ - pcre-devel
+
+Fedora 13
+---------
+The package is known to build and install without any problems.
+
+Ubuntu 10.10
+------------
+The package itself is know to build without any problem but
+unfortunately there doesn't seem to be a pre-built package of
+the necessary iniparser library that is needed for Ubuntu.
+
+However, this is easy to build and install manually:
+
+1. Download the iniparser library from http://ndevilla.free.fr/iniparser/
+
+2. Unpack and move to the installed directory and run 'make'
+
+3. Install the libraries (as root)
+   a) cp src/iniparser.h src/dictionary.h /usr/include
+   b) cp libiniparser.a libiniparser.so.0 /usr/lib
+   c) ln -s /usr/lib/libiniparser.so.0 /usr/lib/libiniparser.so
+   d) Update the linker cache by running:
+      $>ldconfig
+
+Finally install the libpcre3-dev by giving the command
+
+$>sudo apt-get install libpcre3-dev
+
+You should now be able to compile and install the tvpvrd package
+
+`configure' Invocation
+======================
+
+   `configure' recognizes the following options to control how it
+operates.
+
+`--help'
+`-h'
+     Print a summary of all of the options to `configure', and exit.
+
+`--help=short'
+`--help=recursive'
+     Print a summary of the options unique to this package's
+     `configure', and exit.  The `short' variant lists options used
+     only in the top level, while the `recursive' variant lists options
+     also present in any nested packages.
+
+`--version'
+`-V'
+     Print the version of Autoconf used to generate the `configure'
+     script, and exit.
+
+`--cache-file=FILE'
+     Enable the cache: use and save the results of the tests in FILE,
+     traditionally `config.cache'.  FILE defaults to `/dev/null' to
+     disable caching.
+
+`--config-cache'
+`-C'
+     Alias for `--cache-file=config.cache'.
+
+`--quiet'
+`--silent'
+`-q'
+     Do not print messages saying which checks are being made.  To
+     suppress all normal output, redirect it to `/dev/null' (any error
+     messages will still be shown).
+
+`--srcdir=DIR'
+     Look for the package's source code in directory DIR.  Usually
+     `configure' can determine that directory automatically.
+
+`--prefix=DIR'
+     Use DIR as the installation prefix.  *Note Installation Names::
+     for more details, including other options available for fine-tuning
+     the installation locations.
+
+`--no-create'
+`-n'
+     Run the configure checks, but stop before creating any output
+     files.
+
+`configure' also accepts some other, not widely useful, options.  Run
+`configure --help' for more details.
+
