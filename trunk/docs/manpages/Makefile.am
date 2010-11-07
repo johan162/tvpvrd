@@ -22,9 +22,9 @@ tvpvrd.1.pdf: tvpvrd.1.xml
 	fop tvpvrd.fo $@
 
 install-data-local: 
-	install -d ${DESTDIR}${prefix}/share/doc/packages/tvpvrd
-	install  $(abs_top_srcdir)/docs/manpages/tvpvrd.1.html ${DESTDIR}${prefix}/share/doc/packages/tvpvrd
-	install  $(abs_top_srcdir)/docs/manpages/tvpvrd.1.pdf ${DESTDIR}${prefix}/share/doc/packages/tvpvrd
+	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpvrd.1.html ${DESTDIR}${prefix}/share/doc/packages/tvpvrd/tvpvrd.1.html
+	install -D -m 644  $(abs_top_srcdir)/docs/manpages/tvpvrd.1.pdf ${DESTDIR}${prefix}/share/doc/packages/tvpvrd/tvpvrd.1.pdf
+	install -D -m 644  $(abs_top_srcdir)/docs/manpages/tvpvrd.1 ${DESTDIR}${prefix}/share/man/man1/tvpvrd.1
 
 else
 
@@ -36,9 +36,9 @@ tvpvrd.1.html:
 	touch $@
 
 install-data-local: 
-	install -d ${DESTDIR}${prefix}/share/doc/packages/tvpvrd
-	install  $(abs_top_srcdir)/docs/manpages/tvpvrd.1.html ${DESTDIR}${prefix}/share/doc/packages/tvpvrd
-	install  $(abs_top_srcdir)/docs/manpages/tvpvrd.1.pdf ${DESTDIR}${prefix}/share/doc/packages/tvpvrd
+	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpvrd.1.html ${DESTDIR}${prefix}/share/doc/packages/tvpvrd/tvpvrd.1.html
+	install -D -m 644  $(abs_top_srcdir)/docs/manpages/tvpvrd.1.pdf ${DESTDIR}${prefix}/share/doc/packages/tvpvrd/tvpvrd.1.pdf
+	install -D -m 644  $(abs_top_srcdir)/docs/manpages/tvpvrd.1 ${DESTDIR}${prefix}/share/man/man1/tvpvrd.1
 
 endif
 

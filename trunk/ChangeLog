@@ -1,3 +1,38 @@
+[r261] 2010-11-06 16:12  johan162
+
+ * Also quote subject when creating mail 
+   
+   src/utils.c
+   
+[r260] 2010-11-06 09:30  johan162
+
+ * Fixed a magic quote problem when sending mail 
+   
+   src/utils.c, src/utils.h
+   
+[r259] 2010-11-06 09:03  johan162
+
+ * In case server determines number of video cards automatically it must first
+   have read the device basename 
+   
+   src/tvpvrsrv.c, src/vctrl.c
+   
+[r258] 2010-11-06 02:20  johan162
+
+ * Updated both build scripts and source so that it can handle both older and
+   newer versions of ffmpeg. Unfortunately newer version of ffmpeg has deprecated
+   some parameters and renamed profiles. Some added checks in configure.ac now
+   determines what version the system has and adapts the code at compile time 
+   
+   ChangeLog, Makefile.am, configure, configure.ac, docs/manpages/Makefile.am,
+   profiles.oldffmpeg, profiles.oldffmpeg/high.profile,
+   profiles.oldffmpeg/low.profile, profiles.oldffmpeg/normal.profile,
+   profiles.oldffmpeg/thigh.profile, profiles.oldffmpeg/tlow.profile,
+   profiles.oldffmpeg/tnormal.profile, profiles/high.profile,
+   profiles/low.profile, profiles/normal.profile, profiles/thigh.profile,
+   profiles/tlow.profile, profiles/tnormal.profile, src/Makefile.am, src/transc.c,
+   src/tvpowerd, src/tvpowerd/Makefile.am, src/tvpowerd/tvpowerd.c
+   
 [r257] 2010-11-05 22:38  johan162
 
  * Updated build structure and check for proper DocBook environment to make it
