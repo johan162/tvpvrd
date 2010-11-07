@@ -1,4 +1,4 @@
-AC_INIT([tvpvrd],[1.9.1],[johan162@gmail.com])
+AC_INIT([tvpvrd],[1.9.2],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_PROG_CC
 AC_PROG_CC_C99
@@ -30,10 +30,10 @@ AC_CHECK_HEADER(grp.h,,AC_MSG_ERROR(grp.h not available))
 AC_CHECK_HEADER(libgen.h,,AC_MSG_ERROR(libgen.h not available))
 AC_CHECK_HEADER(dirent.h,,AC_MSG_ERROR(dirent.h not available))
 
-AC_CHECK_LIB(pthread,pthread_create)
-AC_CHECK_LIB([iniparser], [iniparser_getstring])
-AC_CHECK_LIB([pcre], [pcre_exec])
-AC_CHECK_LIB([xml2], [xmlParseFile])
+AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
+AC_CHECK_LIB([iniparser], [iniparser_getstring],,AC_MSG_ERROR([iniparser library seems invalid. Please reinstall libiniparser-dev (or similar)]))
+AC_CHECK_LIB([pcre], [pcre_exec],,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
+AC_CHECK_LIB([xml2], [xmlParseFile],,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
 
 AC_FUNC_FORK
 AC_FUNC_MKTIME
