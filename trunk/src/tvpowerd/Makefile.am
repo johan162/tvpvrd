@@ -1,5 +1,5 @@
 AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -pedantic -Wpointer-arith -Wstrict-prototypes -Wall -Werror -Wextra -Wformat=2 -D_FORTIFY_SOURCE=2 
-bin_PROGRAMS = tvpowerd
+EXTRA_PROGRAMS = tvpowerd
 
 tvpowerd_SOURCES = tvpowerd.c wakelan.c
 tvpowerd_LDFLAGS =  -lm
