@@ -1,0 +1,166 @@
+AC_INIT([tvpvrd],[1.9.2],[johan162@gmail.com])
+AM_INIT_AUTOMAKE([-Wall -Werror])
+AC_PROG_CC
+AC_PROG_CC_C99
+AC_CONFIG_HEADER([src/config.h])
+AC_CONFIG_FILES([
+Makefile
+src/Makefile
+src/tvpowerd/Makefile
+scripts/Makefile
+docs/Makefile
+docs/manpages/Makefile
+])
+
+AC_LANG_C
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+AC_HEADER_STDC
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
+AC_CHECK_HEADER(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "pcre-devel" package))
+AC_CHECK_HEADER(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
+AC_CHECK_HEADER(iniparser.h,,AC_MSG_ERROR(iniparser.h not available. Please install "iniparser-devel" package. Unfortunately there doesnt seem like there is a pre-built package available for Ubuntu which means that you have to build and download it yourself if you are using Ubuntu))
+AC_CHECK_HEADER(errno.h,,AC_MSG_ERROR(errno.h not available))
+AC_CHECK_HEADER(syslog.h,,AC_MSG_ERROR(syslog.h not available))
+AC_CHECK_HEADER(getopt.h,,AC_MSG_ERROR(getopt.h not available))
+AC_CHECK_HEADER(signal.h,,AC_MSG_ERROR(signal.h not available))
+AC_CHECK_HEADER(fcntl.h,,AC_MSG_ERROR(fcntl.h not available))
+AC_CHECK_HEADER(pwd.h,,AC_MSG_ERROR(pwd.h not available))
+AC_CHECK_HEADER(grp.h,,AC_MSG_ERROR(grp.h not available))
+AC_CHECK_HEADER(libgen.h,,AC_MSG_ERROR(libgen.h not available))
+AC_CHECK_HEADER(dirent.h,,AC_MSG_ERROR(dirent.h not available))
+
+AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
+AC_CHECK_LIB([iniparser], [iniparser_getstring],,AC_MSG_ERROR([iniparser library seems invalid. Please reinstall libiniparser-dev (or similar)]))
+AC_CHECK_LIB([pcre], [pcre_exec],,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
+AC_CHECK_LIB([xml2], [xmlParseFile],,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
+
+AC_FUNC_FORK
+AC_FUNC_MKTIME
+
+AC_TYPE_UID_T
+AC_TYPE_MODE_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+
+AC_CHECK_FUNCS([atexit bzero floor getcwd inet_ntoa memset mkdir rmdir select socket strchr strnlen strdup strerror])
+
+AC_DEFUN([AC_CHECK_XSLDOCBOOK],[ 
+DOCBOOK_XSL=
+if test ! -f /etc/xml/catalog; then
+        for i in /usr/share/sgml/docbook/stylesheet/xsl/nwalsh /usr/share/sgml/docbook/xsl-stylesheets /usr/share/xml/docbook/stylesheet/nwalsh/current
+        do
+                if test -d "$i"; then
+                        DOCBOOK_XSL=$i
+                fi
+        done
+else
+        DOCBOOK_XSL="http://docbook.sourceforge.net/release/xsl-ns/current"
+fi
+AC_CHECK_PROG(XSLTPROC,xsltproc,xsltproc,)
+XSLTPROC_WORKS=no
+if test -n "$XSLTPROC"; then
+	AC_MSG_CHECKING([if Docbook 5 is installed])
+
+        DOCBOOK_XSL_SCHEMA="$DOCBOOK_XSL/html/docbook.xsl"
+
+	$XSLTPROC --nonet $DOCBOOK_XSL_SCHEMA > /dev/null 2>&1 << END
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML 5.0//EN" "http://www.oasis-open.org/docbook/xml/5.0/dtd/docbook.dtd">
+<book id="test">
+</book>
+END
+	if test "$?" = 0; then
+		XSLTPROC_WORKS=yes
+                AC_MSG_RESULT([yes.])
+        else
+        	AC_MSG_RESULT([no.])
+	fi
+fi
+
+AM_CONDITIONAL(have_xsltproc, test "$XSLTPROC_WORKS" = "yes")
+
+AC_SUBST(DOCBOOK_XSL)
+
+])
+
+AC_DEFUN([AC_CHECK_FFMPEG],[
+AC_CHECK_PROG(FFMPEGBIN,ffmpeg,ffmpeg,)
+MEDIUM_EXISTS=
+AC_MSG_CHECKING([If ffmpeg works])
+for i in /usr/share/ffmpeg/libx264-medium.ffpreset /usr/local/share/ffmpeg/libx264-medium.ffpreset
+do
+        if test -f "$i"; then
+                MEDIUM_EXISTS=yes
+        fi
+done
+if test "$MEDIUM_EXISTS" = "yes"; then
+        AC_MSG_RESULT([yes])
+        AM_CONDITIONAL(have_old_ffmpeg, test 0 = 1)
+else
+        NORMAL_EXISTS=
+        for i in /usr/share/ffmpeg/libx264-normal.ffpreset /usr/local/share/ffmpeg/libx264-normal.ffpreset
+        do
+                if test -f "$i"; then
+                        NORMAL_EXISTS=yes
+                fi
+        done
+
+        if test "$NORMAL_EXISTS" = "yes"; then
+                AC_MSG_RESULT([yes])
+                AC_MSG_NOTICE([Your version of ffmpeg is rather old. Please consider upgrading it])
+                AC_DEFINE(HAVE_OLD_FFMPEG,1,[Whether we are restricted to old style syntax when invoking ffmpeg])
+                AM_CONDITIONAL(have_old_ffmpeg, test 1 = 1)
+        else
+                AC_MSG_RESULT([no.])
+                AC_MSG_ERROR([No working ffmpeg. Please install or check your configuration of ffmpeg.])
+        fi
+fi
+
+])
+
+AC_MSG_CHECKING([If system uses debian style init.d])
+if test ! -f /etc/rc.status; then
+                    AC_MSG_RESULT([yes])
+else
+                    AC_MSG_RESULT([no])
+fi
+AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
+
+AC_CHECK_XSLDOCBOOK
+
+AC_CHECK_PROG(JAVAFOP,fop,fop,no)
+AM_CONDITIONAL(have_javafop, test $JAVAFOP = fop)
+
+AC_CHECK_FFMPEG
+
+AC_OUTPUT
+
+AC_MSG_NOTICE([==================================================================================])
+AC_MSG_NOTICE([INSTALLATION SUMMARY])
+    AC_MSG_NOTICE([System configuration looks fine. All necessary libraries are found.])
+if test "$HAVE_OLD_FFMPEG" = "1"; then
+    AC_MSG_NOTICE([However, your version of ffmpeg is rather old. Please consider upgrading it])
+fi
+
+AC_MSG_NOTICE([ ])
+
+if  test "$XSLTPROC_WORKS" = "yes"; then
+    AC_MSG_NOTICE([In addition the man page can be rebuilt in both html and Unix man format])
+    if test "$JAVAFOP" = "no"; then
+        AC_MSG_NOTICE([but the man page can NOT not be rebuild in PDF format. Please install 'fop'])
+        AC_MSG_NOTICE([if you want to modify the man page and create a new PDF version])
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([Pre-built versions of the man pages are included in the distribution ])
+        AC_MSG_NOTICE([and the install will use these.])
+    else
+        AC_MSG_NOTICE([and also in PDF format (using fop processor)])
+    fi
+else
+    AC_MSG_NOTICE([However, man pages can not be rebuilt with current system configuration.])
+    AC_MSG_NOTICE([System needs to have DocBook5 and xsltproc installed to do this.])
+    AC_MSG_NOTICE([Pre-built versions of the man pages will be installed. So this is not an issue ])
+    AC_MSG_NOTICE([unless you want to modify the included man page])
+fi
+
+AC_MSG_NOTICE([==================================================================================])
