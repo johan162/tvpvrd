@@ -69,7 +69,6 @@
 // Local header files
 #include "../utils.h"
 #include "tvpowerd.h"
-#include "../confpath.h"
 #include "../lockfile.h"
 #include "../config.h"
 #include "wakelan.h"

@@ -37,16 +37,18 @@
 #include <unistd.h>
 #include <locale.h>
 #include <time.h>
+#include <pcre.h>
 
 #include "tvpvrd.h"
 #include "utils.h"
 #include "tvwebcmd.h"
-#include "confpath.h"
 #include "tvcmd.h"
 #include "freqmap.h"
 #include "transc.h"
 #include "recs.h"
-#include "pcre.h"
+#include "config.h"
+
+
 /*
  * The WEb interface is fairly simplistic. On receiving a GET request from a
  * WEB-browser we immitate the behavior of a HTTP server by responding with a
