@@ -1,5 +1,7 @@
 EXTRA_DIST = init.d.tvpvrd
 
 install-data-local: 
-	install -D $(top_srcdir)/scripts/init.d.tvpvrd ${DESTDIR}$(sysconfdir)/init.d/tvpvrd
+	install -D -m 755  $(top_srcdir)/scripts/init.d.tvpvrd ${DESTDIR}$(sysconfdir)/init.d/tvpvrd
     
+uninstall-local:
+	rm -rf ${DESTDIR}$(sysconfdir)/init.d/tvpvrd

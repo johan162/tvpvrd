@@ -30,10 +30,10 @@ AC_CHECK_HEADER(grp.h,,AC_MSG_ERROR(grp.h not available))
 AC_CHECK_HEADER(libgen.h,,AC_MSG_ERROR(libgen.h not available))
 AC_CHECK_HEADER(dirent.h,,AC_MSG_ERROR(dirent.h not available))
 
-#AC_CHECK_LIB(pthread,pthread_create)
-#AC_CHECK_LIB([iniparser], [iniparser_getstring])
-#AC_CHECK_LIB([pcre], [pcre_exec])
-#AC_CHECK_LIB([xml2], [xmlParseFile])
+AC_CHECK_LIB(pthread,pthread_create)
+AC_CHECK_LIB([iniparser], [iniparser_getstring])
+AC_CHECK_LIB([pcre], [pcre_exec])
+AC_CHECK_LIB([xml2], [xmlParseFile])
 
 AC_FUNC_FORK
 AC_FUNC_MKTIME
@@ -121,5 +121,7 @@ fi
 
 AC_CHECK_XSLDOCBOOK
 AC_CHECK_FFMPEG
+
+dnl AC_DEFINE_UNQUOTED(CONFDIR,$sysconfdir,[Directory for system configuration files])
 
 AC_OUTPUT
