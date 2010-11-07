@@ -128,6 +128,39 @@ fi
 AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 
 AC_CHECK_XSLDOCBOOK
+
+AC_CHECK_PROG(JAVAFOP,fop,fop,no)
+AM_CONDITIONAL(have_javafop, test $JAVAFOP = fop)
+
 AC_CHECK_FFMPEG
 
 AC_OUTPUT
+
+AC_MSG_NOTICE([==================================================================================])
+AC_MSG_NOTICE([INSTALLATION SUMMARY])
+    AC_MSG_NOTICE([System configuration looks fine. All necessary libraries are found.])
+if test "$HAVE_OLD_FFMPEG" = "1"; then
+    AC_MSG_NOTICE([However, your version of ffmpeg is rather old. Please consider upgrading it])
+fi
+
+AC_MSG_NOTICE([ ])
+
+if  test "$XSLTPROC_WORKS" = "yes"; then
+    AC_MSG_NOTICE([In addition the man page can be rebuilt in both html and Unix man format])
+    if test "$JAVAFOP" = "no"; then
+        AC_MSG_NOTICE([but the man page can NOT not be rebuild in PDF format. Please install 'fop'])
+        AC_MSG_NOTICE([if you want to modify the man page and create a new PDF version])
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([Pre-built versions of the man pages are included in the distribution ])
+        AC_MSG_NOTICE([and the install will use these.])
+    else
+        AC_MSG_NOTICE([and also in PDF format (using fop processor)])
+    fi
+else
+    AC_MSG_NOTICE([However, man pages can not be rebuilt with current system configuration.])
+    AC_MSG_NOTICE([System needs to have DocBook5 and xsltproc installed to do this.])
+    AC_MSG_NOTICE([Pre-built versions of the man pages will be installed. So this is not an issue ])
+    AC_MSG_NOTICE([unless you want to modify the included man page])
+fi
+
+AC_MSG_NOTICE([==================================================================================])
