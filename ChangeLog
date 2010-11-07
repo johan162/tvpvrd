@@ -1,3 +1,32 @@
+[r266] 2010-11-07 11:39  johan162
+
+ * Added Debian variant of init.d start script. Note the build scripts are not yet
+   updted to figure out which init.d script to install 
+   
+   scripts/Makefile.am, scripts/deb.init.d.tvpvrd
+   
+[r264] 2010-11-07 10:54  johan162
+
+ * Add the XSL stylesheet to format ChangeLog comments to the distribution 
+   
+   scripts/Makefile.am, scripts/svn2cl.xsl
+   
+[r263] 2010-11-07 10:50  johan162
+
+ * Complete update of the autoconf/make toolchain to make it completely standards
+   compliant. The toolchain now passes the distcheck target as well 
+   
+   ChangeLog, Makefile.am, bootstrap.sh, configure, configure.ac,
+   docs/manpages/Makefile.am, scripts/Makefile.am
+   
+[r262] 2010-11-07 10:50  johan162
+
+ * Complete update of the autoconf/make toolchain to make it completely standards
+   compliant. The toolchain now passes the distcheck target as well 
+   
+   src/Makefile.am, src/transc.c, src/tvpowerd, src/tvpowerd/Makefile.am,
+   src/tvpowerd/tvpowerd.c, src/tvpvrsrv.c, src/tvwebcmd.c, src/utils.c
+   
 [r261] 2010-11-06 16:12  johan162
 
  * Also quote subject when creating mail 

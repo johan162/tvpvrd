@@ -119,9 +119,15 @@ fi
 
 ])
 
+AC_MSG_CHECKING([If system uses debian style init.d])
+if test ! -f /etc/rc.status; then
+                    AC_MSG_RESULT([yes])
+else
+                    AC_MSG_RESULT([no])
+fi
+AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
+
 AC_CHECK_XSLDOCBOOK
 AC_CHECK_FFMPEG
-
-dnl AC_DEFINE_UNQUOTED(CONFDIR,$sysconfdir,[Directory for system configuration files])
 
 AC_OUTPUT
