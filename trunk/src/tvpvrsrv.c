@@ -90,7 +90,6 @@
 #include "freqmap.h"
 #include "transc.h"
 #include "stats.h"
-#include "confpath.h"
 #include "config.h"
 #include "tvwebcmd.h"
 #include "lockfile.h"

@@ -1084,12 +1084,12 @@ send_mail(const char *subject, const char *to, const char *message) {
 }
 
 /* Converts a hex character to its integer value */
-char from_hex(char ch) {
+char from_hex(const char ch) {
   return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
 }
 
 /* Converts an integer value to its hex character*/
-char to_hex(char code) {
+char to_hex(const char code) {
   static char hex[] = "0123456789ABCDEF";
   return hex[code & 15];
 }

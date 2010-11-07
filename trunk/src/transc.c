@@ -51,7 +51,7 @@
 #include "transc.h"
 #include "utils.h"
 #include "stats.h"
-#include "confpath.h"
+#include "config.h"
 
 
 struct ongoing_transcoding *ongoing_transcodings[3] ;
