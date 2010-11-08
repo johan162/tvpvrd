@@ -244,7 +244,7 @@ void logmsg(int priority, char *msg, ...) {
             timebuff[strnlen(timebuff,tblen)-1] = 0;
             snprintf(msgbuff, blen-1, "%s: %s\n", timebuff, tmpbuff);
             msgbuff[blen-1] = '\0' ;
-
+ 
             // Create subject line with host name
             gethostname(hostname,shortblen);
             hostname[shortblen-1] = '\0';
@@ -252,7 +252,7 @@ void logmsg(int priority, char *msg, ...) {
             subjbuff[shortblen-1] = '\0';
 
             // Extract the last lines from the log file and include in the mail.
-            if( 0 == tail_logfile(20,logfilebuff,blen) ) {
+            if( strcmp(logfile_name,"stdout") && 0 == tail_logfile(20,logfilebuff,blen) ) {
                 strncat(msgbuff,"\n\n---- LAST 20 LINES FROM LOG FILE ----\n",blen);
                 strncat(msgbuff,logfilebuff,blen-1);
                 msgbuff[blen-1] = '\0' ;
@@ -1075,9 +1075,7 @@ send_mail(const char *subject, const char *to, const char *message) {
 
     if( rc ) {
         syslog(LOG_ERR,"Failed to send mail. rc=%d ( %d : %s )",rc,errno,strerror(errno));
-    } else {
-        syslog(LOG_INFO,"Mail sent to: '%s' with subject: '%s'",to,subject);
-    }
+    } 
 
     return rc;
 

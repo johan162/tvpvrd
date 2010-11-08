@@ -221,9 +221,9 @@ isentryoverlapping(unsigned video, struct recording_entry* entry) {
  */
 void
 initrecs(void) {
-    recs            = (struct recording_entry **) calloc((unsigned)max_video, (unsigned)max_entries * sizeof (struct recording_entry *));
-    ongoing_recs    = (struct recording_entry **) calloc((unsigned)max_video, sizeof (struct recording_entry *));
-    num_entries     = (unsigned *) calloc((unsigned)max_video, sizeof (int));
+    recs            = (struct recording_entry **) calloc(max_video, max_entries * sizeof (struct recording_entry *));
+    ongoing_recs    = (struct recording_entry **) calloc(max_video, sizeof (struct recording_entry *));
+    num_entries     = (unsigned *) calloc(max_video, sizeof (int));
 
     if( recs == NULL || ongoing_recs == NULL || num_entries == NULL ) {
         fprintf(stderr,"FATAL: Out of memory. Aborting program.\n");
@@ -236,6 +236,7 @@ initrecs(void) {
  */
 void
 freerecs(void) {
+
     for (unsigned i = 0; i < max_video; ++i) {
         for (unsigned j = 0; j < num_entries[i]; ++j) {
             if( recs[REC_IDX(i,j)] ) {
@@ -247,11 +248,13 @@ freerecs(void) {
     free(recs);
 
     for (unsigned i = 0; i < max_video; ++i) {
-        if( ongoing_recs[i] )
+        if( ongoing_recs[i] ) {
             freerec(ongoing_recs[i]);
+        }
     }
+
     free(ongoing_recs);
-    free(num_entries);    
+    free(num_entries);
 }
 
 /**

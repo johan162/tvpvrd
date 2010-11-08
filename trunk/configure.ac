@@ -1,4 +1,11 @@
-AC_INIT([tvpvrd],[1.9.2],[johan162@gmail.com])
+# ===============================================================================
+# $Id$
+# Autoconf script
+# To rebuild build environment please execute the bootstrap.sh script that can be found in the repository.
+# The bootstrap script will run aclocal, autoheader, autoconf and automake. In addition it will extract
+# the ChangeLog file from the repository and create a ChangeLog file in suitable style.
+# ===============================================================================
+AC_INIT([tvpvrd],[1.9.3],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_PROG_CC
 AC_PROG_CC_C99
@@ -12,6 +19,9 @@ docs/Makefile
 docs/manpages/Makefile
 ])
 
+# ===============================================================================
+# Standard checks for headers and C-compiler
+# ===============================================================================
 AC_LANG_C
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
@@ -30,21 +40,43 @@ AC_CHECK_HEADER(grp.h,,AC_MSG_ERROR(grp.h not available))
 AC_CHECK_HEADER(libgen.h,,AC_MSG_ERROR(libgen.h not available))
 AC_CHECK_HEADER(dirent.h,,AC_MSG_ERROR(dirent.h not available))
 
+# ===============================================================================
+# Checks for needed libraries. Note this will also append the correct linker flags to LDADD variable in the
+# makefiles.
+# ===============================================================================
 AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
 AC_CHECK_LIB([iniparser], [iniparser_getstring],,AC_MSG_ERROR([iniparser library seems invalid. Please reinstall libiniparser-dev (or similar)]))
 AC_CHECK_LIB([pcre], [pcre_exec],,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
 AC_CHECK_LIB([xml2], [xmlParseFile],,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
 
+# ===============================================================================
+# Check for working fork and mktime functions just to be on the safe side
+# ===============================================================================
 AC_FUNC_FORK
 AC_FUNC_MKTIME
 
+# ===============================================================================
+# Check for standard Unix types that we use. This is almost unnecessary since this shoud be available in
+# all sane systems
+# ===============================================================================
 AC_TYPE_UID_T
 AC_TYPE_MODE_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 
+# ===============================================================================
+# Check for some standard functions thta are used by the daemon
+# ===============================================================================
 AC_CHECK_FUNCS([atexit bzero floor getcwd inet_ntoa memset mkdir rmdir select socket strchr strnlen strdup strerror])
 
+# ===============================================================================
+# AC_CHECK_XSLDOCBOOK
+# The following macro will check to see if a working Docbook 5 environment can be found. It will also
+# check for the presence of the fop program which is needed to rebuild the PDF versions of the man page.
+# An end user of the library does not have to have the Docbook 5 environment installed since the distribution
+# includes pre-built versions of the man pages. However a package maintainer that wants to modify or
+# rebuild the man pages will need to have a full Docbook 5 setup.
+# ===============================================================================
 AC_DEFUN([AC_CHECK_XSLDOCBOOK],[ 
 DOCBOOK_XSL=
 if test ! -f /etc/xml/catalog; then
@@ -80,10 +112,19 @@ fi
 
 AM_CONDITIONAL(have_xsltproc, test "$XSLTPROC_WORKS" = "yes")
 
+AC_CHECK_PROG(JAVAFOP,fop,fop,no)
+AM_CONDITIONAL(have_javafop, test $JAVAFOP = fop)
+
 AC_SUBST(DOCBOOK_XSL)
 
 ])
 
+# ===============================================================================
+# AC_CHECK_FFMPEG
+# The following macro checks for a working version of the ffmpeg program. It will also determine if the system
+# have an old version installed that uses the old style ffmpeg profile files by checking the name of a common
+# profile. Not 100% but 99.9% which is good enough.
+# ===============================================================================
 AC_DEFUN([AC_CHECK_FFMPEG],[
 AC_CHECK_PROG(FFMPEGBIN,ffmpeg,ffmpeg,)
 MEDIUM_EXISTS=
@@ -119,6 +160,11 @@ fi
 
 ])
 
+# ===============================================================================
+# AC_CHECK_DEBINIFILES
+# Determine if the system uses Debian style ini files
+# ===============================================================================
+AC_DEFUN([AC_CHECK_DEBINIFILES],[
 AC_MSG_CHECKING([If system uses debian style init.d])
 if test ! -f /etc/rc.status; then
                     AC_MSG_RESULT([yes])
@@ -126,17 +172,24 @@ else
                     AC_MSG_RESULT([no])
 fi
 AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
+])
 
+# ===============================================================================
+# Run macros
+# ===============================================================================
+AC_CHECK_DEBINIFILES
 AC_CHECK_XSLDOCBOOK
-
-AC_CHECK_PROG(JAVAFOP,fop,fop,no)
-AM_CONDITIONAL(have_javafop, test $JAVAFOP = fop)
-
 AC_CHECK_FFMPEG
 
+# ===============================================================================
+# Output all generated files
+# ===============================================================================
 AC_OUTPUT
 
-AC_MSG_NOTICE([==================================================================================])
+# ===============================================================================
+# Finally give some information to the user about the configuration setup
+# ===============================================================================
+AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 AC_MSG_NOTICE([INSTALLATION SUMMARY])
     AC_MSG_NOTICE([System configuration looks fine. All necessary libraries are found.])
 if test "$HAVE_OLD_FFMPEG" = "1"; then
@@ -162,5 +215,5 @@ else
     AC_MSG_NOTICE([Pre-built versions of the man pages will be installed. So this is not an issue ])
     AC_MSG_NOTICE([unless you want to modify the included man page])
 fi
+AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 
-AC_MSG_NOTICE([==================================================================================])
