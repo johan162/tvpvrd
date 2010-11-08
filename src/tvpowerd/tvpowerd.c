@@ -987,13 +987,12 @@ setup_sighandlers(void) {
 void
 setup_lockfile(void) {
 
-    snprintf(lockfilename,256,"/var/run/%s.pid",server_program_name);
+    snprintf(lockfilename,255,"%s/%s.pid",LOCKFILE_DIR,server_program_name );
     // Set lockfile to avoid multiple instances running
     if( -1 == createlockfile() ) {
         fprintf(stderr,"Cannot start server. Check system log for more information.\n");
         _exit(EXIT_FAILURE);
     }
-
 }
 
 /**

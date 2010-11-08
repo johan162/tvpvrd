@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-
+#define LOCKFILE_DIR "/var/run"
 /*
  * TVPVRD_LOCKFILE string
  * Full name for lockfile to use

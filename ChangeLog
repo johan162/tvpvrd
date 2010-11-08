@@ -1,3 +1,16 @@
+[r273] 2010-11-07 22:58  johan162
+
+ * Add stdconfig.h which is just acall to configure with suitable prefix and
+   syscond directory settings to avoid typing every time 
+   
+   stdconfig.sh
+   
+[r271] 2010-11-07 21:26  johan162
+
+ * Make a missing xml2 library a fatal error in the autoconfig script 
+   
+   ChangeLog, configure.ac
+   
 [r269] 2010-11-07 18:34  johan162
 
  * Some more updates in the build scripts to give even better feedback to the user 

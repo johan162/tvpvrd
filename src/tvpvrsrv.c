@@ -455,31 +455,37 @@ init_globs(void) {
 
 }
 
+/**
+ * Free global data structures. NOte not used anymore since all structures gets cleaned up at
+ * program exit anyway.
+ */
+
+/*
 void
 free_globs(void) {
 
 
     cmdfree();
     freerecs();
-
-    for(unsigned i=0; i < max_clients; i++) {
-        if( client_ipadr[i] )
-            free(client_ipadr[i]);
+        for(unsigned i=0; i < max_clients; i++) {
+        if( client_ipadr[i] ) {
+                free(client_ipadr[i]);
+        }
         free(video_buffer[i]);
     }
-    free(client_ipadr);
 
+    free(client_ipadr);
     free(rec_threads);
     free(cli_threads);
+
     free(video_idx);
     free((void *)abort_video);
 
     free(client_tsconn);
     free(client_socket);
     iniparser_freedict(dict);
-
 }
-
+*/
 
 /**
  * Set the video encoding HW parameters on the video card from the values specified in the
@@ -780,6 +786,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                                 if( runningtime < 60 ) {
                                     logmsg(LOG_NOTICE, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
                                         short_filename, rh,rm,rs);
+                                    return -1;
 
                                 } else {
                                     logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
@@ -1249,7 +1256,8 @@ chkrec(void *arg) {
 
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
-    // the exit status until the thread is joined (or detached) which would mean
+    // the exit status until the thread is joined (or detached) which would meanls
+
     // loosing 8MB for exah created thread
     pthread_detach(pthread_self());
 
@@ -1754,8 +1762,8 @@ startupsrv(void) {
             FD_SET(websockd, &read_fdset);
         }
 
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 800;
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
         if( enable_webinterface ) {
             ret = select(websockd + 1, &read_fdset, NULL, NULL, &timeout);
         } else {
@@ -1771,7 +1779,7 @@ startupsrv(void) {
             else
                 continue;
         }
-
+        
         int terminal_connection = 0;
         if( FD_ISSET(sockd,&read_fdset) ) {
 
@@ -2565,6 +2573,21 @@ init_capture_cards(void) {
     }
 }
 
+/**
+ * Setup a lockfile based on the program name
+ * @param argv
+ */
+void
+setup_lockfile(void) {
+
+    snprintf(lockfilename,255,"%s/%s.pid",LOCKFILE_DIR,server_program_name );
+    // Set lockfile to avoid multiple instances running
+    if( -1 == createlockfile() ) {
+        fprintf(stderr,"Cannot start server. Check system log for more information.\n");
+        _exit(EXIT_FAILURE);
+    }
+}
+
 
 /* ==================================================================================
  * M A I N
@@ -2583,17 +2606,8 @@ main(int argc, char *argv[]) {
 
     // Parse and set cmd line options
     parsecmdline(argc,argv);
-    
-/*
- * #define TVPVRD_LOCKFILE "/var/run/tvpvrd.pid"
- */
-    strcpy(lockfilename,"/var/run/tvpvrd.pid");
 
-    // Set lockfile to avoid multiple instances running
-    if( -1 == createlockfile() ) {
-        fprintf(stderr,"Cannot start server. Check system log for more information.\n");
-        _exit(EXIT_FAILURE);
-    }
+    setup_lockfile();
 
     syslog(LOG_INFO,"%s","Starting tvpvrd daemon");
 
@@ -2679,19 +2693,6 @@ main(int argc, char *argv[]) {
     // Remember when the server was started
     tzset();
     ts_serverstart = time(NULL);
-
-
-
-/*
-    char *_loc = getenv("LC_ALL");
-    char _locbuff[255];
-    snprintf(_locbuff,254,"Current system locale at #1 : LC_ALL=%s",_loc);
-    if( _loc ) {
-        syslog(LOG_DEBUG,_locbuff);
-    } else {
-        syslog(LOG_DEBUG,"Current system locale at #1 : UNKNOWN");
-    }
-*/
 
     if( verbose_log == -1 ) {
         verbose_log = iniparser_getint(dict, "config:verbose_log", VERBOSE_LOG);
@@ -2794,7 +2795,7 @@ main(int argc, char *argv[]) {
     // not return until the daemon is terminated.
     if( EXIT_FAILURE == startupsrv() ) {
         logmsg(LOG_ERR,"Unable to start '%s' server.",program_invocation_short_name);
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
         
     logmsg(LOG_INFO,"Received signal %d. Shutting down ...",received_signal);
@@ -2820,12 +2821,7 @@ main(int argc, char *argv[]) {
         }
     }        
     pthread_mutex_unlock(&recs_mutex);
-			
-    // Refresh DB file after a clean exit.
-    if( is_master_server ) {
-        UPDATE_DB();
-    }
-
+		
     // Store the calculated statistics
     (void)write_stats();
 
@@ -2853,7 +2849,12 @@ main(int argc, char *argv[]) {
     }
 
     logmsg(LOG_INFO,"Bye.");
-    free_globs();
+
+    // We don't bother freeing globals since some data structures are checked by running
+    // threads and we might get sigfaults if the thread is trying to check a deleted memory structure.
+    // All dynmic memory will be returned when proram exis anyway. TO do this properly we would
+    // have to send cancellations to all threads and wait for eaxch of them to give up.
+    // free_globs();
     exit(EXIT_SUCCESS);
 }
 
