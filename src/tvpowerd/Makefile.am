@@ -7,7 +7,7 @@ tvpowerd_LDADD = ../utils.o ../lockfile.o
 EXTRA_DIST = tvpowerd.conf 
 noinst_HEADERS = tvpowerd.h wakelan.h
 
-CLEANFILES = *~ 
+CLEANFILES = *~ tvpowerd
 
 DISTCLEANFILES=*.Po .deps
 
