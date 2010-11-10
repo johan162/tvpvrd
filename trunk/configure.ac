@@ -139,7 +139,8 @@ if test "$MEDIUM_EXISTS" = "yes"; then
         AC_MSG_RESULT([yes])
         AM_CONDITIONAL(have_old_ffmpeg, test 0 = 1)
 else
-        NORMAL_EXISTS=
+        MEDIUM_EXISTS=no
+        NORMAL_EXISTS=no
         for i in /usr/share/ffmpeg/libx264-normal.ffpreset /usr/local/share/ffmpeg/libx264-normal.ffpreset
         do
                 if test -f "$i"; then
@@ -154,7 +155,7 @@ else
                 AM_CONDITIONAL(have_old_ffmpeg, test 1 = 1)
         else
                 AC_MSG_RESULT([no.])
-                AC_MSG_ERROR([No working ffmpeg. Please install or check your configuration of ffmpeg.])
+                AM_CONDITIONAL(have_old_ffmpeg, test 0 = 1)
         fi
 fi
 
@@ -192,6 +193,11 @@ AC_OUTPUT
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 AC_MSG_NOTICE([INSTALLATION SUMMARY])
     AC_MSG_NOTICE([System configuration looks fine. All necessary libraries are found.])
+if test ! "$HAVE_FFMPEGBIN" ; then
+   AC_MSG_NOTICE([However, no ffmpeg executable was found. Strictly speaking not])
+    AC_MSG_NOTICE([necessary to build the daemon it will be required to do transcoding. The daemon will])
+    AC_MSG_NOTICE([assume that when ffmpeg is used it is reasonable new and supports new style arguments.])
+fi
 if test "$HAVE_OLD_FFMPEG" = "1"; then
     AC_MSG_NOTICE([However, your version of ffmpeg is rather old. Please consider upgrading it])
 fi

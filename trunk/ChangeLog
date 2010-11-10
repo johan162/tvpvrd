@@ -1,3 +1,17 @@
+[r275] 2010-11-08 21:12  johan162
+
+ * Added keyword to configure.ac 
+   
+   configure.ac
+   
+[r274] 2010-11-08 21:11  johan162
+
+ * Various code and script cleanups 
+   
+   ChangeLog, configure.ac, scripts/deb.init.d.tvpvrd, scripts/init.d.tvpvrd,
+   src/lockfile.h, src/recs.c, src/tvpowerd/tvpowerd.c, src/tvpvrsrv.c,
+   src/utils.c
+   
 [r273] 2010-11-07 22:58  johan162
 
  * Add stdconfig.h which is just acall to configure with suitable prefix and
