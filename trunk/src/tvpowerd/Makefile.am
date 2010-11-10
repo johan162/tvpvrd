@@ -11,6 +11,8 @@ CLEANFILES = *~
 
 DISTCLEANFILES=*.Po .deps
 
+all: tvpowerd
+
 
 
 

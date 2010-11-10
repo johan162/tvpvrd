@@ -1817,9 +1817,6 @@ _cmd_version(const char *cmd, int sockfd) {
     }
     _writef(sockfd, 
             "%s %s [%s] (%s)"
-#ifdef _LARGEFILE64_SOURCE
-                        "\nCompiled with Large File Support (files > 2GB)."
-#endif
 #ifdef DEBUG_SIMULATE
                         "\n *** DEBUG BUILD *** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY A DEBUG BUILD.\n"
 #endif

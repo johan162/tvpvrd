@@ -102,7 +102,7 @@ char send_mailaddress[64];
  */
 
 // Should we run as a daemon or nothing
-int daemonize=-1;
+int daemonize=1;
 
 // Names of the ini file used
 char inifile[256];
@@ -438,10 +438,18 @@ read_inisettings(void) {
     target_port = iniparser_getint(dict, "network:target_port", TARGET_PORT);
 
     unsigned char macaddr[6];
-    if( strlen(server_ip) < 9 || !parse_mac(macaddr, target_mac_address) ) {
+
+    if(  ! parse_mac(macaddr, target_mac_address) ) {
         logmsg(LOG_CRIT,
-                "** FATAL error. "
-                "'stdout' is not a valid logfile when started in daemon mode.");
+                "FATAL error. "
+               "'Remote server MAC address not specified or has an unrecognized syntax");
+        exit(EXIT_FAILURE);
+    }
+
+    if( strlen(server_ip) < 9  ) {
+        logmsg(LOG_CRIT,
+                "FATAL error. "
+               "'Remote server IP address not correctly specified.");
         exit(EXIT_FAILURE);
     }
 
@@ -932,12 +940,12 @@ locate_inifile(void) {
         // Specified on the command line. Overrides the default
         dict = iniparser_load(inifile);
     } else {
-        snprintf(inifile,255,"%s/tvppwrd/%s",CONFDIR,INIFILE_NAME);
+        snprintf(inifile,255,"%s/tvpowerd/%s",CONFDIR,INIFILE_NAME);
         inifile[255] = '\0';
         dict = iniparser_load(inifile);
         if( !dict ) {
             // As a last resort check the default /etc directory
-            snprintf(inifile,255,"/etc/tvppwrd/%s",INIFILE_NAME);
+            snprintf(inifile,255,"/etc/tvpowerd/%s",INIFILE_NAME);
             dict = iniparser_load(inifile);
             if( dict == NULL )
                 *inifile = '\0';
