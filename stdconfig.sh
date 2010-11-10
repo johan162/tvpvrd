@@ -1,2 +1,2 @@
 #! /bin/sh
-./configure --prefix=/usr --sysconf=/etc
+./configure --prefix=/usr --sysconfdir=/etc
