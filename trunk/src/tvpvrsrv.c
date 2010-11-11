@@ -70,7 +70,11 @@
 #include <arpa/inet.h>
 
 // Aplication specific libs, parse inifiles as well as Perl regular expressions
+#ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
+#else
+#include "iniparser/iniparser.h"
+#endif
 #include <pcre.h>
 #include <errno.h>
 
