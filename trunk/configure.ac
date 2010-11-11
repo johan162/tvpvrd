@@ -27,27 +27,27 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
-AC_CHECK_HEADER(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "pcre-devel" package))
-AC_CHECK_HEADER(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
-AC_CHECK_HEADER(iniparser.h,,AC_MSG_NOTICE(iniparser.h not available. Will use builtin))
-AC_CHECK_HEADER(errno.h,,AC_MSG_ERROR(errno.h not available))
-AC_CHECK_HEADER(syslog.h,,AC_MSG_ERROR(syslog.h not available))
-AC_CHECK_HEADER(getopt.h,,AC_MSG_ERROR(getopt.h not available))
-AC_CHECK_HEADER(signal.h,,AC_MSG_ERROR(signal.h not available))
-AC_CHECK_HEADER(fcntl.h,,AC_MSG_ERROR(fcntl.h not available))
-AC_CHECK_HEADER(pwd.h,,AC_MSG_ERROR(pwd.h not available))
-AC_CHECK_HEADER(grp.h,,AC_MSG_ERROR(grp.h not available))
-AC_CHECK_HEADER(libgen.h,,AC_MSG_ERROR(libgen.h not available))
-AC_CHECK_HEADER(dirent.h,,AC_MSG_ERROR(dirent.h not available))
+AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "pcre-devel" package))
+AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
+AC_CHECK_HEADERS(iniparser.h,,AC_MSG_NOTICE(iniparser.h not available. Will use builtin))
+AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR(errno.h not available))
+AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR(syslog.h not available))
+AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR(getopt.h not available))
+AC_CHECK_HEADERS(signal.h,,AC_MSG_ERROR(signal.h not available))
+AC_CHECK_HEADERS(fcntl.h,,AC_MSG_ERROR(fcntl.h not available))
+AC_CHECK_HEADERS(pwd.h,,AC_MSG_ERROR(pwd.h not available))
+AC_CHECK_HEADERS(grp.h,,AC_MSG_ERROR(grp.h not available))
+AC_CHECK_HEADERS(libgen.h,,AC_MSG_ERROR(libgen.h not available))
+AC_CHECK_HEADERS(dirent.h,,AC_MSG_ERROR(dirent.h not available))
 
 # ===============================================================================
 # Checks for needed libraries. Note this will also append the correct linker flags to LDADD variable in the
 # makefiles.
 # ===============================================================================
 AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
-AC_CHECK_LIB([iniparser], [iniparser_getstring],,AC_MSG_NOTICE([iniparser library seems invalid. Will use built-in ininparser]))
-AC_CHECK_LIB([pcre], [pcre_exec],,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
-AC_CHECK_LIB([xml2], [xmlParseFile],,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
+AC_CHECK_LIB(iniparser, iniparser_getstring,,AC_MSG_NOTICE([iniparser library seems invalid. Will use built-in ininparser]))
+AC_CHECK_LIB(pcre, pcre_exec,,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
+AC_CHECK_LIB(xml2, xmlParseFile,,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
 
 # ===============================================================================
 # Check for working fork and mktime functions just to be on the safe side
@@ -195,9 +195,6 @@ AC_OUTPUT
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 AC_MSG_NOTICE([INSTALLATION SUMMARY])
     AC_MSG_NOTICE([System configuration looks fine.])
-if test ! "$HAVE_LIBINIPARSER"; then
-   AC_MSG_NOTICE([However, could not detect libiniparser. A built-in version will be used instead.])
-fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([No ffmpeg executable was found. While strictly speaking not] necessary)
