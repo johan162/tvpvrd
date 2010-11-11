@@ -70,11 +70,6 @@
 #include <arpa/inet.h>
 
 // Aplication specific libs, parse inifiles as well as Perl regular expressions
-#ifdef HAVE_LIBINIPARSER
-#include <iniparser.h>
-#else
-#include "iniparser/iniparser.h"
-#endif
 #include <pcre.h>
 #include <errno.h>
 
@@ -85,6 +80,7 @@
 #include <sys/prctl.h>
 
 // Local files
+#include "config.h"
 #include "tvpvrd.h"
 #include "vctrl.h"
 #include "recs.h"
@@ -94,7 +90,6 @@
 #include "freqmap.h"
 #include "transc.h"
 #include "stats.h"
-#include "config.h"
 #include "tvwebcmd.h"
 #include "lockfile.h"
 

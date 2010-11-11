@@ -24,12 +24,18 @@
  * =========================================================================
  */
 
+#include "config.h"
 #include <time.h>
 #include <pthread.h>
 #include <sys/param.h> // Needed to get MAX()
-#include <iniparser.h>
 #include <errno.h>
 #include <syslog.h>
+#ifdef HAVE_LIBINIPARSER
+#include <iniparser.h>
+#else
+#include "iniparser/iniparser.h"
+#endif
+
 
 #ifndef _TVPVRD_H
 #define	_TVPVRD_H

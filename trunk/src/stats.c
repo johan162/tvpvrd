@@ -39,13 +39,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#ifdef HAVE_LIBINIPARSER
-#include <iniparser.h>
-#else
-#include "iniparser/iniparser.h"
-#endif
-
-
 // Application specific includes
 #include "tvpvrd.h"
 #include "transc.h"

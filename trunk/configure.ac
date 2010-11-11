@@ -28,8 +28,11 @@ AC_PROG_MAKE_SET
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
 AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "pcre-devel" package))
+
 AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
-AC_CHECK_HEADERS(iniparser.h,,AC_MSG_NOTICE(iniparser.h not available. Will use builtin))
+have_iniparser_h=no
+AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE(iniparser.h not available. Will use builtin))
+
 AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR(errno.h not available))
 AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR(syslog.h not available))
 AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR(getopt.h not available))
@@ -45,7 +48,9 @@ AC_CHECK_HEADERS(dirent.h,,AC_MSG_ERROR(dirent.h not available))
 # makefiles.
 # ===============================================================================
 AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
+if test "x${have_iniparser_h}" = xyes; then
 AC_CHECK_LIB(iniparser, iniparser_getstring,,AC_MSG_NOTICE([iniparser library seems invalid. Will use built-in ininparser]))
+fi
 AC_CHECK_LIB(pcre, pcre_exec,,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
 AC_CHECK_LIB(xml2, xmlParseFile,,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
 
@@ -175,7 +180,7 @@ fi
 AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 ])
 
-AM_CONDITIONAL(have_iniparser, test "$HAVE_LIBINIPARSER" = "1")
+AM_CONDITIONAL(have_iniparser, test "x${have_iniparser_h}" = xyes)
 
 # ===============================================================================
 # Run macros
@@ -195,6 +200,9 @@ AC_OUTPUT
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 AC_MSG_NOTICE([INSTALLATION SUMMARY])
     AC_MSG_NOTICE([System configuration looks fine.])
+if test "x${have_iniparser_h}" = xno; then
+   AC_MSG_NOTICE([Will use built-in iniparser library.])
+fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([No ffmpeg executable was found. While strictly speaking not] necessary)
