@@ -3,7 +3,12 @@ EXTRA_PROGRAMS = tvpowerd
 
 tvpowerd_SOURCES = tvpowerd.c wakelan.c
 tvpowerd_LDFLAGS =  -lm
+if have_iniparser
 tvpowerd_LDADD = ../utils.o ../lockfile.o
+else
+tvpowerd_LDADD = ../utils.o ../lockfile.o ../iniparser.o ../dictionary.o
+endif
+
 EXTRA_DIST = tvpowerd.conf 
 noinst_HEADERS = tvpowerd.h wakelan.h
 

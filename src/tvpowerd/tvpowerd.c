@@ -56,7 +56,11 @@
 #include <arpa/inet.h>
 
 // Aplication specific libs, parse inifiles
+#ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
+#else
+#include "../iniparser/iniparser.h"
+#endif
 
 // Needed for prctl()
 #include <sys/prctl.h>

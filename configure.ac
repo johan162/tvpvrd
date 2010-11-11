@@ -29,7 +29,7 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
 AC_CHECK_HEADER(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "pcre-devel" package))
 AC_CHECK_HEADER(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
-AC_CHECK_HEADER(iniparser.h,,AC_MSG_ERROR(iniparser.h not available. Please install "iniparser-devel" package. Unfortunately there doesnt seem like there is a pre-built package available for Ubuntu which means that you have to build and download it yourself if you are using Ubuntu))
+AC_CHECK_HEADER(iniparser.h,,AC_MSG_NOTICE(iniparser.h not available. Will use builtin))
 AC_CHECK_HEADER(errno.h,,AC_MSG_ERROR(errno.h not available))
 AC_CHECK_HEADER(syslog.h,,AC_MSG_ERROR(syslog.h not available))
 AC_CHECK_HEADER(getopt.h,,AC_MSG_ERROR(getopt.h not available))
@@ -45,7 +45,7 @@ AC_CHECK_HEADER(dirent.h,,AC_MSG_ERROR(dirent.h not available))
 # makefiles.
 # ===============================================================================
 AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
-AC_CHECK_LIB([iniparser], [iniparser_getstring],,AC_MSG_ERROR([iniparser library seems invalid. Please reinstall libiniparser-dev (or similar)]))
+AC_CHECK_LIB([iniparser], [iniparser_getstring],,AC_MSG_NOTICE([iniparser library seems invalid. Will use built-in ininparser]))
 AC_CHECK_LIB([pcre], [pcre_exec],,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
 AC_CHECK_LIB([xml2], [xmlParseFile],,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
 
@@ -126,7 +126,7 @@ AC_SUBST(DOCBOOK_XSL)
 # profile. Not 100% but 99.9% which is good enough.
 # ===============================================================================
 AC_DEFUN([AC_CHECK_FFMPEG],[
-AC_CHECK_PROG(FFMPEGBIN,ffmpeg,ffmpeg,)
+AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
 MEDIUM_EXISTS=
 AC_MSG_CHECKING([If ffmpeg works])
 for i in /usr/share/ffmpeg/libx264-medium.ffpreset /usr/local/share/ffmpeg/libx264-medium.ffpreset
@@ -175,6 +175,8 @@ fi
 AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 ])
 
+AM_CONDITIONAL(have_iniparser, test "$HAVE_LIBINIPARSER" = "1")
+
 # ===============================================================================
 # Run macros
 # ===============================================================================
@@ -192,28 +194,33 @@ AC_OUTPUT
 # ===============================================================================
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 AC_MSG_NOTICE([INSTALLATION SUMMARY])
-    AC_MSG_NOTICE([System configuration looks fine. All necessary libraries are found.])
+    AC_MSG_NOTICE([System configuration looks fine.])
+if test ! "$HAVE_LIBINIPARSER"; then
+   AC_MSG_NOTICE([However, could not detect libiniparser. A built-in version will be used instead.])
+fi
 if test ! "$HAVE_FFMPEGBIN" ; then
-   AC_MSG_NOTICE([However, no ffmpeg executable was found. Strictly speaking not])
-    AC_MSG_NOTICE([necessary to build the daemon it will be required to do transcoding. The daemon will])
+   AC_MSG_NOTICE([ ])
+   AC_MSG_NOTICE([No ffmpeg executable was found. While strictly speaking not] necessary)
+    AC_MSG_NOTICE([to build the daemon it will be required to do transcoding. The daemon will])
     AC_MSG_NOTICE([assume that when ffmpeg is used it is reasonable new and supports new style arguments.])
 fi
-if test "$HAVE_OLD_FFMPEG" = "1"; then
-    AC_MSG_NOTICE([However, your version of ffmpeg is rather old. Please consider upgrading it])
+if test -n "$HAVE_OLD_FFMPEG" ; then
+   AC_MSG_NOTICE([ ])
+    AC_MSG_NOTICE([(BTW. Your version of ffmpeg is rather old. Please consider upgrading it)])
 fi
 
 AC_MSG_NOTICE([ ])
 
 if  test "$XSLTPROC_WORKS" = "yes"; then
-    AC_MSG_NOTICE([In addition the man page can be rebuilt in both html and Unix man format])
     if test "$JAVAFOP" = "no"; then
+        AC_MSG_NOTICE([In addition the man page can be rebuilt in both html and Unix man format])
         AC_MSG_NOTICE([but the man page can NOT not be rebuild in PDF format. Please install 'fop'])
         AC_MSG_NOTICE([if you want to modify the man page and create a new PDF version])
         AC_MSG_NOTICE([ ])
         AC_MSG_NOTICE([Pre-built versions of the man pages are included in the distribution ])
         AC_MSG_NOTICE([and the install will use these.])
     else
-        AC_MSG_NOTICE([and also in PDF format (using fop processor)])
+        AC_MSG_NOTICE([In addition the man pages can be rebuilt in both html, PDF and Unix man format])
     fi
 else
     AC_MSG_NOTICE([However, man pages can not be rebuilt with current system configuration.])
