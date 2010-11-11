@@ -132,7 +132,8 @@ AC_SUBST(DOCBOOK_XSL)
 # ===============================================================================
 AC_DEFUN([AC_CHECK_FFMPEG],[
 AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
-MEDIUM_EXISTS=
+MEDIUM_EXISTS=no
+NORMAL_EXISTS=no
 AC_MSG_CHECKING([If ffmpeg works])
 for i in /usr/share/ffmpeg/libx264-medium.ffpreset /usr/local/share/ffmpeg/libx264-medium.ffpreset
 do
@@ -209,8 +210,9 @@ if test ! "$HAVE_FFMPEGBIN" ; then
     AC_MSG_NOTICE([to build the daemon it will be required to do transcoding. The daemon will])
     AC_MSG_NOTICE([assume that when ffmpeg is used it is reasonable new and supports new style arguments.])
 fi
-if test -n "$HAVE_OLD_FFMPEG" ; then
-   AC_MSG_NOTICE([ ])
+        
+if test "$NORMAL_EXISTS" = "yes"; then
+    AC_MSG_NOTICE([ ])
     AC_MSG_NOTICE([(BTW. Your version of ffmpeg is rather old. Please consider upgrading it)])
 fi
 
