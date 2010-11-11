@@ -36,11 +36,20 @@
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
-#include <iniparser.h>
 #include <errno.h>
+
+
+
+// Aplication specific libs, parse inifiles as well as Perl regular expressions
+#ifdef HAVE_LIBINIPARSER
+#include <iniparser.h>
+#else
+#include "iniparser/iniparser.h"
+#endif
 
 #include "tvpvrd.h"
 #include "freqmap.h"
