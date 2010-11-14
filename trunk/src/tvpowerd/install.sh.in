@@ -62,6 +62,9 @@ if test ! $? = 0; then
 fi
 
 #install the binary
+if test -f ${bindir}/tvpowerd; then
+    ${sysconfdir}/init.d/tvpowerd stop;
+fi
 install -m 755 tvpowerd ${bindir}/tvpowerd > /dev/null 2>&1 
 if test ! $? = 0; then
     echo "Failed to install binary ! (Is the existing version running?)"
