@@ -21,10 +21,15 @@ DISTCLEANFILES = config.h .deps
 CLEANFILES = *~
 
 install-data-local: 
-	install -d ${DESTDIR}$(sysconfdir)/tvpvrd
-	cp $(abs_srcdir)/tvpvrd.conf ${DESTDIR}$(sysconfdir)/tvpvrd
-	cp $(abs_srcdir)/tvpvrd.css ${DESTDIR}$(sysconfdir)/tvpvrd
-	cp $(abs_srcdir)/tvpvrd_mobile.css ${DESTDIR}$(sysconfdir)/tvpvrd
+	if test -f ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; then \
+		echo "----------------------------------------------";\
+		echo "Will not overwrite existing tvpvrd.conf file !"; \
+		echo "----------------------------------------------";\
+	else \
+		install -D -m 644 $(abs_srcdir)/tvpvrd.conf ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; \
+	fi
+	install -b -m 644 $(abs_srcdir)/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
+	install -b -m 644 $(abs_srcdir)/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
 
 
 

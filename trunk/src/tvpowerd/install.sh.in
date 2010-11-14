@@ -14,6 +14,7 @@ pdfdir=@pdfdir@
 htmldir=@htmldir@
 top_srcdir=@top_srcdir@
 manpages=${top_srcdir}/docs/manpages/
+datarootdir=@datarootdir@
 
 #First a sanity check so that the user doesn't try to install tvpowerd on the
 #same server where he/she is running tvpvrd
@@ -30,7 +31,18 @@ if test ! -w ${sysconfdir}; then
 fi
 
 # Install configuration scripts
-install -D -m 644 tvpowerd.conf ${sysconfdir}/tvpowerd/tvpowerd.conf > /dev/null 2>&1 && \
+if test -f ${sysconfdir}/tvpowerd/tvpowerd.conf; then
+	echo "----------------------------------------------";
+	echo "Will not overwrite existing tvpowerd.conf file !";
+	echo "----------------------------------------------";
+else
+    install -D -m 644 tvpowerd.conf ${sysconfdir}/tvpowerd/tvpowerd.conf > /dev/null 2>&1
+    if test ! $? = 0; then
+        echo "Failed to install tvpowerd.conf configuration script"
+        exit 1
+    fi
+fi
+
 install -D -m 755 pre-shutdown.sh ${sysconfdir}/tvpowerd/pre-shutdown.sh > /dev/null 2>&1 && \
 install -D -m 755 post-startup.sh ${sysconfdir}/tvpowerd/post-startup.sh > /dev/null 2>&1 
 if test ! $? = 0; then
@@ -52,7 +64,7 @@ fi
 #install the binary
 install -m 755 tvpowerd ${bindir}/tvpowerd > /dev/null 2>&1 
 if test ! $? = 0; then
-    echo "Failed to install binary"
+    echo "Failed to install binary ! (Is the existing version running?)"
     exit 1
 fi
 
