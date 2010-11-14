@@ -6,9 +6,9 @@
 # Default-Start:     3 5
 # Default-Stop:      0 1 6
 # Short-Description: Manage the TV recording/transcoding daemon
-# Description:       .  This script can be used to start and and stop the tvpowerd daemon. This daemon will turn your
-#                             computer into an advanced digital TV recorder with the possibility to both schedule recordings
-#                             as well as transcoding them into a more efficient format (using ffmpeg), e.g. MP4
+# Description:       This script can be used to start and and stop the tvpowerd daemon. This daemon will turn your
+#                    computer into an advanced digital TV recorder with the possibility to both schedule recordings
+#                    as well as transcoding them into a more efficient format (using ffmpeg), e.g. MP4
 ### END INIT INFO
 
 # Author:Johan Persson <johan162@gmail.com>
