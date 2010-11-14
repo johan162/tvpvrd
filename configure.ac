@@ -6,7 +6,7 @@
 # the ChangeLog file from the repository and create a ChangeLog file in suitable style.
 # ===============================================================================
 AC_INIT([tvpvrd],[1.9.3],[johan162@gmail.com])
-AM_INIT_AUTOMAKE([-Wall -Werror])
+AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2])
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_CONFIG_HEADER([src/config.h])
@@ -27,7 +27,7 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
-AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "pcre-devel" package))
+AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "libpcre3-dev" package))
 
 AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
 have_iniparser_h=no
@@ -49,7 +49,7 @@ AC_CHECK_HEADERS(dirent.h,,AC_MSG_ERROR(dirent.h not available))
 # ===============================================================================
 AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
 if test "x${have_iniparser_h}" = xyes; then
-AC_CHECK_LIB(iniparser, iniparser_getstring,,AC_MSG_NOTICE([iniparser library seems invalid. Will use built-in ininparser]))
+   AC_CHECK_LIB(iniparser, iniparser_getstring,,AC_MSG_NOTICE([iniparser library seems invalid. Will use built-in ininparser]))
 fi
 AC_CHECK_LIB(pcre, pcre_exec,,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
 AC_CHECK_LIB(xml2, xmlParseFile,,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
