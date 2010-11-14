@@ -129,6 +129,12 @@ dictionary *dict;
 char username[64];
 
 /*
+ * The actual command used to shutdown the remote server
+ */
+#define DEFAULT_SHUTDOWN_COMMAND "/sbin/shutdown -h %d"
+char shutdown_command[255];
+
+/*
  * What locale to use, by default this is set to LOCALE_NAME (which in the original distribution
  * is set to en_US.UTF8)
  */
@@ -416,6 +422,12 @@ read_inisettings(void) {
                 "'stdout' is not a valid logfile when started in daemon mode.");
         exit(EXIT_FAILURE);
     }
+
+    strncpy(shutdown_command,
+            iniparser_getstring(dict, "config:shutdown_command", DEFAULT_SHUTDOWN_COMMAND),
+            254);
+    shutdown_command[254] = '\0';
+
 
     /*--------------------------------------------------------------------------
      * NETWORK Section
@@ -769,6 +781,7 @@ remote_command(char *cmd, char *reply, int len) {
     char *buffer = calloc(1024,sizeof(char));
     snprintf(buffer,1024,"/usr/bin/ssh %s@%s '%s'", server_user, server_ip, cmd );
 
+    logmsg(LOG_DEBUG,"Excuting cmd: %s",buffer);
     FILE *fp = popen(buffer,"r");
     if( fp == NULL  ) {
 /*
@@ -889,12 +902,14 @@ users_on_remote_server(int *num) {
  */
 int
 shutdown_remote_server(void) {
-    char buffer[512],reply[32];
+    char command[512],buffer[512],reply[32];
 
     logmsg(LOG_INFO,"Shutting down remote server.");
-    snprintf(buffer,512,"shutdown -h %d > /dev/null &",shutdown_warning_time );
+    strncpy(buffer,shutdown_command,256);
+    strcat(buffer," > /dev/null 2>&1");
+    snprintf(command,512,buffer,shutdown_warning_time );
 
-    return remote_command(buffer,reply,32);
+    return remote_command(command,reply,32);
 }
 
 /**

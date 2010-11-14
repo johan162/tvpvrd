@@ -227,7 +227,17 @@ if  test "$XSLTPROC_WORKS" = "yes"; then
         AC_MSG_NOTICE([Pre-built versions of the man pages are included in the distribution ])
         AC_MSG_NOTICE([and the install will use these.])
     else
-        AC_MSG_NOTICE([In addition the man pages can be rebuilt in both html, PDF and Unix man format])
+        AC_MSG_NOTICE([In addition the man pages can be rebuilt in both html, Unix man format, and])
+        AC_MSG_NOTICE([most likely in PDF format.])
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([However, if you haven't used the fop processor to generate PDF files before])
+        AC_MSG_NOTICE([it is highly likely that you will get an error message saying something like])
+        AC_MSG_NOTICE([   "SEVERE: Couldn't find hyphenation pattern en" ])
+        AC_MSG_NOTICE([Due to licensing issues most distributions does not include the necessary hyphenation])
+        AC_MSG_NOTICE([so you would have to do this manually if you want to rebuild the PDF files yourself.])
+        AC_MSG_NOTICE([Please see: http://offo.sourceforge.net/hyphenation/binary/installation.html for information.])
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([(Usually it is enough to copy the fop-hyph.jar file into "/usr/shar/fop-0.95/lib")])
     fi
 else
     AC_MSG_NOTICE([However, man pages can not be rebuilt with current system configuration.])
