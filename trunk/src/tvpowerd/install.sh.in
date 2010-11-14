@@ -17,17 +17,17 @@ manpages=${top_srcdir}/docs/manpages/
 
 #First a sanity check so that the user doesn't try to install tvpowerd on the
 #same server where he/she is running tvpvrd
-#if test -f ${bindir}/tvpvrd; then
-#    echo "The tvpowerd daemon is supposed to be installed on a different server than tvpvrd."
-#    echo "Installation aborted."
-#    exit 1
-#fi
+if test -f ${bindir}/tvpvrd; then
+    echo "The tvpowerd daemon is supposed to be installed on a different server than tvpvrd."
+    echo "Installation aborted."
+    exit 1
+fi
 
-#if test ! -w ${sysconfdir}; then
-#    echo "Must have permission to install files"
-#    echo "Installation aborted."
-#    exit 1;
-#fi
+if test ! -w ${sysconfdir}; then
+    echo "Must have permission to install files"
+    echo "Installation aborted."
+    exit 1;
+fi
 
 # Install configuration scripts
 install -D -m 644 tvpowerd.conf ${sysconfdir}/tvpowerd/tvpowerd.conf > /dev/null 2>&1 && \
