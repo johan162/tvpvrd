@@ -15,11 +15,11 @@ tvpowerd_LDADD = ../utils.o ../lockfile.o ../iniparser.o ../dictionary.o
 endif
 tvpowerd_LDFLAGS =  -lm
 
-EXTRA_DIST = tvpowerd.conf pre-shutdown.sh post-startup.sh README install.sh.in
+EXTRA_DIST = tvpowerd.conf pre-shutdown.sh post-startup.sh README install.sh.in uninstall.sh.in
 
 CLEANFILES = *~ tvpowerd
 
-DISTCLEANFILES=*.Po .deps install.sh
+DISTCLEANFILES=*.Po .deps install.sh uninstall.sh
 
 
 
