@@ -16,6 +16,7 @@ Makefile
 src/Makefile
 src/tvpowerd/Makefile
 src/tvpowerd/install.sh
+src/tvpowerd/uninstall.sh
 scripts/Makefile
 docs/Makefile
 docs/manpages/Makefile
