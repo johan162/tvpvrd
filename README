@@ -3,6 +3,16 @@ README FILE FOR PACKAGE : 'TVPVRD'
 'tvpvrd' = TV Personal Video Recorder Daemon
 $Id$
 =======================================================================================
+This package contains two installable daemons, tvpvrd and tvpowerd.
+
+The package will install tvpvrd as explained below. The other daemon cannot be
+automatically installed since this is an optional monitoring daemon that is
+supposed to be running on a physically separate server. The purpose of the
+optional tvpowerd daemon is to manage the power on the recording server
+by turning the server on in time for a scheduled recording and turning the
+server of when no recording or transcoding is taking place.
+
+See manpages for much more detailed information (docs/manpages/)
 
 Quick installation
 -------------------

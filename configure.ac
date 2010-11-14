@@ -5,7 +5,8 @@
 # The bootstrap script will run aclocal, autoheader, autoconf and automake. In addition it will extract
 # the ChangeLog file from the repository and create a ChangeLog file in suitable style.
 # ===============================================================================
-AC_INIT([tvpvrd],[1.9.3],[johan162@gmail.com])
+AC_PREREQ([2.65])
+AC_INIT([tvpvrd],[1.10.0],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2])
 AC_PROG_CC
 AC_PROG_CC_C99
@@ -14,6 +15,7 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/tvpowerd/Makefile
+src/tvpowerd/install.sh
 scripts/Makefile
 docs/Makefile
 docs/manpages/Makefile
@@ -237,7 +239,7 @@ if  test "$XSLTPROC_WORKS" = "yes"; then
         AC_MSG_NOTICE([so you would have to do this manually if you want to rebuild the PDF files yourself.])
         AC_MSG_NOTICE([Please see: http://offo.sourceforge.net/hyphenation/binary/installation.html for information.])
         AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([(Usually it is enough to copy the fop-hyph.jar file into "/usr/shar/fop-0.95/lib")])
+        AC_MSG_NOTICE([(Usually it is enough to copy the fop-hyph.jar file into "/usr/share/fop-0.95/lib")])
     fi
 else
     AC_MSG_NOTICE([However, man pages can not be rebuilt with current system configuration.])
