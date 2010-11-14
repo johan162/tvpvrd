@@ -903,6 +903,20 @@ users_on_remote_server(int *num) {
 int
 shutdown_remote_server(void) {
     char command[512],buffer[512],reply[32];
+    char scriptfile[255];
+
+    // First run optional shutdown pre-script
+    snprintf(scriptfile,255,"%s/tvpowerd/pre-shutdown.sh > /dev/null 2>&1",CONFDIR);
+    FILE *fp=fopen(scriptfile,"r");
+    if( fp == NULL ) {
+        logmsg(LOG_NOTICE,"Cannot find pre-shutdown script ( %d : %s)",errno,strerror(errno));
+    } else {
+        fclose(fp);
+        int rc= system(scriptfile);
+        if( rc ) {
+            logmsg(LOG_ERR,"Error executing pre-shutdown scriptfile");
+        }
+    }
 
     logmsg(LOG_INFO,"Shutting down remote server.");
     strncpy(buffer,shutdown_command,256);
@@ -943,6 +957,20 @@ wakeup_remote_server(void) {
 
     if( rc || strncmp(reply,"tvpvrd",strlen("tvpvrd")) ) {
         return -1;
+    }
+
+    // Finally run optional startup post-script
+    char scriptfile[256];
+    snprintf(scriptfile,255,"%s/tvpowerd/post-startup.sh > /dev/null 2>&1",CONFDIR);
+    FILE *fp=fopen(scriptfile,"r");
+    if( fp == NULL ) {
+        logmsg(LOG_NOTICE,"Cannot find post-startup script ( %d : %s)",errno,strerror(errno));
+    } else {
+        fclose(fp);
+        int rc= system(scriptfile);
+        if( rc ) {
+            logmsg(LOG_ERR,"Error executing post-startup scriptfile");
+        }
     }
 
     return 0;
@@ -1281,13 +1309,12 @@ server_refresh_time = 1;
                                 }
                             }
 
-                            if( ! user_started && wakeup_remote_server() ) {
-                                logmsg(LOG_ERR,"Failed to wakeup server. Retrying once before I give up.");
+                            if( ! user_started ) {
                                 if( wakeup_remote_server() ) {
-                                    logmsg(LOG_CRIT,"Failed a second time to wakeup server.");
+                                    logmsg(LOG_ERR,"Failed to wakeup server. Retrying once before I give up.");
+                                } else {
+                                    logmsg(LOG_DEBUG,"Server power on sequence initiated ...");
                                 }
-                            } else {
-                                logmsg(LOG_DEBUG,"Server power on sequence initiated ...");
                             }
                         }
 #endif

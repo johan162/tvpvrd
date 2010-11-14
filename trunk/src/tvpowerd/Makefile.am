@@ -3,7 +3,7 @@
 # Automake build script
 # 
 # ===============================================================================
-AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -pedantic -Wextra -Wpointer-arith -Wstrict-prototypes -Wformat=2 -D_FORTIFY_SOURCE=2 
+AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -pedantic -Wextra -Wpointer-arith -Wstrict-prototypes -D_FORTIFY_SOURCE=2
 noinst_PROGRAMS = tvpowerd
 
 if have_iniparser
@@ -15,13 +15,12 @@ tvpowerd_LDADD = ../utils.o ../lockfile.o ../iniparser.o ../dictionary.o
 endif
 tvpowerd_LDFLAGS =  -lm
 
-EXTRA_DIST = tvpowerd.conf 
+EXTRA_DIST = tvpowerd.conf pre-shutdown.sh post-startup.sh README
 
 CLEANFILES = *~ tvpowerd
 
 DISTCLEANFILES=*.Po .deps
 
-all: tvpowerd
 
 
 
