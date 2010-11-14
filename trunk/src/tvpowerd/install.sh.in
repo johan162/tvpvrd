@@ -3,6 +3,7 @@
 #$Id$
 #DON'T EDIT : @configure_input@
 
+
 PACKAGE_TARNAME=tvpowerd
 sysconfdir=@sysconfdir@
 prefix=@prefix@
