@@ -40,9 +40,9 @@ fi
 
 #install service starting scripts
 if test -f /etc/rc.status; then
-    install -m 644 init.d.tvpowerd ${sysconfdir}/init.d/tvpowerd > /dev/null 2>&1 
+    install -m 755 init.d.tvpowerd ${sysconfdir}/init.d/tvpowerd > /dev/null 2>&1 
 else
-   install -m 644 deb.init.d.tvpowerd ${sysconfdir}/init.d/tvpowerd > /dev/null 2>&1 
+   install -m 755 deb.init.d.tvpowerd ${sysconfdir}/init.d/tvpowerd > /dev/null 2>&1 
 fi
 if test ! $? = 0; then
     echo "Failed to install service scripts"
