@@ -45,6 +45,17 @@ The simplest way to compile this package is:
      all sorts of other programs in order to regenerate files that came
      with the distribution.
 
+Installing the optional tvpowerd daemon
+=======================================
+
+The optional power daemon can be found under 'src/tvpowerd'. Since it is supposed
+to be installed on a different server than the recording daemon it will not be
+installed with the make install command. Instead copy the distribution package
+to the server where you want to run the power daemon, configure and compile as
+usual and then run the 'install.sh' script as root.
+(The install.sh is found in the tvpowerd directory)
+
+
 Notes on Specific Linux distributions
 =====================================
 
