@@ -473,7 +473,7 @@ read_inisettings(void) {
 
 /**
  * Check what user we are running as and change the user (if allowed) to the
- * specified tvppwrd user.
+ * specified tvpowerd user.
  */
 void
 chkswitchuser(void) {
@@ -1390,7 +1390,7 @@ main(int argc, char** argv) {
     }
 
     // From now on we now the name of the logfile so we can use the log function
-    logmsg(LOG_INFO,"Starting tvppwrd ver %s , Build date: %s",server_version, server_build_date);
+    logmsg(LOG_INFO,"Starting tvpowerd ver %s , Build date: %s",server_version, server_build_date);
     logmsg(LOG_INFO,"Using ini-file '%s'",inifile);
 
     if( daemonize == -1 ) {
