@@ -16,6 +16,10 @@ be performed automatically. Follow these steps to install the dameon.
 install this daemon
 
 1. Run (as root)
-install.sh
+
+$>sh install.sh
+
 This will install the daemon and documentation.
+Note:  The installation will preseve any existing configuretion scripts.
+
 

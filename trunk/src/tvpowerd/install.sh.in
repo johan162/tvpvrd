@@ -42,9 +42,7 @@ fi
 # any existing scripts.
 #--------------------------------------------------------------
 if test -f ${sysconfdir}/tvpowerd/tvpowerd.conf; then
-	echo "----------------------------------------------";
 	echo "Will not overwrite existing tvpowerd.conf file !";
-	echo "----------------------------------------------";
 else
     install -D -m 644 tvpowerd.conf ${sysconfdir}/tvpowerd/tvpowerd.conf > /dev/null 2>&1
     if test ! $? = 0; then
@@ -54,9 +52,7 @@ else
 fi
 
 if test -f ${sysconfdir}/tvpowerd/pre-shutdown.sh; then
-	echo "----------------------------------------------";
 	echo "Will not overwrite existing pre-shutdown.sh file !";
-	echo "----------------------------------------------";
 else
     install -D -m 755 pre-shutdown.sh ${sysconfdir}/tvpowerd/pre-shutdown.sh > /dev/null 2>&1
     if test ! $? = 0; then
@@ -66,9 +62,7 @@ else
 fi
 
 if test -f ${sysconfdir}/tvpowerd/post-startup.sh; then
-	echo "----------------------------------------------";
 	echo "Will not overwrite existing post-startup.sh file !";
-	echo "----------------------------------------------";
 else
     install -D -m 755 post-startup.sh ${sysconfdir}/tvpowerd/post-startup.sh > /dev/null 2>&1
     if test ! $? = 0; then
