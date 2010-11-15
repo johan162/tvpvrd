@@ -1,5 +1,33 @@
 $Id$
 
-See ChangeLog
+v2.0.0
+------
+
+This release has a completely reworked build and configuration script setup.
+The configuration is now a first class citizen of the autotools country.
+
+This means that it will build and install itself in many more distributions.
+
+The packages is known to work out of the box on
+
+- OpenSuSE 11.1 and 11.3 (not tested on 11.2)
+ -Ubuntu 10.10
+- Fedora 13
+- Debian Lenny as well as Debian Sid
+
+In addition this release includes an optional companion daemon 'tvpowerd'. This daeomon
+is supposed to run on a different server than the recording server. When enabled it will
+manage the power of the recording daemon and turn it off and on according to the scheduled
+recordings. This will avoid the recording server running when no recording (or transcoding
+is taking place). In order for this to work the recording server must support Wake-On-Lan
+fot the managing server to be able to turn the power on.
+
+The power daemon can be found under 'src/tvpowerd'. Since it is supposed to be installed
+on a different server than the recording daemon it will not be installed with the
+make install command. Instead copy the distribution package to the server where you want to
+run the power daemon, configure and compile and the run the 'install.sh' script as root.
+(The install.sh is found in the tvpowerd directory)
+
+For more details see ChangeLog
     
 
