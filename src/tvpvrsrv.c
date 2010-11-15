@@ -2604,7 +2604,7 @@ main(int argc, char *argv[]) {
 
     setup_lockfile();
 
-    syslog(LOG_INFO,"%s","Starting tvpvrd daemon");
+    logmsg(LOG_INFO,"Starting tvpvrd ver %s , Build date: %s",server_version, server_build_date);
 
     // Setup MALLOC to dump in case of memory corruption, i.e. double free
     // or overrun. This might be less efficient but this will be enabled
