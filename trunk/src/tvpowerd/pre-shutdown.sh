@@ -10,6 +10,7 @@
 #
 # Please recall that the daemon must be running as root in order to unmopunt the
 # disks.
-
-#umount -f -l /data/mn/recordingdata
+#---------------------------------------------------------------------------------
+# Example: unmount command (-f = force umount of NFS mounted shares)
+#umount -f /data/mn/recordingdata
  
