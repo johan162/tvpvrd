@@ -906,17 +906,21 @@ shutdown_remote_server(void) {
     char scriptfile[255];
 
     // First run optional shutdown pre-script
-    snprintf(scriptfile,255,"%s/tvpowerd/pre-shutdown.sh > /dev/null 2>&1",CONFDIR);
+    snprintf(scriptfile,255,"%s/tvpowerd/pre-shutdown.sh",CONFDIR);
     FILE *fp=fopen(scriptfile,"r");
     if( fp == NULL ) {
-        logmsg(LOG_NOTICE,"Cannot find pre-shutdown script ( %d : %s)",errno,strerror(errno));
+        logmsg(LOG_NOTICE,"Cannot find pre-shutdown script '%s' ( %d : %s)",scriptfile,errno,strerror(errno));
     } else {
         fclose(fp);
-        int rc= system(scriptfile);
+        snprintf(buffer,255,"%s > /dev/null 2>&1",scriptfile,CONFDIR);
+        int rc= system(buffer);
         if( rc ) {
             logmsg(LOG_ERR,"Error executing pre-shutdown scriptfile");
+        } else {
+            logmsg(LOG_DEBUG,"Finished running pre-shutdown script '%s' ",scriptfile);
         }
     }
+
 
     logmsg(LOG_INFO,"Shutting down remote server.");
     strncpy(buffer,shutdown_command,256);
@@ -960,16 +964,20 @@ wakeup_remote_server(void) {
     }
 
     // Finally run optional startup post-script
-    char scriptfile[256];
-    snprintf(scriptfile,255,"%s/tvpowerd/post-startup.sh > /dev/null 2>&1",CONFDIR);
+    // First run optional shutdown pre-script
+    char scriptfile[256], buffer[512];
+    snprintf(scriptfile,255,"%s/tvpowerd/post-startup.sh",CONFDIR);
     FILE *fp=fopen(scriptfile,"r");
     if( fp == NULL ) {
-        logmsg(LOG_NOTICE,"Cannot find post-startup script ( %d : %s)",errno,strerror(errno));
+        logmsg(LOG_NOTICE,"Cannot find post-startup script '%s' ( %d : %s)",scriptfile,errno,strerror(errno));
     } else {
         fclose(fp);
-        int rc= system(scriptfile);
+        snprintf(buffer,255,"%s > /dev/null 2>&1",scriptfile,CONFDIR);
+        int rc= system(buffer);
         if( rc ) {
             logmsg(LOG_ERR,"Error executing post-startup scriptfile");
+        } else {
+            logmsg(LOG_DEBUG,"Finished running post-startup script '%s' ",scriptfile);
         }
     }
 
