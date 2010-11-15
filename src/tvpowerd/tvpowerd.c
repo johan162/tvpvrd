@@ -921,12 +921,8 @@ shutdown_remote_server(void) {
         }
     }
 
-
     logmsg(LOG_INFO,"Shutting down remote server.");
-    strncpy(buffer,shutdown_command,256);
-    strcat(buffer," > /dev/null 2>&1");
-    snprintf(command,512,buffer,shutdown_warning_time );
-
+    snprintf(command,512,shutdown_command,shutdown_warning_time );
     return remote_command(command,reply,32);
 }
 
