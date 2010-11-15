@@ -2604,8 +2604,6 @@ main(int argc, char *argv[]) {
 
     setup_lockfile();
 
-    logmsg(LOG_INFO,"Starting tvpvrd ver %s , Build date: %s",server_version, server_build_date);
-
     // Setup MALLOC to dump in case of memory corruption, i.e. double free
     // or overrun. This might be less efficient but this will be enabled
     // until we are 101% sure there are no mistakes in the code.
@@ -2700,7 +2698,7 @@ main(int argc, char *argv[]) {
     }
 
     // From now on we now the name of the logfile so we can use the log function
-    logmsg(LOG_INFO,"Starting up ... ");
+    logmsg(LOG_INFO,"Starting tvpvrd ver %s , Build date: %s",server_version, server_build_date);
     logmsg(LOG_INFO,"Using ini-file '%s'",inifile);          
     
     if( daemonize == -1 ) {
