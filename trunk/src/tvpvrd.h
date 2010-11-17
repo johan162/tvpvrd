@@ -53,14 +53,6 @@ extern "C" {
 // #define DEBUG_SIMULATE
     
 /*
- * Defining this constant will make the server keep on waiting
- * for a read from the capture card indefinitely. This should only
- * be set when debugging a potential HW issue with the capture card
- */
-//#define IGNORE_CARD_TIMEOUTS
-
-
-/*
  * Note: All the defines for general settings are read from an inifile
  * If the ini file is missing some values then the defines below will be used
  * as the default value.

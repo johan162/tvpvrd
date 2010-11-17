@@ -205,6 +205,27 @@
                 lock file already exists. The solution in this case is to manually remove the
                 lockfile (as root).</para>
         </refsect1>
+        <refsect1>
+            <title>How to shut down the remote server</title>
+            <para>The specific way to shutdown the remote recording server can be specified in the
+                configuration file. By default the server will be shutdown via a standard call to
+                    <command>shutdonw</command>
+                <emphasis
+                    role="italic">-h &lt;time></emphasis> command. </para>
+            <para>A variant of this is to put the recording server in suspend or hibernation mode.
+                Most reasonable modern computers will support this way of energy saving.
+                Unfortunately the ivtv driver (that controls the TV-card) is not aware of power
+                management which means that it will not survive a suspend-wakeup cycle. In order for
+                the driver to work it must firs be unloaded before the server is shut down and then
+                reloaded when the server is started up. The driver load/unload will be handled
+                automatically if the unload_driver variable is set as</para>
+            <para>
+                <screen>unload_driver=yes</screen>
+            </para>
+            <para>in the configuration file.</para>
+            <para>Note: If you decide to use suspend/resume it is probably best to try the commands
+                manually first to make sure it works as expected.</para>
+        </refsect1>
         
         <refsect1>
             <title>Configuring ssh</title>
