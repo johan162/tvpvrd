@@ -205,6 +205,12 @@ int shutdown_warning_time;
 int wakeup_margin_time;
 
 /*
+ * If we should unload the ivtv driver in the recording server when we
+ * power cycle
+ */
+#define DEFAULT_UNLOAD_DRIVER 0
+int unload_driver;
+/*
  * Keep track of the last signal we received.
  */
 static int received_signal = 0;
@@ -427,6 +433,8 @@ read_inisettings(void) {
             iniparser_getstring(dict, "config:shutdown_command", DEFAULT_SHUTDOWN_COMMAND),
             254);
     shutdown_command[254] = '\0';
+
+    unload_driver = iniparser_getboolean(dict,"config:unload_ivtv_driver",DEFAULT_UNLOAD_DRIVER);
 
 
     /*--------------------------------------------------------------------------
@@ -740,6 +748,7 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
         logmsg(LOG_CRIT,"Failed to write to socket.");
     } else {
 
+        logmsg(LOG_DEBUG,"Command sent: %s [len=%d]",tmpbuff,strlen(tmpbuff));
         int rc;
         if( multiline ) {
             rc = waitreadn(sock, reply, maxreplylen);
@@ -756,6 +765,7 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
 
     }
     // Close sockets
+    logmsg(LOG_DEBUG, "Shutting down socket.");
     shutdown(sock, SHUT_RDWR);
     close(sock);
     return 0;
@@ -905,6 +915,16 @@ shutdown_remote_server(void) {
     char command[512],buffer[512],reply[32];
     char scriptfile[255];
 
+    if( unload_driver ) {
+        logmsg(LOG_DEBUG,"Unloading ivtv driver");
+        snprintf(command,512,"modprobe -r ivtv");
+        int rc = remote_command(command,reply,32);
+        if( rc ) {
+            logmsg(LOG_ERR,"Failed to unload ivtv driver. Shutdown aborted");
+            return 1;
+        }
+    }
+
     // First run optional shutdown pre-script
     snprintf(scriptfile,255,"%s/tvpowerd/pre-shutdown.sh",CONFDIR);
     FILE *fp=fopen(scriptfile,"r");
@@ -939,9 +959,9 @@ wakeup_remote_server(void) {
         return 1;
     }
 
-    // Initially wait 90s for the server to get started before we
+    // Initially wait a bit for the server to get started before we
     // make a sanity check that it is awake
-    sleep(90);
+    sleep(60);
 
     // Try to login to the tvpvrd daemon and retrive the version as a proof that
     // the server is up and running
@@ -959,8 +979,21 @@ wakeup_remote_server(void) {
         return -1;
     }
 
+    if( unload_driver ) {
+        char command[512], reply[32];
+        logmsg(LOG_DEBUG,"Loading ivtv driver");
+        snprintf(command,512,"modprobe ivtv");
+        remote_command(command,reply,32);
+        int rc = remote_command(command,reply,32);
+        if( rc ) {
+            logmsg(LOG_ERR,"CRITICAL Failed to load ivtv driver.Aborting rest of startup sequence");
+            return 1;
+        }
+    }
+
+    logmsg(LOG_DEBUG,"Remote server is up and running");
+    
     // Finally run optional startup post-script
-    // First run optional shutdown pre-script
     char scriptfile[256], buffer[512];
     snprintf(scriptfile,255,"%s/tvpowerd/post-startup.sh",CONFDIR);
     FILE *fp=fopen(scriptfile,"r");

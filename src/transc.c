@@ -889,7 +889,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     destfile);
 #else
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fast_firstpass -b %dk -bt %dk "
                     " -an "
                     " -s %s "
                     " -f rawvideo -y %s "
@@ -933,7 +933,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     destfile);
 #else
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fast_firstpass -b %dk -bt %dk "
                     " -an "
                     " -f rawvideo -y %s "
                     "/dev/null > /dev/null 2>&1; "

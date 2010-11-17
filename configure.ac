@@ -6,7 +6,7 @@
 # the ChangeLog file from the repository and create a ChangeLog file in suitable style.
 # ===============================================================================
 AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[2.0.0],[johan162@gmail.com])
+AC_INIT([tvpvrd],[2.0.1],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2])
 AC_PROG_CC
 AC_PROG_CC_C99

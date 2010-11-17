@@ -1496,36 +1496,44 @@ clientsrv(void *arg) {
             } else {
                 numreads = 1; // To keep the loop going
             }
+            
         } else {
             idle_time = 0;
             numreads = read(my_socket, buffer, 1023);
-            buffer[1023] = '\0';
-            buffer[numreads] = 0;
-            
-            if ( 0 == strcmp("exit\r\n", buffer) ) {
-                // Exit command. Exit the loop and close the socket
-                _writef(my_socket,"Goodbye.\n");
-                numreads = -1;
-                break;
-            } else if( 0 == strncmp("GET",buffer,3) ) {
-                // Web commands must always close the socket after each command
-                char wcmd[1024];
-                if( webconnection(buffer,wcmd,1023) ) {
-                    logmsg(LOG_INFO, "Client (%s) sent WEB command: %s", client_ipadr[i], wcmd);
-                    cmdinterp(buffer, my_socket);
+
+            if( numreads > 0 ) {
+                // When the remote socket closes the read will also succeed but return 0 read bytes
+                // and there is no point in doing anything then.
+
+                buffer[1023] = '\0';
+                buffer[numreads] = 0;
+
+                if ( 0 == strcmp("exit\r\n", buffer) ) {
+                    // Exit command. Exit the loop and close the socket
+                    _writef(my_socket,"Goodbye.\n");
                     numreads = -1;
                     break;
+                } else if( 0 == strncmp("GET",buffer,3) ) {
+                    // Web commands must always close the socket after each command
+                    char wcmd[1024];
+                    if( webconnection(buffer,wcmd,1023) ) {
+                        logmsg(LOG_INFO, "Client (%s) sent WEB command: %s", client_ipadr[i], wcmd);
+                        cmdinterp(buffer, my_socket);
+                        numreads = -1;
+                        break;
+                    } else {
+                        logmsg(LOG_ERR, "Client (%s) sent ILLEGAL WEB command: %s", client_ipadr[i], buffer);
+                        numreads = -1;
+                        break;
+                    }
                 } else {
-                    logmsg(LOG_ERR, "Client (%s) sent ILLEGAL WEB command: %s", client_ipadr[i], buffer);
-                    numreads = -1;
-                    break;
+                    buffer[MAX(strnlen(buffer,1023) - 2, 0)] = 0;
+                    pthread_mutex_lock(&recs_mutex);
+                    logmsg(LOG_INFO, "Client (%s) sent command: %s [len=%d]", client_ipadr[i], buffer, strlen(buffer));
+                    cmdinterp(buffer, my_socket);
+                    pthread_mutex_unlock(&recs_mutex);
                 }
-            } else {
-                buffer[MAX(strnlen(buffer,1023) - 2, 0)] = 0;
-                pthread_mutex_lock(&recs_mutex);
-                logmsg(LOG_INFO, "Client (%s) sent command: %s", client_ipadr[i], buffer);
-                cmdinterp(buffer, my_socket);
-                pthread_mutex_unlock(&recs_mutex);
+
             }
         }
     } while (numreads > 0);
@@ -1792,7 +1800,7 @@ startupsrv(void) {
             }
             dotaddr = inet_ntoa(socketaddress.sin_addr);
 
-        } else if( enable_webinterface )  {
+        } else if( enable_webinterface && FD_ISSET(websockd,&read_fdset) )  {
 
             logmsg(LOG_DEBUG, "Browser connection.");
             tmpint = sizeof (websocketaddress);

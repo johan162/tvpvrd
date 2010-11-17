@@ -1,5 +1,19 @@
 $Id$
 
+v2.0.1
+------
+
+Add option to unload the ivtv driver when the recording server is shutdown
+by the tvpowerd daemon. This is needed if the shutdown method is suspend
+to RAM or hibernate since the ivtv driver is not power management aware.
+
+This option is controlled by the boolean configuration file variables
+unload_ivtv_driver
+
+In addition there were some minor documentation update. For detailed
+changes please refer to the ChangeLog.
+
+
 v2.0.0
 ------
 
