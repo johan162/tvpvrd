@@ -917,7 +917,7 @@ shutdown_remote_server(void) {
 
     if( unload_driver ) {
         logmsg(LOG_DEBUG,"Unloading ivtv driver");
-        snprintf(command,512,"modprobe -r ivtv");
+        snprintf(command,512,"/sbin/modprobe -r ivtv");
         int rc = remote_command(command,reply,32);
         if( rc ) {
             logmsg(LOG_ERR,"Failed to unload ivtv driver. Shutdown aborted");
@@ -943,7 +943,9 @@ shutdown_remote_server(void) {
 
     logmsg(LOG_INFO,"Shutting down remote server.");
     snprintf(command,512,shutdown_command,shutdown_warning_time );
-    return remote_command(command,reply,32);
+    int rc = remote_command(command,reply,32);
+    logmsg(LOG_INFO,"Finished shutting down remote server.");
+
 }
 
 /**
@@ -954,6 +956,7 @@ int
 wakeup_remote_server(void) {
 
     logmsg(LOG_INFO,"Waking up remote server with MAC address '%s'.",target_mac_address);
+    
     if( wakelan(target_mac_address,target_broadcast_address, target_port) ) {
         logmsg(LOG_ERR,"Cannot wake up target server!");
         return 1;
@@ -976,13 +979,14 @@ wakeup_remote_server(void) {
     }
 
     if( rc || strncmp(reply,"tvpvrd",strlen("tvpvrd")) ) {
+        logmsg(LOG_ERR,"Cannot connect to server on target machine");
         return -1;
     }
 
     if( unload_driver ) {
         char command[512], reply[32];
         logmsg(LOG_DEBUG,"Loading ivtv driver");
-        snprintf(command,512,"modprobe ivtv");
+        snprintf(command,512,"/sbin/modprobe ivtv");
         remote_command(command,reply,32);
         int rc = remote_command(command,reply,32);
         if( rc ) {
@@ -1197,7 +1201,7 @@ refresh_recordings(void) {
             strcpy(prevmsgbuff,msgbuff);
         }
     } else {
-        logmsg(LOG_ERR,"Failed to refresh recordings from server. Is server powered off?");
+        logmsg(LOG_ERR,"Failed to refresh recordings from server. Have server been powered off manually?");
         ret = -1;
     }
 
@@ -1257,108 +1261,129 @@ server_refresh_time = 1;
         if( n >= server_refresh_time*60 ) {
             n = 0;
 
+            int numusers=0;
+            users_on_remote_server(&numusers);
             // Time to update recordings
-            if( ! refresh_recordings() ) {
+            if( numusers < 1 ) {
 
                 // Find out how long to next recording (in seconds)
-                if( time_nextrecording(&ts, &title) ) {
-                    return ;
-                }
+                if( ! refresh_recordings() && ! time_nextrecording(&ts, &title) ) {
+      
+                    int ongoing=1;
+                    remote_recording(&ongoing);
 
-                int ongoing=1;
-                remote_recording(&ongoing);
-                int numusers=0;
-                users_on_remote_server(&numusers);
-                int ttn = ts - time(NULL);
-                if( ttn >= min_poweroff_time*60 && ! ongoing && numusers < 1 ) {
+                    if( ! ongoing ) {
+                        int ttn = ts - time(NULL);
+                        if( ttn >= min_poweroff_time*60  ) {
 
-                    // Check load on remote server
-                    float a1,a5,a15;
-                    if( remote_server_load(&a1,&a5,&a15) ) {
-                        logmsg(LOG_ERR,"Cannot determine remote server load.");
-                        a5 = 99;
-                    } 
-
-                    if( a1 <= max_shutdown_5load && a5 <= max_shutdown_5load ) {
-
-                        logmsg(LOG_INFO,"Initiating power off. Next recording in %d min and no ongoing recordings or transcodings.", ttn/60);
-#ifdef _DEBUG
-                        logmsg(LOG_DEBUG,"Simulating shutdown ...");
-                        sleep(3);
-#else
-                        shutdown_remote_server();
-                        // Wait until the server is shutdown before we continue
-                        sleep(shutdown_warning_time*60+30);                        
-#endif
-                        // Now check that the server really is powered down by trying to execute a
-                        // command on the server
-                        if( 0 == verify_tvpvrd() ) {
-
-                            logmsg(LOG_NOTICE,"Failed to shutdown server. Shutdown possibly aborted by user?");
-                            // In case this was a user cancel we back off an extra 20 min
-                            sleep(20*60);
-
-                        } else {
-
-                            int y,m,d,h,min,sec;
-                            int ny,nm,nd,nh,nmin,nsec;
-                            fromtimestamp(ts - wakeup_margin_time, &y,&m,&d,&h,&min,&sec);
-                            fromtimestamp(time(NULL), &ny,&nm,&nd,&nh,&nmin,&nsec);
-                            if( send_mail_on_shutdown ) {
-                                const int maxmailsize=5*1024;
-                                char *buffer = calloc(maxmailsize,sizeof(char));
-                                char mailsubj[256];
-                                snprintf(mailsubj,256,"Server \"%s\" powered off until %02d/%02d %02d:%02d",hname,d,m,h,min);
-                                snprintf(buffer,maxmailsize-1,
-                                         "Hi,\n\n"
-                                         " - Server '%s' (%s) powered off at: %02d/%02d %02d:%02d\n\n"
-                                         " - Server will be powered on at: %02d/%02d %02d:%02d to record '%s'\n\n"
-                                         "Have a nice day!\n",
-                                         hname,server_ip,nd,nm,nh,nmin,
-                                         d,m,h,min,title);
-                                send_mail(mailsubj,send_mailaddress,buffer);
-                                free(buffer);
+                            // Check load on remote server
+                            float a1,a5,a15;
+                            if( remote_server_load(&a1,&a5,&a15) ) {
+                                logmsg(LOG_ERR,"Cannot determine remote server load.");
+                                a5 = 99;
                             }
 
-                            logmsg(LOG_INFO,"Server is now powered off until %d-%02d-%02d %02d:%02d to record '%s'",
-                                   y,m,d,h,min,title);
+                            if( a1 <= max_shutdown_5load && a5 <= max_shutdown_5load ) {
 
-    #ifdef _DEBUG
-                            logmsg(LOG_DEBUG,"Simulating power on  ...");
-                            sleep(30);
-                            logmsg(LOG_DEBUG,"Server is now awake.");
-    #else
-                            int user_started = 0 ;
-                            while( !user_started && (ts-wakeup_margin_time) > time(NULL) ) {
-                                sleep(5);
-
-                                if( received_signal ) {
-                                    return;
+                                logmsg(LOG_INFO,"Initiating power off. Next recording in %d min and no ongoing recordings or transcodings.", ttn/60);
+        #ifdef _DEBUG
+                                logmsg(LOG_DEBUG,"Simulating shutdown ...");
+                                sleep(3);
+        #else
+                                shutdown_remote_server();
+                                // Wait until the server is shutdown before we continue
+                                int swt = 0 ;
+                                while( swt < shutdown_warning_time*60+30 ) {
+                                    sleep(2);
+                                    swt += 2;
+                                    if( received_signal ) {
+                                        return;
+                                    }
                                 }
-
-                                // We also need to check in case the user actually cheated
-                                // and started the server manually. In that case we want to
-                                // move to the beginning state again. We do this by checking
-                                // if the server happens to be alive.
+                                
+        #endif
+                                // Now check that the server really is powered down by trying to execute a
+                                // command on the server
                                 if( 0 == verify_tvpvrd() ) {
-                                    // Ooops ! The user has started the server without waiting for us!
-                                    user_started = 1;
-                                }
-                            }
 
-                            if( ! user_started ) {
-                                if( wakeup_remote_server() ) {
-                                    logmsg(LOG_ERR,"Failed to wakeup server. Retrying once before I give up.");
+                                    logmsg(LOG_NOTICE,"Failed to shutdown server. Shutdown possibly aborted by user?");
+
                                 } else {
-                                    logmsg(LOG_DEBUG,"Server power on sequence initiated ...");
+
+                                    int y,m,d,h,min,sec;
+                                    int ny,nm,nd,nh,nmin,nsec;
+                                    fromtimestamp(ts - wakeup_margin_time, &y,&m,&d,&h,&min,&sec);
+                                    fromtimestamp(time(NULL), &ny,&nm,&nd,&nh,&nmin,&nsec);
+                                    if( send_mail_on_shutdown ) {
+                                        const int maxmailsize=5*1024;
+                                        char *buffer = calloc(maxmailsize,sizeof(char));
+                                        char mailsubj[256];
+                                        snprintf(mailsubj,256,"Server \"%s\" powered off until %02d/%02d %02d:%02d",hname,d,m,h,min);
+                                        snprintf(buffer,maxmailsize-1,
+                                                 "Hi,\n\n"
+                                                 " - Server '%s' (%s) powered off at: %02d/%02d %02d:%02d\n\n"
+                                                 " - Server will be powered on at: %02d/%02d %02d:%02d to record '%s'\n\n"
+                                                 "Have a nice day!\n",
+                                                 hname,server_ip,nd,nm,nh,nmin,
+                                                 d,m,h,min,title);
+                                        send_mail(mailsubj,send_mailaddress,buffer);
+                                        free(buffer);
+                                    }
+
+                                    logmsg(LOG_INFO,"Server is now powered off until %d-%02d-%02d %02d:%02d to record '%s'",
+                                           y,m,d,h,min,title);
+
+#ifdef _DEBUG
+                                    logmsg(LOG_DEBUG,"Simulating power on  ...");
+                                    sleep(30);
+                                    logmsg(LOG_DEBUG,"Server is now awake.");
+#else
+                                    int user_started = 0 ;
+                                    while( !user_started && (ts-wakeup_margin_time) > time(NULL) ) {
+                                        sleep(4);
+
+                                        if( received_signal ) {
+                                            return;
+                                        }
+
+                                        // We also need to check in case the user actually cheated
+                                        // and started the server manually. In that case we want to
+                                        // move to the beginning state again. We do this by checking
+                                        // if the server happens to be alive.
+                                        if( 0 == verify_tvpvrd() ) {
+                                            // Ooops ! The user has started the server without waiting for us!
+                                            user_started = 1;
+                                        }
+
+                                        // The user can force a restart of the recording server by placing a file
+                                        // with name "start_tvp" in the tmp dir
+                                        int tstfd = open( "/tmp/start_tvp", O_RDONLY);                                        
+                                        if( tstfd >= 0 ) {
+                                            close(tstfd);
+                                            logmsg(LOG_INFO,"Found start_tvp. Starting server ...");
+                                            if( unlink("/tmp/start_tvp") ) {
+                                                logmsg(LOG_ERR,"Cannot unlink file \"/tmp/start_tvp\" ( %d : %s) ", errno, strerror(errno));
+                                            }
+                                            break;
+                                        } else {
+                                            close(tstfd);
+                                        }
+
+                                    }
+
+                                    if( ! user_started ) {
+                                        if( wakeup_remote_server() ) {
+                                            logmsg(LOG_ERR,"Failed to wakeup server.");
+                                        } else {
+                                            logmsg(LOG_DEBUG,"Server power on sequence initiated ...");
+                                        }
+                                    }
                                 }
+#endif
                             }
                         }
-#endif
                     }
                 }
-            } else {
-                logmsg(LOG_ERR,"Failed to refresh recordings.");
             }
 
         } else {
