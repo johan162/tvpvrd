@@ -241,7 +241,7 @@ static pthread_mutex_t sig_mutex    = PTHREAD_MUTEX_INITIALIZER;
 /*
  * Keep track of the last signal we received.
  */
-static int received_signal = 0;
+static volatile int received_signal = 0;
 
 /*
  * Keep track of the socket that each client uses
@@ -330,6 +330,22 @@ int enable_webinterface = 0 ;
  * input to select that is the tuner.
  */
 int tuner_input_index;
+
+/*
+ * SHOuld we switch channel via an external script
+ */
+int external_switch = 0;
+
+/*
+ * Which video input sohuld we read from when we use external channel switching
+ */
+int external_input = 0;
+
+/*
+ * Name of external channel switching script
+ */
+char external_switch_script[255];
+
 
 /*
  * The following memory routines are just used to double check that
@@ -581,42 +597,64 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
     // and until we start changing the settings.
     usleep(500000);
 
-    int ret,i=2;
-    ret = video_set_channel(fd, ongoing_recs[video]->channel);
-    while( ret == -1 && errno == EBUSY && i > 0 ) {
-        usleep((unsigned)(500*(3-i)));
-        ret = video_set_channel(fd, ongoing_recs[video]->channel);
-        i--;
-    }
-
-    if( ret == -1 ) {
-        video_close(fd);
-        return -1;
-    }
-
-    if( 0 == strncmp(ongoing_recs[video]->channel,INPUT_SOURCE_PREFIX,strlen(INPUT_SOURCE_PREFIX)) ) {
-
-        snprintf(infobuff,255,
-                "Setting up video %d HW MP2 encoder to take input from source '%s'",
-                video,ongoing_recs[video]->channel);
-
-    } else {
-
-        unsigned int freq=0;
-        getfreqfromstr(&freq, ongoing_recs[video]->channel);
-        snprintf(infobuff,255,
-                 "Tuner #%02d set to channel '%s' @ %.3fMHz",
-                 video,ongoing_recs[video]->channel, freq/1000000.0
-        );
-
-    }
-    logmsg(LOG_DEBUG,infobuff);
-
-    if( allow_profiles_adj_encoder ) {
-        if( -1 == set_enc_parameters(fd, profile) ) {
+    if( external_switch ) {
+        video_set_input_source(fd,external_input);
+        char csname[128];
+        snprintf(csname,128,"%s/tvpvrd/%s",CONFDIR,external_switch_script);
+        int csfd = open(csname,O_RDONLY) ;
+        if( csfd == -1 ) {
+            logmsg(LOG_CRIT,"FATAL: Cannot open channel switch script '%s' ( %d : %s )",csname,errno,strerror(errno));
             video_close(fd);
             return -1;
         }
+        char cmd[255];
+        snprintf(cmd,255,"%s -s %s > /dev/null 2>&1",csname,ongoing_recs[video]->channel);
+        logmsg(LOG_DEBUG,"Running external channel switching cmd '%s'",cmd);
+        int rc = system(cmd);
+        if( rc==-1 || WEXITSTATUS(rc)) {
+            logmsg(LOG_CRIT,"FATAL: Channel switch script ended with error code : %d ",WEXITSTATUS(rc));
+            video_close(fd);
+            return -1;
+        }
+    } else {
+        int ret,i=2;
+        ret = video_set_channel(fd, ongoing_recs[video]->channel);
+        while( ret == -1 && errno == EBUSY && i > 0 ) {
+            usleep((unsigned)(500*(3-i)));
+            ret = video_set_channel(fd, ongoing_recs[video]->channel);
+            i--;
+        }
+
+        if( ret == -1 ) {
+            video_close(fd);
+            return -1;
+        }
+
+        if( 0 == strncmp(ongoing_recs[video]->channel,INPUT_SOURCE_PREFIX,strlen(INPUT_SOURCE_PREFIX)) ) {
+
+            snprintf(infobuff,255,
+                    "Setting up video %d HW MP2 encoder to take input from source '%s'",
+                    video,ongoing_recs[video]->channel);
+
+        } else {
+
+            unsigned int freq=0;
+            getfreqfromstr(&freq, ongoing_recs[video]->channel);
+            snprintf(infobuff,255,
+                     "Tuner #%02d set to channel '%s' @ %.3fMHz",
+                     video,ongoing_recs[video]->channel, freq/1000000.0
+            );
+
+        }
+        logmsg(LOG_DEBUG,infobuff);
+
+        if( allow_profiles_adj_encoder ) {
+            if( -1 == set_enc_parameters(fd, profile) ) {
+                video_close(fd);
+                return -1;
+            }
+        }
+
     }
     return fd;
 #else
@@ -978,7 +1016,7 @@ startrec(void *arg) {
             
     if (vh == -1) {
 
-       logmsg(LOG_ERR, "Cannot open video stream %02d. '%s' recording aborted ( %d : %s )",video,recording->title,errno,strerror(errno));
+       logmsg(LOG_ERR, "Cannot setup video stream %02d. '%s' recording aborted",video,recording->title);
        pthread_mutex_lock(&recs_mutex);
        free(recording);
        ongoing_recs[video] = (struct recording_entry *)NULL;
@@ -1008,18 +1046,36 @@ startrec(void *arg) {
         recording->filename[k] = '\0';
         snprintf(workingdir,255,"%s/vtmp/vid%d/%s",datadir,video,recording->filename);
         workingdir[255] = '\0';
-        if( mkdir(workingdir,dmode) ) {
-            logmsg(LOG_ERR, "Cannot create recording directory (%s). Recording aborted. ( %d : %s)  ",workingdir,errno,strerror(errno));
-#ifndef DEBUG_SIMULATE
-            video_close(vh);
-#endif
-            pthread_mutex_lock(&recs_mutex);
-            free(recording);
-            ongoing_recs[video] = (struct recording_entry *)NULL;
-            pthread_mutex_unlock(&recs_mutex);
+        int rc = mkdir(workingdir,dmode);
+        if( rc ) {
 
-            pthread_exit(NULL);
-            return (void *)NULL;
+            if( errno == EEXIST ) {
+
+                // If the base name fails try 10 steps of a adding a number
+                int i=0;
+                while( rc && errno == EEXIST && i < 99 ) {
+                    snprintf(workingdir,255,"%s/vtmp/vid%d/%s_%02d",datadir,video,recording->filename,i+1);
+                    workingdir[255] = '\0';                    
+                    rc = mkdir(workingdir,dmode);
+                    ++i;
+                }
+
+            }
+
+            if( rc ) {
+
+                logmsg(LOG_ERR, "Cannot create recording directory (%s). Recording aborted. ( %d : %s)  ",workingdir,errno,strerror(errno));
+    #ifndef DEBUG_SIMULATE
+                video_close(vh);
+    #endif
+                pthread_mutex_lock(&recs_mutex);
+                free(recording);
+                ongoing_recs[video] = (struct recording_entry *)NULL;
+                pthread_mutex_unlock(&recs_mutex);
+
+                pthread_exit(NULL);
+                return (void *)NULL;
+            }
         }
         recording->filename[k] = '.';
         snprintf(full_filename,255,"%s/%s",workingdir,recording->filename);
@@ -1088,9 +1144,8 @@ startrec(void *arg) {
                     doabort = 1;
                 } else {      
 #endif
-                    //logmsg(LOG_DEBUG,"    -- [%02d] Trying to read bytes from fd=%d '%s'",video,vh, recording->title);
+
                     nread = read(vh, video_buffer[video], VIDBUFSIZE);
-                    //logmsg(LOG_DEBUG,"    -- [%02d] DONE. Read %05d bytes from fd=%d '%s'",video,nread,vh,recording->title);
 
                     if (-1 == nread ) {
                             switch (errno) {
@@ -2337,6 +2392,17 @@ read_inisettings(void) {
     tuner_input_index   = validate(0, 7,"tuner_input_index",
                                    iniparser_getint(dict, "config:tuner_input_index", DEFAULT_TUNER_INPUT_INDEX));
 
+    external_switch   = iniparser_getboolean(dict, "config:external_switch", DEFAULT_EXTERNAL_SWITCH);
+
+    external_input   = validate(0, 7,"external_input",
+                                   iniparser_getint(dict, "config:external_input", DEFAULT_EXTERNAL_INPUT));
+
+    strncpy(external_switch_script,
+            iniparser_getstring(dict, "config:external_switch_script", DEFAULT_EXTERNAL_SWITCH_SCRIPT),
+            254);
+    external_switch_script[254] = '\0';
+
+
     max_entries         = (unsigned)validate(1,4096,"max_entries",
                                    iniparser_getint(dict, "config:max_entries", MAX_ENTRIES));
     max_clients         = (unsigned)validate(1,10,"max_clients",
@@ -2793,7 +2859,7 @@ main(int argc, char *argv[]) {
     }
 
     // Startup the main socket server listener. The call to startupsrv() will
-    // not return until the daemon is terminated.
+    // not return until the daemon is terminated by a user signal.
     if( EXIT_FAILURE == startupsrv() ) {
         logmsg(LOG_ERR,"Unable to start '%s' server.",program_invocation_short_name);
         exit(EXIT_FAILURE);

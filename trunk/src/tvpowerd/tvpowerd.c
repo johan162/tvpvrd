@@ -378,6 +378,7 @@ exithandler(void) {
  * in each thread. Since all of these are read only there is no need to
  * protect these with a mutex
  */
+
 void
 read_inisettings(void) {
 

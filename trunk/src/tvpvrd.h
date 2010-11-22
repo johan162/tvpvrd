@@ -312,7 +312,26 @@ extern "C" {
  * This is normally found at index 0.
  */
 #define DEFAULT_TUNER_INPUT_INDEX 0
-    
+
+/*
+ * DEFAULT_EXTERNAL_SWITCH integer
+ * Should we switch channel via an external script
+ */
+#define DEFAULT_EXTERNAL_SWITCH 0
+
+/*
+ * DEFAULT_EXTERNAL_INPUT integer
+ * Which video input should we read from when we use external channel switching
+ */
+#define DEFAULT_EXTERNAL_INPUT 0
+
+/*
+ * DEFAULT_EXTERNAL_INPUT string
+ * Name of external channel switching script
+ */
+#define DEFAULT_EXTERNAL_SWITCH_SCRIPT "switchchannel.sh"
+
+
 /*
  * MAX_WAITING_TIME_TO_TRANSCODE integer
  * The maximum time in seconds that can be set to wait for the

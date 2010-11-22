@@ -14,7 +14,7 @@ tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxm
 endif
 tvpvrd_LDFLAGS =  `xml2-config --libs`
 
-EXTRA_DIST = tvpvrd.conf tvpvrd.css tvpvrd_mobile.css 
+EXTRA_DIST = tvpvrd.conf tvpvrd.css tvpvrd_mobile.css switchchannel.sh.template
 
 DISTCLEANFILES = config.h .deps
 
@@ -22,12 +22,16 @@ CLEANFILES = *~
 
 install-data-local: 
 	if test -f ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; then \
-		echo "----------------------------------------------";\
 		echo "Will not overwrite existing tvpvrd.conf file !"; \
-		echo "----------------------------------------------";\
 	else \
 		install -D -m 644 $(abs_srcdir)/tvpvrd.conf ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; \
 	fi
+	if test -f ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; then \
+		echo "Will not overwrite existing switchchannel.sh.template file !"; \
+	else \
+		install -D -m 755 $(abs_srcdir)/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; \
+	fi
+
 	install -b -m 644 $(abs_srcdir)/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
 	install -b -m 644 $(abs_srcdir)/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
 
