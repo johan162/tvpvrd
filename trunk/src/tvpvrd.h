@@ -50,7 +50,7 @@ extern "C" {
  * computer that doesn't have a video card in order to be debug the
  * logic of the server on a computer missing video card.
  */
-// #define DEBUG_SIMULATE
+//#define DEBUG_SIMULATE
     
 /*
  * Note: All the defines for general settings are read from an inifile

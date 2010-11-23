@@ -1,12 +1,13 @@
 # ===============================================================================
 # $Id$
 # Autoconf script
-# To rebuild build environment please execute the bootstrap.sh script that can be found in the repository.
-# The bootstrap script will run aclocal, autoheader, autoconf and automake. In addition it will extract
-# the ChangeLog file from the repository and create a ChangeLog file in suitable style.
+# To rebuild build environment please execute the bootstrap.sh script that can be 
+# found in the repository. The bootstrap script will run aclocal, autoheader,
+# autoconf and automake. In addition it will extract the ChangeLog file from the
+# repository and create a ChangeLog file in suitable style.
 # ===============================================================================
-AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[2.0.1],[johan162@gmail.com])
+AC_PREREQ([2.63])
+AC_INIT([tvpvrd],[2.1.0-beta],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2])
 AC_PROG_CC
 AC_PROG_CC_C99
@@ -21,6 +22,18 @@ scripts/Makefile
 docs/Makefile
 docs/manpages/Makefile
 ])
+
+# ===============================================================================
+# Optional ARGS
+# ===============================================================================
+AC_ARG_ENABLE([simulate],
+    [  --enable-simulate    Make daemon run on server without TV-Card],
+    [enable_simulate=${enableval}],
+    [enable_simulate=no])
+
+if test "x${enable_simulate}" = xyes; then
+    AC_DEFINE(DEBUG_SIMULATE,1,[Enable simulated TV-card])
+fi
 
 # ===============================================================================
 # Standard checks for headers and C-compiler
@@ -64,8 +77,8 @@ AC_FUNC_FORK
 AC_FUNC_MKTIME
 
 # ===============================================================================
-# Check for standard Unix types that we use. This is almost unnecessary since this shoud be available in
-# all sane systems
+# Check for standard Unix types that we use. This is almost unnecessary since this 
+# should be available in all sane systems
 # ===============================================================================
 AC_TYPE_UID_T
 AC_TYPE_MODE_T
@@ -73,7 +86,7 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 
 # ===============================================================================
-# Check for some standard functions thta are used by the daemon
+# Check for some standard functions that are used by the daemon
 # ===============================================================================
 AC_CHECK_FUNCS([atexit bzero floor getcwd inet_ntoa memset mkdir rmdir select socket strchr strnlen strdup strerror])
 
@@ -172,7 +185,8 @@ fi
 
 # ===============================================================================
 # AC_CHECK_DEBINIFILES
-# Determine if the system uses Debian style ini files
+# Determine if the system uses Debian style ini files. This will control which
+# ini files will be installed when make install is executed
 # ===============================================================================
 AC_DEFUN([AC_CHECK_DEBINIFILES],[
 AC_MSG_CHECKING([If system uses debian style init.d])
@@ -184,10 +198,14 @@ fi
 AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 ])
 
+# ===============================================================================
+# We nede to define an automake conditional to know if we should use the built-in
+# iniparser or as a system library.
+# ===============================================================================
 AM_CONDITIONAL(have_iniparser, test "x${have_iniparser_h}" = xyes)
 
 # ===============================================================================
-# Run macros
+# Run all previous defined macros
 # ===============================================================================
 AC_CHECK_DEBINIFILES
 AC_CHECK_XSLDOCBOOK

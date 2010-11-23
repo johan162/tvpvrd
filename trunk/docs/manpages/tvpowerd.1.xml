@@ -206,7 +206,7 @@
                 lockfile (as root).</para>
         </refsect1>
         <refsect1>
-            <title>How to shut down the remote server</title>
+            <title>How to shutdown the remote server</title>
             <para>The specific way to shutdown the remote recording server can be specified in the
                 configuration file. By default the server will be shutdown via a standard call to
                     <command>shutdonw</command>
@@ -223,8 +223,49 @@
                 <screen>unload_driver=yes</screen>
             </para>
             <para>in the configuration file.</para>
-            <para>Note: If you decide to use suspend/resume it is probably best to try the commands
-                manually first to make sure it works as expected.</para>
+            <para>Note 1: If you decide to use suspend/resume it is probably best to try the
+                commands manually first to make sure it works as expected.</para>
+            <para>Note 2: The suspend/hibernate shutdown method should still be regarded as
+                experimental since experience shows that depending on hardware and system
+                configuration this is not always 100% reliable. On some hardware/system
+                configurations it has been reported that after a suspend a driver unload/load cycle
+                is still no sufficient to make the driver work again. On yet other HW it has been
+                reported that the daemon does no longer respond after a suspend/wakeup cycle. If
+                yoiu experince these problems please use the default shutdown method.</para>
+        </refsect1>
+        <refsect1>
+            <title>When will the daemon shutdown the remote server?</title>
+            <para>The daemon follows a number of strict rules when it will and when it wont shutdown
+                the remote server. The daemon will only shutdown the recording server it the
+                following conditions are satisfied:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>There are no users logged into the recording server.</para>
+                    </listitem>
+                    <listitem>
+                        <para>The 5 min avg load on the server is less than
+                                <code>max_shutdown_5load</code> as specified in the configuration
+                            file (default is 0.5). This helps prevent shutdown if the user has
+                            manually started some jobs on the server.</para>
+                    </listitem>
+                    <listitem>
+                        <para>There are no ongoing transcodings or recordings.</para>
+                    </listitem>
+                    <listitem>
+                        <para>It is at least <code>min_poweroff_time</code> minutes until the next
+                            recording as specified in the configuration file (default is
+                            45min).</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>Tip: In order to manually force a wakeup the daemon will look for a an (empty)
+                file named <filename>/tmp/start_tvp</filename> so giving the command</para>
+            <para>
+                <screen>$>touch /tmp/start_tvp</screen>
+            </para>
+            <para>will force a restart of the recording server. The daemon will remove the file
+                after it has been seen to avoid endless wake-up events.</para>
         </refsect1>
         
         <refsect1>

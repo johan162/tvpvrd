@@ -1,5 +1,32 @@
 $Id$
 
+v2.1.0-beta
+-----------
+
+Added new options "external_switch" to the configuration file to allow
+external channel switching on a cable box. Enabling this feature will
+make the card always read the input from the input source "external_input" 
+specified in the configuration file. 
+
+Channel switching is then made by  the daemon by calling the "switchchannel.sh" 
+script in the tvpvrd configuration directory, This script is provided as 
+a template that must be updated to correspond to the actual setup to change 
+channel. The channel switching is normally made by send an IR beam to the 
+cable box. This is done by the LIRC subsystem which must be installed and 
+configured.
+
+It is entirely up to the end user of this to configure and install any and
+all needed LIRC support. This must unfortunately be done by the end user since
+it is impossible to in advance know what channel switching commands to send
+that corresponds to a certain station name
+
+The channel switching script then calls "irsend" with appropriate commands
+depending on which channel should be used. It is up to th end user to adjust
+the included "switchchannel.sh.template" file and rename it to "switchchannel.sh"
+
+Since I don't have access to a cable box this will remain in beta until I 
+have received user confirmation that this works as intended.
+
 v2.0.1
 ------
 
