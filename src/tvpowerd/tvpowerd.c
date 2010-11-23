@@ -933,7 +933,7 @@ shutdown_remote_server(void) {
         logmsg(LOG_NOTICE,"Cannot find pre-shutdown script '%s' ( %d : %s)",scriptfile,errno,strerror(errno));
     } else {
         fclose(fp);
-        snprintf(buffer,255,"%s > /dev/null 2>&1",scriptfile,CONFDIR);
+        snprintf(buffer,255,"%s > /dev/null 2>&1",scriptfile);
         int rc= system(buffer);
         if( rc ) {
             logmsg(LOG_ERR,"Error executing pre-shutdown scriptfile");
@@ -946,7 +946,7 @@ shutdown_remote_server(void) {
     snprintf(command,512,shutdown_command,shutdown_warning_time );
     int rc = remote_command(command,reply,32);
     logmsg(LOG_INFO,"Finished shutting down remote server.");
-
+    return rc;
 }
 
 /**
@@ -1006,7 +1006,7 @@ wakeup_remote_server(void) {
         logmsg(LOG_NOTICE,"Cannot find post-startup script '%s' ( %d : %s)",scriptfile,errno,strerror(errno));
     } else {
         fclose(fp);
-        snprintf(buffer,255,"%s > /dev/null 2>&1",scriptfile,CONFDIR);
+        snprintf(buffer,255,"%s > /dev/null 2>&1",scriptfile);
         int rc= system(buffer);
         if( rc ) {
             logmsg(LOG_ERR,"Error executing post-startup scriptfile");
