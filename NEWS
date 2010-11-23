@@ -1,5 +1,11 @@
 $Id$
 
+v2.1.0-beta2
+------------
+Added configuration option --enable-simulate to build a version of the daemon
+that runs on a server without TV card
+
+
 v2.1.0-beta
 -----------
 
