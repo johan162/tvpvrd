@@ -471,7 +471,7 @@ init_globs(void) {
 }
 
 /**
- * Free global data structures. NOte not used anymore since all structures gets cleaned up at
+ * Free global data structures. Note: not used anymore since all structures gets cleaned up at
  * program exit anyway.
  */
 
@@ -585,26 +585,28 @@ int
 setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 #ifndef DEBUG_SIMULATE
     char infobuff[256];
-#endif
 
-#ifndef DEBUG_SIMULATE
     int fd = video_open(video);
     if( fd == -1 ) {
         return -1;
     }
-
+#endif
     // Give the driver some breathing room after we open the device
     // and until we start changing the settings.
     usleep(500000);
 
     if( external_switch ) {
+#ifndef DEBUG_SIMULATE
         video_set_input_source(fd,external_input);
+#endif
         char csname[128];
         snprintf(csname,128,"%s/tvpvrd/%s",CONFDIR,external_switch_script);
         int csfd = open(csname,O_RDONLY) ;
         if( csfd == -1 ) {
             logmsg(LOG_CRIT,"FATAL: Cannot open channel switch script '%s' ( %d : %s )",csname,errno,strerror(errno));
+#ifndef DEBUG_SIMULATE
             video_close(fd);
+#endif
             return -1;
         }
         char cmd[255];
@@ -613,10 +615,15 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
         int rc = system(cmd);
         if( rc==-1 || WEXITSTATUS(rc)) {
             logmsg(LOG_CRIT,"FATAL: Channel switch script ended with error code : %d ",WEXITSTATUS(rc));
+#ifndef DEBUG_SIMULATE
             video_close(fd);
+#endif
             return -1;
         }
     } else {
+#ifdef DEBUG_SIMULATE
+        logmsg(LOG_DEBUG,"Simulating channel switch to %s",ongoing_recs[video]->channel);
+#else
         int ret,i=2;
         ret = video_set_channel(fd, ongoing_recs[video]->channel);
         while( ret == -1 && errno == EBUSY && i > 0 ) {
@@ -654,8 +661,9 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
                 return -1;
             }
         }
-
+#endif
     }
+#ifndef DEBUG_SIMULATE
     return fd;
 #else
     return 0;
@@ -1942,10 +1950,8 @@ sighand_thread(void *arg) {
                 abort();
 #endif
             case SIGQUIT:
-#ifndef DEBUG_SIMULATE
             case SIGINT:
 	    case SIGHUP:
-#endif
 	    case SIGTERM:
                 pthread_mutex_lock(&sig_mutex);
                 received_signal = sig;
@@ -2502,7 +2508,11 @@ read_inisettings(void) {
 
     if( 0 == max_video ) {
         // Automatically determine the maximum number of cards
+#ifdef DEBUG_SIMULATE
+        max_video = 1;
+#else
         max_video = (unsigned)_vctrl_getnumcards();
+#endif
     }
 
 
@@ -2695,13 +2705,10 @@ main(int argc, char *argv[]) {
 
     // Setup exit() handler
     atexit(exithandler);
-
     
     // Initialize the static frequency map. 
     initfreqtable();
     
-
-
     // Get current directory
     char cwd_buff[256];
     char *res = getcwd(cwd_buff,255);
