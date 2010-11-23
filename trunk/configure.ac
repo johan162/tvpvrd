@@ -7,7 +7,7 @@
 # repository and create a ChangeLog file in suitable style.
 # ===============================================================================
 AC_PREREQ([2.63])
-AC_INIT([tvpvrd],[2.1.0-beta],[johan162@gmail.com])
+AC_INIT([tvpvrd],[2.1.0beta3],[johan162@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2])
 AC_PROG_CC
 AC_PROG_CC_C99
@@ -25,6 +25,11 @@ docs/manpages/Makefile
 
 # ===============================================================================
 # Optional ARGS
+#
+# --enable-simulate   Allow the daemon to run on a server with no real TV cards
+#                     relevant low level calls will be simulated. This is useful
+#                     to debug and test the logic of the daemon on a system with
+#                     no TV-cards installed.
 # ===============================================================================
 AC_ARG_ENABLE([simulate],
     [  --enable-simulate    Make daemon run on server without TV-Card],
