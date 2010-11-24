@@ -21,17 +21,16 @@ DISTCLEANFILES = config.h .deps
 CLEANFILES = *~
 
 install-data-local: 
-	if test -f ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; then \
+	@if test -f ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; then \
 		echo "Will not overwrite existing tvpvrd.conf file !"; \
 	else \
 		install -D -m 644 $(abs_srcdir)/tvpvrd.conf ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; \
 	fi
-	if test -f ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; then \
+	@if test -f ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; then \
 		echo "Will not overwrite existing switchchannel.sh.template file !"; \
 	else \
 		install -D -m 755 $(abs_srcdir)/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; \
 	fi
-
 	install -b -m 644 $(abs_srcdir)/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
 	install -b -m 644 $(abs_srcdir)/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
 
