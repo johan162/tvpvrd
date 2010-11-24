@@ -48,21 +48,20 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
-AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR(pcre.h not available. Please install "libpcre3-dev" package))
-
-AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR(linux/videodev2.h not available))
+AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR([pcre.h not available. Please install "libpcre3-dev" package]))
+AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR([linux/videodev2.h not available]))
 have_iniparser_h=no
-AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE(iniparser.h not available. Will use builtin))
+AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE([iniparser.h not available. Will use built-in version]))
 
-AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR(errno.h not available))
-AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR(syslog.h not available))
-AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR(getopt.h not available))
-AC_CHECK_HEADERS(signal.h,,AC_MSG_ERROR(signal.h not available))
-AC_CHECK_HEADERS(fcntl.h,,AC_MSG_ERROR(fcntl.h not available))
-AC_CHECK_HEADERS(pwd.h,,AC_MSG_ERROR(pwd.h not available))
-AC_CHECK_HEADERS(grp.h,,AC_MSG_ERROR(grp.h not available))
-AC_CHECK_HEADERS(libgen.h,,AC_MSG_ERROR(libgen.h not available))
-AC_CHECK_HEADERS(dirent.h,,AC_MSG_ERROR(dirent.h not available))
+AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR([errno.h not available]))
+AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR([syslog.h not available]))
+AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR([getopt.h not available]))
+AC_CHECK_HEADERS(signal.h,,AC_MSG_ERROR([signal.h not available]))
+AC_CHECK_HEADERS(fcntl.h,,AC_MSG_ERROR([fcntl.h not available]))
+AC_CHECK_HEADERS(pwd.h,,AC_MSG_ERROR([pwd.h not available]))
+AC_CHECK_HEADERS(grp.h,,AC_MSG_ERROR([grp.h not available]))
+AC_CHECK_HEADERS(libgen.h,,AC_MSG_ERROR([libgen.h not available]))
+AC_CHECK_HEADERS(dirent.h,,AC_MSG_ERROR([dirent.h not available]))
 
 # ===============================================================================
 # Checks for needed libraries. Note this will also append the correct linker flags to LDADD variable in the
@@ -143,7 +142,6 @@ AC_CHECK_PROG(JAVAFOP,fop,fop,no)
 AM_CONDITIONAL(have_javafop, test $JAVAFOP = fop)
 
 AC_SUBST(DOCBOOK_XSL)
-
 ])
 
 # ===============================================================================
@@ -186,7 +184,6 @@ else
                 AM_CONDITIONAL(have_old_ffmpeg, test 0 = 1)
         fi
 fi
-
 ])
 
 # ===============================================================================
@@ -205,7 +202,7 @@ AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 ])
 
 # ===============================================================================
-# We nede to define an automake conditional to know if we should use the built-in
+# We need to define an automake conditional to know if we should use the built-in
 # iniparser or as a system library.
 # ===============================================================================
 AM_CONDITIONAL(have_iniparser, test "x${have_iniparser_h}" = xyes)
