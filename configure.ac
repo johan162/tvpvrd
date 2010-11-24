@@ -74,6 +74,7 @@ if test "x${have_iniparser_h}" = xyes; then
 fi
 AC_CHECK_LIB(pcre, pcre_exec,,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
 AC_CHECK_LIB(xml2, xmlParseFile,,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
+AC_CHECK_LIB(m, lroundf,,AC_MSG_ERROR([No math library found. Please install libm-dev (or similar)]))
 
 # ===============================================================================
 # Check for working fork and mktime functions just to be on the safe side
