@@ -1,2 +1,2 @@
 #! /bin/sh
-./configure --prefix=/usr --sysconfdir=/etc
+./configure --prefix=/usr --sysconfdir=/etc --enable-silent-rules
