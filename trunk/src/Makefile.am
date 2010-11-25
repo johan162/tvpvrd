@@ -10,7 +10,7 @@ SUBDIRS = . tvpowerd
 if have_iniparser
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c tvwebcmd.c lockfile.c freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h lockfile.h
 else
-tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c tvwebcmd.c lockfile.c iniparser/iniparser.c iniparser/dictionary.c freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h lockfile.h iniparser/iniparser.h iniparser/dictionary.h
+tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c tvwebcmd.c lockfile.c freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h lockfile.h iniparser/iniparser.c iniparser/dictionary.c iniparser/iniparser.h iniparser/dictionary.h
 endif
 tvpvrd_LDFLAGS =  `xml2-config --libs`
 
@@ -20,19 +20,15 @@ DISTCLEANFILES = config.h .deps
 
 CLEANFILES = *~
 
-install-data-local: 
+install-data-local:
 	@if test -f ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; then \
 		echo "Will not overwrite existing tvpvrd.conf file !"; \
 	else \
 		install -D -m 644 $(abs_srcdir)/tvpvrd.conf ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; \
 	fi
-	@if test -f ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; then \
-		echo "Will not overwrite existing switchchannel.sh.template file !"; \
-	else \
-		install -D -m 755 $(abs_srcdir)/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; \
-	fi
-	install -b -m 644 $(abs_srcdir)/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
-	install -b -m 644 $(abs_srcdir)/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
+	install -D -m 755 $(abs_srcdir)/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; \
+	install -D -m 644 $(abs_srcdir)/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
+	install -D -m 644 $(abs_srcdir)/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
 
 
 

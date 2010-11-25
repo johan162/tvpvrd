@@ -1532,9 +1532,13 @@ struct cmd_grp {
 };
 
 
-// Each structure below defines one command group
+
+//------------------------------------------------------------------
+// MASTER personality
+//------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
-    {"lh", "List"}
+    {"lh", "List"},
+    {"l", "Raw list"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
@@ -1560,6 +1564,9 @@ static struct cmd_entry cmdfunc_master_driver[] = {
     {"lc%200", "Settings #0"}
 };
 
+//------------------------------------------------------------------
+// SLAVE personality
+//------------------------------------------------------------------
 static struct cmd_entry cmdfunc_slave_transcoding[] = {
     {"ot", "Ongoing transcoding"},
     {"wt", "Waiting transcodings"},
@@ -1577,6 +1584,9 @@ static struct cmd_entry cmdfunc_slave_view[] = {
     {"log%2050", "Recent log"}
 };
 
+//------------------------------------------------------------------
+// Mobile phone master personality
+//------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_menu_short[] = {
     {"s", "Status"},
     {"lh", "Recs"},
