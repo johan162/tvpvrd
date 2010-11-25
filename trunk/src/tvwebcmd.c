@@ -275,8 +275,10 @@ is_mobile_connection(char *buffer) {
 
     // Extract User-Agent String
     if (matchcmd("User-Agent: (.+)", buffer, &field) > 0) {
-        logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
 
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
+#endif
         char *header = strdup(field[1]);
         matchcmd_free(&field);
 
@@ -403,9 +405,10 @@ read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
 
         time_t t1 = mktime(&t_tm1);
         time_t t2 = mktime(&t_tm2);
-
+#ifdef EXTRA_WEB_DEBUG
         logmsg(LOG_DEBUG,"Comparing file time=%d (%s) with modifiedSince=%d (%s)",
                t1,f1time,t2,f2time);
+#endif
 
         if( t1 < t2 ) {
             logmsg(LOG_DEBUG,"CSS File not modified");
@@ -464,7 +467,15 @@ sendback_css_file(int sockd, char *name, time_t modifiedSince) {
                     "Content-Type: text/css\r\n\r\n", ftime, ftime, server_id);
 
         _writef(sockd,tmpbuff);
-
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG,"HTTP Header sent back (printed without \\r: "
+                    "HTTP/1.1 200 OK\n"
+                    "Date: %s\n"
+                    "Last-Modified: %s\n"
+                    "Server: %s\n"
+                    "Connection: close\n"
+                    "Content-Type: text/css\n\n", ftime, ftime, server_id);
+#endif
         logmsg(LOG_DEBUG,"Sent back CSS sheet %s",name);
 
         free(tmpbuff);
@@ -502,8 +513,9 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
         // mobile phone.
         mobile = is_mobile_connection(buffer);
 
+#ifdef EXTRA_WEB_DEBUG
         logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
-
+#endif
          if ((ret = matchcmd("GET /logout HTTP/1.1", buffer, &field)) == 1) {
 
              matchcmd_free(&field);
@@ -663,28 +675,35 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                 time_t mtime = 0;
                 struct tm tm_date;
                 if( (ret = matchcmd_ml("^If-Modified-Since\\: (.*)", buffer, &field)) > 1 ) {
+#ifdef EXTRA_WEB_DEBUG
                     logmsg(LOG_DEBUG,"Found If-Modified-Since: header. Value=%s",field[1]);
-
+#endif
                     // Convert time to a timestamp to compare with file modified time
                     // Match HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
                     locale_t lc =  newlocale(LC_ALL_MASK,"en_US",NULL);
                     char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
                     freelocale(lc);
                     matchcmd_free(&field);
-                    
-                    //logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
+
+#ifdef EXTRA_WEB_DEBUG
+                    logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
+#endif
                     mtime = mktime(&tm_date);
                     localtime_r(&mtime,&tm_date);
-                    
-                    //logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
+
+#ifdef EXTRA_WEB_DEBUG
+                    logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
+#endif
 
                     // Since the original time is given in GMT and we want it expressed
                     // in the local time zone we must add the offset from GMTIME for the
                     // current time zone
                     mtime += tm_date.tm_gmtoff;
                     localtime_r(&mtime,&tm_date);
-                    
-                    //logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
+
+#ifdef EXTRA_WEB_DEBUG
+                    logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
+#endif
 
                     if( ret == NULL ) {
                         logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header");
@@ -693,7 +712,9 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
                     }                    
                     
                 } else {
+#ifdef EXTRA_WEB_DEBUG
                     logmsg(LOG_DEBUG,"NOT Found If-Modified-Since:");
+#endif
                     sendback_css_file(my_socket,cssfile,mtime);
                 }
                 free(cssfile);
@@ -709,8 +730,9 @@ html_cmdinterp(const int my_socket, char *inbuffer) {
 
         if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) {
             // If it's not a favicon.ico GET command we proceed
-
+#ifdef EXTRA_WEB_DEBUG
             logmsg(LOG_DEBUG, "==== Translated to: %s", wcmd);
+#endif
             static char logincookie[128];
 
             // If user does not have a valid login then send back the login page
@@ -866,7 +888,7 @@ http_header(int sockd, char *cookie_val) {
     } else {
         // For logout we set the expire in the past to force the browser
         // to remove the cookie
-        logmsg(LOG_DEBUG,"******* SETTING cookie() in the past");
+        logmsg(LOG_DEBUG,"SETTING cookie() in the past");
         texp -= 36000;
     }
     struct tm t_tm, t_tmexp;
