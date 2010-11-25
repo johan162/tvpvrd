@@ -1,0 +1,7 @@
+$Id$
+
+Contains support scripts that gets installed under '${sysconfdir}/tvpvrd/'
+
+This includes the configuration script and the CSS style sheets for the
+WEB-interface.
+
