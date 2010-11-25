@@ -7,9 +7,9 @@ physical server than tvpvrd. The purpose of this daemon is to control the
 power of the recording daemon. This means that it will communicate with the
 tvpvrd daemon and shut down the server when no recroding is taking place.
 
-This will help save eneryg.
+This will help save energy.
 
-Since this is supposed to be running on a sepaate server no installation can
+Since this is supposed to be running on a separate server no installation can
 be performed automatically. Follow these steps to install the dameon.
 
 0. Copy the entire content of this directory to the server where you which to
@@ -20,6 +20,6 @@ install this daemon
 $>sh install.sh
 
 This will install the daemon and documentation.
-Note:  The installation will preseve any existing configuretion scripts.
+Note:  The installation will preseve any existing configuration scripts.
 
 
