@@ -33,6 +33,12 @@ docs/manpages/Makefile
 #                     relevant low level calls will be simulated. This is useful
 #                     to debug and test the logic of the daemon on a system with
 #                     no TV-cards installed.
+#
+# --enable-webdebug   Add some more debug output of HTTP protocol level stuff
+#                     enabling this will for example print the exact HTTP headers
+#                     received and sent. This only has effect as long as the
+#                     log level is also set to 3 (in the application configuration
+#                     file)
 # ===============================================================================
 AC_ARG_ENABLE([simulate],
     [  --enable-simulate    Make daemon run on server without TV-Card],
@@ -42,6 +48,16 @@ AC_ARG_ENABLE([simulate],
 if test "x${enable_simulate}" = xyes; then
     AC_DEFINE(DEBUG_SIMULATE,1,[Enable simulated TV-card])
 fi
+
+AC_ARG_ENABLE([webdebug],
+    [  --enable-webdebug    Enable more debug msg of HTTP protocol with verbose=3],
+    [enable_webdebug=${enableval}],
+    [enable_webdebug=no])
+
+if test "x${enable_webdebug}" = xyes; then
+    AC_DEFINE(EXTRA_WEB_DEBUG,1,[Enable more HTTP protocol level debug together with loglevel=3])
+fi
+
 
 # ===============================================================================
 # Standard checks for headers and C-compiler
