@@ -1,0 +1,17 @@
+$Id$
+
+This directory contains script to start and stop the daemon as a system service. 
+
+These scripts are installed under '${sysconfdir}/init.d/'
+
+Since there are two major ways of writing these service script, the debian way 
+and the "other" way there are two templates. Which one to install is determined 
+by the configuration script which figures out which one to install.
+
+The xsl transformation script is used to re-format the output from the 
+svn log command into a format more suitable for a ChangeLog. This script is
+only used by package maintainer.
+
+
+
+
