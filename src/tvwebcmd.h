@@ -29,6 +29,7 @@
 extern "C" {
 #endif
 
+extern int cmd_delay;
 
 void
 html_output(int sockd);
@@ -53,6 +54,24 @@ html_cmdinterp(const int my_socket, char *buffer);
 
 void
 html_cmd_add_del(int sockd);
+
+void
+html_cmd_qadd(int sockd);
+
+int
+read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince);
+
+void
+html_cmd_ongoingtransc(int sockd);
+
+void
+html_commandlist_short(int sockd);
+
+void
+html_cmd_ongoing(int sockd);
+
+void
+html_cmd_next(int sockd);
 
 /**
  * This test function is called when the server receives a new conection and
