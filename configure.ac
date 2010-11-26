@@ -6,7 +6,7 @@
 # autoconf and automake. In addition it will extract the ChangeLog file from the
 # repository and create a ChangeLog file in suitable style.
 # ===============================================================================
-AC_PREREQ([2.63])
+AC_PREREQ([2.65])
 AC_INIT([tvpvrd],[2.1.0beta3],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010])
@@ -225,6 +225,15 @@ AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 # iniparser or as a system library.
 # ===============================================================================
 AM_CONDITIONAL(have_iniparser, test "x${have_iniparser_h}" = xyes)
+
+# ===============================================================================
+# Create a unique (well almost) login cookie seed for this installation
+# ===============================================================================
+cookie_seed="424bbb619133439ced118b6ea1cb1a01"
+if test -f /usr/bin/md5sum; then
+    cookie_seed=`(date; uname -a)|xargs echo|md5sum -|cut -c 1-32`
+fi
+AC_DEFINE_UNQUOTED([LOGIN_COOKIE_SEED],"${cookie_seed}",[Cookie seed for WEB-login cookie])
 
 # ===============================================================================
 # Run all previous defined macros

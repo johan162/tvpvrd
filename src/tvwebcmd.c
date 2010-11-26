@@ -48,16 +48,19 @@
 #include "recs.h"
 #include "config.h"
 #include "tvhtml.h"
+#include "config.h"
 
+
+#define CSSFILE_BASENAME PACKAGE_TARNAME
 
 /*
- * The WEb interface is fairly simplistic. On receiving a GET request from a
+ * The WEB interface is fairly simplistic. On receiving a GET request from a
  * WEB-browser we immitate the behavior of a HTTP server by responding with a
  * correct web page.
  *
  * At the moment the interface is very simplistic. The WEB adress to be used
  * is specified as "/cmd?<command>" where "<command>" should be replaced by the
- * corresponding tvpvrd command. For example, runnig on the localserver the following
+ * corresponding tvpvrd command. For example, running on the localserver the following
  * command will return a list of all upcoming recordings to the browser
  *
  * http://localhost:9300/cmd?l
@@ -70,24 +73,11 @@
  *
  */
 
-
-/* Some local forward declarations.
- * Note: All functions prefixed with "html_" are used to generate HTML output
- * indicated by the name.
- */
-
-
-
 // For some commands (like delete) we want to wait a little bit in order
 // for the command to have effect before we report back on the status in
 // the web interface. If we didn't do this some commands would not be visible
 // until the next refresh of the web page. This could confuse the user.
 int cmd_delay=0;
-
-/* The magic cookie seed used to generate the unique cookie that represents
- * one particular login.
- */
-#define LOGIN_COOKIE "d_ye8aj82hApsj02njfuyysad"
 
 /**
  * Validate submitted user/pwd with stored login credentials
@@ -115,7 +105,7 @@ create_login_cookie(char *user, char *pwd) {
 
     // Based on the user/password we modify the cookie
     static char _cookie_buff[128];
-    strcpy(_cookie_buff, LOGIN_COOKIE);
+    strcpy(_cookie_buff, LOGIN_COOKIE_SEED);
 
     char hostname[128];
     gethostname(hostname, 127);
@@ -328,7 +318,6 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
     return 0;
 }
 
-#define CSSFILE_NAME "tvpvrd"
 /**
  * Read a suitable CSS file depending on the client. An identified mobile browser
  * will have a different CSS file compared with a stationary client.
@@ -342,9 +331,9 @@ read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
     char cssfile[255];
 
     if (mobile) {
-        snprintf(cssfile, 255, "%s/tvpvrd/%s_mobile.css", CONFDIR, CSSFILE_NAME);
+        snprintf(cssfile, 255, "%s/tvpvrd/%s_mobile.css", CONFDIR, CSSFILE_BASENAME);
     } else {
-        snprintf(cssfile, 255, "%s/tvpvrd/%s.css", CONFDIR, CSSFILE_NAME);
+        snprintf(cssfile, 255, "%s/tvpvrd/%s.css", CONFDIR, CSSFILE_BASENAME);
     }
 
     cssfile[254] = '\0';
@@ -460,7 +449,7 @@ sendback_css_file(int sockd, char *name, time_t modifiedSince) {
  * @param inbuffer
  */
 void
-html_cmdinterp(const int my_socket, char *inbuffer) {
+web_cmdinterp(const int my_socket, char *inbuffer) {
     char wcmd[1024];
     char *buffer = url_decode(inbuffer);
     char **field = (void *) NULL;
@@ -789,7 +778,7 @@ static const char *hourlength_list[] = {
  * @param sockd
  */
 void
-html_cmd_next(int sockd) {
+web_cmd_next(int sockd) {
     _writef(sockd, "<fieldset><legend>Next recording</legend>\n");
     _writef(sockd, "<div class=\"next_rec_container\">\n");
     listrecs(1,4,sockd); // Use style==4 , fancy
@@ -802,7 +791,7 @@ html_cmd_next(int sockd) {
  * @param sockd
  */
 void
-html_cmd_ongoingtransc(int sockd) {
+web_cmd_ongoingtransc(int sockd) {
 
     _writef(sockd, "<fieldset><legend>Ongoing transcodings</legend>\n");
     int num=get_num_ongoing_transcodings();
@@ -838,7 +827,7 @@ html_cmd_ongoingtransc(int sockd) {
  * @param sockd
  */
 void
-html_cmd_ongoing(int sockd) {
+web_cmd_ongoing(int sockd) {
 
     _writef(sockd, "<fieldset><legend>Ongoing recordings</legend>\n");
 
@@ -877,7 +866,7 @@ html_cmd_ongoing(int sockd) {
  * @param sockd
  */
 void
-html_cmd_qadd(int sockd) {
+web_cmd_qadd(int sockd) {
     const char *station_list[128];
     const int n_stations = get_stations(station_list, 128);
 
@@ -916,7 +905,7 @@ html_cmd_qadd(int sockd) {
  * @param sockd
  */
 void
-html_cmd_add_del(int sockd) {
+web_cmd_add_del(int sockd) {
     static const char *day_list[] = {
         " ", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
     };
@@ -1125,7 +1114,7 @@ static struct cmd_grp cmd_grp_slave_short[] = {
  * @param sockd
  */
 void
-html_commandlist(int sockd) {
+web_commandlist(int sockd) {
 
     static struct cmd_grp *cmdgrp;
     int cmdgrplen;
@@ -1160,7 +1149,7 @@ html_commandlist(int sockd) {
  * @param sockd
  */
 void
-html_commandlist_short(int sockd) {
+web_commandlist_short(int sockd) {
 
     static struct cmd_grp *cmdgrp;
     int cmdgrplen;
