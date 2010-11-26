@@ -83,8 +83,8 @@ AC_CHECK_HEADERS(libgen.h,,AC_MSG_ERROR([libgen.h not available]))
 AC_CHECK_HEADERS(dirent.h,,AC_MSG_ERROR([dirent.h not available]))
 
 # ===============================================================================
-# Checks for needed libraries. Note this will also append the correct linker flags to LDADD variable in the
-# makefiles.
+# Checks for needed libraries. Note this will also append the correct linker flags
+# to LDADD variable in the makefiles.
 # ===============================================================================
 AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Please install libpthread-dev (or similar)]))
 if test "x${have_iniparser_h}" = xyes; then
@@ -115,7 +115,7 @@ AC_TYPE_SIZE_T
 AC_CHECK_FUNCS([atexit bzero floor getcwd inet_ntoa memset mkdir rmdir select socket strchr strnlen strdup strerror])
 
 # ===============================================================================
-# AC_CHECK_XSLDOCBOOK
+# MACRO AC_CHECK_XSLDOCBOOK
 # The following macro will check to see if a working Docbook 5 environment can be found. It will also
 # check for the presence of the fop program which is needed to rebuild the PDF versions of the man page.
 # An end user of the library does not have to have the Docbook 5 environment installed since the distribution
@@ -164,7 +164,7 @@ AC_SUBST(DOCBOOK_XSL)
 ])
 
 # ===============================================================================
-# AC_CHECK_FFMPEG
+# MACRO AC_CHECK_FFMPEG
 # The following macro checks for a working version of the ffmpeg program. It will also determine if the system
 # have an old version installed that uses the old style ffmpeg profile files by checking the name of a common
 # profile. Not 100% but 99.9% which is good enough.
@@ -206,7 +206,7 @@ fi
 ])
 
 # ===============================================================================
-# AC_CHECK_DEBINIFILES
+# MACRO AC_CHECK_DEBINIFILES
 # Determine if the system uses Debian style ini files. This will control which
 # ini files will be installed when make install is executed
 # ===============================================================================
