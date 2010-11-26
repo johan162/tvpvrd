@@ -5,6 +5,28 @@ Installation Instructions
 
 Copyright (C) 2010 Johan Persson ( johan162@gmail.com)
 
+
+Quick installation
+==================
+
+For the impatient:
+
+Step 1.
+-------
+$>./stdbuild.sh
+[lots of output ...]
+
+Step 2. First change to root.
+----------------------------
+$> make install
+
+The above will run the configure script with the most common installation
+directories on modern system as well as do a reasonable silent build.
+The daemon will be installed under /usr/bin and the config files under
+/etc/tvpvrd
+
+If you want to customize please read on.
+
 Basic Installation
 ==================
 
