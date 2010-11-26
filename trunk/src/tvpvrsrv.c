@@ -1694,7 +1694,7 @@ webclientsrv(void *arg) {
         numreads = read(my_socket, buffer, 1023);
         buffer[1023] = '\0';
         buffer[numreads] = '\0';
-        html_cmdinterp(my_socket,buffer);
+        web_cmdinterp(my_socket,buffer);
 
     }
 

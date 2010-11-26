@@ -71,7 +71,7 @@ html_topbanner(int sockd) {
  * @param wcmd
  */
 void
-html_cmd_output(int sockd, char *wcmd) {
+web_cmd_output(int sockd, char *wcmd) {
 
     _writef(sockd, "<div class=\"cmd_output\"><pre>");
 
@@ -454,7 +454,7 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
 
     // Left side : Command table
     _writef(sockd, "<div class=\"left_side\">");
-    html_commandlist(sockd);
+    web_commandlist(sockd);
 
     _writef(sockd,"<div id=\"logout_container\"><div id=\"logout\"><a href=\"logout\">Logout</a></div></div>");
 
@@ -462,13 +462,13 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
 
     // Right side : Output and recording management
     _writef(sockd, "<div class=\"right_side\">");
-    html_cmd_output(sockd, wcmd);
+    web_cmd_output(sockd, wcmd);
     usleep(cmd_delay); // Give some time for the command to execute
-    html_cmd_next(sockd);
-    html_cmd_ongoing(sockd);
-    html_cmd_ongoingtransc(sockd);
-    html_cmd_qadd(sockd);
-    html_cmd_add_del(sockd);
+    web_cmd_next(sockd);
+    web_cmd_ongoing(sockd);
+    web_cmd_ongoingtransc(sockd);
+    web_cmd_qadd(sockd);
+    web_cmd_add_del(sockd);
 
     _writef(sockd, "</div>");
 
@@ -491,10 +491,10 @@ html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     html_topbanner(sockd);
 
     _writef(sockd, "<div class=\"single_side\">");
-    html_commandlist_short(sockd);
-    html_cmd_output(sockd, wcmd);
-    html_cmd_qadd(sockd);
-    html_cmd_add_del(sockd);
+    web_commandlist_short(sockd);
+    web_cmd_output(sockd, wcmd);
+    web_cmd_qadd(sockd);
+    web_cmd_add_del(sockd);
     _writef(sockd, "\n</div> <!-- single_side -->");
 
     html_endpage(sockd);
