@@ -1,5 +1,16 @@
 $Id$
 
+v2.1.0beta3
+-----------
+Added configuration option --enable-webdebug to add extra debugging
+printout in reagrds to low level HTTP handling. This only has effect
+with loglevel 3.
+Refactored tvwebcmd file into two files for ease of maintenance.
+Some further minor tweaks in the build system. One day the project
+will finally have the ultimuum autotools and script setup and now we are
+getting close ...
+
+
 v2.1.0-beta2
 ------------
 Added configuration option --enable-simulate to build a version of the daemon
