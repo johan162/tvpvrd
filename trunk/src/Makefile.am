@@ -16,7 +16,7 @@ tvpvrd_LDFLAGS =  `xml2-config --libs`
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template
 
-DISTCLEANFILES = config.h .deps
+DISTCLEANFILES = config.h 
 
 CLEANFILES = *~
 

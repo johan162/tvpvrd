@@ -18,7 +18,7 @@ EXTRA_DIST = tvpowerd.conf pre-shutdown.sh post-startup.sh README install.sh.in 
 
 CLEANFILES = *~ tvpowerd *.pid
 
-DISTCLEANFILES=*.Po .deps install.sh uninstall.sh
+DISTCLEANFILES=*.Po install.sh uninstall.sh
 
 
 
