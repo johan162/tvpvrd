@@ -1081,6 +1081,23 @@ send_mail(const char *subject, const char *to, const char *message) {
 
 }
 
+char *
+esc_percentsign(char *str) {
+    char *buff=calloc(1,strlen(str)*2+1), *pbuff=buff;
+    while( *str ) {
+        if( *str == '%' )  {
+            *pbuff++ = '%';
+            *pbuff++ = '%';
+        } else {
+            *pbuff++ = *str;
+        }
+        str++;
+    }
+    *pbuff = '\0';
+    return buff;
+}
+
+
 /* Converts a hex character to its integer value */
 char from_hex(const char ch) {
   return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
@@ -1089,7 +1106,7 @@ char from_hex(const char ch) {
 /* Converts an integer value to its hex character*/
 char to_hex(const char code) {
   static char hex[] = "0123456789ABCDEF";
-  return hex[code & 15];
+  return hex[code & 0x0f];
 }
 
 /*
@@ -1097,14 +1114,21 @@ char to_hex(const char code) {
  * Note: Calling function is responsible to free returned string
  */
 char *url_encode(char *str) {
-  char *pstr = str, *buf = malloc(strlen(str) * 3 + 1), *pbuf = buf;
+  char *pstr = str;
+  char *buf = calloc(strlen(str) * 3 + 1,1);
+  char *pbuf = buf;
+  
   while (*pstr) {
-    if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~')
+    if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
       *pbuf++ = *pstr;
-    else if (*pstr == ' ')
+    }
+    else if (*pstr == ' ') {
       *pbuf++ = '+';
-    else
-      *pbuf++ = '%', *pbuf++ = to_hex(*pstr >> 4), *pbuf++ = to_hex(*pstr & 15);
+    } else {
+      *pbuf++ = '%';
+      *pbuf++ = to_hex(*pstr >> 4);
+      *pbuf++ = to_hex(*pstr);
+    }
     pstr++;
   }
   *pbuf = '\0';
