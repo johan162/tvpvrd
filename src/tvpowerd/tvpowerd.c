@@ -917,12 +917,19 @@ shutdown_remote_server(void) {
     char scriptfile[255];
 
     if( unload_driver ) {
-        logmsg(LOG_DEBUG,"Unloading ivtv driver");
-        snprintf(command,512,"/sbin/modprobe -r ivtv");
-        int rc = remote_command(command,reply,32);
-        if( rc ) {
-            logmsg(LOG_ERR,"Failed to unload ivtv driver. Shutdown aborted");
-            return 1;
+        if( strcmp(server_user,"root") == 0 ) {
+            logmsg(LOG_DEBUG,"Unloading ivtv driver ...");
+            snprintf(command,512,"/sbin/modprobe -r ivtv");
+            int rc = remote_command(command,reply,32);
+            if( rc ) {
+                logmsg(LOG_ERR,"Failed to unload ivtv driver. Shutdown aborted");
+                return 1;
+            }
+            // Give plenty of time to kernel to unload the driver
+            sleep(4);
+            logmsg(LOG_DEBUG,"ivtv river unloaded.");
+        } else {
+            logmsg(LOG_ERR,"Remote user must be \"root\" in order to unload ivtv driver.");
         }
     }
 
@@ -985,14 +992,16 @@ wakeup_remote_server(void) {
     }
 
     if( unload_driver ) {
-        char command[512], reply[32];
-        logmsg(LOG_DEBUG,"Loading ivtv driver");
-        snprintf(command,512,"/sbin/modprobe ivtv");
-        remote_command(command,reply,32);
-        int rc = remote_command(command,reply,32);
-        if( rc ) {
-            logmsg(LOG_ERR,"CRITICAL Failed to load ivtv driver.Aborting rest of startup sequence");
-            return 1;
+        if( strcmp(server_user,"root") == 0 ) {
+            char command[512], reply[32];
+            logmsg(LOG_DEBUG,"Loading ivtv driver");
+            snprintf(command,512,"/sbin/modprobe ivtv");
+            remote_command(command,reply,32);
+            int rc = remote_command(command,reply,32);
+            if( rc ) {
+                logmsg(LOG_ERR,"CRITICAL Failed to load ivtv driver.Aborting rest of startup sequence");
+                return 1;
+            }
         }
     }
 

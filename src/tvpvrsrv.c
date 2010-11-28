@@ -777,9 +777,9 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     // performance.
                     pid_t rpid;
 
-                    // We only allow one transcoding to run for a maximum of 49 h any longer than
+                    // We only allow one transcoding to run for a maximum of 18 h any longer than
                     // that and we consider the transcoding process as hung
-                    const int watchdog = 49 * 3600;
+                    const int watchdog = 18 * 3600;
                     int ret;
                     float avg1,avg5,avg15;
                     getsysload(&avg1,&avg5,&avg15);
@@ -797,7 +797,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                         // Why exactly 6s wait? Well, in case the user terminates the process it
                         // means that on average it will take 3s before the structures are updated
                         // with the removed transcoding which is the longest time a user ever should
-                        // have to waut for feedback.
+                        // have to wait for feedback.
                         sleep(6);
                         runningtime += 6;
                         getsysload(&avg1,&avg5,&avg15);
@@ -829,7 +829,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                             transcoding_done = (WEXITSTATUS(ret) == 0);
                             if (WEXITSTATUS(ret) == 0) {
                                 if( runningtime < 60 ) {
-                                    logmsg(LOG_NOTICE, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
+                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 60s for file '%s'. This most likely indicates a problem",
                                         short_filename, rh,rm,rs);
                                     return -1;
 
