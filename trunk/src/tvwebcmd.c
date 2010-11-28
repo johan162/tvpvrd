@@ -131,8 +131,8 @@ create_login_cookie(char *user, char *pwd) {
         if ((int) _cookie_buff[i] < 32)
             _cookie_buff[i] += 32;
 
-        // Remove the URL special chars, '+' 
-        if (_cookie_buff[i] == '+')
+        // Remove the URL special chars, '+' , '%', '&'
+        if (_cookie_buff[i] == '+' || _cookie_buff[i] == '%' || _cookie_buff[i] == '&' || _cookie_buff[i] == '"')
             _cookie_buff[i] = '_';
 
     }

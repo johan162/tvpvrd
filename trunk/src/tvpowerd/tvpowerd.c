@@ -918,15 +918,23 @@ shutdown_remote_server(void) {
 
     if( unload_driver ) {
         if( strcmp(server_user,"root") == 0 ) {
-            logmsg(LOG_DEBUG,"Unloading ivtv driver ...");
-            snprintf(command,512,"/sbin/modprobe -r ivtv");
+            logmsg(LOG_DEBUG,"Stopping daemon ...");
+            snprintf(command,512,"/etc/init.d/tvpvrd stop");
             int rc = remote_command(command,reply,32);
             if( rc ) {
+                logmsg(LOG_ERR,"Failed to stop tvpvrd daemon. Shutdown aborted");
+                return -1;
+            }
+            sleep(1);
+            logmsg(LOG_DEBUG,"Unloading ivtv driver ...");
+            snprintf(command,512,"/sbin/modprobe -r ivtv");
+            rc = remote_command(command,reply,32);
+            if( rc ) {
                 logmsg(LOG_ERR,"Failed to unload ivtv driver. Shutdown aborted");
-                return 1;
+                return -1;
             }
             // Give plenty of time to kernel to unload the driver
-            sleep(4);
+            sleep(3);
             logmsg(LOG_DEBUG,"ivtv river unloaded.");
         } else {
             logmsg(LOG_ERR,"Remote user must be \"root\" in order to unload ivtv driver.");
@@ -962,7 +970,9 @@ shutdown_remote_server(void) {
  */
 int
 wakeup_remote_server(void) {
-
+    char command[512], reply[128];
+    char cmd[32];
+    
     logmsg(LOG_INFO,"Waking up remote server with MAC address '%s'.",target_mac_address);
     
     if( wakelan(target_mac_address,target_broadcast_address, target_port) ) {
@@ -970,42 +980,47 @@ wakeup_remote_server(void) {
         return 1;
     }
 
-    // Initially wait a bit for the server to get started before we
-    // make a sanity check that it is awake
-    sleep(60);
+    if( unload_driver ) {
+        sleep(20);
+        if( strcmp(server_user,"root") == 0 ) {
+            logmsg(LOG_DEBUG,"Loading ivtv driver");
+            snprintf(command,512,"/sbin/modprobe ivtv");
+            int rc = remote_command(command,reply,32);
+            if( rc ) {
+                logmsg(LOG_ERR,"CRITICAL Failed to load ivtv driver.Aborting rest of startup sequence");
+                return -1;
+            }
+            sleep(2);
+        }
+    } else {
+        sleep(70);
+    }
 
     // Try to login to the tvpvrd daemon and retrive the version as a proof that
     // the server is up and running
-    char cmd[32],reply[128];
+
 
     snprintf(cmd,32,"v");
     int rc = tvpvrd_command(cmd,reply,128,0) ;
     if( rc ) {
-         // sleep another 30s before we try again
-        sleep(30);
+         // Try restarting the daemon
+        logmsg(LOG_DEBUG,"Restaring tvpvrd daemon ...");
+        snprintf(command,512,"/etc/init.d/tvpvrd restart");
+        rc = remote_command(command,reply,32);
+        if( rc ) {
+            logmsg(LOG_ERR,"Failed to start tvpvrd daemon.");
+            return -1;
+        }
+        sleep(4);
         rc = tvpvrd_command(cmd,reply,128,0) ;
     }
 
     if( rc || strncmp(reply,"tvpvrd",strlen("tvpvrd")) ) {
-        logmsg(LOG_ERR,"Cannot connect to server on target machine");
+        logmsg(LOG_ERR,"Cannot connect to server on target machine. (rc=%d, reply=%s)",rc,reply);
         return -1;
     }
 
-    if( unload_driver ) {
-        if( strcmp(server_user,"root") == 0 ) {
-            char command[512], reply[32];
-            logmsg(LOG_DEBUG,"Loading ivtv driver");
-            snprintf(command,512,"/sbin/modprobe ivtv");
-            remote_command(command,reply,32);
-            int rc = remote_command(command,reply,32);
-            if( rc ) {
-                logmsg(LOG_ERR,"CRITICAL Failed to load ivtv driver.Aborting rest of startup sequence");
-                return 1;
-            }
-        }
-    }
-
-    logmsg(LOG_DEBUG,"Remote server is up and running");
+    logmsg(LOG_DEBUG,"Remote server is up and running.");
     
     // Finally run optional startup post-script
     char scriptfile[256], buffer[512];

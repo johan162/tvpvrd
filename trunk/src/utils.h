@@ -317,6 +317,9 @@ url_decode(char *str);
 char *
 html_encode(char *str);
 
+char *
+esc_percentsign(char *str);
+
 extern int htmlencode_flag;
 
 /**

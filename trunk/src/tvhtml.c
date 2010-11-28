@@ -142,7 +142,15 @@ http_header(int sockd, char *cookie_val) {
     if (cookie_val && *cookie_val) {
 
         char *tmpbuff = url_encode(cookie_val);
-        logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff);
+
+        // We need to do an extra escape of potential '%' sign since
+        // this will otherwise be interpetated as priontf() formats in the
+        // logmsg printings
+        char *tmpbuff2 = esc_percentsign(tmpbuff);
+
+        logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff2);
+
+        free(tmpbuff2);
 
         if ( weblogin_timeout > 0 || texp < t ) {
             _writef(sockd,
@@ -163,6 +171,7 @@ http_header(int sockd, char *cookie_val) {
         }
 
         free(tmpbuff);
+
 
     } else {
 
