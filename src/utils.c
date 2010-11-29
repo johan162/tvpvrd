@@ -1115,7 +1115,7 @@ char to_hex(const char code) {
  */
 char *url_encode(char *str) {
   char *pstr = str;
-  char *buf = calloc(strlen(str) * 3 + 1,1);
+  char *buf = calloc(1,strlen(str) * 3 + 1);
   char *pbuf = buf;
   
   while (*pstr) {
@@ -1140,7 +1140,7 @@ char *url_encode(char *str) {
  * Note: Calling function is responsible to free returned string
  */
 char *url_decode(char *str) {
-  char *pstr = str, *buf = malloc(strlen(str) + 1), *pbuf = buf;
+  char *pstr = str, *buf = calloc(1,strlen(str) + 1), *pbuf = buf;
   while (*pstr) {
     if (*pstr == '%') {
       if (pstr[1] && pstr[2]) {

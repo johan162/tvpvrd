@@ -1377,6 +1377,7 @@ server_refresh_time = 1;
                                         // if the server happens to be alive.
                                         if( 0 == verify_tvpvrd() ) {
                                             // Ooops ! The user has started the server without waiting for us!
+                                            logmsg(LOG_NOTICE,"Detected that server has been manually started.");
                                             user_started = 1;
                                         }
 

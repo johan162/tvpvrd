@@ -50,7 +50,7 @@
 #include "tvhtml.h"
 #include "config.h"
 
-
+// Get the name of the CSS file from the basename of the package, i.e. "tvpvrd"
 #define CSSFILE_BASENAME PACKAGE_TARNAME
 
 /*
@@ -88,10 +88,9 @@ int cmd_delay=0;
 int
 validate_login(char *user, char *pwd) {
 
-    if (0 == strcmp(user, web_user) && 0 == strcmp(pwd, web_password))
-        return 1;
-    else
-        return 0;
+    return 0 == strcmp(user, web_user) &&
+           0 == strcmp(pwd, web_password);
+
 }
 
 /**
@@ -131,8 +130,8 @@ create_login_cookie(char *user, char *pwd) {
         if ((int) _cookie_buff[i] < 32)
             _cookie_buff[i] += 32;
 
-        // Remove the URL special chars, '+' , '%', '&'
-        if (_cookie_buff[i] == '+' || _cookie_buff[i] == '%' || _cookie_buff[i] == '&' || _cookie_buff[i] == '"')
+        // Remove the URL special chars, '+' , '%' 
+        if (_cookie_buff[i] == '+' || _cookie_buff[i] == '%' || _cookie_buff[i] == '=')
             _cookie_buff[i] = '_';
 
     }
@@ -172,40 +171,35 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
     *cookie = '\0';
 
-    if (!require_web_password)
+    if (!require_web_password) {
+        // Always succeed
         return 1;
+    }
 
     if ((ret = matchcmd(_PR_ANY "Cookie: tvpvrd=" _PR_ANP, buffer, &field)) > 1) {
 
         char *tmpbuff = url_decode(field[2]);
-
-        logmsg(LOG_DEBUG, "Received cookie: %s decoded as: %s", field[2], tmpbuff);
-
+        logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[2], tmpbuff);
         int sucess=0;
         if (validate_cookie(tmpbuff)) {
 
             logmsg(LOG_DEBUG, "Received cookie valdidated correctly.");
-
             strncpy(cookie, tmpbuff, maxlen);
             cookie[maxlen - 1] = '\0';
-            free(tmpbuff);
             sucess = 1;
 
         } else {
 
-            logmsg(LOG_DEBUG, "Received cookie was NOT a valdid login cookie.");
+            logmsg(LOG_DEBUG, "Received cookie was NOT a valid login cookie.");
 
-            free(tmpbuff);
         }
-
+        free(tmpbuff);
         matchcmd_free(&field);
-
         return sucess;
 
     } else {
 
         logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header.");
-
         return 0;
 
     }
@@ -287,6 +281,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
             cmd[maxlen - 1] = '\0';
 
             found = 1;
+            matchcmd_free(&field);
 
         } else if ((ret = matchcmd("^GET / HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
 
@@ -294,22 +289,25 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
             // to a "time" command.
             strncpy(cmd, "t", maxlen);
             found = 1;
+            matchcmd_free(&field);
 
         } else if ((ret = matchcmd("^GET /" _PR_ANP " HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
             
             found = 1;
+            matchcmd_free(&field);
 
         } else {
             int i=0;
             int nmax = sizeof(allowed_commands)/sizeof(char *);
             while( i < nmax && ret <= 1 ) {
                 ret = matchcmd(allowed_commands[i], buffer, &field);
+                if( ret > 1 ) {
+                    matchcmd_free(&field);
+                }
                 ++i;
             }
             found = ret > 1;
         }
-
-        matchcmd_free(&field);
 
         return found;
 
