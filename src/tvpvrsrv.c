@@ -827,10 +827,10 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
                         if (WIFEXITED(ret)) {
                             transcoding_done = (WEXITSTATUS(ret) == 0);
-                            if (WEXITSTATUS(ret) == 0) {
-                                if( runningtime < 60 ) {
-                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 60s for file '%s'. This most likely indicates a problem",
-                                        short_filename, rh,rm,rs);
+                            if (transcoding_done) {
+                                if( runningtime < 30 ) {
+                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 30s for file '%s'. This most likely indicates a problem",
+                                        short_filename);
                                     return -1;
 
                                 } else {
@@ -839,17 +839,22 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
                                 }
                             } else {
-                                logmsg(LOG_INFO, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
-                                        short_filename, rh,rm,rs);
+                                logmsg(LOG_INFO, "Error in transcoding process for file '%s', exit status=%d after %02d:%02d h",
+                                        short_filename,WEXITSTATUS(ret),rh,rm);
                                 return -1;
                             }
                         } else {
                             if (WIFSIGNALED(ret)) {
                                 logmsg(LOG_NOTICE, "Transcoding process for file '%s' was terminated by signal=%d (possibly by user) after %02d:%02d:%02d h",
                                         short_filename, WTERMSIG(ret),rh,rm,rs);
-                                return -1;
+                                if( WTERMSIG(ret) == SIGKILL ) {
+                                    // Stopped by user so we don't signal this as a true error
+                                    return 0;
+                                } else {
+                                    return -1;
+                                }
                             } else {
-                                // Child must have been stopped. If so we have no choice than to kill it
+                                // Child must have been stopped/paused. If so we have no choice than to kill it
                                 logmsg(LOG_NOTICE, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
                                         short_filename, WSTOPSIG(ret),rh,rm,rs);
                                 (void) kill(pid, SIGKILL);
