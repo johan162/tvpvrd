@@ -1206,10 +1206,10 @@ _transcode_file(void *arg) {
             } else {
                 if (WIFEXITED(ret)) {
                     transcoding_done = (WEXITSTATUS(ret) == 0);
-                    if (WEXITSTATUS(ret) == 0) {
-                        if (runningtime < 60) {
-                            logmsg(LOG_ERR, "Transcoding process %d for file '%s' aborted premature after after %02d:%02d:%02d h",
-                                    pid,basename(filename), rh, rm, rs);
+                    if (transcoding_done) {
+                        if (runningtime < 30) {
+                             logmsg(LOG_NOTICE, "Transcoding process finished in less than 30s for file '%s'. This most likely indicates a problem",
+                                        basename(filename));
 
                         } else {
                             logmsg(LOG_INFO, "Transcoding process %d for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
@@ -1217,8 +1217,8 @@ _transcode_file(void *arg) {
 
                         }
                     } else {
-                        logmsg(LOG_ERR, "Error in transcoding process for file '%s' after %02d:%02d:%02d h",
-                                basename(filename), rh, rm, rs);
+                       logmsg(LOG_INFO, "Error in transcoding process for file '%s', exit status=%d after %02d:%02d h",
+                                        basename(filename),WEXITSTATUS(ret),rh,rm);
                     }
                 } else {
                     if (WIFSIGNALED(ret)) {
