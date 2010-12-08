@@ -2189,7 +2189,7 @@ parsecmdline(int argc, char **argv) {
 #ifdef DEBUG_SIMULATE
                         " *** DEBUG BUILD. WILL NOT RECORD REAL VIDEO STREAMS *** \n"
 #endif
-                        "Copyright (C) 2009 Johan Persson (johan162@gmail.com)\n"
+                        "Copyright (C) 2009,2010 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
                 exit(EXIT_SUCCESS);
