@@ -7,7 +7,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009 Johan Persson
+ * Copyright (C) 2009,2010 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -355,7 +355,7 @@ extern "C" {
  */
 #define WELCOM_MSG \
         "!TVPVRD!\n"\
-	"Welcome to tvpvrd-%s [%s] (%s)\n"\
+	"Welcome to tvpvrd-%s  [%s] (build:%lu.%lu)\n"\
 	"You are user number %d out of %d allowed.\n"\
 	"Type 'exit' to disconnect.\n"\
 	"Type 'h' to list available commands.\n"\
@@ -387,7 +387,7 @@ struct ffmpeg_profile {
 
 /* Global information about the server */
 extern char server_version[] ;
-extern char server_build_date[] ;
+//extern char server_build_date[] ;
 extern char server_program_name[32] ;
 extern int use_profiledirectories ;
 

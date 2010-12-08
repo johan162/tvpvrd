@@ -53,6 +53,7 @@
 #include "transc.h"
 #include "stats.h"
 #include "tvwebcmd.h"
+#include "build.h"
 
 /*
  * Indexes into the command table
@@ -1816,13 +1817,14 @@ _cmd_version(const char *cmd, int sockfd) {
         return;
     }
     _writef(sockfd, 
-            "%s %s [%s] (%s)"
+            "%s %s [%s] (build: %lu.%lu)"
 #ifdef DEBUG_SIMULATE
                         "\n *** DEBUG BUILD *** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY A DEBUG BUILD.\n"
 #endif
 
-            "\n",server_program_name, server_version,
-            is_master_server ? "master" : "client", server_build_date);
+            "\n",server_program_name,server_version,
+            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
+            is_master_server ? "master" : "client");
 }
 
 /**

@@ -45,6 +45,7 @@
 #include "tvcmd.h"
 #include "tvhtml.h"
 #include "tvwebcmd.h"
+#include "build.h"
 
 
 /**
@@ -55,13 +56,14 @@ void
 html_topbanner(int sockd) {
     _writef(sockd, "<div class=\"top_banner\">");
     _writef(sockd,
-            "%s %s [%s] (%s)"
+            "%s %s [%s] (build: %lu.%lu )"
 #ifdef DEBUG_SIMULATE
             "\n *** DEBUG BUILD *** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY A DEBUG BUILD.\n"
 #endif
 
             "\n", server_program_name, server_version,
-            is_master_server ? "master" : "client", server_build_date);
+            is_master_server ? "master" : "client",
+            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
     _writef(sockd, "</div> <!-- top_banner -->\n");
 }
 

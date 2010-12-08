@@ -76,6 +76,7 @@
 #include "../lockfile.h"
 #include "../config.h"
 #include "wakelan.h"
+#include "../build.h"
 
 // #define _DEBUG
 
@@ -84,7 +85,7 @@
  * Server identification
  */
 char server_version[] = PACKAGE_VERSION; // This define gets set by the config process
-char server_build_date[] = __DATE__;     // This is a builtin define set by the compiler
+//char server_build_date[] = __DATE__;     // This is a builtin define set by the compiler
 char server_program_name[32] = {0};
 
 // Logfile details
@@ -288,8 +289,8 @@ parsecmdline(int argc, char **argv) {
                 break;
 
             case 'v':
-                fprintf(stdout,"%s %s (%s)\n%s",
-                        server_program_name,server_version,server_build_date,
+                fprintf(stdout,"%s %s (build: %lu.%lu)\n%s",
+                        server_program_name,server_version,(unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
                         "Copyright (C) 2010 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
@@ -1474,7 +1475,9 @@ main(int argc, char** argv) {
     }
 
     // From now on we now the name of the logfile so we can use the log function
-    logmsg(LOG_INFO,"Starting tvpowerd ver %s , Build date: %s",server_version, server_build_date);
+    logmsg(LOG_INFO,"Starting tvpowerd %s (build: %lu.%lu)",
+           server_version,
+           (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
     logmsg(LOG_INFO,"Using ini-file '%s'",inifile);
 
     if( daemonize == -1 ) {
