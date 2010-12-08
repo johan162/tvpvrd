@@ -92,12 +92,14 @@
 #include "stats.h"
 #include "tvwebcmd.h"
 #include "lockfile.h"
+#include "build.h"
+
 
 /*
  * Server identification
  */
 char server_version[] = PACKAGE_VERSION; // This define gets set by the config process
-char server_build_date[] = __DATE__;     // This is a builtin define set by the compiler
+//char server_build_date[] = __DATE__;     // This is a builtin define set by the compiler
 char server_program_name[32] = {0};
 
 /*
@@ -1534,7 +1536,8 @@ clientsrv(void *arg) {
     pthread_mutex_lock(&socks_mutex);
     snprintf(buffer,1023, WELCOM_MSG, server_version, 
             is_master_server ? "Server" : "Client",
-            server_build_date, ncli_threads, max_clients, max_idle_time/60);
+            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
+            ncli_threads, max_clients, max_idle_time/60);
     buffer[1023] = '\0';
     pthread_mutex_unlock(&socks_mutex);
 
@@ -2180,8 +2183,9 @@ parsecmdline(int argc, char **argv) {
                 break;
 
             case 'v':
-                fprintf(stdout,"%s %s (%s)\n%s",
-                        server_program_name,server_version,server_build_date,
+                fprintf(stdout,"%s %s (build: %lu.%lu)\n%s",
+                        server_program_name,server_version,
+                        (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
 #ifdef DEBUG_SIMULATE
                         " *** DEBUG BUILD. WILL NOT RECORD REAL VIDEO STREAMS *** \n"
 #endif
@@ -2784,7 +2788,9 @@ main(int argc, char *argv[]) {
     }
 
     // From now on we now the name of the logfile so we can use the log function
-    logmsg(LOG_INFO,"Starting tvpvrd ver %s , Build date: %s",server_version, server_build_date);
+    logmsg(LOG_INFO,"Starting tvpvrd %s (build: %lu.%lu)",
+           server_version,
+           (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
     logmsg(LOG_INFO,"Using ini-file '%s'",inifile);          
     
     if( daemonize == -1 ) {
