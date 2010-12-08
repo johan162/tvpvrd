@@ -1822,9 +1822,9 @@ _cmd_version(const char *cmd, int sockfd) {
                         "\n *** DEBUG BUILD *** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY A DEBUG BUILD.\n"
 #endif
 
-            "\n",server_program_name,server_version,
-            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
-            is_master_server ? "master" : "client");
+            "\n",server_program_name,server_version,            
+            is_master_server ? "master" : "client",
+            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
 }
 
 /**
