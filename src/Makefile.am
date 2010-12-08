@@ -20,7 +20,7 @@ tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_DATE=$$(date +'%Y%m%d')"
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template
 
-DISTCLEANFILES = config.h 
+DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 
 CLEANFILES = *~
 
