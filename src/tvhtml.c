@@ -146,11 +146,11 @@ http_header(int sockd, char *cookie_val) {
         char *tmpbuff = url_encode(cookie_val);
 
         // We need to do an extra escape of potential '%' sign since
-        // this will otherwise be interpetated as priontf() formats in the
+        // this will otherwise be interpetated as printf() formats in the
         // logmsg printings
         char *tmpbuff2 = esc_percentsign(tmpbuff);
 
-        logmsg(LOG_DEBUG, "Stored cookie: %s as %s", cookie_val, tmpbuff2);
+        logmsg(LOG_DEBUG, "Stored cookie: '%s' as URL encoded '%s'", cookie_val, tmpbuff2);
 
         free(tmpbuff2);
 

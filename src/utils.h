@@ -384,9 +384,9 @@ escape_quotes(char *tostr, const char *fromstr, const size_t maxlen);
 #define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
 
 // Required alphanumeric and punctuation sequence
-#define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"
+#define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#]+)"
 
-#define _PR_ANPO "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\']*)"
+#define _PR_ANPO "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#]*)"
 
 // Required alphanumeric, punctuation and space sequence
 #define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"

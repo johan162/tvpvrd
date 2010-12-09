@@ -131,7 +131,7 @@ create_login_cookie(char *user, char *pwd) {
             _cookie_buff[i] += 32;
 
         // Remove the URL special chars, '+' , '%' 
-        if (_cookie_buff[i] == '+' || _cookie_buff[i] == '%' || _cookie_buff[i] == '=')
+        if (_cookie_buff[i] == ' ' || _cookie_buff[i] == '+' || _cookie_buff[i] == '%' || _cookie_buff[i] == '=')
             _cookie_buff[i] = '_';
 
     }
@@ -176,7 +176,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
         return 1;
     }
 
-    if ((ret = matchcmd(_PR_ANY "Cookie: tvpvrd=" _PR_ANP, buffer, &field)) > 1) {
+    if ((ret = matchcmd(_PR_ANY "Cookie: tvpvrd=" _PR_ANP "\\r\\n", buffer, &field)) > 1) {
 
         char *tmpbuff = url_decode(field[2]);
         logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[2], tmpbuff);
@@ -190,7 +190,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
         } else {
 
-            logmsg(LOG_DEBUG, "Received cookie was NOT a valid login cookie.");
+            logmsg(LOG_DEBUG, "Received cookie is not the valid login cookie.");
 
         }
         free(tmpbuff);
@@ -199,7 +199,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
     } else {
 
-        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header.");
+        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header.\n%s",buffer);
         return 0;
 
     }
