@@ -18,6 +18,8 @@ tvpvrd_LDFLAGS =  `xml2-config --libs`
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_DATE=$$(date +'%Y%m%d')"
 
+tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE)
+
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
@@ -34,7 +36,6 @@ install-data-local:
 	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
 	install -D -m 644 $(abs_srcdir)/etc/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
 
-all: $(BUILDNBR_FILE)
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)
 	@if ! test -f $(BUILDNBR_FILE); then \
