@@ -1,5 +1,13 @@
 $Id$
 
+v2.1.0
+-----------
+Mainly internal changes. Added buildnumber handling and some utility build
+scripts. Tweaked the timing for tvpowerd daemon so that it waits a  bit longer
+to really be sure that the ivtv driver ha loaded correctly. The day of the
+ultimum autotools build script setup has finally come!
+
+
 v2.1.0beta3
 -----------
 Added configuration option --enable-webdebug to add extra debugging
