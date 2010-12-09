@@ -1,0 +1,66 @@
+#!/bin/sh
+# 
+# File:   switchchannel.sh.template
+# Desc:   Template to do external channel switching.
+# SVN:    $Id$
+#
+# Note: This is just a TEMPLATE that must be modified so that it
+# matches the system LIRC setup  as well as the cable-box used
+#-----------------------------------------------------------
+
+
+#-----------------------------------------------------------
+# Get options
+#-----------------------------------------------------------
+station=
+while getopts s: o
+do  case "$o" in
+    s)      station="$OPTARG"
+            ;;
+    [?])    print >&2 "Usage; $0 -s station"
+            exit 1
+            ;;
+    esac
+done
+
+if test -z station; then
+    exit 1
+fi
+
+#-----------------------------------------------------------
+# Depending on the station send the proper IR command
+# NOte: The actual command must be specified in the
+# lircd configuration file. In the following you need to
+# replace "MYREMOTE" with the string corresponding to
+# your defined device and "CHANNEL_?" must of course
+# exist in your lircd configuration.
+#-----------------------------------------------------------
+case "$station" in
+    station_name1)  irsend SEND_START MYREMOTE CHANNEL_1
+                    sleep 1
+                    irsend SEND_STOP  MYREMOTE CHANNEL_1
+                    exit $?
+                    ;;
+
+    station_name2)  irsend SEND_START MYREMOTE CHANNEL_2
+                    sleep 1
+                    irsend SEND_STOP  MYREMOTE CHANNEL_2
+                    exit $?
+                    ;;
+
+    station_name3)  irsend SEND_START MYREMOTE CHANNEL_3
+                    sleep 1
+                    irsend SEND_STOP  MYREMOTE CHANNEL_3
+                    exit $?
+                    ;;
+
+    *)              exit 1
+                    ;;
+esac
+
+exit 0
+
+
+
+
+
