@@ -6,7 +6,6 @@ Adds the option of specifying encoder device for the case where a
 video card may have several outputs for both raw and encoded video.
 See config file ENCODER_DEVICE setting for more detailed information.
 
-
 v2.1.1
 ------
 Fixes an oversight in the build process for 2.1.0 when building
@@ -14,7 +13,7 @@ from a fresh directory when no buildnumber.txt file did exist
 in the tvpowerd directory.
 
 v2.1.0
------------
+------
 Mainly internal changes. Added buildnumber handling and some utility build
 scripts. Tweaked the timing for tvpowerd daemon so that it waits a  bit longer
 to really be sure that the ivtv driver ha loaded correctly. The day of the
@@ -28,15 +27,13 @@ printout in reagrds to low level HTTP handling. This only has effect
 with loglevel 3.
 Refactored tvwebcmd file into two files for ease of maintenance.
 Some further minor tweaks in the build system. One day the project
-will finally have the ultimuum autotools and script setup and now we are
+will finally have the ultimum autotools and script setup and now we are
 getting close ...
-
 
 v2.1.0-beta2
 ------------
 Added configuration option --enable-simulate to build a version of the daemon
 that runs on a server without TV card
-
 
 v2.1.0-beta
 -----------
