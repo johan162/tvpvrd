@@ -1,5 +1,18 @@
 $Id$
 
+v2.1.2beta
+----------
+Adds the option of specifying encoder device for the case where a
+video card may have several outputs for both raw and encoded video.
+See config file ENCODER_DEVICE setting for more detailed information.
+
+
+v2.1.1
+------
+Fixes an oversight in the build process for 2.1.0 when building
+from a fresh directory when no buildnumber.txt file did exist
+in the tvpowerd directory.
+
 v2.1.0
 -----------
 Mainly internal changes. Added buildnumber handling and some utility build
