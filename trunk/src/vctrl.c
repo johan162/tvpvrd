@@ -132,7 +132,14 @@ _vctrl_openvideo(unsigned int video) {
         logmsg(LOG_ERR, "(_vctrl_openvideo) Video device must be in range 0-5");
         return -1;
     }
-    sprintf(vdevice, "%s%d", device_basename, video);
+
+    if( encoder_devices[video] != NULL ) {
+        logmsg(LOG_DEBUG,"Using encoder_device '%s' for video %d",encoder_devices[video],video);
+        snprintf(vdevice, 63, "%s", encoder_devices[video]);
+    } else {
+        snprintf(vdevice, 63, "%s%d", device_basename, video);
+    }
+    vdevice[63] = '\0';
 
     if (stat(vdevice, &st) == -1) {
         logmsg(LOG_ERR, "Cannot identify device '%s'. ( %d : %s )", vdevice, errno, strerror(errno));

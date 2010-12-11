@@ -630,36 +630,52 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 #endif
                     // Convert time to a timestamp to compare with file modified time
                     // Match HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
+
+                    // Try first to use en_US locale since the header is in english.
+                    // If this doesn't work then we use the "C" locale but this might not
+                    // work to interpret the header.
                     locale_t lc =  newlocale(LC_ALL_MASK,"en_US",NULL);
-                    char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
-                    freelocale(lc);
-                    matchcmd_free(&field);
-
-#ifdef EXTRA_WEB_DEBUG
-                    logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
-#endif
-                    mtime = mktime(&tm_date);
-                    localtime_r(&mtime,&tm_date);
-
-#ifdef EXTRA_WEB_DEBUG
-                    logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
-#endif
-
-                    // Since the original time is given in GMT and we want it expressed
-                    // in the local time zone we must add the offset from GMTIME for the
-                    // current time zone
-                    mtime += tm_date.tm_gmtoff;
-                    localtime_r(&mtime,&tm_date);
-
-#ifdef EXTRA_WEB_DEBUG
-                    logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
-#endif
-
-                    if( ret == NULL ) {
-                        logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header");
-                    } else {                        
+                    if( lc == NULL ) {
+                        lc =  newlocale(LC_ALL_MASK,"C",NULL);
+                    }
+                    if( lc == NULL ) {
+                        logmsg(LOG_ERR,"Cannot create locale to set a date to compare modified since header");
+                        matchcmd_free(&field);
+                        mtime = mktime(&tm_date);
+                        localtime_r(&mtime,&tm_date);
+                        mtime += tm_date.tm_gmtoff;
+                        localtime_r(&mtime,&tm_date);
                         sendback_css_file(my_socket,cssfile,mtime);
-                    }                    
+                    } else {
+                        char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
+                        freelocale(lc);
+
+#ifdef EXTRA_WEB_DEBUG
+                        logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
+#endif
+                        mtime = mktime(&tm_date);
+                        localtime_r(&mtime,&tm_date);
+
+#ifdef EXTRA_WEB_DEBUG
+                        logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
+#endif
+
+                        // Since the original time is given in GMT and we want it expressed
+                        // in the local time zone we must add the offset from GMTIME for the
+                        // current time zone
+                        mtime += tm_date.tm_gmtoff;
+                        localtime_r(&mtime,&tm_date);
+
+#ifdef EXTRA_WEB_DEBUG
+                        logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
+#endif
+
+                        if( ret == NULL ) {
+                            logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header (%s)",field[1]);
+                        }
+                        sendback_css_file(my_socket,cssfile,mtime);
+                        matchcmd_free(&field);
+                    }
                     
                 } else {
 #ifdef EXTRA_WEB_DEBUG

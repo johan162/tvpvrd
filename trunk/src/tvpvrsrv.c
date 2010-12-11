@@ -348,6 +348,11 @@ int external_input = 0;
  */
 char external_switch_script[255];
 
+/*
+ * Holds user specified optional encoder_devices
+ */
+char *encoder_devices[16] = {NULL};
+
 
 /*
  * The following memory routines are just used to double check that
@@ -968,9 +973,9 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 
                     snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
                     subjectbuff[255] = '\0';
-                    logmsg(LOG_DEBUG,"Mail subject: %s",subjectbuff);
-                    logmsg(LOG_DEBUG,"Mail body: %s",mailbuff);
+                    // logmsg(LOG_DEBUG,"Mail body: %s",mailbuff);
                     send_mail(subjectbuff,send_mailaddress,mailbuff);
+                    
 
                 }
             }
@@ -2524,6 +2529,20 @@ read_inisettings(void) {
 #endif
     }
 
+    // Try to read explicitely specified encoder devices
+    for(unsigned int i=0; i < max_video && i<16; ++i) {
+        char encoderdevice[64];
+        char tmpdevicename[128];
+        snprintf(encoderdevice,64,"config:ENCODER_DEVICE%d",i);
+        strncpy(tmpdevicename, iniparser_getstring(dict, encoderdevice, ""), 127);
+        tmpdevicename[127] = '\0';
+        if( *tmpdevicename ) {
+            logmsg(LOG_DEBUG,"Found ENCODER_DEVICE%d=%s in config",i,tmpdevicename);
+            encoder_devices[i] = strdup(tmpdevicename);
+        } else {
+            encoder_devices[i] = NULL;
+        }
+    }
 
 
     /*--------------------------------------------------------------------------

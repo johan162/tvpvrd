@@ -1075,7 +1075,9 @@ send_mail(const char *subject, const char *to, const char *message) {
 
     if( rc ) {
         syslog(LOG_ERR,"Failed to send mail. rc=%d ( %d : %s )",rc,errno,strerror(errno));
-    } 
+    } else {
+        logmsg(LOG_DEBUG,"Sent mail to '%s' with subject '%s'",to,subject);
+    }
 
     return rc;
 
