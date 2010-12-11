@@ -2695,6 +2695,36 @@ setup_lockfile(void) {
     }
 }
 
+/**
+ * Setup the dictionary file (ini-file) name. Check if it is specified on
+ * the command line otherwise check common locations.
+ */
+void
+setup_inifile(void) {
+
+    // Check for inifile at common locations
+    if( *inifile ) {
+        // Specified on the command line. Overrides the default
+        dict = iniparser_load(inifile);
+    } else {
+        snprintf(inifile,255,"%s/tvpvrd/%s",CONFDIR,INIFILE_NAME);
+        inifile[255] = '\0';
+        dict = iniparser_load(inifile);
+        if( !dict ) {
+            // As a last resort check the default /etc directory
+            snprintf(inifile,255,"/etc/tvpvrd/%s",INIFILE_NAME);
+            dict = iniparser_load(inifile);
+            if( dict == NULL )
+                *inifile = '\0';
+        }
+    }
+
+    if( dict == NULL ) {
+        fprintf(stderr,"Can not find the ini file : '%s'\n",INIFILE_NAME);
+        exit(EXIT_FAILURE);
+    }
+
+}
 
 /* ==================================================================================
  * M A I N
@@ -2704,7 +2734,6 @@ int
 main(int argc, char *argv[]) {
     sigset_t signal_set;
     pthread_t signal_thread;
-
 
     // Remember the program name we are started as
     strncpy(inibuffer,argv[0],256);
@@ -2736,50 +2765,20 @@ main(int argc, char *argv[]) {
     
     // Initialize the static frequency map. 
     initfreqtable();
-    
-    // Get current directory
-    char cwd_buff[256];
-    char *res = getcwd(cwd_buff,255);
-    if( res == NULL ) {
-        fprintf(stderr,"FATAL: Cannot determine working directory: (%d:%s)\n",errno,strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    cwd_buff[255] = '\0';
 
-    // Check for inifile at common locations
-    if( *inifile ) {
-        // Specified on the command line. Overrides the default
-        dict = iniparser_load(inifile);
-    } else {        
-        snprintf(inifile,255,"%s/tvpvrd/%s",CONFDIR,INIFILE_NAME);
-        inifile[255] = '\0';
-        dict = iniparser_load(inifile);     
-        if( !dict ) {
-            // As a last resort check the default /etc directory
-            snprintf(inifile,255,"/etc/tvpvrd/%s",INIFILE_NAME);
-            dict = iniparser_load(inifile);
-            if( dict == NULL )
-                *inifile = '\0';
-        }
-    }
-
-    if( dict == NULL ) {
-        fprintf(stderr,"Can not find the ini file : '%s'\n",INIFILE_NAME);
-        exit(EXIT_FAILURE);
-    }
+    // Setup name for inifile and initialize dictionary
+    setup_inifile();
 
     /* In case we are started as a daemon from a boot script we most likely
      * have a faulty locale. If the locale is set in the INI file we will use
      * that one instead.
      */
-
     strncpy(locale_name,
             iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
             255);
     logfile_name[255] = '\0';
     setenv("LC_ALL",locale_name,1);
     logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
-
 
     // Hold the virtual breath if the dameon is started the same time as the server
     // is powerd on to allow for the ntpd time daemon to correct a potential wrong
@@ -2790,7 +2789,6 @@ main(int argc, char *argv[]) {
         syslog(LOG_DEBUG,"Sleeping an extra %d seconds before we go to work",tdelay);
         sleep((unsigned)tdelay);
     }
-
 
     // Remember when the server was started
     tzset();
