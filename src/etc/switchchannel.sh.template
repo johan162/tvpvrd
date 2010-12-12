@@ -29,11 +29,15 @@ fi
 
 #-----------------------------------------------------------
 # Depending on the station send the proper IR command
-# NOte: The actual command must be specified in the
+# Note: The actual command must be specified in the
 # lircd configuration file. In the following you need to
 # replace "MYREMOTE" with the string corresponding to
 # your defined device and "CHANNEL_?" must of course
 # exist in your lircd configuration.
+# The dummy station names below should of course also be
+# replaced by the real station names since the real station
+# name (as used by tvpvrd) will be given as an argument when
+# this script file is called.
 #-----------------------------------------------------------
 case "$station" in
     station_name1)  irsend SEND_START MYREMOTE CHANNEL_1

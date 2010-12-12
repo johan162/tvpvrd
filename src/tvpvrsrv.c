@@ -2457,11 +2457,11 @@ read_inisettings(void) {
     for(unsigned int i=0; i < max_video && i<16; ++i) {
         char encoderdevice[64];
         char tmpdevicename[128];
-        snprintf(encoderdevice,64,"config:ENCODER_DEVICE%d",i);
+        snprintf(encoderdevice,64,"config:encoder_device%d",i);
         strncpy(tmpdevicename, iniparser_getstring(dict, encoderdevice, ""), 127);
         tmpdevicename[127] = '\0';
         if( *tmpdevicename ) {
-            logmsg(LOG_DEBUG,"Found ENCODER_DEVICE%d=%s in config",i,tmpdevicename);
+            logmsg(LOG_DEBUG,"Found encoder_device%d=%s in config",i,tmpdevicename);
             encoder_devices[i] = strdup(tmpdevicename);
         } else {
             encoder_devices[i] = NULL;
@@ -2549,8 +2549,7 @@ init_tvxmldb(void) {
                 "Could not read XML DB file '%s'.",xmldbfile);
             exit(EXIT_FAILURE);
         }
-    }
-    else {
+    } else {
         snprintf(xmldbfile,255,"%s/xmldb/%s",
                 datadir,
                 basename(iniparser_getstring(dict, "config:xmldbfile_name", XMLDBFILE_NAME))
