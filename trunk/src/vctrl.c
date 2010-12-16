@@ -123,7 +123,7 @@ xioctl(int fd, unsigned long request, void * arg) {
  * @return a video descriptor used to reference the device in all other control functions
  */
 int
-_vctrl_openvideo(unsigned int video) {
+_vctrl_openvideo(unsigned int video, unsigned int tuner) {
     struct stat st;
     char vdevice[64];
 
@@ -133,7 +133,11 @@ _vctrl_openvideo(unsigned int video) {
         return -1;
     }
 
-    if( encoder_devices[video] != NULL ) {
+    if( tuner && tuner_devices[video] != NULL) {
+        logmsg(LOG_DEBUG,"Using tuner_device '%s' for video %d",tuner_devices[video],video);
+        snprintf(vdevice, 63, "%s", tuner_devices[video]);
+    }
+    else if( encoder_devices[video] != NULL ) {
         logmsg(LOG_DEBUG,"Using encoder_device '%s' for video %d",encoder_devices[video],video);
         snprintf(vdevice, 63, "%s", encoder_devices[video]);
     } else {
@@ -297,12 +301,14 @@ _vctrl_video_input(const int set, const int fd, int *index) {
             return -1;
         }
         if( -1 == xioctl(fd, VIDIOC_S_INPUT, index) ) {
-            logmsg(LOG_ERR, "(VIDIOC_S_INPUT) Cannot set video input. (%d : %s)", errno, strerror(errno));
+            logmsg(LOG_ERR, "(VIDIOC_S_INPUT) Cannot set video input (fd=%d). (%d : %s)",
+                   fd, errno, strerror(errno));
             return -1;
         }
     } else {
         if( -1 == xioctl(fd, VIDIOC_G_INPUT, index) ) {
-            logmsg(LOG_ERR, "(VIDIOC_G_INPUT) Cannot get video input. (%d : %s)", errno, strerror(errno));
+            logmsg(LOG_ERR, "(VIDIOC_G_INPUT) Cannot get video input (fd=%d). (%d : %s)",
+                   fd, errno, strerror(errno));
             return -1;
         }        
     }
@@ -511,9 +517,13 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
 int
 _vctrl_getcontrols(int fd, struct vidcontrol vctl[], size_t size) {
     struct v4l2_queryctrl qctl;
-    struct v4l2_control ctl;
+    //struct v4l2_control ctl;
     struct v4l2_querymenu qmenu;
     size_t vci;
+
+    struct v4l2_ext_control ctl;
+    struct v4l2_ext_controls ctrls;
+    //int ret=-1;
 
     CLEAR(qctl);
     qctl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
@@ -530,8 +540,13 @@ _vctrl_getcontrols(int fd, struct vidcontrol vctl[], size_t size) {
             vci++;
         } else if (!(V4L2_CTRL_FLAG_DISABLED & qctl.flags)) {
             CLEAR(ctl);
+            CLEAR(ctrls);
             ctl.id = qctl.id;
-            if (0 == xioctl(fd, VIDIOC_G_CTRL, &ctl)) {
+            ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(qctl.id);
+            ctrls.count = 1;
+            ctrls.controls = &ctl;
+
+            if (0 == xioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls)) {
                 vctl[vci].type = VCTRL_MENU;
                 vctl[vci].minval = qctl.minimum;
                 vctl[vci].maxval = qctl.maximum;
@@ -560,7 +575,7 @@ _vctrl_getcontrols(int fd, struct vidcontrol vctl[], size_t size) {
                     vctl[vci].type = VCTRL_BOOLEAN;
                 }
             } else {
-                logmsg(LOG_ERR, "(VIDIOC_G_CTRL) Cannot read value from control '%s', id=%d (%d : %s)",
+                logmsg(LOG_ERR, "(VIDIOC_G_EXT_CTRLS) Cannot read value from control '%s', id=%d (%d : %s)",
                        qctl.name, qctl.id, errno, strerror(errno));
                 return -1;
             }
@@ -574,7 +589,7 @@ _vctrl_getcontrols(int fd, struct vidcontrol vctl[], size_t size) {
 
 /**
  * Video Device Control: _vctrl_get_controlvaluebyname
- * Get the values of a control by specifying the contro by it's user friendly name
+ * Get the values of a control by specifying the control by it's user friendly name
  * 
  */
 int
@@ -589,6 +604,82 @@ _vctrl_get_controlvaluebyname(const char *name,int *val,int *type,struct vidcont
     } else {
         logmsg(LOG_ERR,"Cannot get control id. Unknown control name '%s'.",name);
         return -1;
+    }
+}
+
+/**
+ * Get the extended controls. Mpst likely this is the HW controls
+ * that will adjust the HW MPEG2 controls.
+ * @param fd
+ * @param id
+ * @param ctrl_class
+ * @param val
+ * @return 
+ */
+int
+_vctrl_get_ext_controlvalue(int fd, unsigned id, unsigned ctrl_class, int *val) {
+    struct v4l2_ext_control ctl;
+    struct v4l2_ext_controls ctrls;
+    CLEAR(ctl);
+    CLEAR(ctrls);
+    ctl.id = id;
+    ctrls.ctrl_class = ctrl_class;
+    ctrls.count = 1;
+    ctrls.controls = &ctl;
+    if (0 == xioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls)) {
+        *val = ctl.value;
+        return 0;
+    } else {
+        logmsg(LOG_ERR, "(VIDIOC_G_EXT_CTRLS) Cannot get value for control (id = %d) %d : %s",
+               ctl.id, errno, strerror(errno));
+        return errno;
+    }
+}
+
+/**
+ * Set an extended control. Most likely a MPEG2 HW control
+ * @param fd
+ * @param id
+ * @param ctrl_class
+ * @param val
+ * @return
+ */
+int
+_vctrl_set_ext_controlvalue(int fd, unsigned id, unsigned ctrl_class, int val) {
+    struct v4l2_ext_control ctl;
+    struct v4l2_ext_controls ctrls;
+    CLEAR(ctl);
+    CLEAR(ctrls);
+    ctl.id = id;
+    ctl.value = val;
+    ctrls.ctrl_class = ctrl_class;
+    ctrls.count = 1;
+    ctrls.controls = &ctl;
+
+    if (0 == xioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls)) {
+        return 0;
+    } else {
+        if (errno == EBUSY) {
+            // The control could be temporarily busy so we sleep for 1 second and try again
+            sleep(1);
+            CLEAR(ctl);
+            CLEAR(ctrls);
+            ctl.id = id;
+            ctl.value = val;
+            ctrls.ctrl_class = V4L2_CTRL_CLASS_MPEG;
+            ctrls.count = 1;
+            ctrls.controls = &ctl;
+            if (0 == xioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls)) {
+                return 0;
+            } else {
+                logmsg(LOG_ERR, "(VIDIOC_S_EXT_CTRLS) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+                return errno;
+            }
+
+        } else {
+            logmsg(LOG_ERR, "(VIDIOC_S_EXT_CTRLSL) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+            return errno;
+        }
     }
 }
 
@@ -671,8 +762,8 @@ _vctrl_get_cropcap(int fd, struct v4l2_cropcap *vcrop) {
 /* 
  * Open and close video functions
  */
-int video_open(unsigned int video) {
-    int fd = _vctrl_openvideo(video);
+int video_open(unsigned int video, unsigned int tuner) {
+    int fd = _vctrl_openvideo(video,tuner);
 
     // We need to set the FD_CLOEXEC flag to make
     // sure the video descriptor is closed in any
@@ -709,6 +800,21 @@ int
 video_get_controlbyid(int fd, int id, int *val) {
     return _vctrl_get_controlvalue(fd, id, val);
 }
+
+/*
+ * The extended controls are used primarily for MPEG encoder setting/getting
+ * options so we declare two utility functions
+ */
+int
+video_set_ext_controlbyid(int fd, int id, int val) {
+    return _vctrl_set_ext_controlvalue(fd, id, V4L2_CTRL_CLASS_MPEG, val);
+}
+
+int
+video_get_ext_controlbyid(int fd, int id, int *val) {
+    return _vctrl_get_ext_controlvalue(fd, id, V4L2_CTRL_CLASS_MPEG, val);
+}
+
 
 /**
  * Return an array of strings with the name of all the avaialble inputs for
@@ -815,23 +921,23 @@ video_set_video_bitrate(int fd, unsigned bitrate, unsigned peak_bitrate) {
     }
 
     if( peak_bitrate < old_peakbitrate ) {
-        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
+        ret = video_set_ext_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
         if (ret != 0) {
             logmsg(LOG_ERR, "Can not set video bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
             return -1;
         }
-        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
+        ret = video_set_ext_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
         if (ret != 0) {
             logmsg(LOG_ERR, "Can not set video peak bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
             return -1;
         }
     } else {
-        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
+        ret = video_set_ext_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, peak_bitrate);
         if (ret != 0) {
             logmsg(LOG_ERR, "Can not set video peak bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
             return -1;
         }
-        ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
+        ret = video_set_ext_controlbyid(fd, V4L2_CID_MPEG_VIDEO_BITRATE, bitrate);
         if (ret != 0) {
             logmsg(LOG_ERR, "Can not set video bitrate fd=%d ( %d : %s )", fd, errno, strerror(errno));
             return -1;
@@ -845,10 +951,10 @@ video_set_video_bitrate(int fd, unsigned bitrate, unsigned peak_bitrate) {
  */
 int
 video_get_video_bitrate(int fd, unsigned *bitrate, unsigned *peak_bitrate) {
-    int ret = video_get_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE, (int *)bitrate);
+    int ret = video_get_ext_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE, (int *)bitrate);
     if( ret != 0 )
         return ret;
-    return video_get_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, (int *)peak_bitrate);
+    return video_get_ext_controlbyid(fd,V4L2_CID_MPEG_VIDEO_BITRATE_PEAK, (int *)peak_bitrate);
 }
 
 /*
@@ -875,14 +981,14 @@ video_set_audio_bitrate(int fd, unsigned sampling, unsigned bitrate) {
         sampling != V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 &&
         sampling != V4L2_MPEG_AUDIO_SAMPLING_FREQ_32000 )
         return -1;
-    int ret = video_set_controlbyid(fd, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ, sampling);
+    int ret = video_set_ext_controlbyid(fd, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ, sampling);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set audio sampling rate fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
     }
     if( bitrate < V4L2_MPEG_AUDIO_L2_BITRATE_192K || bitrate > V4L2_MPEG_AUDIO_L2_BITRATE_384K )
         return -1;
-    ret = video_set_controlbyid(fd, V4L2_CID_MPEG_AUDIO_L2_BITRATE, bitrate);
+    ret = video_set_ext_controlbyid(fd, V4L2_CID_MPEG_AUDIO_L2_BITRATE, bitrate);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set audio bitrate fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
@@ -895,10 +1001,10 @@ video_set_audio_bitrate(int fd, unsigned sampling, unsigned bitrate) {
  */
 int
 video_get_audio_bitrate(int fd, unsigned *sampling, unsigned *bitrate) {
-    int ret = video_get_controlbyid(fd, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ, (int *)sampling);
+    int ret = video_get_ext_controlbyid(fd, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ, (int *)sampling);
     if( ret != 0 )
         return ret;
-    return video_get_controlbyid(fd, V4L2_CID_MPEG_AUDIO_L2_BITRATE, (int *)bitrate);
+    return video_get_ext_controlbyid(fd, V4L2_CID_MPEG_AUDIO_L2_BITRATE, (int *)bitrate);
 }
 
 /*
@@ -915,7 +1021,7 @@ video_get_audio_bitrate(int fd, unsigned *sampling, unsigned *bitrate) {
  */
 int
 video_set_video_aspect(int fd, unsigned aspect) {
-    int ret = video_set_controlbyid(fd, V4L2_CID_MPEG_VIDEO_ASPECT, aspect);
+    int ret = video_set_ext_controlbyid(fd, V4L2_CID_MPEG_VIDEO_ASPECT, aspect);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video aspect fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
@@ -933,6 +1039,12 @@ video_set_video_aspect(int fd, unsigned aspect) {
 
 int
 video_set_channel(const int fd, char *ch) {
+
+    if( fd < 1 ) {
+        logmsg(LOG_ERR,"Calling video_set_channel() with bad fd=%d",fd);
+        return -1;
+    }
+
     int pre_len = strlen(INPUT_SOURCE_PREFIX);
     if( 0 == strncmp(INPUT_SOURCE_PREFIX,ch,pre_len) ) {
 

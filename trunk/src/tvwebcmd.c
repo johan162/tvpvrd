@@ -649,31 +649,36 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                     } else {
                         char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
                         freelocale(lc);
-
-#ifdef EXTRA_WEB_DEBUG
-                        logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
-#endif
-                        mtime = mktime(&tm_date);
-                        localtime_r(&mtime,&tm_date);
-
-#ifdef EXTRA_WEB_DEBUG
-                        logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
-#endif
-
-                        // Since the original time is given in GMT and we want it expressed
-                        // in the local time zone we must add the offset from GMTIME for the
-                        // current time zone
-                        mtime += tm_date.tm_gmtoff;
-                        localtime_r(&mtime,&tm_date);
-
-#ifdef EXTRA_WEB_DEBUG
-                        logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
-#endif
-
                         if( ret == NULL ) {
                             logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header (%s)",field[1]);
+                            // Set the date a month back to force a resend of the CSS header in case the header
+                            // can not be parsed.
+                            sendback_css_file(my_socket,cssfile,time(NULL)-3600*24*30);
+                        } else {
+
+#ifdef EXTRA_WEB_DEBUG
+                            logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
+#endif
+                            mtime = mktime(&tm_date);
+                            localtime_r(&mtime,&tm_date);
+
+#ifdef EXTRA_WEB_DEBUG
+                            logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
+#endif
+
+                            // Since the original time is given in GMT and we want it expressed
+                            // in the local time zone we must add the offset from GMTIME for the
+                            // current time zone
+                            mtime += tm_date.tm_gmtoff;
+                            localtime_r(&mtime,&tm_date);
+
+#ifdef EXTRA_WEB_DEBUG
+                            logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
+#endif
+
+
+                            sendback_css_file(my_socket,cssfile,mtime);
                         }
-                        sendback_css_file(my_socket,cssfile,mtime);
                         matchcmd_free(&field);
                     }
                     
