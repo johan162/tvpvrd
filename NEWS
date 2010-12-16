@@ -1,5 +1,24 @@
 $Id$
 
+v2.1.2beta6
+-----------
+Update the command "lc" (to list all the settings) to also use the extended
+control mechanism.
+
+v2.1.2beta5
+-----------
+Changed the setting of the MPEG2 HW controls so that the now always use
+the extended control interface and not the normal user control interface.
+This seems to be the rigth way to do it even if the user way happens to
+work with hauppauge cards.
+
+
+v2.1.2beta2
+-----------
+Added tuner_device<n> option in configuration file to allow user to 
+specify a separate tuning device from the encoder device
+
+
 v2.1.2beta
 ----------
 Adds the option of specifying encoder device for the case where a

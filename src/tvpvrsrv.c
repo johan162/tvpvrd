@@ -350,9 +350,10 @@ int external_input = 0;
 char external_switch_script[255];
 
 /*
- * Holds user specified optional encoder_devices
+ * Holds user specified optional encoder_devices and tuner_devices
  */
 char *encoder_devices[16] = {NULL};
+char *tuner_devices[16] = {NULL};
 
 
 void
@@ -499,7 +500,7 @@ set_enc_parameters(int fd, struct transcoding_profile_entry *profile) {
     }
 
     snprintf(infobuff,255,
-            "HW parameters for video descriptor %d set. Profile='%s' ["
+            "HW parameters using fd=%d set. Profile='%s' ["
             "vcodec:(%.1f Mbps,%.1f Mbps), "
             "acodec:(%.1f kHz,%d kbps), "
             "aspect:('%s'), "
@@ -518,19 +519,40 @@ int
 setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 #ifndef DEBUG_SIMULATE
     char infobuff[256];
+    int fdtuner = -1;
 
-    int fd = video_open(video);
+    logmsg(LOG_DEBUG, "setup_video() for video=%d",video);    
+
+    int fd = video_open(video,FALSE);
     if( fd == -1 ) {
         return -1;
     }
+
+    if( tuner_devices[video] ) {
+        fdtuner = video_open(video,TRUE);
+        if (fdtuner == -1) {
+            logmsg(LOG_ERR, "Cannot open video tuner device '%s' ( %d : %s )",
+                   tuner_devices[video], errno, strerror(errno));
+            video_close(fd);
+            return -1;
+        }
+
+    } else {
+
+        fdtuner = fd;
+    }
+
 #endif
     // Give the driver some breathing room after we open the device
     // and until we start changing the settings.
     usleep(500000);
 
     if( external_switch ) {
+
+        logmsg(LOG_DEBUG,"setup_video(): Using external channel switching.");
+
 #ifndef DEBUG_SIMULATE
-        video_set_input_source(fd,external_input);
+        video_set_input_source(fdtuner,external_input);
 #endif
         char csname[128];
         snprintf(csname,128,"%s/tvpvrd/%s",CONFDIR,external_switch_script);
@@ -539,17 +561,23 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
             logmsg(LOG_CRIT,"FATAL: Cannot open channel switch script '%s' ( %d : %s )",csname,errno,strerror(errno));
 #ifndef DEBUG_SIMULATE
             video_close(fd);
+            if( fdtuner != fd && fdtuner > 0 ) {
+                video_close(fdtuner);
+            }
 #endif
             return -1;
         }
         char cmd[255];
         snprintf(cmd,255,"%s -s %s > /dev/null 2>&1",csname,ongoing_recs[video]->channel);
-        logmsg(LOG_DEBUG,"Running external channel switching cmd '%s'",cmd);
+        logmsg(LOG_DEBUG,"setup_video(): Running external channel switching cmd '%s'",cmd);
         int rc = system(cmd);
         if( rc==-1 || WEXITSTATUS(rc)) {
             logmsg(LOG_CRIT,"FATAL: Channel switch script ended with error code : %d ",WEXITSTATUS(rc));
 #ifndef DEBUG_SIMULATE
             video_close(fd);
+            if( fdtuner != fd && fdtuner > 0 ) {
+                video_close(fdtuner);
+            }
 #endif
             return -1;
         }
@@ -558,15 +586,19 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
         logmsg(LOG_DEBUG,"Simulating channel switch to %s",ongoing_recs[video]->channel);
 #else
         int ret,i=2;
-        ret = video_set_channel(fd, ongoing_recs[video]->channel);
+        ret = video_set_channel(fdtuner, ongoing_recs[video]->channel);
         while( ret == -1 && errno == EBUSY && i > 0 ) {
             usleep((unsigned)(500*(3-i)));
-            ret = video_set_channel(fd, ongoing_recs[video]->channel);
+            ret = video_set_channel(fdtuner, ongoing_recs[video]->channel);
             i--;
         }
 
         if( ret == -1 ) {
             video_close(fd);
+            if( fdtuner != fd && fdtuner > 0 ) {
+                video_close(fdtuner);
+            }
+
             return -1;
         }
 
@@ -581,23 +613,33 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
             unsigned int freq=0;
             getfreqfromstr(&freq, ongoing_recs[video]->channel);
             snprintf(infobuff,255,
-                     "Tuner #%02d set to channel '%s' @ %.3fMHz",
-                     video,ongoing_recs[video]->channel, freq/1000000.0
+                     "Tuner #%02d (fd=%d) set to channel '%s' @ %.3fMHz",
+                     video, fdtuner, ongoing_recs[video]->channel, freq/1000000.0
             );
 
         }
         logmsg(LOG_DEBUG,infobuff);
 
         if( allow_profiles_adj_encoder ) {
+            logmsg(LOG_DEBUG,"setup_video(): Adjusting HW encoder params for fd=%d, profile '%s'",
+                   fd,profile->name);
             if( -1 == set_enc_parameters(fd, profile) ) {
                 video_close(fd);
+                if( fdtuner != fd && fdtuner > 0 ) {
+                    video_close(fdtuner);
+                }
+
                 return -1;
             }
         }
 #endif
     }
 #ifndef DEBUG_SIMULATE
+    if( fdtuner != fd && fdtuner > 0 ) {
+        video_close(fdtuner);
+    }
     return fd;
+
 #else
     return 0;
 #endif
@@ -2468,6 +2510,22 @@ read_inisettings(void) {
         }
     }
 
+    // Try to read explicitely specified tuner devices
+    for(unsigned int i=0; i < max_video && i<16; ++i) {
+        char tunerdevice[64];
+        char tmpdevicename[128];
+        snprintf(tunerdevice,64,"config:tuner_device%d",i);
+        strncpy(tmpdevicename, iniparser_getstring(dict, tunerdevice, ""), 127);
+        tmpdevicename[127] = '\0';
+        if( *tmpdevicename ) {
+            logmsg(LOG_DEBUG,"Found tuner_device%d=%s in config",i,tmpdevicename);
+            tuner_devices[i] = strdup(tmpdevicename);
+        } else {
+            tuner_devices[i] = NULL;
+        }
+    }
+
+
 
     /*--------------------------------------------------------------------------
      * FFMPEG Section
@@ -2499,7 +2557,7 @@ read_inisettings(void) {
     if( is_master_server ) {
         // Verify that we can really open all the videos we are requsted to use
         for( unsigned i=0; i < max_video; i++ ) {
-            int vh = video_open(i);
+            int vh = video_open(i,TRUE);
             if( vh == -1 ) {
                 logmsg(LOG_ERR,
                         "** FATAL error. "
@@ -2591,7 +2649,7 @@ init_capture_cards(void) {
         struct transcoding_profile_entry *profile;
         get_transcoding_profile(default_transcoding_profile,&profile);
         for(unsigned video=0; video < max_video; video++) {
-            int fd = video_open(video);
+            int fd = video_open(video,FALSE);
             int ret = set_enc_parameters(fd,profile);
             video_close(fd);
             if( -1 == ret  ) {

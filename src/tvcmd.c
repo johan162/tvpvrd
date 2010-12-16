@@ -1261,7 +1261,7 @@ _cmd_list_stations(const char *cmd, int sockfd) {
 // Helper function for _cmd_list_video_inputs command
 void
 helper_list_video_inputs(unsigned video, int sockfd) {
-    int fd = video_open(video);
+    int fd = video_open(video,TRUE);
     if( fd >= 0 ) {
 
         // Print the identifier for the card as the first line
@@ -1346,7 +1346,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
         unsigned video = (unsigned)atoi(field[1]);
         matchcmd_free(&field);
 
-        int fd = video_open(video);
+        int fd = video_open(video,TRUE);
         if( fd >= 0 ) {
             int n=_vctrl_getcontrols(fd, vctl, 32);
             if( n > -1 ) {
@@ -1891,7 +1891,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
     if( ret == 2 ) {
         unsigned video = (unsigned)atoi(field[1]);
 
-        int fd = video_open(video);
+        int fd = video_open(video,TRUE);
         if( fd >= 0 ) {
             char *driver, *card, *version;
             unsigned int capflags;
@@ -1908,7 +1908,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
         if( ret >= 1 ) {
             // Print info for all available cards
             for(unsigned video=0; video < (unsigned)max_video; video++) {
-                int fd = video_open(video);
+                int fd = video_open(video,TRUE);
                 if( fd >= 0 ) {
                     char *driver, *card, *version;
                     unsigned int capflags;

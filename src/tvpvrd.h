@@ -536,6 +536,7 @@ extern int tuner_input_index ;
 
 // Optional user specified encoder devices
 extern char *encoder_devices[] ;
+extern char *tuner_devices[] ;
 
 void
 tvp_mem_list(int sockd);

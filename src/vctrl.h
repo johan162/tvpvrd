@@ -96,7 +96,7 @@ struct framesize {
  * Open and close video functions
  * @param video NUmerb of the video card to open
  */
-int video_open(unsigned int video);
+int video_open(unsigned int video, unsigned int tuner);
 
 /**
  * Close the video card associated with filedescriptor 'fd'
