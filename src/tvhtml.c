@@ -40,6 +40,7 @@
 
 #include "config.h"
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "utils.h"
 #include "recs.h"
 #include "tvcmd.h"

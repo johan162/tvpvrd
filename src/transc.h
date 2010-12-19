@@ -131,6 +131,54 @@ extern "C" {
 #define FFMPEG_SECTION "ffmpeg"
 #define ENCODER_SECTION "encoder"
 
+
+/*
+ * DEFAULT_VIDEO_BITRATE integer
+ * DEFAULT_VIDEO_PEAK_BITRATE integer
+ * Deafult video bitrates 3 Mbps , peak 3.5 Mbps
+ * Values should be in range 500000 up to 8000000
+ */
+#define DEFAULT_VIDEO_BITRATE 3000000
+#define DEFAULT_VIDEO_PEAK_BITRATE 3500000
+
+/*
+ * DEFAULT_VIDEO_FRAME_SIZE string
+ * Default MP2 frame size 3-quarter
+ * Supported format at present are
+ *  "default = 720,576
+ *  "qvga = 320,240
+ *  "qqvga" = 160,120
+ *  "vga" = 640,480
+ *  "cif" = 352,288
+ *  "3q" = 480,384
+ *  "3qmp4" = 480,352
+ *   "half" = 360,288
+ */
+#define DEFAULT_VIDEO_FRAME_SIZE "3qmp4"
+
+/*
+ * Deafult audio sampling freq
+ */
+#define DEFAULT_AUDIO_SAMPLING V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100
+
+/*
+ * Default audio bitrate for MPEG Layer 2
+ */
+#define DEFAULT_AUDIO_BITRATE V4L2_MPEG_AUDIO_L2_BITRATE_256K
+
+/*
+ * Default video aspect rate
+ * A possible value would also be V4L2_MPEG_VIDEO_ASPECT_4x3
+ */
+#define DEFAULT_VIDEO_ASPECT V4L2_MPEG_VIDEO_ASPECT_16x9
+
+/*
+ * KEEP_MP2FILE bool
+ * Keep original MP2 file from video card even after transcoding
+ */
+#define KEEP_MP2FILE 1
+
+
 /**
   * Holds all the information on a specific transcoding profile. The profile
  * has two main sections.

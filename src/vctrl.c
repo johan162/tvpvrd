@@ -56,6 +56,7 @@
 
 // Local hader files
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "vctrl.h"
 #include "utils.h"
 #include "freqmap.h"

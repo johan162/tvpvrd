@@ -48,6 +48,7 @@
 #include <linux/videodev2.h>
 
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "transc.h"
 #include "utils.h"
 #include "stats.h"

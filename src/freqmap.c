@@ -42,16 +42,8 @@
 #include <syslog.h>
 #include <errno.h>
 
-
-
-// Aplication specific libs, parse inifiles as well as Perl regular expressions
-#ifdef HAVE_LIBINIPARSER
-#include <iniparser.h>
-#else
-#include "iniparser/iniparser.h"
-#endif
-
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "freqmap.h"
 #include "utils.h"
 

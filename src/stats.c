@@ -41,6 +41,7 @@
 
 // Application specific includes
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "transc.h"
 #include "stats.h"
 #include "utils.h"
