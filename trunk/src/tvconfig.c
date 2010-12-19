@@ -21,6 +21,14 @@
  * =========================================================================
  */
 
+// We want the full POSIX and C99 standard
+#define _GNU_SOURCE
+
+// And we need to have support for files over 2GB in size
+#define _LARGEFILE_SOURCE
+#define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <syslog.h>
@@ -34,6 +42,12 @@
 #include "vctrl.h"
 #include "transc.h"
 
+/*
+ * The value of the following variables are read from the ini-file.
+ * They hold various run time limits and settings that
+ * the user can adjust. Some of these values can also be overridden by being
+ * given as options when the daemon starts
+ */
 
 // Should we run as a daemon or nothing
 int daemonize=-1;
@@ -103,7 +117,6 @@ dictionary *dict;
  */
 int allow_profiles_adj_encoder = 0;
 
-
 /*
  * Should the WEB-interface available be enabled
  */
@@ -153,6 +166,49 @@ char web_user[32];
 int require_web_password;
 int weblogin_timeout;
 
+/*
+ * Determine if we should use subdirectories for each profile or just
+ * store all videos directly under mp2/ or mp4/
+ */
+int use_profiledirectories = 1;
+
+/*
+ * Mail setting. Determine if we should send mail on errors and what address
+ * to use. Read from the inifile normally.
+ */
+int send_mail_on_error, send_mail_on_transcode_end;
+char send_mailaddress[64];
+
+/**
+ * Setup the dictionary file (ini-file) name. Check if it is specified on
+ * the command line otherwise check common locations.
+ */
+void
+setup_inifile(void) {
+
+    // Check for inifile at common locations
+    if( *inifile ) {
+        // Specified on the command line. Overrides the default
+        dict = iniparser_load(inifile);
+    } else {
+        snprintf(inifile,255,"%s/tvpvrd/%s",CONFDIR,INIFILE_NAME);
+        inifile[255] = '\0';
+        dict = iniparser_load(inifile);
+        if( !dict ) {
+            // As a last resort check the default /etc directory
+            snprintf(inifile,255,"/etc/tvpvrd/%s",INIFILE_NAME);
+            dict = iniparser_load(inifile);
+            if( dict == NULL )
+                *inifile = '\0';
+        }
+    }
+
+    if( dict == NULL ) {
+        fprintf(stderr,"Can not find the ini file : '%s'\n",INIFILE_NAME);
+        exit(EXIT_FAILURE);
+    }
+
+}
 
 /**
  * Get common master values from the ini file

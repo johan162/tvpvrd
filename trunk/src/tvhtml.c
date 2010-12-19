@@ -38,7 +38,6 @@
 #include <locale.h>
 #include <time.h>
 
-#include "config.h"
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "utils.h"

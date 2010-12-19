@@ -24,18 +24,11 @@
  * =========================================================================
  */
 
-#include "config.h"
 #include <time.h>
 #include <pthread.h>
 #include <sys/param.h> // Needed to get MAX()
 #include <errno.h>
 #include <syslog.h>
-#ifdef HAVE_LIBINIPARSER
-#include <iniparser.h>
-#else
-#include "iniparser/iniparser.h"
-#endif
-
 
 #ifndef _TVPVRD_H
 #define	_TVPVRD_H
@@ -43,6 +36,8 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+
+#include "config.h"
 
 /*
  * Defining this constant makes it possible to run the server on a

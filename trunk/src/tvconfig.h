@@ -23,7 +23,6 @@
  * =========================================================================
  */
 
-
 #ifndef TVCONFIG_H
 #define	TVCONFIG_H
 
@@ -31,12 +30,21 @@
 extern "C" {
 #endif
 
-// Aplication specific libs, parse inifiles as well as Perl regular expressions
+/* The iniparser library used is dependent on the configuration. It can either be the
+ * system wide existing library or the daemon can use an internal version. Hence we need
+ * to adjust which ini file we will be reading. The controlling variable is defined in the
+ * generated config.h file.
+ */
 #ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
 #else
 #include "iniparser/iniparser.h"
 #endif
+
+/*
+ * All defines below gives the default values for various ini file settings
+ * which are used in the case that the setting wasn't found in the ini-file.
+ */
 
 /*
  * INIFILE_NAME string
@@ -85,7 +93,6 @@ extern "C" {
  */
 #define PORT 9300
 
-
 /*
  * ENABLE_WEBINTERFACE boolean
  * The server can provoide a very rudimentary WEb-interface which only
@@ -103,7 +110,6 @@ extern "C" {
 #define WEB_PASSWORD ""
 #define WEBLOGIN_TIMEOUT 0
 
-
 /*
  * Note: All the defines for general settings are read from an inifile
  * If the ini file is missing some values then the defines below will be used
@@ -116,7 +122,6 @@ extern "C" {
  * of TV-Cards available in the system since most TV-Cards only have one MPEG encoder
  */
 #define MAX_VIDEO 2
-
 
 /*
  * REQUIRE_PASSWORD boolean
@@ -140,14 +145,12 @@ extern "C" {
  */
 #define TIME_RESOLUTION 3
 
-
 /*
  * VIDEO_DEVICE_BASENAME string
  * Basename of video device. Each stream will be assumed accessible as
  * VIDEO_DEVICE_BASENAME<stream-number>, e.g. /dev/video0
  */
 #define VIDEO_DEVICE_BASENAME "/dev/video"
-
 
 /*
  * DEFAULT_USE_PROFILE_DIRECTORIES boolean
@@ -167,7 +170,6 @@ extern "C" {
  * disconnected. Deafult 30 min.
  */
 #define CLIENT_IDLE_TIME 30*60
-
 
 /*
  * DEFAULT_DURATIONHOUR integer
@@ -192,7 +194,6 @@ extern "C" {
 #define SENDMAIL_ON_ERROR 0
 #define SENDMAIL_ON_TRANSCODE_END 0
 
-
 /*
  * SEND_MAILADDRESS string
  * Mail address to use if we have enabled sending notification of serious error
@@ -214,13 +215,11 @@ extern "C" {
  */
 #define DEFAULT_FREQUENCY_MAP "europe-west"
 
-
 /*
  * DEFAULT_XAWTV_CHANNEL_FILE string
  * The name of the channel map for broadcasting names of channels
  */
 #define DEFAULT_XAWTV_STATION_FILE "/etc/X11/xawtvrc"
-
 
 /*
  * MAX_LOAD_FOR_TRANSCODING integer
@@ -259,7 +258,6 @@ extern "C" {
  */
 #define DEFAULT_EXTERNAL_SWITCH_SCRIPT "switchchannel.sh"
 
-
 /*
  * MAX_WAITING_TIME_TO_TRANSCODE integer
  * The maximum time in seconds that can be set to wait for the
@@ -277,12 +275,18 @@ extern "C" {
  */
 #define FFMPEG_BIN "/usr/bin/ffmpeg"
 
-
 /*
  * VERBOSE_LOG bool
  * Should the log be more verbose
  */
 #define VERBOSE_LOG 1
+
+/*
+ * The value of the following variables are read from the ini-file.
+ * They hold various run time limits and settings that
+ * the user can adjust. Some of these values can also be overridden by being
+ * given as options when the daemon starts
+ */
 
 extern int use_profiledirectories ;
 
@@ -382,26 +386,36 @@ extern int send_mail_on_transcode_end ;
 // Name of loclae to use (used to set LC_ALL)
 extern char locale_name[];
 
-// Should we allow connection to the WEB-interface
+// Should we allow connection to the WEB-interface?
 extern int enable_webinterface;
 
-// Web interface login
+/*
+ * Parameters to control the WEB-login
+ */
 extern int require_web_password;
 extern char web_password[];
 extern char web_user[];
 extern int weblogin_timeout;
 
-// The input source index that corresponds to the tuner on the
-// capture card.
+/*
+ * The input source index that corresponds to the tuner on the capture card.
+ */
 extern int tuner_input_index ;
 
-// Optional user specified encoder devices
+/*
+ *  Optional user specified encoder devices
+ */
 extern char *encoder_devices[] ;
 extern char *tuner_devices[] ;
 
-// Name of optional post recording script to run
+/*
+ * Name of optional post recording script to run
+ */
 extern char *postrec_script;
 
+/*
+ * Handle to dictionary which holds all variables read from the inifile
+ */
 extern dictionary *dict;
 
 extern int allow_profiles_adj_encoder ;
@@ -412,15 +426,18 @@ extern int allow_profiles_adj_encoder ;
 extern int tuner_input_index;
 
 /*
- * SHOuld we switch channel via an external script
+ * Should we switch channel via an external script
  */
 extern int external_switch ;
 
 /*
- * Which video input sohuld we read from when we use external channel switching
+ * Which video input should we read from when we use external channel switching
  */
 extern int external_input ;
 
+/*
+ * Name of script to be called for doing external channel switching
+ */
 extern char external_switch_script[];
 
 /*
@@ -434,6 +451,13 @@ extern char *tuner_devices[] ;
  */
 extern char *postrec_script;
 extern int use_postrec_processing;
+
+/**
+ * Setup the dictionary file (ini-file) name. Check if it is specified on
+ * the command line otherwise check common locations.
+ */
+void
+setup_inifile(void);
 
 /**
  * Get common master values from the ini file

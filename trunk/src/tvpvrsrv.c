@@ -80,9 +80,8 @@
 #include <sys/prctl.h>
 
 // Local files
-#include "config.h"
-#include "tvconfig.h"
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "vctrl.h"
 #include "recs.h"
 #include "utils.h"
@@ -96,20 +95,11 @@
 #include "build.h"
 #include "pcretvmalloc.h"
 
-
 /*
  * Server identification
  */
 char server_version[] = PACKAGE_VERSION; // This define gets set by the config process
-//char server_build_date[] = __DATE__;     // This is a builtin define set by the compiler
 char server_program_name[32] = {0};
-
-/*
- * The value of these variables are read from the ini-file and initialized in
- * the main() function. They hold various run time limits and settings that
- * the user can adjust. Some of these values can also be overridden by being
- * given as options when the daemon starts
- */
 
 // Time delay before the daemon really starts doing stuff if
 // the dameon is started within 3 minutes of the machine power
@@ -123,7 +113,7 @@ char server_program_name[32] = {0};
 // takes place. If the bios clock is not correctly updated at shutdown
 // the first few seconds after the server starts the time will be off
 // by one hour.
-// This variable species a suitable number of seconds for the daemon to
+// This variable specifies a suitable number of seconds for the daemon to
 // sleep at startup so that the ntpd daemons has had time to correct the
 // machine time. Of course this delay is only really necessary when the
 // daaemon is started up just after the server has been powered on. So
@@ -135,10 +125,6 @@ int tdelay=30;
 // The video buffer (used when reading the video stream from the capture card)
 // One buffer for each video card. We support up to 4 simultaneous cards
 char *video_buffer[MAX_VIDEO];
-
-/*
- * Global variables for MP4 transcoding
- */
 
 /*
  * abort_video int
@@ -186,7 +172,7 @@ time_t *client_tsconn;
  * 1) The data structure when mutliple clients are connected
  * 2) The creation and killing of thread and thread counts
  */
-pthread_mutex_t recs_mutex   = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t recs_mutex          = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t socks_mutex  = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t sig_mutex    = PTHREAD_MUTEX_INITIALIZER;
 
@@ -223,19 +209,6 @@ char username[64];
  * kill this server.
  */
 int dokilltranscodings = 1;
-
-/*
- * Determine if we should use subdirectories for each profile or just
- * store all videos directly under mp2/ or mp4/
- */
-int use_profiledirectories = 1;
-
-/*
- * Mail setting. Determine if we should send mail on errors and what address
- * to use. Read from the inifile normally.
- */
-int send_mail_on_error, send_mail_on_transcode_end;
-char send_mailaddress[64];
 
 /*
  * What locale to use, by default this is set to LOCALE_NAME (which in the original distribution
@@ -290,38 +263,6 @@ init_globs(void) {
     }
 
 }
-
-/**
- * Free global data structures. Note: not used anymore since all structures gets cleaned up at
- * program exit anyway.
- */
-
-/*
-void
-free_globs(void) {
-
-
-    cmdfree();
-    freerecs();
-        for(unsigned i=0; i < max_clients; i++) {
-        if( client_ipadr[i] ) {
-                free(client_ipadr[i]);
-        }
-        free(video_buffer[i]);
-    }
-
-    free(client_ipadr);
-    free(rec_threads);
-    free(cli_threads);
-
-    free(video_idx);
-    free((void *)abort_video);
-
-    free(client_tsconn);
-    free(client_socket);
-    iniparser_freedict(dict);
-}
-*/
 
 /**
  * Set the video encoding HW parameters on the video card from the values specified in the
@@ -1190,10 +1131,6 @@ startrec(void *arg) {
     pthread_exit(NULL);
     return (void *) 0;
 }
-
-
-
-
 
 /*
  * This is the main thread to watch for starting new recordings. It is started at the beginning
@@ -2268,52 +2205,14 @@ chkswitchuser(void) {
             logmsg(LOG_INFO,"The server is running as user 'root'. This is strongly discouraged. *");
         }
     }
-}
 
-/**
- * Initialize the recording database. This is a plain text file in XML format.
- * The full structure of the DB is defined with an XML RNG (grammar) stored in the
- * document folder in the distribution.
- */
-void
-init_tvxmldb(void) {    
-    // If an XML DB file was given as an argument use this location as the xml db file
-    // Otherwise use the XMLDB file specified in the ini-file
-    if( strlen(xmldbfile) > 0 ) {
-        logmsg(LOG_INFO,"Reading initial XML DB from: '%s'.", xmldbfile);
-        if( -1 == readXMLFile(xmldbfile) ) {
-        logmsg(LOG_ERR,
-                "FATAL error. "
-                "Could not read XML DB file '%s'.",xmldbfile);
-            exit(EXIT_FAILURE);
-        }
-    } else {
-        snprintf(xmldbfile,255,"%s/xmldb/%s",
-                datadir,
-                basename(iniparser_getstring(dict, "config:xmldbfile_name", XMLDBFILE_NAME))
-                );
-        xmldbfile[255] = '\0';
-        if( strlen(xmldbfile) >= 255 ) {
-            logmsg(LOG_ERR,
-                    "FATAL error. "
-                    "Name of XML DB file is not valid. String too long.\n");
-            exit(EXIT_FAILURE);
-        }
-        // If the XML DB File doesn't exist we will create an empty one
-        struct stat fstat;
-        if( -1 == stat(xmldbfile,&fstat) ) {
-            if( -1 == writeXMLFile(xmldbfile) ) {
-                logmsg(LOG_ERR,"Failed to initialize xmldb datafile. (%d : %s)",errno,strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-        }
-        logmsg(LOG_INFO,"Reading initial XML DB from: '%s'.", xmldbfile);
-        if( -1 == readXMLFile(xmldbfile) ) {
-            logmsg(LOG_INFO,
-                "No DB file found. Will be created in '%s' when saved.",
-                xmldbfile);
-        }
+    // After a possible setuid() and setgrp() the dumapable flag is reset which means
+    // that no core is dumped in case of a SIGSEGV signal. We want a coredump in case
+    // of a memory overwrite so we make sure this is allowed
+    if( -1 == prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) ) {
+        logmsg(LOG_ERR,"Can not set PR_SET_DUMPABLE");
     }
+
 }
 
 /**
@@ -2356,36 +2255,6 @@ setup_lockfile(void) {
     }
 }
 
-/**
- * Setup the dictionary file (ini-file) name. Check if it is specified on
- * the command line otherwise check common locations.
- */
-void
-setup_inifile(void) {
-
-    // Check for inifile at common locations
-    if( *inifile ) {
-        // Specified on the command line. Overrides the default
-        dict = iniparser_load(inifile);
-    } else {
-        snprintf(inifile,255,"%s/tvpvrd/%s",CONFDIR,INIFILE_NAME);
-        inifile[255] = '\0';
-        dict = iniparser_load(inifile);
-        if( !dict ) {
-            // As a last resort check the default /etc directory
-            snprintf(inifile,255,"/etc/tvpvrd/%s",INIFILE_NAME);
-            dict = iniparser_load(inifile);
-            if( dict == NULL )
-                *inifile = '\0';
-        }
-    }
-
-    if( dict == NULL ) {
-        fprintf(stderr,"Can not find the ini file : '%s'\n",INIFILE_NAME);
-        exit(EXIT_FAILURE);
-    }
-
-}
 
 /* ==================================================================================
  * M A I N
@@ -2491,7 +2360,7 @@ main(int argc, char *argv[]) {
     read_inisettings();
 
     //----------------------------------------------------------------------------------------
-    // Note: The order of the initialization below is somewhat important. The vital dependcies
+    // Note: The order of the initialization below is somewhat important. The vital dependencies
     // are:
     // - Lockfile must be created while in possible root mode (Since we are accessing /var/run)
     // - Lockfile must be created after a possible switch to daemon mode since that changes
@@ -2516,14 +2385,6 @@ main(int argc, char *argv[]) {
     // For security a daemon should never run as a root unless necessary
     // and in our case it is not necessary for us to run as root.
     chkswitchuser();
-
-    // After a possible setuid() adn setgrp() the dumapable flag is reset which means
-    // that no core is dumped in case of a SIGSEGV signal. We want a coredump in case
-    // of a memory overwrite so we make sure this is allowed
-    if( -1 == prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) ) {
-        logmsg(LOG_ERR,"FATAL: Can not set PR_SET_DUMPABLE");
-        exit(EXIT_FAILURE);
-    }
 
     // Initialize all the data structures that stores our recording
     init_globs();
@@ -2554,6 +2415,12 @@ main(int argc, char *argv[]) {
         (void) pthread_create(&chkrec_thread, NULL, chkrec, (void *) NULL);
     }
 
+    //*********************************************************************************
+    //*********************************************************************************
+    //**     This is the real main starting point of the program                     **
+    //*********************************************************************************
+    //*********************************************************************************
+
     // Startup the main socket server listener. The call to startupsrv() will
     // not return until the daemon is terminated by a user signal.
     if( EXIT_FAILURE == startupsrv() ) {
@@ -2564,32 +2431,38 @@ main(int argc, char *argv[]) {
     logmsg(LOG_INFO,"Received signal %d. Shutting down ...",received_signal);
     
     pthread_mutex_lock(&recs_mutex);
+
+    // ---------------------------------------------------------------------------------
+    // Close all clients
+    // ---------------------------------------------------------------------------------
+    for(unsigned i=0; i < max_clients; i++ ) {
+        if( cli_threads[i] ) {
+            _dbg_close(client_socket[i]);
+            logmsg(LOG_INFO,"Disconnecting client with IP address '%s'",client_ipadr[i]);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------
     // Shutdown all ongoing recordings
+    // ---------------------------------------------------------------------------------
     if( is_master_server ) {
         for(unsigned i=0; i < max_video; i++) {
             if( ongoing_recs[i] && abort_video[i] == 0 ) {
                 abort_video[i] = 1;
-                logmsg(LOG_INFO,"  -- Aborting recording on video %d",i);
+                logmsg(LOG_INFO,"Aborting recording on video %d",i);
             } else {
                 abort_video[i] = 0;
             }
         }
     }
 
-    // Close all clients
-    for(unsigned i=0; i < max_clients; i++ ) {
-        if( cli_threads[i] ) {
-            _dbg_close(client_socket[i]);
-            logmsg(LOG_INFO,"  -- Disconnecting client from %s",client_ipadr[i]);
-        }
-    }        
     pthread_mutex_unlock(&recs_mutex);
 		
     // Store the calculated statistics
     (void)write_stats();
 
     if( is_master_server ) {
-        // Wait until all recordings have stopped or we have waited more than 15s
+        // Wait until all recordings have stopped or we have waited more than 15 seconds
         int watchdog = 15;
         volatile int ongoing = 0;
         for(unsigned i=0; i < max_video; i++) {
@@ -2601,17 +2474,17 @@ main(int argc, char *argv[]) {
                 ongoing |= abort_video[i];
             }
             sleep(1);
-            logmsg(LOG_INFO,"Waiting for video to stop [%d] ...",
-                watchdog);
+            logmsg(LOG_INFO,"Waiting for video to stop [%d] ...", watchdog);
             watchdog--;
         }
     }
 
+    // Stop being nice and just kill all ongoing transcodings
     if( dokilltranscodings ) {
         kill_all_ongoing_transcodings();
     }
 
-    logmsg(LOG_INFO,"Bye.");
+    logmsg(LOG_INFO,"Bye. tvpvrd really terminated.");
 
     // We don't bother freeing globals since some data structures are checked by running
     // threads and we might get sigfaults if the thread is trying to check a deleted memory structure.

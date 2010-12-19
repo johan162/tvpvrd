@@ -47,9 +47,8 @@
 #include "freqmap.h"
 #include "transc.h"
 #include "recs.h"
-#include "config.h"
 #include "tvhtml.h"
-#include "config.h"
+
 
 // Get the name of the CSS file from the basename of the package, i.e. "tvpvrd"
 #define CSSFILE_BASENAME PACKAGE_TARNAME
