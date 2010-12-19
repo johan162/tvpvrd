@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ==================================================================================
+    -File         $Id$
+    -Description: Relax-NG XML Schema For DB file structre for 'tvpvrd'. 
+    (See http://www.relaxng.org) 
+    -License      GNU LGPL (http://www.gnu.org/copyleft/lgpl.html)
+    -Author       Johan Persson, johan162@gmail.com
+    ==================================================================================
+-->
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+    xmlns="http://relaxng.org/ns/structure/1.0"
+    datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+    
+    <start>
+        <ref name="tvrecdb"></ref>
+    </start>
+    
+    <define name="tvrecdb">
+        <element name="tvrecdb">
+            <attribute name="version"/>
+            <zeroOrMore>
+                <ref name="recording"/>
+            </zeroOrMore>
+        </element>
+    </define>
+    
+    <define name="recording">   
+        <element name="recording">
+            <interleave>
+                <ref name="title"/>
+                <ref name="channel"/>
+                <ref name="video"/>
+                <ref name="startdate"/>
+                <ref name="starttime"/>
+                <ref name="enddate"/>
+                <ref name="endtime"/>
+                <ref name="filename"/>
+                <ref name="transcodeprofile"/>
+                <optional>
+                    <ref name="repeat"/>
+                </optional>
+            </interleave>
+        </element>
+    </define>
+    
+    <define name="title">
+        <element name="title">
+            <data type="string"></data>
+        </element>
+    </define>
+    
+    <define name="channel">
+        <element name="channel">
+            <data type="string"></data>
+        </element>
+    </define>
+    
+    <define name="video">
+        <element name="video">
+            <data type="int"></data>
+        </element>
+    </define>
+    
+    <define name="startdate">
+        <element name="startdate">
+            <data type="date"></data>
+        </element>
+    </define>
+    
+    <define name="enddate">
+        <element name="enddate">
+            <data type="date"></data>
+        </element>
+    </define>
+    
+    <define name="starttime">
+        <element name="starttime">
+            <data type="time"></data>
+        </element>
+    </define>
+    
+    <define name="endtime">
+        <element name="endtime">
+            <data type="time"></data>
+        </element>
+    </define>
+    
+    <define name="filename">
+        <element name="filename">
+            <data type="string"></data>
+        </element>
+    </define>
+    
+    <define name="transcodeprofile">
+        <element name="transcodeprofile">
+            <data type="string"></data>
+        </element>
+    </define>
+    
+    <define name="repeat">
+        <element name="repeat">
+            <interleave>
+                <ref name="repeat.type"></ref>
+                <ref name="repeat.nbr"></ref>
+                <ref name="repeat.titlemangling"></ref>
+                <ref name="repeat.startnumber"></ref>
+            </interleave>
+        </element>
+    </define>
+    
+    <define name="repeat.type">
+        <element name="type">
+            <data type="int"></data>
+        </element>
+    </define>
+    
+    <define name="repeat.nbr">
+        <element name="nbr">
+            <data type="int"></data>
+        </element>
+    </define>
+    
+    <define name="repeat.titlemangling">
+        <attribute name="prefix"></attribute>
+        <element name="titlemangling">
+            <data type="string"></data>
+        </element>
+    </define>
+    
+    <define name="repeat.startnumber">
+        <element name="startnumber">
+            <data type="int"></data>
+        </element>
+    </define>
+    
+    </grammar>
