@@ -538,6 +538,9 @@ extern int tuner_input_index ;
 extern char *encoder_devices[] ;
 extern char *tuner_devices[] ;
 
+// Name of optional post recording script to run
+extern char *postrec_script;
+
 void
 tvp_mem_list(int sockd);
 

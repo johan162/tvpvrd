@@ -791,30 +791,32 @@ video_set_controlbyname(int fd, char *name,int val) {
     return id;
 }
 
-int
-video_set_controlbyid(int fd, int id, int val) {
-    return _vctrl_set_controlvalue(fd, id, val);
-}
-
-int
-video_get_controlbyid(int fd, int id, int *val) {
-    return _vctrl_get_controlvalue(fd, id, val);
-}
-
 /*
  * The extended controls are used primarily for MPEG encoder setting/getting
  * options so we declare two utility functions
  */
 int
 video_set_ext_controlbyid(int fd, int id, int val) {
-    return _vctrl_set_ext_controlvalue(fd, id, V4L2_CTRL_CLASS_MPEG, val);
+    return _vctrl_set_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
 }
 
 int
 video_get_ext_controlbyid(int fd, int id, int *val) {
-    return _vctrl_get_ext_controlvalue(fd, id, V4L2_CTRL_CLASS_MPEG, val);
+    //return _vctrl_get_ext_controlvalue(fd, id, V4L2_CTRL_CLASS_MPEG, val);
+    return _vctrl_get_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
 }
 
+int
+video_set_controlbyid(int fd, int id, int val) {
+    return _vctrl_set_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
+    //return _vctrl_set_controlvalue(fd, id, val);
+}
+
+int
+video_get_controlbyid(int fd, int id, int *val) {
+    return _vctrl_get_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
+    //return _vctrl_get_controlvalue(fd, id, val);
+}
 
 /**
  * Return an array of strings with the name of all the avaialble inputs for
