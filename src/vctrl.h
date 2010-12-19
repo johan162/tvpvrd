@@ -143,6 +143,26 @@ int
 video_get_controlbyid(int fd, int id, int *val);
 
 /**
+ *
+ * @param fd
+ * @param id
+ * @param val
+ * @return
+ */
+int
+video_set_ext_controlbyid(int fd, int id, int val);
+
+/**
+ *
+ * @param fd
+ * @param id
+ * @param val
+ * @return
+ */
+int
+video_get_ext_controlbyid(int fd, int id, int *val);
+
+/**
  * set the wanted bitrate fro the MP2 HW encoder
  * Both the normal and peak values must be specified, The values are
  * specified in BITS and normally have a value between 1000000 - 8000000

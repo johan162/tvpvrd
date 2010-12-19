@@ -355,6 +355,11 @@ char external_switch_script[255];
 char *encoder_devices[16] = {NULL};
 char *tuner_devices[16] = {NULL};
 
+/*
+ * Name of optional post recording script
+ */
+char *postrec_script;
+int use_postrec_processing=FALSE;
 
 void
 init_globs(void) {
@@ -1201,8 +1206,34 @@ startrec(void *arg) {
         abort_video[video]=0;
         ongoing_recs[video] = (struct recording_entry *)NULL;
         pthread_mutex_unlock(&recs_mutex);     
+        //-------------------------------------------------------------------------------
+        // Run post-recording optional script and wait until it has finished
+        //-------------------------------------------------------------------------------
+        if( use_postrec_processing ) {
+            logmsg(LOG_DEBUG,"Post recording processing enabled.");
+            char postrec_fullname[128];
+            snprintf(postrec_fullname,128,"%s/tvpvrd/%s",CONFDIR,postrec_script);
+            int csfd = open(postrec_fullname,O_RDONLY) ;
+            if( csfd == -1 ) {
+                logmsg(LOG_ERR,"Cannot open post recording script '%s' ( %d : %s )",
+                       postrec_fullname,errno,strerror(errno));
+            } else {
+                char cmd[255];
+                snprintf(cmd,255,"%s -f \"%s\" -t %ld > /dev/null 2>&1",
+                         postrec_fullname, full_filename,recording->ts_end-recording->ts_start);
+                logmsg(LOG_DEBUG,"Running post recording script '%s'",cmd);
+                int rc = system(cmd);
+                if( rc==-1 || WEXITSTATUS(rc)) {
+                    logmsg(LOG_ERR,"Post recording script '%s' ended with exit status %d",postrec_fullname,WEXITSTATUS(rc));
+                } else {
+                    logmsg(LOG_INFO,"Post recording script '%s' ended normally with exit status %d",postrec_fullname,WEXITSTATUS(rc));
+                }
+            }
+        }
 
+        //-------------------------------------------------------------------------------
         // Now do the transcoding for each profile associated with this recording
+        //-------------------------------------------------------------------------------
         int transcoding_problem = 1 ;
         unsigned keep_mp2_file = 0 ;
 
@@ -2483,7 +2514,7 @@ read_inisettings(void) {
             127);
     device_basename[127] = '\0';
 
-    max_video           = (unsigned)validate(0, 5,"max_video",
+    max_video = (unsigned)validate(0, 5,"max_video",
                                    iniparser_getint(dict, "config:max_video", MAX_VIDEO));
 
     if( 0 == max_video ) {
@@ -2494,6 +2525,10 @@ read_inisettings(void) {
         max_video = (unsigned)_vctrl_getnumcards();
 #endif
     }
+
+    postrec_script = strdup(iniparser_getstring(dict, "config:postrec_processing_script", ""));
+    use_postrec_processing = iniparser_getboolean(dict, "config:use_postrec_processing", FALSE);
+
 
     // Try to read explicitely specified encoder devices
     for(unsigned int i=0; i < max_video && i<16; ++i) {
