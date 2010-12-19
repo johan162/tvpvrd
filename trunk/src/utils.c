@@ -50,6 +50,7 @@
 
 // Local headers
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "utils.h"
 
 // Last logmessage

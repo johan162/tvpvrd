@@ -44,114 +44,12 @@
 extern "C" {
 #endif
 
-
 /*
  * Defining this constant makes it possible to run the server on a
  * computer that doesn't have a video card in order to be debug the
  * logic of the server on a computer missing video card.
  */
 //#define DEBUG_SIMULATE
-    
-/*
- * Note: All the defines for general settings are read from an inifile
- * If the ini file is missing some values then the defines below will be used
- * as the default value.
- */
-
-/*
- * INIFILE_NAME string
- * Name and path of inifile
- */
-#define INIFILE_NAME "tvpvrd.conf"
-
-/*
- * DEFAULT_DATADIR string
- * Deafult directory where video files will be stored if no directory path
- * is specified with the filenames
- */
-#define DEFAULT_DATADIR "/data/pvr/"
-
-/*
- * XMLDBFILE_NAME
- * Name of XML database file where all recordings are stored
- * This is stored in the xmldb directory under the datadir root
- *
- */
-#define XMLDBFILE_NAME "tvpvrd_db.xml"
-
-/*
- * DEFAULT_DAEMONIZE bool
- * If we should run as a daemon, this setting is the default if not specified on the command
- * line or in the ini-filename
- */
-#define DEFAULT_DAEMONIZE 1
-
-/*
- * DEFAULT_USERNAME string
- * What user should the server be running as
- */
-#define DEFAULT_USERNAME "tvpvrd"
-
-/*
- * MASTER_SERVER boolean
- * Should the server run as a master or slave by default
- */
-#define MASTER_SERVER 1
-
-/*
- * PORT integer
- * The port used to communicate with the server unless otherwise specified
- * in the main configuration.
- */
-#define PORT 9300
-
-
-/*
- * ENABLE_WEBINTERFACE boolean
- * The server can provoide a very rudimentary WEb-interface which only
- * allows non-modifying commands. This interface is available on PORT+1,
- * i.e. on 9301 with the default settings.
- */
-#define ENABLE_WEBINTERFACE 0    
-   
-/*
- * REQUIRE_WEB_PASSWORD int
- * Should the WEB-interface require logon
-*/    
-#define REQUIRE_WEB_PASSWORD 0
-#define WEB_USER ""
-#define WEB_PASSWORD ""
-#define WEBLOGIN_TIMEOUT 0
-
-/*
- * MAX_VIDEO integer
- * The number of available video streams. This is usually the same as the number
- * of TV-Cards available in the system since most TV-Cards only have one MPEG encoder
- */
-#define MAX_VIDEO 2
-
-
-/*
- * REQUIRE_PASSWORD boolean
- * Require password in order to connect to server
- */
-#define REQUIRE_PASSWORD 0
-
-/*
- * MAX_ENTRIES integer
- * The maximum number of pending entries we can have per video stream
- */
-#define MAX_ENTRIES 512
-
-/*
- * TIME_RESOLUTION integer
- * This time determnes how often (in seconds) the daemon wakes up to check the pending list
- * of recordings if a recording is about to be started. In ractice this means that we can
- * be up to TIME_RESOLUTION s before the specified time when the recording starts. A loweer
- * value means better accuracy but higher system load. The default 3 seconds should be ok
- * for most circumstances.
- */
-#define TIME_RESOLUTION 3
 
 /*
  * VIDBUFSIZE integer
@@ -163,54 +61,6 @@ extern "C" {
 #define VIDBUFSIZE (300*1024)
 
 /*
- * VIDEO_DEVICE_BASENAME string
- * Basename of video device. Each stream will be assumed accessible as
- * VIDEO_DEVICE_BASENAME<stream-number>, e.g. /dev/video0
- */
-#define VIDEO_DEVICE_BASENAME "/dev/video"
-
-
-/*
- * DEFAULT_VIDEO_BITRATE integer
- * DEFAULT_VIDEO_PEAK_BITRATE integer
- * Deafult video bitrates 3 Mbps , peak 3.5 Mbps
- * Values should be in range 500000 up to 8000000
- */
-#define DEFAULT_VIDEO_BITRATE 3000000
-#define DEFAULT_VIDEO_PEAK_BITRATE 3500000
-
-/*
- * DEFAULT_VIDEO_FRAME_SIZE string
- * Default MP2 frame size 3-quarter
- * Supported format at present are
- *  "default = 720,576
- *  "qvga = 320,240
- *  "qqvga" = 160,120
- *  "vga" = 640,480
- *  "cif" = 352,288
- *  "3q" = 480,384
- *  "3qmp4" = 480,352
- *   "half" = 360,288
- */
-#define DEFAULT_VIDEO_FRAME_SIZE "3qmp4"
-
-/*
- * Deafult audio sampling freq
- */
-#define DEFAULT_AUDIO_SAMPLING V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100
-
-/*
- * Default audio bitrate for MPEG Layer 2
- */
-#define DEFAULT_AUDIO_BITRATE V4L2_MPEG_AUDIO_L2_BITRATE_256K
-
-/*
- * Default video aspect rate
- * A possible value would also be V4L2_MPEG_VIDEO_ASPECT_4x3
- */
-#define DEFAULT_VIDEO_ASPECT V4L2_MPEG_VIDEO_ASPECT_16x9
-
-/*
  * DEFAULT_PREFIX string
  * String for default prefix when mangling names in recurring recordings.
  * This string will used as a separator between the base title/filename and
@@ -219,142 +69,10 @@ extern "C" {
 #define DEFAULT_PREFIX "_"
 
 /*
- * DEFAULT_USE_PROFILE_DIRECTORIES boolean
- * Determine if we should use a directory hierarchy based on profile names
- * to store the transcoded and encoded videos
- */
-#define DEFAULT_USE_PROFILE_DIRECTORIES 1
-/*
- * MAX_CLIENTS integer
- * Max number of clients that are allowed to connect to us
- */
-#define MAX_CLIENTS 2
-
-/*
- * CLIENT_IDLE_TIME integer
- * The length (in seconds) before an inactive client is automatically
- * disconnected. Deafult 30 min.
- */
-#define CLIENT_IDLE_TIME 30*60
-
-/*
- * DEFAULT_DURATIONHOUR integer
- * DEFAULT_DURATIONMIN integer
- * Default length of a recording if not specified otherwise
- */
-#define DEFAULT_DURATIONHOUR 0
-#define DEFAULT_DURATIONMIN 59
-
-/*
- * LOGFILE_NAME string
- * Optional logfile name (full path).
- */
-#define LOGFILE_NAME "syslog"
-#define LOGFILE_SYSLOG "syslog"
-
-/*
- * SENDMAIL_ON_ERROR boolean
- * SENDMAIL_ON_TRANSCODE_END boolean
- * Should we send notification of serious error and transcode ending to a mail address?
- */
-#define SENDMAIL_ON_ERROR 0
-#define SENDMAIL_ON_TRANSCODE_END 0
-
-/*
- * SEND_MAILADDRESS string
- * Mail address to use if we have enabled sending notification of serious error
- */
-#define SEND_MAILADDRESS "root@localhost"
-
-/*
- * LOCALE_NAME string
- * The default locale to use in case no locale is defined. This is important to get
- * right since otherwise the system() will not interpret the filenames correctly.
- */
-#define LOCALE_NAME "en_US.UTF8"
-
-/*
- * DEFAULT_FREQUENCY_MAP string
- * The name of the default frequency map to use.
- * Note: If the xawtvrc also specifes a map that map will
- * override this setting.
- */
-#define DEFAULT_FREQUENCY_MAP "europe-west"
-
-/*
- * DEFAULT_XAWTV_CHANNEL_FILE string
- * The name of the channel map for broadcasting names of channels
- */
-#define DEFAULT_XAWTV_STATION_FILE "/etc/X11/xawtvrc"
-
-/*
- * KEEP_MP2FILE bool
- * Keep original MP2 file from video card even after transcoding
- */
-#define KEEP_MP2FILE 1
-
-/*
- * VERBOSE_LOG bool
- * Should the log be more verbose
- */
-#define VERBOSE_LOG 1
-
-/*
- * MAX_LOAD_FOR_TRANSCODING integer
- * Maximum server load allowd to start a transcoding
- */
-#define MAX_LOAD_FOR_TRANSCODING 4
-
-/*
- * TUNER_INPUT_INDEX integer
- * This is the input index for the tuner on the capture card. A tuner card
- * normally has multiple inputs and we must know which input is the tuner.
- * This is normally found at index 0.
- */
-#define DEFAULT_TUNER_INPUT_INDEX 0
-
-/*
- * DEFAULT_EXTERNAL_SWITCH integer
- * Should we switch channel via an external script
- */
-#define DEFAULT_EXTERNAL_SWITCH 0
-
-/*
- * DEFAULT_EXTERNAL_INPUT integer
- * Which video input should we read from when we use external channel switching
- */
-#define DEFAULT_EXTERNAL_INPUT 0
-
-/*
- * DEFAULT_EXTERNAL_INPUT string
- * Name of external channel switching script
- */
-#define DEFAULT_EXTERNAL_SWITCH_SCRIPT "switchchannel.sh"
-
-
-/*
- * MAX_WAITING_TIME_TO_TRANSCODE integer
- * The maximum time in seconds that can be set to wait for the
- * server load to fall below MAX_LOAD_FOR_TRANSCODING
- * Note: In the default conf file this is set to 0 which means
- * we can wait indefinitely. The value here just indicates the
- * maximum deterministic time that can be set.
- * (Default value is 7 days)
- */
-#define MAX_WAITING_TIME_TO_TRANSCODE 7*24*60*60
-
-/*
- * FFMPEG_BIN string
- * Default binary for ffmpeg
- */
-#define FFMPEG_BIN "/usr/bin/ffmpeg"
-
-/*
  * WELCOM_MSG
  * Server welcome message
  */
 #define WELCOM_MSG \
-        "!TVPVRD!\n"\
 	"Welcome to tvpvrd-%s  [%s] (build:%lu.%lu)\n"\
 	"You are user number %d out of %d allowed.\n"\
 	"Type 'exit' to disconnect.\n"\
@@ -387,42 +105,7 @@ struct ffmpeg_profile {
 
 /* Global information about the server */
 extern char server_version[] ;
-//extern char server_build_date[] ;
 extern char server_program_name[32] ;
-extern int use_profiledirectories ;
-
-
-/*
- * xawtv_channel_file string
- * Name of station to channel mapping file
- */
-extern char xawtv_channel_file[256];
-
-/*
- * default_transcoding_profile string
- * Name of default transcoding profile
- */
-extern char default_transcoding_profile[32];
-
-/*
- * max_load_for_transcoding int
- * The maximum load allowed to start a new transcoding process
- */
-extern int max_load_for_transcoding ;
-
-/*
- * max_waiting_time_to_transcode int
- * The maximum time we allow the server to wait to start a
- * new transcoding process. The server will wait as long as the
- * load on the server is too high.
- */
-extern int max_waiting_time_to_transcode ;
-
-/*
- * ffmpeg_bin string
- * The full path to the ffmpeg executable
- */
-extern char ffmpeg_bin[64];
 
 /*
  * abort_video int
@@ -458,88 +141,18 @@ extern char **client_ipadr; //[MAX_CLIENTS];
  */
 extern time_t *client_tsconn; //[MAX_CLIENTS];
 
-// Are we running as master or slave
-extern int is_master_server;
-
-// Maximum sizes
-extern unsigned max_entries, max_video, max_clients, max_idle_time;
-
-// Default recording length if nothing else is specified
-extern int defaultDurationHour, defaultDurationMin;
-
-// TVP/IP Port to listen to
-extern unsigned short int tcpip_port;
-
-// Should we run as a daemon or not
-extern int daemonize;
-
-// What username are we running as
-extern char username[];
-
-// Logfile details
-extern int verbose_log;
-extern char logfile_name[];
-
-// Time resolution for checks
-extern unsigned time_resolution;
-
 // The size of the memory buffer used when reading video data from the device
 extern int video_bufsize;
 
 // The video buffers (one for each capture card)
 extern char *video_buffer[];
 
-// The default base data diectory
-extern char datadir[];
-
-// Names of the ini file and the db file used
-extern char inifile[], xmldbfile[];
-
-// Base name of video device ("/dev/video")
-extern char device_basename[];
-
 // Whether all transcoding processes should also be killed when the server stops
 extern int dokilltranscodings;
-
-// The name of the frequency map we are using. This is set at the startup and cannot
-// be changed at runtime.
-extern char frequencymap_name[];
 
 // Gloabl Mutex that must be called if the routine wants to access
 // any datastructure that modifies the recordings
 extern pthread_mutex_t recs_mutex;
-
-// Should we send mail on errors?
-extern int send_mail_on_error;
-
-// Mail address to use
-extern char send_mailaddress[];
-
-// Should we send mail on when transcoding finished?
-extern int send_mail_on_transcode_end ;
-
-// Name of loclae to use (used to set LC_ALL)
-extern char locale_name[];
-
-// Should we allow connection to the WEB-interface
-extern int enable_webinterface;
-
-// Web interface login
-extern int require_web_password;
-extern char web_password[];
-extern char web_user[];
-extern int weblogin_timeout;
-
-// The input source index that corresponds to the tuner on the
-// capture card.
-extern int tuner_input_index ;
-
-// Optional user specified encoder devices
-extern char *encoder_devices[] ;
-extern char *tuner_devices[] ;
-
-// Name of optional post recording script to run
-extern char *postrec_script;
 
 void
 tvp_mem_list(int sockd);

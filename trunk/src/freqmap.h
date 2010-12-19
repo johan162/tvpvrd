@@ -34,11 +34,6 @@ extern "C" {
 #endif
 
 /**
- * Maximum length of frequency map name string
- */
-#define MAX_FMAPNAME_LENGTH    32
-
-/**
  * Currently supported frequency maps
  */
 typedef enum freqm {FREQMAP_EUROPEWEST=0, FREQMAP_EUROPEEAST, FREQMAP_FRANCE,

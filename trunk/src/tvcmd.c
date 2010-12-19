@@ -45,6 +45,7 @@
 // Application specific includes
 #include "tvcmd.h"
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "utils.h"
 #include "recs.h"
 #include "tvxmldb.h"

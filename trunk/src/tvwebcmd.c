@@ -40,6 +40,7 @@
 #include <pcre.h>
 
 #include "tvpvrd.h"
+#include "tvconfig.h"
 #include "utils.h"
 #include "tvwebcmd.h"
 #include "tvcmd.h"
