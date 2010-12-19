@@ -1,29 +1,26 @@
 $Id$
 
-v2.1.2beta6
------------
-Update the command "lc" (to list all the settings) to also use the extended
-control mechanism.
+v2.2.0
+------
 
-v2.1.2beta5
------------
-Changed the setting of the MPEG2 HW controls so that the now always use
-the extended control interface and not the normal user control interface.
-This seems to be the rigth way to do it even if the user way happens to
-work with hauppauge cards.
+  - Added option to specify an optional post recording script that is run
+    after the recording has been done but before the transcoding starts.
+    The script is stored in the configuration directory. The package includes
+    a template file "postrec_processing.sh.template" that can be used as a
+    starting point for such a script. The script is given the full video
+    filename and its length (in seconds) as two arguments.
 
+  - To support cards which use two different device interfaces for tuner and
+    MPEG encoded stream the configuration file now allow a separate setting
+    of both tuner and encoder device through the two options:
+    1) TUNER_DEVICE<n>    (where <n> is the card number)
+    2) ENCODER_DEVICE<n>  (where <n> is the card number)
+    See the configuration file for an even more detailed description
 
-v2.1.2beta2
------------
-Added tuner_device<n> option in configuration file to allow user to 
-specify a separate tuning device from the encoder device
+  - Internal change so that all v4l API calls regarding controls are now going
+    through the modern extended control interface (both user and mpeg class controls)
+    This will make the daemon more robust to a larger class of video/recorder cards.
 
-
-v2.1.2beta
-----------
-Adds the option of specifying encoder device for the case where a
-video card may have several outputs for both raw and encoded video.
-See config file ENCODER_DEVICE setting for more detailed information.
 
 v2.1.1
 ------
