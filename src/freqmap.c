@@ -36,7 +36,6 @@
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
-#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
@@ -954,7 +953,6 @@ static struct freqch uscable_chtable[] = {
 
 };
 
-
 /**
  * Initialize the frequency table. Must be called in the beginning of the
  * program.
@@ -1105,7 +1103,6 @@ get_current_freqmap(char *name, size_t size) {
     name[size-1] = '\0';
     return curr_fmap;
 }
-
 
 /**
  * Get the corresponding frequency map index from a map name

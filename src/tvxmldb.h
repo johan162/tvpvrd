@@ -63,6 +63,13 @@ _writeXMLFileHTML(const int fd);
  */
 int _writeXMLFile(const int fd);
 
+/**
+ * Initialize the recording database. This is a plain text file in XML format.
+ * The full structure of the DB is defined with an XML RNG (grammar) stored in the
+ * document folder in the distribution.
+ */
+void
+init_tvxmldb(void);
 
 #ifdef	__cplusplus
 }
