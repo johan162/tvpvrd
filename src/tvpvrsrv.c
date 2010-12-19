@@ -214,6 +214,208 @@ int dokilltranscodings = 1;
  */
 char locale_name[255];
 
+
+
+#define INIFILE_BUFFERSIZE 4096
+static char inibuffer[INIFILE_BUFFERSIZE] = {0};
+
+static const char short_options [] = "d:f:hi:l:p:vx:V:st:";
+static const struct option long_options [] = {
+    { "daemon",  required_argument,     NULL, 'd'},
+    { "xmldb",   required_argument,     NULL, 'f'},
+    { "help",    no_argument,           NULL, 'h'},
+    { "inifile", required_argument,     NULL, 'i'},
+    { "version", no_argument,           NULL, 'v'},
+    { "logfile", required_argument,     NULL, 'l'},
+    { "port",    required_argument,     NULL, 'p'},
+    { "slave",   no_argument,           NULL, 's'},
+    { "tdelay",  required_argument,     NULL, 't'},
+    { "verbose", required_argument,     NULL, 'V'},
+    { "xawtvrc", required_argument,     NULL, 'x'},
+    { 0, 0, 0, 0}
+};
+
+/**
+ * Parse all command line options given to the server at startup. The server accepts both
+ * long and short version of command line options.
+ * @param argc
+ * @param argv
+ */
+void
+parsecmdline(int argc, char **argv) {
+
+    // Parse command line options
+    int opt, index;
+    *inifile='\0';
+    *xmldbfile='\0';
+    *logfile_name='\0';
+    *xawtv_channel_file='\0';
+    verbose_log = -1;
+    tcpip_port = 0;
+    is_master_server = -1;
+    opterr = 0; // Supress error string from getopt_long()
+    if( argc > 8 ) {
+        fprintf(stderr,"Too many arguments. Try '-h'.");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * Loop through all given input strings and check maximum length.
+     * No single argument may be longer than 256 bytes (this could be
+     * an indication of a buffer overflow attack)
+     */
+    for(int i=1; i < argc; i++) {
+        if( strnlen(argv[i],256) >= 256  ) {
+            fprintf(stderr, "Argument %d is too long.",i);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &index)) ) {
+
+        switch (opt) {
+            case 0: /* getopt_long() flag */
+                break;
+
+            case 'h':
+                fprintf(stdout,
+                        "'%s' (C) 2009,2010 Johan Persson, (johan162@gmail.com) \n"
+                        "This is free software; see the source for copying conditions.\nThere is NO "
+                        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+#ifdef DEBUG_SIMULATE
+                        " ** DEBUG BUILD ** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY SIMULATION.\n"
+#endif
+                        "Usage: %s [options]\n"
+                        "Synopsis:\n"
+                        "TV PVR Server to schedule and handle recordings from a TV Card with HW MP2 encoder.\n"
+                        "Options:\n"
+                        " -h,      --help            Print help and exit\n"
+                        " -v,      --version         Print version string and exit\n"
+                        " -i file, --inifile=file    Use specified file as ini file\n"
+                        " -d y/n,  --daemon          Run as daemon\n"
+                        " -f file, --xmldbfile=file  Override initial XML database and load from file\n"
+                        " -l file, --logfile=file    Override logfile setting in inifile and use file as logfile\n"
+                        " -V n,    --verbose=n       Override inifile and set verbose level\n"
+                        " -p n,    --port=n          Override inifile and set TCP/IP listen port\n"
+                        " -x file, --xawtvrc=file    Override inifile and set station file\n"
+                        " -s,      --slave           Run with slave configuration\n"
+                        " -t,      --tdelay          Extra wait time when daemon is started at system power on\n",
+
+                        server_program_name, server_program_name);
+                exit(EXIT_SUCCESS);
+                break;
+
+            case 'v':
+                fprintf(stdout,"%s %s (build: %lu.%lu)\n%s",
+                        server_program_name,server_version,
+                        (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
+#ifdef DEBUG_SIMULATE
+                        " *** DEBUG BUILD. WILL NOT RECORD REAL VIDEO STREAMS *** \n"
+#endif
+                        "Copyright (C) 2009,2010 Johan Persson (johan162@gmail.com)\n"
+                        "This is free software; see the source for copying conditions.\nThere is NO "
+                        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
+                exit(EXIT_SUCCESS);
+                break;
+
+            case 'i':
+                if( optarg != NULL ) {
+                    strncpy(inifile,optarg,255);
+                    inifile[255] = '\0';
+                    if( strlen(inifile) == 255 ) {
+                        fprintf(stderr,"ini file given as argument is invalid. Too long.");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                break;
+
+            case 'd':
+                if( optarg != NULL ) {
+                    daemonize = *optarg == 'y' ? 1 : 0;
+                }
+                else
+                    daemonize = 1 ;
+                break;
+
+            case 'f':
+                if( optarg != NULL ) {
+                    strncpy(xmldbfile,basename(optarg),255);
+                    xmldbfile[255] = '\0';
+                    if( strlen(xmldbfile) == 255 ) {
+                        fprintf(stderr,"xmldb file given as argument is invalid. Too long.");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                break;
+
+            case 'V':
+                if( *optarg == '1' || *optarg == '2' || *optarg == '3' )
+                    verbose_log = *optarg - '0' ;
+                else {
+                    logmsg(LOG_ERR,"Illegal verbose level specified. must be in range [1-3]. Aborting.");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+
+            case 'l':
+                if( optarg != NULL ) {
+                    strncpy(logfile_name,optarg,255);
+                    logfile_name[255] = '\0';
+                    if( strlen(logfile_name) == 255 ) {
+                        fprintf(stderr,"logfile file given as argument is invalid. Too long.");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                break;
+
+            case 'p':
+                if( optarg != NULL ) {
+                    tcpip_port = (short unsigned int)validate(0,99999,"TCP/IP port on command line",atoi(optarg));
+                }
+                break;
+
+            case 's':
+                is_master_server = 0;
+                break;
+
+            case 'x':
+                if( optarg != NULL ) {
+                    strncpy(xawtv_channel_file,optarg,255);
+                    xawtv_channel_file[255] = '\0';
+                    if( strlen(xawtv_channel_file) == 255 ) {
+                        fprintf(stderr,"xawtvrc file given as argument is invalid. Too long.");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                break;
+
+            case 't':
+                if( optarg != NULL ) {
+                    tdelay = validate(2,600,"tdelay on command line",atoi(optarg));
+                }
+                break;
+
+            case ':':
+                fprintf(stderr, "Option `%c' needs a file name.\n", optopt);
+                exit(EXIT_FAILURE);
+                break;
+
+            case '?':
+                fprintf(stderr, "Invalid specification of program option(s). See --help for more information.\n");
+                exit(EXIT_FAILURE);
+                break;
+        }
+    }
+#ifdef DEBUG_SIMULATE
+    daemonize = 0 ;
+#endif
+    if (argc>1 && optind < argc) {
+        fprintf(stderr, "Options not valid.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
 void
 init_globs(void) {
 
@@ -779,6 +981,294 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
 }
 
 /*
+ * This is the signal receiveing thread. In order to gurantee that we don't get any
+ * deadlocks all signals is masked in all other threads and only this thread can receive
+ * signals. The function then sets the global variable handled_signal
+ */
+void *
+sighand_thread(void *arg) {
+    sigset_t signal_set;
+    int sig;
+    arg = NULL;
+
+    while (1) {
+
+        sigfillset(&signal_set);
+        sigwait(&signal_set, &sig);
+
+        switch (sig) {
+
+#ifdef DEBUG_SIMULATE
+            case SIGSEGV:
+                abort();
+#endif
+            case SIGQUIT:
+            case SIGINT:
+	    case SIGHUP:
+	    case SIGTERM:
+                pthread_mutex_lock(&sig_mutex);
+                received_signal = sig;
+                pthread_mutex_unlock(&sig_mutex);
+                break;
+
+            default:
+                pthread_mutex_lock(&sig_mutex);
+                received_signal = 0;
+                pthread_mutex_unlock(&sig_mutex);
+                break;
+        }
+
+    }
+    return (void*) 0;
+}
+
+/*
+ * All necessary low level household stuff to kick us off as a
+ * daemon process, i.e. fork, disconnect from any tty, close
+ * the standard file handlers and so on
+ */
+void startdaemon(void) {
+
+    // Fork off the child
+    pid_t pid = fork();
+    if( pid < 0 ) {
+        syslog(LOG_ERR, "Cannot fork daemon.");
+        exit(EXIT_FAILURE);
+    }
+
+    if( pid > 0 ) {
+        // Exit parent. Note the use of _exit() rather than exit()
+        // The exit() performs the atexit() cleanup handler
+	// which we do not want since that would delete the lockfile
+        _exit(EXIT_SUCCESS);
+    }
+
+    // Get access to files written by the daemon
+    // This is not quite necessay since we explicetly set
+    // the file attributes on the database and the log file
+    // when they are created.
+    umask(0);
+
+    // Create a session ID so the child isn't treated as an orpphan
+    pid_t sid = setsid();
+    if( sid < 0 ) {
+	syslog(LOG_ERR, "Cannot fork daemon and create session ID.");
+        exit(EXIT_FAILURE);
+    }
+
+    // Fork again to ensure we are not a session group leader
+    // and hence can never regain a controlling terminal
+    pid = fork();
+    if( pid < 0 ) {
+	syslog(LOG_ERR, "Cannot do second fork to create daemon.");
+        exit(EXIT_FAILURE);
+    }
+
+    if( pid > 0 ) {
+	// Exit parent. Note the use of _exit() rather than exit()
+        // The exit() performs the atexit() cleanup handler
+	// which we do not want since that would delete the lockfile
+        _exit(EXIT_SUCCESS);
+    }
+
+    // Use root as working directory
+    if( chdir("/") < 0 ) {
+        syslog(LOG_ERR, "Cannot change working directory to '/' for daemon.");
+        exit(EXIT_FAILURE);
+    }
+
+    // Close all file descriptors
+    logmsg(LOG_DEBUG,"Closing all predefined descriptors (num=%d)",getdtablesize());
+    for (int i = getdtablesize(); i >= 0; --i) {
+        (void)_dbg_close(i);
+    }
+
+    // Reopen stdin, stdout, stderr so they point harmlessly to /dev/null
+    // (Some brain dead library routines might write to, for example, stderr)
+    int i = open("/dev/null", O_RDWR);
+    int dummy=dup(i);
+    dummy=dup(i);
+    logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
+}
+
+
+/**
+ * Check what user we are running as and change the user (if allowed) to the
+ * specified tvpvrd user.
+ */
+void
+chkswitchuser(void) {
+    // Check if we are starting as root
+    struct passwd *pwe = getpwuid(getuid());
+
+    if( strcmp(pwe->pw_name,"root") == 0 ) {
+        strncpy( username, iniparser_getstring(dict, "config:username", DEFAULT_USERNAME), 63 );
+        username[63] = '\0';
+        if( strcmp(username,"root") != 0 ) {
+            errno=0;
+            pwe = getpwnam(username);
+            if( pwe == NULL ) {
+                logmsg(LOG_ERR,"Specified user to run as, '%s', does not exist. (%d : %s)",
+                       username,errno,strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+
+            /*
+            if( -1 == chown(lockfilename,pwe->pw_uid,pwe->pw_gid) ) {
+                logmsg(LOG_ERR,"** Cannot change owner of lockfile to '%s'. (%d : %s)",username,errno,strerror(errno));
+                exit(EXIT_FAILURE);
+            } else {
+             */
+
+            if( is_master_server ) {
+                // Make sure the data directory belongs to this new user
+                char cmdbuff[64];
+
+                logmsg(LOG_NOTICE,"Adjusting permission and owner on file structure (%s).",datadir);
+                snprintf(cmdbuff,63,"chown -R %s %s",username,datadir);
+                int dummyret = system(cmdbuff);
+
+                snprintf(cmdbuff,63,"chgrp -R %d %s",pwe->pw_gid,datadir);
+                dummyret = system(cmdbuff);
+
+                if( strcmp(logfile_name,"syslog") && strcmp(logfile_name,"stdout") ) {
+                    snprintf(cmdbuff,63,"chown %s %s",username,logfile_name);
+                    dummyret = system(cmdbuff);
+
+                    snprintf(cmdbuff,63,"chgrp %d %s",pwe->pw_gid,logfile_name);
+                    dummyret = system(cmdbuff);
+                }
+            }
+
+            // Make sure we run as belonging to the video group
+            struct group *gre = getgrnam("video");
+            if( gre == NULL ) {
+                logmsg(LOG_ERR,"Specified group to run as, '%s', does not exist. (%d : %s) **",
+                   "video",errno,strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+
+            gid_t groups[2];
+            groups[0] = pwe->pw_gid;
+            groups[1] = gre->gr_gid;
+            if( -1 == setgroups(2, groups) ) {
+                logmsg(LOG_ERR,"Cannot set groups. Check that '%s' belongs to the 'video' group. (%d : %s) **",
+                   username,errno,strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            setgid(pwe->pw_gid);
+            setuid(pwe->pw_uid);
+            logmsg(LOG_DEBUG,"Changing user,uid to '%s',%d",pwe->pw_name,pwe->pw_uid);
+                /*
+            }
+                 */
+        } else {
+            logmsg(LOG_INFO,"The server is running as user 'root'. This is strongly discouraged. *");
+        }
+    }
+
+    // After a possible setuid() and setgrp() the dumapable flag is reset which means
+    // that no core is dumped in case of a SIGSEGV signal. We want a coredump in case
+    // of a memory overwrite so we make sure this is allowed
+    if( -1 == prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) ) {
+        logmsg(LOG_ERR,"Can not set PR_SET_DUMPABLE");
+    }
+
+}
+
+
+/**
+ * Exit handler. Automatically called when the process calls "exit()"
+ */
+void
+exithandler(void) {
+
+    struct passwd *pwe = getpwuid(getuid());
+
+    // The deletion of the lockile will only succeed if we are running as
+    // root since the lockfile resides in a directory owned by root
+    // no other uid can remove it.
+    // This is not a problem though since the startup will check that the
+    // pid in the lockfile really exists.
+    if (strcmp(pwe->pw_name, "root") == 0) {
+        deleteockfile();
+    }
+}
+
+/**
+ * Set the initial parameters for the TV-card so we know that they exist
+ * and have a known state.
+ */
+void
+init_capture_cards(void) {
+
+    // If each profile is allowed to set the HW encoding paramters then we
+    // do not need to do anything here.
+    if( !allow_profiles_adj_encoder ) {
+        struct transcoding_profile_entry *profile;
+        get_transcoding_profile(default_transcoding_profile,&profile);
+        for(unsigned video=0; video < max_video; video++) {
+            int fd = video_open(video,FALSE);
+            int ret = set_enc_parameters(fd,profile);
+            video_close(fd);
+            if( -1 == ret  ) {
+                // Nothing else to do than to quit
+                logmsg(LOG_ERR,"Fatal error. Cannot initialize HW capture card(s) ( %d : %s )", errno, strerror(errno));
+                _exit(EXIT_FAILURE);
+            }
+        }
+    }
+}
+
+
+/**
+ * Check that the directory structure for the stored recordigs are in place. In case
+ * a directory is missing it is created.
+ */
+void
+chkdirstructure(void) {
+    char bdirbuff[512];
+
+    if( strlen(datadir) > 255 ) {
+        logmsg(LOG_ERR,"Base directory path can not be longer than 255 bytes.");
+        exit(EXIT_FAILURE);
+    }
+
+    if( -1 == chkcreatedir(datadir,"") ||
+        -1 == chkcreatedir(datadir,"vtmp") ||
+        -1 == chkcreatedir(datadir,"mp2") ||
+        -1 == chkcreatedir(datadir,"xmldb") ||
+        -1 == chkcreatedir(datadir,"mp4") ||
+        -1 == chkcreatedir(datadir,STATS_DIR) ) {
+        exit(EXIT_FAILURE);
+    }
+
+    for(unsigned i=0; i < max_video; i++) {
+        snprintf(bdirbuff,511,"vtmp/vid%d",i) ;
+        if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // Create the profile directories under mp4/mp2 if user has enabled
+    // profile subdirectory hierachy
+    if( use_profiledirectories ) {
+        struct transcoding_profile_entry **profiles;
+        unsigned nprof = get_transcoding_profile_list(&profiles);
+        for( unsigned i=0; i < nprof; i++) {
+            snprintf(bdirbuff,511,"mp4/%s",profiles[i]->name);
+            if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+                exit(EXIT_FAILURE);
+            }
+            snprintf(bdirbuff,511,"mp2/%s",profiles[i]->name);
+            if( -1 == chkcreatedir(datadir,bdirbuff) ) {
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+}
+
+/*
  * Start a recording on the specified video stream immediately using the information in the
  * current recording record.
  * This function is only run in its own thread that is created in chkrec() when it decides a
@@ -1086,7 +1576,6 @@ startrec(void *arg) {
                                  &transcode_time, avg_5load);
                 }
             }
-
         }
 
         if (!transcoding_problem) {
@@ -1447,7 +1936,6 @@ clientsrv(void *arg) {
     return (void *) 0;
 }
 
-
 /*
  * This is the main function that gets started when browser connects to
  * the server. This has been made into a separate function from clientsrv()
@@ -1547,7 +2035,6 @@ webclientsrv(void *arg) {
     pthread_exit(NULL);
     return (void *) 0;
 }
-
 
 /*
  * Start the main socket server that listens for clients that connects
@@ -1753,506 +2240,6 @@ startupsrv(void) {
 
     return EXIT_SUCCESS;
 }
-
-/*
- * This is the signal receiveing thread. In order to gurantee that we don't get any
- * deadlocks all signals is masked in all other threads and only this thread can receive
- * signals. The function then sets the global variable handled_signal
- */
-void *
-sighand_thread(void *arg) {
-    sigset_t signal_set;
-    int sig;
-    arg = NULL;
-
-    while (1) {
-
-        sigfillset(&signal_set);
-        sigwait(&signal_set, &sig);
-
-        switch (sig) {
-
-#ifdef DEBUG_SIMULATE
-            case SIGSEGV:
-                abort();
-#endif
-            case SIGQUIT:
-            case SIGINT:
-	    case SIGHUP:
-	    case SIGTERM:
-                pthread_mutex_lock(&sig_mutex);
-                received_signal = sig;
-                pthread_mutex_unlock(&sig_mutex);
-                break;
-
-            default:
-                pthread_mutex_lock(&sig_mutex);
-                received_signal = 0;
-                pthread_mutex_unlock(&sig_mutex);
-                break;
-        }
-
-    }
-    return (void*) 0;
-}
-
-/*
- * All necessary low level household stuff to kick us off as a 
- * daemon process, i.e. fork, disconnect from any tty, close
- * the standard file handlers and so on
- */
-void startdaemon(void) {
-
-    // Fork off the child
-    pid_t pid = fork();
-    if( pid < 0 ) {
-        syslog(LOG_ERR, "Cannot fork daemon.");
-        exit(EXIT_FAILURE);
-    }
-
-    if( pid > 0 ) {
-        // Exit parent. Note the use of _exit() rather than exit()
-        // The exit() performs the atexit() cleanup handler
-	// which we do not want since that would delete the lockfile
-        _exit(EXIT_SUCCESS);
-    }
-
-    // Get access to files written by the daemon
-    // This is not quite necessay since we explicetly set
-    // the file attributes on the database and the log file
-    // when they are created.
-    umask(0);
-
-    // Create a session ID so the child isn't treated as an orpphan
-    pid_t sid = setsid();
-    if( sid < 0 ) {
-	syslog(LOG_ERR, "Cannot fork daemon and create session ID.");
-        exit(EXIT_FAILURE);
-    }
-
-    // Fork again to ensure we are not a session group leader
-    // and hence can never regain a controlling terminal
-    pid = fork();
-    if( pid < 0 ) {
-	syslog(LOG_ERR, "Cannot do second fork to create daemon.");
-        exit(EXIT_FAILURE);
-    }
-
-    if( pid > 0 ) {
-	// Exit parent. Note the use of _exit() rather than exit()
-        // The exit() performs the atexit() cleanup handler
-	// which we do not want since that would delete the lockfile
-        _exit(EXIT_SUCCESS);
-    }
-
-    // Use root as working directory
-    if( chdir("/") < 0 ) {
-        syslog(LOG_ERR, "Cannot change working directory to '/' for daemon.");
-        exit(EXIT_FAILURE);
-    }
-
-    // Close all file descriptors
-    logmsg(LOG_DEBUG,"Closing all predefined descriptors (num=%d)",getdtablesize());
-    for (int i = getdtablesize(); i >= 0; --i) {
-        (void)_dbg_close(i);
-    }
-
-    // Reopen stdin, stdout, stderr so they point harmlessly to /dev/null
-    // (Some brain dead library routines might write to, for example, stderr)
-    int i = open("/dev/null", O_RDWR);
-    int dummy=dup(i);
-    dummy=dup(i);
-    logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
-}
-
-/**
- * Check that the directory structure for the stored recordigs are in place. In case
- * a directory is missing it is created.
- */
-void
-chkdirstructure(void) {
-    char bdirbuff[512];
-
-    if( strlen(datadir) > 255 ) {
-        logmsg(LOG_ERR,"Base directory path can not be longer than 255 bytes.");
-        exit(EXIT_FAILURE);
-    }
-
-    if( -1 == chkcreatedir(datadir,"") ||
-        -1 == chkcreatedir(datadir,"vtmp") ||
-        -1 == chkcreatedir(datadir,"mp2") ||
-        -1 == chkcreatedir(datadir,"xmldb") ||
-        -1 == chkcreatedir(datadir,"mp4") ||
-        -1 == chkcreatedir(datadir,STATS_DIR) ) {
-        exit(EXIT_FAILURE);
-    }
-
-    for(unsigned i=0; i < max_video; i++) {
-        snprintf(bdirbuff,511,"vtmp/vid%d",i) ;
-        if( -1 == chkcreatedir(datadir,bdirbuff) ) {
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    // Create the profile directories under mp4/mp2 if user has enabled
-    // profile subdirectory hierachy
-    if( use_profiledirectories ) {
-        struct transcoding_profile_entry **profiles;
-        unsigned nprof = get_transcoding_profile_list(&profiles);
-        for( unsigned i=0; i < nprof; i++) {
-            snprintf(bdirbuff,511,"mp4/%s",profiles[i]->name);
-            if( -1 == chkcreatedir(datadir,bdirbuff) ) {
-                exit(EXIT_FAILURE);
-            }
-            snprintf(bdirbuff,511,"mp2/%s",profiles[i]->name);
-            if( -1 == chkcreatedir(datadir,bdirbuff) ) {
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-}
-
-#define INIFILE_BUFFERSIZE 4096
-static char inibuffer[INIFILE_BUFFERSIZE] = {0};
-
-static const char short_options [] = "d:f:hi:l:p:vx:V:st:";
-static const struct option long_options [] = {
-    { "daemon",  required_argument,     NULL, 'd'},
-    { "xmldb",   required_argument,     NULL, 'f'},
-    { "help",    no_argument,           NULL, 'h'},
-    { "inifile", required_argument,     NULL, 'i'},
-    { "version", no_argument,           NULL, 'v'},
-    { "logfile", required_argument,     NULL, 'l'},
-    { "port",    required_argument,     NULL, 'p'},
-    { "slave",   no_argument,           NULL, 's'},
-    { "tdelay",  required_argument,     NULL, 't'},
-    { "verbose", required_argument,     NULL, 'V'},
-    { "xawtvrc", required_argument,     NULL, 'x'},
-    { 0, 0, 0, 0}
-};
-
-/**
- * Parse all command line options given to the server at startup. The server accepts both
- * long and short version of command line options.
- * @param argc
- * @param argv
- */
-void
-parsecmdline(int argc, char **argv) {
-
-    // Parse command line options
-    int opt, index;
-    *inifile='\0';
-    *xmldbfile='\0';
-    *logfile_name='\0';
-    *xawtv_channel_file='\0';
-    verbose_log = -1;
-    tcpip_port = 0;
-    is_master_server = -1;
-    opterr = 0; // Supress error string from getopt_long()
-    if( argc > 8 ) {
-        fprintf(stderr,"Too many arguments. Try '-h'.");
-        exit(EXIT_FAILURE);
-    }
-
-    /*
-     * Loop through all given input strings and check maximum length.
-     * No single argument may be longer than 256 bytes (this could be
-     * an indication of a buffer overflow attack)
-     */
-    for(int i=1; i < argc; i++) {
-        if( strnlen(argv[i],256) >= 256  ) {
-            fprintf(stderr, "Argument %d is too long.",i);
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &index)) ) {
-
-        switch (opt) {
-            case 0: /* getopt_long() flag */
-                break;
-
-            case 'h':
-                fprintf(stdout,
-                        "'%s' (C) 2009,2010 Johan Persson, (johan162@gmail.com) \n"
-                        "This is free software; see the source for copying conditions.\nThere is NO "
-                        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
-#ifdef DEBUG_SIMULATE
-                        " ** DEBUG BUILD ** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY SIMULATION.\n"
-#endif                        
-                        "Usage: %s [options]\n"
-                        "Synopsis:\n"
-                        "TV PVR Server to schedule and handle recordings from a TV Card with HW MP2 encoder.\n"
-                        "Options:\n"
-                        " -h,      --help            Print help and exit\n"
-                        " -v,      --version         Print version string and exit\n"
-                        " -i file, --inifile=file    Use specified file as ini file\n"
-                        " -d y/n,  --daemon          Run as daemon\n"
-                        " -f file, --xmldbfile=file  Override initial XML database and load from file\n"
-                        " -l file, --logfile=file    Override logfile setting in inifile and use file as logfile\n"
-                        " -V n,    --verbose=n       Override inifile and set verbose level\n"
-                        " -p n,    --port=n          Override inifile and set TCP/IP listen port\n"
-                        " -x file, --xawtvrc=file    Override inifile and set station file\n"
-                        " -s,      --slave           Run with slave configuration\n"
-                        " -t,      --tdelay          Extra wait time when daemon is started at system power on\n",
-
-                        server_program_name, server_program_name);
-                exit(EXIT_SUCCESS);
-                break;
-
-            case 'v':
-                fprintf(stdout,"%s %s (build: %lu.%lu)\n%s",
-                        server_program_name,server_version,
-                        (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
-#ifdef DEBUG_SIMULATE
-                        " *** DEBUG BUILD. WILL NOT RECORD REAL VIDEO STREAMS *** \n"
-#endif
-                        "Copyright (C) 2009,2010 Johan Persson (johan162@gmail.com)\n"
-                        "This is free software; see the source for copying conditions.\nThere is NO "
-                        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
-                exit(EXIT_SUCCESS);
-                break;
-
-            case 'i':
-                if( optarg != NULL ) {
-                    strncpy(inifile,optarg,255);
-                    inifile[255] = '\0';
-                    if( strlen(inifile) == 255 ) {
-                        fprintf(stderr,"ini file given as argument is invalid. Too long.");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                break;
-
-            case 'd':
-                if( optarg != NULL ) {
-                    daemonize = *optarg == 'y' ? 1 : 0;
-                }
-                else
-                    daemonize = 1 ;
-                break;
-
-            case 'f':
-                if( optarg != NULL ) {
-                    strncpy(xmldbfile,basename(optarg),255);
-                    xmldbfile[255] = '\0';
-                    if( strlen(xmldbfile) == 255 ) {
-                        fprintf(stderr,"xmldb file given as argument is invalid. Too long.");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                break;
-
-            case 'V':
-                if( *optarg == '1' || *optarg == '2' || *optarg == '3' )
-                    verbose_log = *optarg - '0' ;
-                else {
-                    logmsg(LOG_ERR,"Illegal verbose level specified. must be in range [1-3]. Aborting.");
-                    exit(EXIT_FAILURE);
-                }
-                break;
-
-            case 'l':
-                if( optarg != NULL ) {
-                    strncpy(logfile_name,optarg,255);
-                    logfile_name[255] = '\0';
-                    if( strlen(logfile_name) == 255 ) {
-                        fprintf(stderr,"logfile file given as argument is invalid. Too long.");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                break;
-
-            case 'p':
-                if( optarg != NULL ) {
-                    tcpip_port = (short unsigned int)validate(0,99999,"TCP/IP port on command line",atoi(optarg));
-                }
-                break;
-
-            case 's':
-                is_master_server = 0;
-                break;
-
-            case 'x':
-                if( optarg != NULL ) {
-                    strncpy(xawtv_channel_file,optarg,255);
-                    xawtv_channel_file[255] = '\0';
-                    if( strlen(xawtv_channel_file) == 255 ) {
-                        fprintf(stderr,"xawtvrc file given as argument is invalid. Too long.");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                break;
-
-            case 't':
-                if( optarg != NULL ) {
-                    tdelay = validate(2,600,"tdelay on command line",atoi(optarg));
-                }
-                break;
-
-            case ':':
-                fprintf(stderr, "Option `%c' needs a file name.\n", optopt);
-                exit(EXIT_FAILURE);
-                break;
-
-            case '?':
-                fprintf(stderr, "Invalid specification of program option(s). See --help for more information.\n");
-                exit(EXIT_FAILURE);
-                break;
-        }
-    }
-#ifdef DEBUG_SIMULATE
-    daemonize = 0 ;
-#endif
-    if (argc>1 && optind < argc) {
-        fprintf(stderr, "Options not valid.\n");
-        exit(EXIT_FAILURE);        
-    }
-}
-
-/**
- * Exit handler. Automatically called when the process calls "exit()"
- */
-void
-exithandler(void) {
-
-    struct passwd *pwe = getpwuid(getuid());
-
-    // The deletion of the lockile will only succeed if we are running as
-    // root since the lockfile resides in a directory owned by root
-    // no other uid can remove it.
-    // This is not a problem though since the startup will check that the
-    // pid in the lockfile really exists.
-    if (strcmp(pwe->pw_name, "root") == 0) {
-        deleteockfile();
-    }
-}
-
-/**
- * Check what user we are running as and change the user (if allowed) to the
- * specified tvpvrd user.
- */
-void
-chkswitchuser(void) {      
-    // Check if we are starting as root
-    struct passwd *pwe = getpwuid(getuid());
-    
-    if( strcmp(pwe->pw_name,"root") == 0 ) {
-        strncpy( username, iniparser_getstring(dict, "config:username", DEFAULT_USERNAME), 63 );
-        username[63] = '\0';
-        if( strcmp(username,"root") != 0 ) {
-            errno=0;
-            pwe = getpwnam(username);
-            if( pwe == NULL ) {
-                logmsg(LOG_ERR,"Specified user to run as, '%s', does not exist. (%d : %s)",
-                       username,errno,strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-            
-            /*
-            if( -1 == chown(lockfilename,pwe->pw_uid,pwe->pw_gid) ) {
-                logmsg(LOG_ERR,"** Cannot change owner of lockfile to '%s'. (%d : %s)",username,errno,strerror(errno));
-                exit(EXIT_FAILURE);
-            } else {
-             */
-
-            if( is_master_server ) {
-                // Make sure the data directory belongs to this new user
-                char cmdbuff[64];
-
-                logmsg(LOG_NOTICE,"Adjusting permission and owner on file structure (%s).",datadir);
-                snprintf(cmdbuff,63,"chown -R %s %s",username,datadir);
-                int dummyret = system(cmdbuff);
-
-                snprintf(cmdbuff,63,"chgrp -R %d %s",pwe->pw_gid,datadir);
-                dummyret = system(cmdbuff);
-
-                if( strcmp(logfile_name,"syslog") && strcmp(logfile_name,"stdout") ) {
-                    snprintf(cmdbuff,63,"chown %s %s",username,logfile_name);
-                    dummyret = system(cmdbuff);
-
-                    snprintf(cmdbuff,63,"chgrp %d %s",pwe->pw_gid,logfile_name);
-                    dummyret = system(cmdbuff);
-                }
-            }
-
-            // Make sure we run as belonging to the video group
-            struct group *gre = getgrnam("video");
-            if( gre == NULL ) {
-                logmsg(LOG_ERR,"Specified group to run as, '%s', does not exist. (%d : %s) **",
-                   "video",errno,strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-            
-            gid_t groups[2];
-            groups[0] = pwe->pw_gid;
-            groups[1] = gre->gr_gid;
-            if( -1 == setgroups(2, groups) ) {
-                logmsg(LOG_ERR,"Cannot set groups. Check that '%s' belongs to the 'video' group. (%d : %s) **",
-                   username,errno,strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-            setgid(pwe->pw_gid);
-            setuid(pwe->pw_uid);
-            logmsg(LOG_DEBUG,"Changing user,uid to '%s',%d",pwe->pw_name,pwe->pw_uid);
-                /*
-            }
-                 */
-        } else {
-            logmsg(LOG_INFO,"The server is running as user 'root'. This is strongly discouraged. *");
-        }
-    }
-
-    // After a possible setuid() and setgrp() the dumapable flag is reset which means
-    // that no core is dumped in case of a SIGSEGV signal. We want a coredump in case
-    // of a memory overwrite so we make sure this is allowed
-    if( -1 == prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) ) {
-        logmsg(LOG_ERR,"Can not set PR_SET_DUMPABLE");
-    }
-
-}
-
-/**
- * Set the initial parameters for the TV-card so we know that they exist
- * and have a known state.
- */
-void
-init_capture_cards(void) {
-
-    // If each profile is allowed to set the HW encoding paramters then we
-    // do not need to do anything here.
-    if( !allow_profiles_adj_encoder ) {
-        struct transcoding_profile_entry *profile;
-        get_transcoding_profile(default_transcoding_profile,&profile);
-        for(unsigned video=0; video < max_video; video++) {
-            int fd = video_open(video,FALSE);
-            int ret = set_enc_parameters(fd,profile);
-            video_close(fd);
-            if( -1 == ret  ) {
-                // Nothing else to do than to quit
-                logmsg(LOG_ERR,"Fatal error. Cannot initialize HW capture card(s) ( %d : %s )", errno, strerror(errno));
-                _exit(EXIT_FAILURE);
-            }
-        }
-    }
-}
-
-/**
- * Setup a lockfile based on the program name
- * @param argv
- */
-void
-setup_lockfile(void) {
-
-    snprintf(lockfilename,255,"%s/%s.pid",LOCKFILE_DIR,server_program_name );
-    // Set lockfile to avoid multiple instances running
-    if( -1 == createlockfile() ) {
-        fprintf(stderr,"Cannot start server. Check system log for more information.\n");
-        _exit(EXIT_FAILURE);
-    }
-}
-
 
 /* ==================================================================================
  * M A I N

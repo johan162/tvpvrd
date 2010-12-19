@@ -31,6 +31,14 @@
 extern "C" {
 #endif
 
+/*
+ * DEFAULT_PREFIX string
+ * String for default prefix when mangling names in recurring recordings.
+ * This string will used as a separator between the base title/filename and
+ * the suffix computed for a recurring recording.
+ */
+#define DEFAULT_PREFIX "_"
+    
 /**
  * Read the XML DB from eth sepcified file
  * @param filename
