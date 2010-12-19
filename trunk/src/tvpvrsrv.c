@@ -786,7 +786,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
  * the transcoding is initiated.
  */
 void *
-startrec(void *arg) {
+startrec(void *arg) {    
     ssize_t nread, nwrite;
     char full_filename[256], workingdir[256], short_filename[256];
     const mode_t dmode =  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
@@ -878,9 +878,9 @@ startrec(void *arg) {
             if( rc ) {
 
                 logmsg(LOG_ERR, "Cannot create recording directory (%s). Recording aborted. ( %d : %s)  ",workingdir,errno,strerror(errno));
-    #ifndef DEBUG_SIMULATE
+#ifndef DEBUG_SIMULATE
                 video_close(vh);
-    #endif
+#endif
                 pthread_mutex_lock(&recs_mutex);
                 free(recording);
                 ongoing_recs[video] = (struct recording_entry *)NULL;
