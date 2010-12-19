@@ -40,18 +40,11 @@ extern "C" {
 #include "config.h"
 
 /*
- * Defining this constant makes it possible to run the server on a
- * computer that doesn't have a video card in order to be debug the
- * logic of the server on a computer missing video card.
- */
-//#define DEBUG_SIMULATE
-
-/*
  * VIDBUFSIZE integer
  * 300 KB Video buffer size. This is the data chunk size we will read from the
  * video stream into memory before storing it on the file in the file system.
  * This might not look very large but when we do the select() to wait for data
- * from the card the typical size returned is 80K-180K so 300K is enough.
+ * from the card the typical size returned is 80K-180K so 300K is more than enough.
  */
 #define VIDBUFSIZE (300*1024)
 
