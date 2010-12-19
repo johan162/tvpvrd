@@ -42,9 +42,7 @@
 // Standard UNIX headers
 #include <stdio.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <string.h>
-#include <syslog.h>
 #include <math.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>

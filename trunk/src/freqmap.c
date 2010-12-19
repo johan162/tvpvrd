@@ -38,8 +38,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <syslog.h>
-#include <errno.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"

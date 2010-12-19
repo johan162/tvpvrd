@@ -53,7 +53,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <libgen.h>
-#include <syslog.h>
 #include <signal.h>
 #include <getopt.h>
 #include <dirent.h>
@@ -71,7 +70,6 @@
 
 // Aplication specific libs, parse inifiles as well as Perl regular expressions
 #include <pcre.h>
-#include <errno.h>
 
 // Needed to get symbolic constants for v4l2 controls
 #include <linux/videodev2.h>

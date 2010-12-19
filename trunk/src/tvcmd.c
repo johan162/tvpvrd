@@ -36,7 +36,6 @@
 // Standard UNIX includes
 #include <stdio.h>
 #include <unistd.h>
-#include <errno.h>
 #include <pcre.h>
 #include <string.h>
 #include <ctype.h>
@@ -1661,6 +1660,13 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "%-30s: %s\n"
             "%-30s: %s\n"
             "%-30s: %s\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %s\n"
+            "%-30s: %d\n"
+            "%-30s: %s\n"
+
             ,
             "datadir",datadir,
             "use_profile_directories",use_profiledirectories,
@@ -1693,7 +1699,15 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "default_recording_time",defaultDurationHour,defaultDurationMin,
             "xawtv_station file",xawtv_channel_file,
             "default_profile",default_transcoding_profile,
-            "frequency_map",frequencymap_name
+            "frequency_map",frequencymap_name,
+
+            "allow_profiles_adj_encoder",allow_profiles_adj_encoder,
+            "external_switch",external_switch,
+            "external_input", external_input,
+            "external_switch_script", external_switch_script,
+            "use_postrec_processing", use_postrec_processing,
+            "postrec_processing_script", postrec_script
+            
             );
 }
 

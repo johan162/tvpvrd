@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syslog.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <signal.h>
