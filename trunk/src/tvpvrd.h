@@ -49,14 +49,6 @@ extern "C" {
 #define VIDBUFSIZE (300*1024)
 
 /*
- * DEFAULT_PREFIX string
- * String for default prefix when mangling names in recurring recordings.
- * This string will used as a separator between the base title/filename and
- * the suffix computed for a recurring recording.
- */
-#define DEFAULT_PREFIX "_"
-
-/*
  * WELCOM_MSG
  * Server welcome message
  */
@@ -93,7 +85,7 @@ struct ffmpeg_profile {
 
 /* Global information about the server */
 extern char server_version[] ;
-extern char server_program_name[32] ;
+extern char server_program_name[] ;
 
 /*
  * abort_video int

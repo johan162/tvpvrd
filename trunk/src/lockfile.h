@@ -57,6 +57,11 @@ updatelockfilepid(void);
 int
 createlockfile(void);
 
+/**
+ * 
+ */
+void
+setup_lockfile(void);
 
 #ifdef	__cplusplus
 }
