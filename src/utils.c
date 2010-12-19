@@ -39,10 +39,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <time.h>
 #include <ctype.h>
 #include <dirent.h>
-#include <errno.h>
 #include <libgen.h>
 #include <math.h>
 #include <locale.h>

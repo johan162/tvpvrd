@@ -31,9 +31,7 @@
 
 // Standard UNIX includes
 #include <stdio.h>
-#include <syslog.h>
 #include <unistd.h>
-#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include <fcntl.h>
