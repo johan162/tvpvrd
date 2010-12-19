@@ -1,5 +1,11 @@
 $Id$
 
+v2.2.1beta
+----------
+- Internal code cleanup and refactoring for easier maintenance.
+- Add some missing information in the list settings command
+- 
+
 v2.2.0
 ------
 
