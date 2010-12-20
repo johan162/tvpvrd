@@ -282,6 +282,13 @@ extern "C" {
 #define VERBOSE_LOG 1
 
 /*
+ * SHUTDOWN_SCRIPT string
+ * Name of shutdown script to be run when automatic shutdown is initated
+ */
+#define SHUTDOWN_SCRIPT "shutdown.sh"
+
+
+/*
  * The value of the following variables are read from the ini-file.
  * They hold various run time limits and settings that
  * the user can adjust. Some of these values can also be overridden by being
@@ -451,6 +458,24 @@ extern char *tuner_devices[] ;
  */
 extern char *postrec_script;
 extern int use_postrec_processing;
+
+/**
+ * Shutdown parameters
+ */
+#define DEFAULT_SHUTDOWN_SCRIPT "shutdown.sh"
+#define DEFAULT_SHUTDOWN_ENABLE 0
+#define DEFAULT_SHUTDOWN_MIN_TIME (30*60)
+#define DEFAULT_SHUTDOWN_MAX_5LOAD 1.0
+#define DEFAULT_SHUTDOWN_IGNORE_USERS 0
+#define DEFAULT_SHUTDOWN_TIME_DELAY 0
+
+extern time_t shutdown_min_time ;
+extern char shutdown_script[128] ;
+extern float shutdown_max_5load ;
+extern unsigned shutdown_enable ;
+extern unsigned shutdown_ignore_users ;
+extern unsigned shutdown_time_delay ;
+
 
 /**
  * Setup the dictionary file (ini-file) name. Check if it is specified on

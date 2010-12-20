@@ -177,6 +177,18 @@ int use_profiledirectories = 1;
 int send_mail_on_error, send_mail_on_transcode_end;
 char send_mailaddress[64];
 
+/*
+ * Shutdown controls
+ */
+
+time_t shutdown_min_time = 30*60;
+char shutdown_script[128] = {'\0'};
+float shutdown_max_5load = 1.0;
+unsigned shutdown_enable = 0 ;
+unsigned shutdown_ignore_users = 0 ;
+unsigned shutdown_time_delay = 0 ;
+
+
 /**
  * Setup the dictionary file (ini-file) name. Check if it is specified on
  * the command line otherwise check common locations.
@@ -421,6 +433,35 @@ read_inisettings(void) {
         }
     }
 #endif
+
+    /*--------------------------------------------------------------------------
+     * SHUTDOWN section
+     *--------------------------------------------------------------------------
+     */
+
+    strncpy(shutdown_script,
+            iniparser_getstring(dict, "shutdown:script_name", DEFAULT_SHUTDOWN_SCRIPT),
+            127);
+    datadir[127] = '\0';
+
+    shutdown_enable = iniparser_getboolean(dict, "shutdown:enable", DEFAULT_SHUTDOWN_ENABLE);
+
+    shutdown_min_time = validate(300,7200,"shutdown_min_time",
+                                 iniparser_getint(dict, "shutdown:min_time", DEFAULT_SHUTDOWN_MIN_TIME));
+
+    shutdown_max_5load = iniparser_getdouble(dict,"shutdown:max_5load",DEFAULT_SHUTDOWN_MAX_5LOAD);
+
+    shutdown_ignore_users = iniparser_getboolean(dict, "shutdown:ignore_users", DEFAULT_SHUTDOWN_IGNORE_USERS);
+
+    shutdown_time_delay = validate(0,600,"shutdown_time_delay",
+                                 iniparser_getint(dict, "shutdown:time_delay", DEFAULT_SHUTDOWN_TIME_DELAY));
+
+
+
+    /*--------------------------------------------------------------------------
+     * Final verification of combination of values in the INI-file
+     *--------------------------------------------------------------------------
+     */
 
     if( strlen(datadir) >= 127 || strlen(logfile_name) >= 127 ||
         strlen(device_basename) >= 127  ) {

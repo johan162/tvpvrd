@@ -1,0 +1,53 @@
+#!/bin/sh
+# 
+# File:   shutdown.sh.template
+# Desc:   Template for shutdown script which gets called when
+#         automatic shutdown is initiated.
+#         There are one argument to this script:
+#         -t <seconds>   Time in seconds for warning of shutdown
+#
+# SVN:    $Id$
+#
+# Note: This is just a TEMPLATE that must be modified to do
+# Specific shutdown actions
+#-----------------------------------------------------------
+
+
+#-----------------------------------------------------------
+# Get options
+# -t <seconds>   Time in seconds
+# Note: The daemon will supply this argument to the script
+#-----------------------------------------------------------
+
+time=
+while getopts t: o
+do  case "$o" in
+    t)      time="$OPTARG"
+            ;;
+    [?])    print >&2 "Usage; $0 -t time"
+            exit 1
+            ;;
+    esac
+done
+
+if test -z time; then
+    exit 1
+fi
+
+#-----------------------------------------------------------
+# Various ways to do shutdown on the server. Uncomment one
+# of these to select method. All of these assumes that the
+# daemon is running as user root
+#-----------------------------------------------------------
+
+# Full shutdown
+# /sbin/shutdown -h "$time"
+
+
+# Normal exit from the script
+exit 0
+
+
+
+
+
