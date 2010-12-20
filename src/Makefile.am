@@ -26,7 +26,7 @@ tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_DATE=$$(date +'%Y%m%d')"
 tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE)
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
-etc/postrec_processing.sh.template
+etc/postrec_processing.sh.template etc/shutdown.sh.template
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 
@@ -40,6 +40,7 @@ install-data-local:
 	fi
 	install -D -m 755 $(abs_srcdir)/etc/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; \
 	install -D -m 755 $(abs_srcdir)/etc/postrec_processing.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/postrec_processing.sh.template; \
+	install -D -m 755 $(abs_srcdir)/etc/shutdown.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/shutdown.sh.template; \
 	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
 	install -D -m 644 $(abs_srcdir)/etc/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
 
