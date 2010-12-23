@@ -463,6 +463,7 @@ extern int use_postrec_processing;
 #define DEFAULT_SHUTDOWN_TIME_DELAY 0
 #define DEFAULT_SHUTDOWN_MIN_UPTIME 15*60
 #define DEFAULT_SHUTDOWN_SENDMAIL 0
+#define DEFAULT_SHUTDOWN_PRE_STARTUP_TIME 180
 
 extern time_t shutdown_min_time ;
 extern char shutdown_script[128] ;
@@ -472,6 +473,9 @@ extern unsigned shutdown_ignore_users ;
 extern unsigned shutdown_time_delay ;
 extern unsigned shutdown_min_uptime ;
 extern unsigned shutdown_send_mail ;
+extern unsigned shutdown_pre_startup_time ;
+
+extern char daemon_email_from[] ;
 
 /**
  * Setup the dictionary file (ini-file) name. Check if it is specified on

@@ -175,8 +175,8 @@ int use_profiledirectories = 1;
  * to use. Read from the inifile normally.
  */
 int send_mail_on_error, send_mail_on_transcode_end;
-char send_mailaddress[64];
-
+char send_mailaddress[64] = {'\0'};
+char daemon_email_from[64] = {'\0'};
 /*
  * Shutdown controls
  */
@@ -189,6 +189,7 @@ unsigned shutdown_ignore_users = 0 ;
 unsigned shutdown_time_delay = 0 ;
 unsigned shutdown_min_uptime = 0;
 unsigned shutdown_send_mail ;
+unsigned shutdown_pre_startup_time ;
 
 
 /**
@@ -301,6 +302,11 @@ read_inisettings(void) {
             iniparser_getstring(dict, "config:sendmail_address", SEND_MAILADDRESS),
             63);
     send_mailaddress[63] = '\0';
+
+    strncpy(daemon_email_from,
+            iniparser_getstring(dict, "config:daemon_email_from", ""),
+            63);
+    daemon_email_from[63] = '\0';
 
     strncpy(password,
             iniparser_getstring(dict, "config:password", ""),
@@ -459,7 +465,9 @@ read_inisettings(void) {
     shutdown_time_delay = validate(0,600,"shutdown_time_delay",
                                  iniparser_getint(dict, "shutdown:time_delay", DEFAULT_SHUTDOWN_TIME_DELAY));
 
-
+    shutdown_pre_startup_time =  shutdown_min_time = validate(60,600,"pre_startup_time",
+                                 iniparser_getint(dict, "shutdown:pre_startup_time", DEFAULT_SHUTDOWN_PRE_STARTUP_TIME));
+    
     shutdown_min_uptime = validate(3*60,7200,"shutdown_min_uptime",
                                  iniparser_getint(dict, "shutdown:min_uptime", DEFAULT_SHUTDOWN_MIN_UPTIME));
 
