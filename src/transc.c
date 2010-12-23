@@ -1270,7 +1270,7 @@ _transcode_file(void *arg) {
                             char subjectbuff[80];
                             snprintf(subjectbuff,79,"[tvpvrd] Transcoding of '%s' finished",destfile);
                             subjectbuff[79] = '\0';
-                            send_mail(subjectbuff,send_mailaddress,mailbuff);
+                            send_mail(subjectbuff,daemon_email_from, send_mailaddress,mailbuff);
                         }
                     }
 

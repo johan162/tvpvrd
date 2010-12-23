@@ -3,7 +3,7 @@
 # Automake build script
 # 
 # ===============================================================================
-AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -pthread -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wformat=2 -fstack-protector -D_FORTIFY_SOURCE=2 `xml2-config --cflags`
+AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -pthread -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wformat=2 -fstack-protector `xml2-config --cflags`
 bin_PROGRAMS = tvpvrd
 SUBDIRS = . tvpowerd
 BUILDNBR_FILE=buildnumber.txt

@@ -176,7 +176,7 @@ int use_profiledirectories = 1;
  */
 int send_mail_on_error, send_mail_on_transcode_end;
 char send_mailaddress[64] = {'\0'};
-char daemon_email_from[64] = {'\0'};
+
 /*
  * Shutdown controls
  */

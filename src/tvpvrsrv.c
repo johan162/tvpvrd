@@ -970,7 +970,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
                     subjectbuff[255] = '\0';
                     // logmsg(LOG_DEBUG,"Mail body: %s",mailbuff);
-                    send_mail(subjectbuff,send_mailaddress,mailbuff);
+                    send_mail(subjectbuff,daemon_email_from, send_mailaddress,mailbuff);
                     
 
                 }
