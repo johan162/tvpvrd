@@ -1064,8 +1064,13 @@ send_mail(const char *subject, const char *to, const char *message) {
     char *qsubject = calloc(sublen2, sizeof(char));
     escape_quotes(qsubject,subject,sublen2);
 
-    snprintf(buffer,blen-1,
-	     "echo \"%s\" | /usr/bin/mail -s \"%s\" \"%s\"",qmessage, qsubject, to);
+    if( *daemon_email_from == '\0') {
+        snprintf(buffer,blen-1,
+                 "echo \"%s\" | /usr/bin/mail -s \"%s\" \"%s\"",qmessage, qsubject, to);
+    } else {
+        snprintf(buffer,blen-1,
+                 "echo \"%s\" | /usr/bin/mail -r \"%s\" -s \"%s\" \"%s\"",qmessage, daemon_email_from, qsubject, to);
+    }
     free(qmessage);
     free(qsubject);
 

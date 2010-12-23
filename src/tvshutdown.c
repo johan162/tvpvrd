@@ -180,9 +180,12 @@ check_for_shutdown(void) {
             get_num_ongoing_transcodings() == 0 &&
             get_num_ongoing_recordings() == 0 ) {
 
-            // Set RTC alarm so we will wake up 3 minutes vefore the recording time
-            nextrec -= 3*60;
-            set_rtc_alarm(nextrec);
+            // Set RTC alarm so we will wake up a bit before the recording time
+            nextrec -= shutdown_pre_startup_time;
+            if( -1 == set_rtc_alarm(nextrec) ) {
+                logmsg(LOG_ERR,"Automatic shutdown disabled since the wakeup alarm cannot be set.");
+                return;
+            }
 
             logmsg(LOG_DEBUG,"Initiating automatic shutdown");
             // Call shutdown script
@@ -200,7 +203,7 @@ check_for_shutdown(void) {
                     int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
                     if( -1 == read(stfd,rtc_status,2048) ) {
                         logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",
-                                errno,strerror(errno));
+                               errno,strerror(errno));
                         *rtc_status = '\0';
                     }
 
@@ -208,11 +211,12 @@ check_for_shutdown(void) {
                     snprintf(body,2048,
                              "Server %s shutdown until %s\n"
                              "Next recording: '%s'\n\n"
-                             "RTC Status:\n%s",
-                             hname,ctime(&nextrec),recs[REC_IDX(nextrec_video, nextrec_idx)]->title, rtc_status);
+                             "RTC Status:\n%s\n",
+                             hname,ctime(&nextrec),recs[REC_IDX(nextrec_video, nextrec_idx)]->title,rtc_status);
 
                     send_mail(subj,send_mailaddress,body);
                     logmsg(LOG_DEBUG,"Sent shutdown mail.");
+                    sleep(5); // Make sure the email gets sent before we take down the server
 
                 } else {
                     logmsg(LOG_ERR,"Cannot read hostname for shutdown email. No shutdown email sent!");
