@@ -1,11 +1,13 @@
 $Id$
 
-v2.2.1beta
+v2.3.0beta
 ----------
+- Added automatic shutdown in the server itself by making use of the BIOS
+  real time clock. This will power off the daemon until its time for next
+  recording
 - Internal code cleanup and refactoring for easier maintenance.
 - Add some missing information in the list settings command
 - Internal code restructuring
-- Added Real Time Clock Wakeup in daemon
 
 v2.2.0
 ------
