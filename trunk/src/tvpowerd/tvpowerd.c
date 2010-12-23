@@ -1337,7 +1337,7 @@ server_refresh_time = 1;
                                                  "Have a nice day!\n",
                                                  hname,server_ip,nd,nm,nh,nmin,
                                                  d,m,h,min,title);
-                                        send_mail(mailsubj,send_mailaddress,buffer);
+                                        send_mail(mailsubj,NULL,send_mailaddress,buffer);
                                         free(buffer);
                                     }
 

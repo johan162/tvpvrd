@@ -306,7 +306,7 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen);
  * @return 0 on success -1 otherwise
  */
 int
-send_mail(const char *subject, const char *to, const char *message);
+send_mail(const char *subject, const char *from, const char *to, const char *message);
 
 char *
 url_encode(char *str);

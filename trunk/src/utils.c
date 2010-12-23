@@ -60,6 +60,12 @@ char last_logmsg[MAX_LASTLOGMSG] = {'\0'};
 static int inlogfunction=0;
 int htmlencode_flag=0;
 
+// We will define this config variable here insead of the propre place in
+// yvconfig since otherwise tvpowerd will note get this variable defined
+// since it doesn't include the tvconfig module.
+char daemon_email_from[64] = {'\0'};
+
+
 /**
  * Debug version of close()
  * @param fd
@@ -257,7 +263,7 @@ void logmsg(int priority, char *msg, ...) {
                 msgbuff[blen-1] = '\0' ;
             }
 
-            if( send_mail(subjbuff,send_mailaddress,msgbuff) ) {
+            if( send_mail(subjbuff,daemon_email_from, send_mailaddress,msgbuff) ) {
                 syslog(priority, "'tvpvrd' Failed sending error notification mail. ");
                 syslog(priority, "%s", tmpbuff);
             } else {
@@ -1048,7 +1054,7 @@ escape_quotes(char *tostr, const char *fromstr, const size_t maxlen) {
 }
 
 int
-send_mail(const char *subject, const char *to, const char *message) {
+send_mail(const char *subject, const char *from, const char *to, const char *message) {
     const size_t blen=20*1024;
     char *buffer = calloc(blen,sizeof(char));
 
@@ -1064,12 +1070,13 @@ send_mail(const char *subject, const char *to, const char *message) {
     char *qsubject = calloc(sublen2, sizeof(char));
     escape_quotes(qsubject,subject,sublen2);
 
-    if( *daemon_email_from == '\0') {
+    
+    if( from == NULL || *from == '\0' ) {
         snprintf(buffer,blen-1,
                  "echo \"%s\" | /usr/bin/mail -s \"%s\" \"%s\"",qmessage, qsubject, to);
-    } else {
+    } else {        
         snprintf(buffer,blen-1,
-                 "echo \"%s\" | /usr/bin/mail -r \"%s\" -s \"%s\" \"%s\"",qmessage, daemon_email_from, qsubject, to);
+                 "echo \"%s\" | /usr/bin/mail -r \"%s\" -s \"%s\" \"%s\"",qmessage, from, qsubject, to);
     }
     free(qmessage);
     free(qsubject);

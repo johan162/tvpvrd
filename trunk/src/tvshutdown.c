@@ -214,7 +214,7 @@ check_for_shutdown(void) {
                              "RTC Status:\n%s\n",
                              hname,ctime(&nextrec),recs[REC_IDX(nextrec_video, nextrec_idx)]->title,rtc_status);
 
-                    send_mail(subj,send_mailaddress,body);
+                    send_mail(subj,daemon_email_from, send_mailaddress,body);
                     logmsg(LOG_DEBUG,"Sent shutdown mail.");
                     sleep(5); // Make sure the email gets sent before we take down the server
 
