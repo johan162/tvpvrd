@@ -25,6 +25,9 @@
 #include <stdio.h>
 #include <pwd.h>
 #include <wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"
@@ -32,6 +35,44 @@
 #include "recs.h"
 #include "utils.h"
 #include "transc.h"
+
+#define RTC_WAKEUP_DEVICE "/sys/class/rtc/rtc0/wakealarm"
+#define RTC_STATUS_DEVICE "/proc/driver/rtc"
+
+int
+set_rtc_alarm(time_t alarmtime) {
+    // The alarmtime must be in UTC time since the bios clock is
+    // assumed to be that
+    int rtfd = open(RTC_WAKEUP_DEVICE, O_WRONLY);
+    if( -1 == rtfd ) {
+        logmsg(LOG_ERR,"Cannot open RTC device %s ( %d : %s )",
+               RTC_WAKEUP_DEVICE,errno,strerror(errno));
+        return -1;
+    }
+    char timestr[128];
+
+    logmsg(LOG_DEBUG,"Setting RTC wakeupalarm to %s",ctime(&alarmtime));
+
+    snprintf(timestr,127,"0");
+    int ret = write(rtfd,timestr,strlen(timestr));
+    if( ret != (int)strlen(timestr) ) {
+        logmsg(LOG_ERR,"Cannot write to RTC device %s ( %d : %s )",
+               RTC_WAKEUP_DEVICE,errno,strerror(errno));
+        close(rtfd);
+        return -1;
+    }
+
+    snprintf(timestr,127,"%lu",alarmtime);
+    ret = write(rtfd,timestr,strlen(timestr));
+    if( ret != (int)strlen(timestr) ) {
+        logmsg(LOG_ERR,"Cannot write to RTC device %s ( %d : %s )",
+               RTC_WAKEUP_DEVICE,errno,strerror(errno));
+        close(rtfd);
+        return -1;
+    }
+    close(rtfd);
+    return 0;
+}
 
 int
 get_num_ongoing_recordings(void) {
@@ -92,6 +133,14 @@ check_for_shutdown(void) {
         return;
     }
 
+    int uptime=0, idletime=0;
+    getuptime(&uptime,&idletime);
+    if( uptime < (int)shutdown_min_uptime ) {
+        // We will not initiate a shutdown unless the server has been awake for at least
+        // this amount of time
+        return;
+    }
+
     if( ! shutdown_ignore_users ) {
         int ret = get_num_users();
         if( ret > 0 ) {
@@ -104,9 +153,13 @@ check_for_shutdown(void) {
 
     // Check all video queues for the closest next recording
     time_t nextrec = recs[REC_IDX(0, 0)]->ts_start;
+    int nextrec_video=0;
+    int nextrec_idx=0;
     for (unsigned video = 1; video < max_video; ++video) {
         if( recs[REC_IDX(video, 0)]->ts_start < nextrec  ) {
             nextrec = recs[REC_IDX(video, 0)]->ts_start;
+            nextrec_video = video;
+            nextrec_idx = 0;
         }
     }
 
@@ -127,22 +180,62 @@ check_for_shutdown(void) {
             get_num_ongoing_transcodings() == 0 &&
             get_num_ongoing_recordings() == 0 ) {
 
+            // Set RTC alarm so we will wake up 3 minutes vefore the recording time
+            nextrec -= 3*60;
+            set_rtc_alarm(nextrec);
+
             logmsg(LOG_DEBUG,"Initiating automatic shutdown");
             // Call shutdown script
             char cmd[256] ;
             snprintf(cmd,255,"%s/tvpvrd/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
 
             logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
+            if( shutdown_send_mail ) {
+                char subj[255];
+                char *body = calloc(1,2048);
+                char *rtc_status = calloc(1,2048);
+                char hname[255] ;
+                if( 0 == gethostname(hname,255) ) {
+
+                    int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
+                    if( -1 == read(stfd,rtc_status,2048) ) {
+                        logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",
+                                errno,strerror(errno));
+                        *rtc_status = '\0';
+                    }
+
+                    snprintf(subj,255,"Server %s shutdown until %s",hname,ctime(&nextrec));
+                    snprintf(body,2048,
+                             "Server %s shutdown until %s\n"
+                             "Next recording: '%s'\n\n"
+                             "RTC Status:\n%s",
+                             hname,ctime(&nextrec),recs[REC_IDX(nextrec_video, nextrec_idx)]->title, rtc_status);
+
+                    send_mail(subj,send_mailaddress,body);
+                    logmsg(LOG_DEBUG,"Sent shutdown mail.");
+
+                } else {
+                    logmsg(LOG_ERR,"Cannot read hostname for shutdown email. No shutdown email sent!");
+                }
+
+            }
+
             int ret = system(cmd);
             if( ret==-1 || WEXITSTATUS(ret)) {
                 logmsg(LOG_ERR,"Could not execute shutdown script ( %d : %s) ",errno, strerror(errno));
             }
+
+            // Wait for shutdown
+            sleep(5);
+            
         } else {
             logmsg(LOG_DEBUG,"One or more of the conditions not fullfilled. Aborting automatic shudown");
         }
     }
 
     pthread_mutex_unlock(&recs_mutex);
+
+
 
 }
 
