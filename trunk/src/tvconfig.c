@@ -187,6 +187,8 @@ float shutdown_max_5load = 1.0;
 unsigned shutdown_enable = 0 ;
 unsigned shutdown_ignore_users = 0 ;
 unsigned shutdown_time_delay = 0 ;
+unsigned shutdown_min_uptime = 0;
+unsigned shutdown_send_mail ;
 
 
 /**
@@ -445,8 +447,9 @@ read_inisettings(void) {
     datadir[127] = '\0';
 
     shutdown_enable = iniparser_getboolean(dict, "shutdown:enable", DEFAULT_SHUTDOWN_ENABLE);
+    shutdown_send_mail = iniparser_getboolean(dict, "shutdown:send_mail", DEFAULT_SHUTDOWN_SENDMAIL);
 
-    shutdown_min_time = validate(300,7200,"shutdown_min_time",
+    shutdown_min_time = validate(120,7200,"shutdown_min_time",
                                  iniparser_getint(dict, "shutdown:min_time", DEFAULT_SHUTDOWN_MIN_TIME));
 
     shutdown_max_5load = iniparser_getdouble(dict,"shutdown:max_5load",DEFAULT_SHUTDOWN_MAX_5LOAD);
@@ -457,6 +460,8 @@ read_inisettings(void) {
                                  iniparser_getint(dict, "shutdown:time_delay", DEFAULT_SHUTDOWN_TIME_DELAY));
 
 
+    shutdown_min_uptime = validate(3*60,7200,"shutdown_min_uptime",
+                                 iniparser_getint(dict, "shutdown:min_uptime", DEFAULT_SHUTDOWN_MIN_UPTIME));
 
     /*--------------------------------------------------------------------------
      * Final verification of combination of values in the INI-file

@@ -100,26 +100,27 @@
 char server_version[] = PACKAGE_VERSION; // This define gets set by the config process
 char server_program_name[32] = {0};
 
-// Time delay before the daemon really starts doing stuff if
+// Time delay (in sec) before the daemon really starts doing stuff if
 // the dameon is started within 3 minutes of the machine power
-// on.
-// This might seem a really odd thing to have but it has one
+// on. This might seem a really odd thing to have but it has one
 // really useful purpose. On older machines where the bios clock
 // is not correctly updated by the ntpd daemon at shutdown it
-// could be that in the few seconds after the machine starts up
+// could be that in the few seconds after the daemon starts
 // and until the ntpd daemon kicks in the time is wrong. This is
 // especially annoying when the switch to/from daylight saving time
 // takes place. If the bios clock is not correctly updated at shutdown
 // the first few seconds after the server starts the time will be off
 // by one hour.
 // This variable specifies a suitable number of seconds for the daemon to
-// sleep at startup so that the ntpd daemons has had time to correct the
-// machine time. Of course this delay is only really necessary when the
+// sleep immediately after startup so that the ntpd daemons has had time
+// to correct the machine time.
+//
+// Of course this delay is only really necessary when the
 // daaemon is started up just after the server has been powered on. So
 // this delay only kicks in if the daemon is started within 3 minutes of the
 // machine power on. This can also be adjusted as an argument when starting
 // the daemon (-t)
-int tdelay=30;
+int tdelay=15;
 
 // The video buffer (used when reading the video stream from the capture card)
 // One buffer for each video card. We support up to 4 simultaneous cards
@@ -390,7 +391,7 @@ parsecmdline(int argc, char **argv) {
 
             case 't':
                 if( optarg != NULL ) {
-                    tdelay = validate(2,600,"tdelay on command line",atoi(optarg));
+                    tdelay = validate(0,600,"tdelay on command line",atoi(optarg));
                 }
                 break;
 
@@ -1102,6 +1103,7 @@ chkswitchuser(void) {
 
     if( strcmp(pwe->pw_name,"root") == 0 ) {
         strncpy( username, iniparser_getstring(dict, "config:username", DEFAULT_USERNAME), 63 );
+
         username[63] = '\0';
         if( strcmp(username,"root") != 0 ) {
             errno=0;
@@ -1161,8 +1163,6 @@ chkswitchuser(void) {
                 /*
             }
                  */
-        } else {
-            logmsg(LOG_INFO,"The server is running as user 'root'. This is strongly discouraged. *");
         }
     }
 
