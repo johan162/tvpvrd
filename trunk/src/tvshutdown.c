@@ -166,7 +166,7 @@ check_for_shutdown(void) {
     // We need the current time to compare against
     time_t now = time(NULL);
 
-    if( nextrec - now > shutdown_min_time ) {
+    if( nextrec - now > shutdown_min_time+(time_t)shutdown_pre_startup_time ) {
         // Yes we could potentially shutdown. Now check that
         // 1) No ongoing recordings
         // 2) No ongoing transcodings
@@ -184,53 +184,53 @@ check_for_shutdown(void) {
             nextrec -= shutdown_pre_startup_time;
             if( -1 == set_rtc_alarm(nextrec) ) {
                 logmsg(LOG_ERR,"Automatic shutdown disabled since the wakeup alarm cannot be set.");
-                return;
-            }
+            } else {
 
-            logmsg(LOG_DEBUG,"Initiating automatic shutdown");
-            // Call shutdown script
-            char cmd[256] ;
-            snprintf(cmd,255,"%s/tvpvrd/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
+                logmsg(LOG_DEBUG,"Initiating automatic shutdown");
+                // Call shutdown script
+                char cmd[256] ;
+                snprintf(cmd,255,"%s/tvpvrd/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
 
-            logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
-            if( shutdown_send_mail ) {
-                char subj[255];
-                char *body = calloc(1,2048);
-                char *rtc_status = calloc(1,2048);
-                char hname[255] ;
-                if( 0 == gethostname(hname,255) ) {
+                logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
+                if( shutdown_send_mail ) {
+                    char subj[255];
+                    char *body = calloc(1,2048);
+                    char *rtc_status = calloc(1,2048);
+                    char hname[255] ;
+                    if( 0 == gethostname(hname,255) ) {
 
-                    int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
-                    if( -1 == read(stfd,rtc_status,2048) ) {
-                        logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",
-                               errno,strerror(errno));
-                        *rtc_status = '\0';
+                        int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
+                        if( -1 == read(stfd,rtc_status,2048) ) {
+                            logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",
+                                   errno,strerror(errno));
+                            *rtc_status = '\0';
+                        }
+
+                        snprintf(subj,255,"Server %s shutdown until %s",hname,ctime(&nextrec));
+                        snprintf(body,2048,
+                                 "Server %s shutdown until %s\n"
+                                 "Next recording is: '%s'\n\n"
+                                 "RTC Status:\n%s\n",
+                                 hname,ctime(&nextrec),recs[REC_IDX(nextrec_video, nextrec_idx)]->title,rtc_status);
+
+                        send_mail(subj,daemon_email_from, send_mailaddress,body);
+                        logmsg(LOG_DEBUG,"Sent shutdown mail.");
+                        sleep(5); // Make sure the email gets sent before we take down the server
+
+                    } else {
+                        logmsg(LOG_ERR,"Cannot read hostname for shutdown email. No shutdown email sent!");
                     }
 
-                    snprintf(subj,255,"Server %s shutdown until %s",hname,ctime(&nextrec));
-                    snprintf(body,2048,
-                             "Server %s shutdown until %s\n"
-                             "Next recording: '%s'\n\n"
-                             "RTC Status:\n%s\n",
-                             hname,ctime(&nextrec),recs[REC_IDX(nextrec_video, nextrec_idx)]->title,rtc_status);
-
-                    send_mail(subj,daemon_email_from, send_mailaddress,body);
-                    logmsg(LOG_DEBUG,"Sent shutdown mail.");
-                    sleep(5); // Make sure the email gets sent before we take down the server
-
-                } else {
-                    logmsg(LOG_ERR,"Cannot read hostname for shutdown email. No shutdown email sent!");
                 }
 
-            }
+                int ret = system(cmd);
+                if( ret==-1 || WEXITSTATUS(ret)) {
+                    logmsg(LOG_ERR,"Could not execute shutdown script ( %d : %s) ",errno, strerror(errno));
+                }
 
-            int ret = system(cmd);
-            if( ret==-1 || WEXITSTATUS(ret)) {
-                logmsg(LOG_ERR,"Could not execute shutdown script ( %d : %s) ",errno, strerror(errno));
+                // Wait for shutdown
+                sleep(5);
             }
-
-            // Wait for shutdown
-            sleep(5);
             
         } else {
             logmsg(LOG_DEBUG,"One or more of the conditions not fullfilled. Aborting automatic shudown");
@@ -238,8 +238,6 @@ check_for_shutdown(void) {
     }
 
     pthread_mutex_unlock(&recs_mutex);
-
-
 
 }
 
