@@ -49,15 +49,18 @@
                     <manvolnum>1</manvolnum>
                 </citerefentry> command starts a video recording server that will make use of one or
                 more installed TV-Capture cards and, following a specified schedule, will record
-                broadcasted and encoded streams from the capture card to disk. In affect a digital
-                version of a programmable VHS.</para>
-            <para>The original stored HW encoded file (from the capture card) can then be
-                automatically transcoded (using <citerefentry>
+                broadcasted and encoded streams from the capture card to disk. In effect a digital
+                version of a programmable VHS. In a similar way as a VCR the daemon also have the
+                capability to shutdown and power on the server in time for recordings (see the
+                auto-shutdown section below).</para>
+            <para>The original HW MPEG2 encoded videofile (from the capture card) can then be
+                optionally transcoded (using <citerefentry>
                     <refentrytitle>ffmpeg</refentrytitle>
                     <manvolnum>1</manvolnum>
-                </citerefentry> ) to a more efficient format. The specific details on both the
-                initial HW encoder settings as well as the transcoding options are bundled in a
-                'profile'. </para>
+                </citerefentry> ) to a more efficient format by the daemon. The specific details on
+                both the initial HW encoder settings as well as the transcoding options are bundled
+                in a user configurable 'profile'. The daemon supports the usage of  multiple
+                profiles. </para>
             <para>Each recording is done using one (or multiple) profiles. Each recording will
                 always have at least one profile, the primary profile. In this way it is possible to
                 create multiple transcoded versions of one recording, for example one high quality
@@ -67,10 +70,7 @@
                 specified in the traditional ini-file text file format and is stored under the
                 'profiles' directory which is a subdirectory to the settings directory (normally
                     <filename>/etc/tvpvrd</filename>). Each setting in the profile is well
-                documented in the profiles. The settings are also described in <citerefentry>
-                    <refentrytitle>tvpvrd</refentrytitle>
-                    <manvolnum>5</manvolnum>
-                </citerefentry> man page.</para>
+                documented in the profiles. </para>
             <para>The primary interface to the server is via a TCP/IP connection to the server
                 running '<emphasis>tvpvrd</emphasis>' via a dedicated port (by default 9300). The
                 server is controlled via a simple (but efficient) command language which allows
@@ -78,20 +78,20 @@
                 commands are extensively described in the section 'Command language' below. </para>
             <para>As an optional way there is also a native simple WEB-interface that allows a
                 limited number of commands such as basic adding of new recording, deleting existing
-                recordings, viewing status, showing upcoming recordings etc.. The WEB-interface must
+                recordings, viewing status, showing upcoming recordings etc. The WEB-interface must
                 be enabled in the ini-file since it is by default disabled. The WEB interface is
-                accessed on port number (port+1), i.e. one more than the port number specified for
-                the full command interface. This means that by default the WEB-interface is
-                available on port 9301. Please note that as of this writing the WEB-interface does
-                not yet support authentication.  </para>
+                accessed on port number (port+1) i.e one more than the port number specified for the
+                command interface. This means that by default the WEB-interface is available on port
+                9301. The WEB-interface can optionally require a separate login as specified in the
+                configuration file. </para>
             <para>To access the WEB interface from a browser simple give the server address and port
-                number. For example to access the daemon on the localhost with the default port
-                number use URL "<filename>http://localhost:9301</filename>". </para>
+                number. For example to access the daemon on the server "<code>localhost</code>" with
+                the default port number use URL "<filename>http://localhost:9301</filename>". </para>
             <para>The look and feel of the WEB-interface is entirely controlled by a CSS style sheet
                 stored in the configuration directory (usually specified as
-                    <filename>/etc</filename>). This is the same place as where the ini-file is
-                stored. This means it is very simple to change the look and feel from the default
-                colors and layout.</para>
+                    <filename>/etc</filename>). This is the same place as where the configuration
+                file is stored. This means it is straightforward to change the look and feel from
+                the default colors and layout.</para>
             <para>The WEB interface will also automatically adapt when it detects that a mobile
                 phone browser is trying to access the interface to a format more suitable for the
                 smaller screen on mobile phones. By necessity this means that only a subset of the
@@ -101,14 +101,15 @@
                 phone will not be detected as mobile browsers and then the normal WEB interface will
                 be used.</para>
             <para>The recordings specified are stored in a database which is a plain text file in
-                XML format (UTF-8 encoded).</para>
+                XML format using UTF-8 character encoding.</para>
             <para>Recorded and transcoded files are stored in a predefined directory structure. The
-                base directory for this directory structure is defined in the ini-file.</para>
+                base directory for this directory structure is defined in the configuration file,
+                see also the section "Directory Structure" below.</para>
         </refsect1>
         <refsect1
             xml:id="tvpvrd.options">
             <title>Arguments</title>
-            <para>The following arguments are supported</para>
+            <para>The following command line arguments are supported when starting the daemon</para>
             <variablelist>
                 <varlistentry>
                     <term><option>-d</option>, <option>--daemon</option>
@@ -144,20 +145,20 @@
                     <listitem>
                         <para>Use the specified file as configuration file. This will override the
                             location specified at compile time. The default location is
-                            '/etc/tvpvrd/tvpvrd.conf'</para>
+                                '<filename>/etc/tvpvrd/tvpvrd.conf</filename>'</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
                     <term><option>-l</option>, <option>--logfile</option>
                         <filename>filename</filename></term>
                     <listitem>
-                        <para>Define what logfile to use. Two special names can be used
+                        <para>Define the name of the logfile. Two special names can be used,
                                 <filename>stdout</filename> which will cause the log to be written
                             to the <emphasis>stdout</emphasis> and <filename>syslog</filename> which
-                            will cause the logs to be written using the default system log. This
+                            will cause the logs to be written using the default system logger. This
                             command line option will override the '<emphasis>logfile</emphasis>'
                             setting in the ini-file. The default location is
-                            '/tmp/tvpvrd.log'</para>
+                                '<filename>/tmp/tvpvrd.log</filename>'</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -166,9 +167,9 @@
                         <emphasis>nnnn</emphasis>
                     </term>
                     <listitem>
-                        <para>Specify TCP/IP port number that the server will listen on. This will
-                            override the '<emphasis>port</emphasis>' setting in the ini-file. By
-                            default the distribution uses port 9300. The port number of the
+                        <para>Specify what TCP/IP port number that the server will listening on.
+                            This will override the '<emphasis>port</emphasis>' setting in the
+                            ini-file. By default this is port 9300. The port number of the
                             WEB-interface will be <emphasis>nnnn</emphasis>+1 so by default the
                             WEB-interface will be available on port 9301.</para>
                     </listitem>
@@ -187,7 +188,7 @@
                     <listitem>
                         <para>Log verbosity level. 0 will only log error messages, 1 will log error
                             and info messages, 2 will log errors, info and additional notices
-                            finally 3 will also log high volume debug messages.</para>
+                            finally 3 will also log (possibly) high volume debug messages.</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -204,7 +205,8 @@
                             file maps the standardized frequency channel names to the more commonly
                             used station names. See the section "Stations, channels and frequencies"
                             below for more information. This will override the setting in the
-                            ini-file. The default location is '/etc/X11/xawtvrc'</para>
+                            ini-file. The default location is
+                            '<filename>/etc/X11/xawtvrc</filename>'</para>
                     </listitem>
                 </varlistentry>
             </variablelist>
@@ -271,6 +273,73 @@
                 root).</para>
         </refsect1>
         <refsect1>
+            <title>Automatic shutdown and startup of the server</title>
+            <para>In the same way as a VCR (or a modern HD recorder) has the capability to shut down
+                and power on in time for recording the tvpvrd can do this with the server it is
+                running on. The daemon package has two radically different way to do this and
+                depending on your preference (and/or HW) either way can be chosen. The server
+                supports either the usage of the internal BIOS real time clock using a wakeup alarm
+                or running a power management daemon (<command>tvpowerd</command>) on a separate
+                server. If you have a reasonable modern server (say 2005 or newer) it will most
+                likely support BIOS wakeup alarm and since that is the easiest method we strongly
+                recommend you use that method.</para>
+            <refsect2>
+                <title>Using the BIOS wakeup alarm on the server running the tvpvrd daemon</title>
+                <para>To use this method it is first important to recognize that the daemon must be
+                    running as user '<code>root</code>' in order to have the privilege to shut down
+                    the server.</para>
+                <para>To enable this feature it must first be enabled in the configuration file
+                    under the section <code>[shutdown]</code> . By default this feature is disabled.
+                    There are then some basic parameters that should be checked according to
+                    preference. For example the parameter <code>ignore_users</code> will determine
+                    if the shutdown should still happen if there are user logged in to the server or
+                    not. All the available parameters are fully specified and documented in the
+                    default configuration file.</para>
+                <para>To make this work the daemon assumes that the RTC (BIOS Real Time Clock)
+                    presents an interface on the
+                    "<filename>/sys/class/rtc/rtc0/wakealarm</filename>" that can be used to set the
+                    time in seconds since Epoc when the server should wake up if it is powered off.
+                    In some BIOS it is also necessary to first enable the wakeup alarm by changing
+                    some default setting (check your BIOS documentation).</para>
+                <para>In order not to miss the recording the server is woken up a little bit before
+                    the actual recording time. By default this is 180 sec which should be enough
+                    time for even old servers to fully wake up. This pre-wakeup time is configurable
+                    in the configuration file. </para>
+                <para>The actual shutdown of the server is done by the
+                        "<filename>shutdown.sh</filename>" script stored in the configuration
+                    directory. In the distribution this is included as a template
+                        "<filename>shutdown.sh.template</filename>" which can then be augmented. By
+                    default the script initiates a complete server shutdown and if that is enough
+                    the template can just be copied and renamed. </para>
+                <para>If the server is reasonable new it might be possible to do a sleep (or
+                    hibernate) instead but in that case we would recommend using the second method
+                    of auto-shutdown using the separate "<command>tvpowerd</command>" as described
+                    below. Please note that there are some special precautions that must be taken to
+                    use sleep or hibernation mode since the ivtv-driver is not power management
+                    aware. So unless absolutely necessary please use the safe and always working
+                    method of just doing a complete shutdown. See <citerefentry>
+                        <refentrytitle>tvpowerd</refentrytitle>
+                        <manvolnum>1</manvolnum>
+                    </citerefentry>  for more details.</para>                
+            </refsect2>
+            <refsect2>
+                <title>Using the tvpowerd-daemon on a separate server</title>
+                <para>Since some older motherboards does not have a working BIOS wakeup clock and
+                    for the case where you rather sleep (or hibernate) the server instead of
+                    shutting it down the package gives an alternative auto-shutdown method using the
+                        "<command>tvpowerd</command>" daemon. This is a separate daemon that must be
+                    run on a separate server. This daemon will then communicate with the server
+                    running the recording daemon and shut the server down and power it on according
+                    to the recording schedule. The power on will be done using Wakeup-On-LAN so this
+                    must be enabled in the BIOS on the recording server. There is a complete
+                    separate manual page describing all the details on how to use this daemon in <citerefentry>
+                        <refentrytitle>tvpowerd</refentrytitle>
+                        <manvolnum>1</manvolnum>
+                    </citerefentry>
+                </para>
+            </refsect2>            
+        </refsect1>
+        <refsect1>
             <title>Running as master or slave</title>
             <para>Normally the daemon will do necessary checks to verify that one or several video
                 cards are present in order to startup. If no video cards are found the server will
@@ -304,27 +373,27 @@
                 line argument).</para>            
                 <screen>$> telnet localhost 9300</screen>            
             <para>After a successful connection the server will reply with a short information
-                message. To help identify the server the first line returned is always
-                    '<code>!TVPVRD!</code>'. The full returned information message at the connection
-                time should look something similar to the following:</para>
-            <screen>!TVPVRD!
-Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
-You are user number 1 out of 2 allowed.
+                message. The full returned information message at the connection time should look
+                something similar to the following (your version and build might be
+                different):</para>
+            <screen>Welcome to tvpvrd-2.3.0  [Server] (build:20101225.191)
+You are user number 1 out of 4 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
-Connection will be closed after 30 min of inactivity.</screen>
+Connection will be closed after 30 min of inactivity.
+</screen>
             <para>If password protection (see section "Security" below) the welcome message is not
                 be shown until the correct password has been specified. Instead when password
                 protection is enabled the connection sequence looks like this</para>
             
                 <screen>$> telnet localhost 9300
 Password:<emphasis role="bold">xxxxxxx</emphasis>
-!TVPVRD!
-Welcome to TVPVR-1.1.2 [Server] (Jan 26 2010)
-You are user number 1 out of 2 allowed.
+Welcome to tvpvrd-2.3.0  [Server] (build:20101225.191)
+You are user number 1 out of 4 allowed.
 Type 'exit' to disconnect.
 Type 'h' to list available commands.
-Connection will be closed after 30 min of inactivity.</screen>
+Connection will be closed after 30 min of inactivity.
+</screen>
             
             <para>This means that the correct server password has to be given before the welcome
                 message is seen. The server is now ready to accept commands on this
@@ -333,32 +402,35 @@ Connection will be closed after 30 min of inactivity.</screen>
         </refsect1>
         <refsect1>
             <title>The recording and transcoding process</title>
-            <para>The recording process refers to the process of saving the generated MP2 video
+            <para>The recording process refers to the process of saving the generated MPRG2 video
                 stream from the capture card to a file.</para>
-            <para>The transcoding process refers to the re-coding of the original MP2 video stream
-                to a more efficient format, usually an MP4 container using H.264 video codec (the
+            <para>The transcoding process refers to the re-coding of the original MPEG2 video stream
+                to a more efficient format, usually an MPEG4 container using H.264 video codec (the
                 default in the distributed profiles). Depending on the quality settings it is common
-                to see reduction in original file size with 75%</para>
+                to see reduction in original file size with 75%.</para>
             <para>The transcoding process is very CPU-intensive and with the default settings in the
-                distribution the normal profile will require roughly 1.5 times the original
-                recording length to transcode on a high end machine (as of 2009) . In order not to
-                make the machine totally unresponsive the ini-file specifies a maximum load on the
-                server for a transcoding to start in order not to load the server with too many
-                parallel transcoding processes. The transcoding process is also run with a 'nice'
-                value of 20 to have the transcoding process interfer as little as possible with any
-                interactive use on the server. If the load is too high the transcoding processes
-                will be put in a queue waiting for the load to become acceptable. Note that the
-                serer will not wait forever and if the load has not dropped below the threshold for
-                a certain time  (as specified by the <code>max_waiting_time_to_transcode</code>
-                setting in the ini-file) the transcoding will be cancelled and the original MP2 file
-                left alone.</para>
+                distribution the normal profile will require anywhere between roughly 1.5 times the
+                original recording length to transcode on a pentium dual core to roughly 0.5 times
+                the recording length on a newer i3 or i5 Intel CPU. With a high end Intel multi-core
+                i7 CPU and some basic setting the transcoding time can be down to ~0.3 times the
+                length of the original recording.</para>
+            <para>In order not to make the machine totally unresponsive the ini-file specifies a
+                maximum load on the server for a transcoding to start in order not to load the
+                server with too many parallel transcoding processes. The transcoding process is also
+                run with a 'nice' value of 20 to have the transcoding process interfere as little as
+                possible with any interactive use on the server. If the load is too high the
+                transcoding processes will be put in a queue waiting for the load to become
+                acceptable. Note that the serer will not wait forever and if the load has not
+                dropped below the threshold for a certain time (as specified by the
+                    <code>max_waiting_time_to_transcode</code> setting in the ini-file) the
+                transcoding will be cancelled and the original MPEG2 file left alone.</para>
             <para>When a recording is started a temporary directory will be created under
                     '<filename>&lt;data-dir>/vtmp/vid&lt;n>/</filename>' where &lt;n> is the number
                 of the video card used. The name of the temporary directory will be the same as the
-                base name of the recording. The MPEG stream is read from the video card and stored
+                base name of the recording. The MPEG2 stream is read from the video card and stored
                 in a file in the temporary directory with the same name as the title (converted to
                 lower case) with the suffix ".mpg".</para>
-            <para>If multiple profiles are specified there exists an ambiguity on what HW MP2
+            <para>If multiple profiles are specified there exists an ambiguity on what HW MPEG2
                 parameters to use in case they are different among the selected profiles. The server
                 resolves this by using the HW parameters from the profile with the highest specified
                 video bitrate. This is motivated by the fact that using high quality encoder
@@ -370,17 +442,17 @@ Connection will be closed after 30 min of inactivity.</screen>
                 server load allows the transcoding to start. One transcoding will be made for each
                 of the associated profiles of this recording.</para>
             <para>As a special case no transcoding will be made if the '<emphasis>ffmpeg</emphasis>'
-                profile bitrate is set to 0 Mbps in the profile. In this case only the original MP2
-                video file will be kept.</para>
+                profile bitrate is set to 0 Mbps in the profile. In this case only the original
+                MPEG2 video file will be kept.</para>
             <para>Once a transcoding has finished the resulting MP4 file will be moved either to the
                 directory '<filename>&lt;data-dir>/mp4/&lt;profile>/</filename>' with the same file
                 basename as the title but with the filename suffix ".mp4"  or directly under
                     <filename>'&lt;data-dir>/mp4/'</filename> depending whether or not
                 subdirectories should be used for each profile (see setting file).</para>
             <para>When all the transcodings have been done and if the profile defines that the
-                original MP2 video stream should be kept it is moved to the directory
+                original MPEG2 video stream should be kept it is moved to the directory
                     '<filename>&lt;data-dir>/mp2/</filename>'. After that the temporary directory
-                (and the original MP2 file) is deleted.</para>
+                (and the original MPEG2 file) is deleted.</para>
             <para>Another possibility is to do the recording first and later decide to transcode one
                 or several video files. This is done by giving a separate transcode command to the
                 server and specify the full file path to the file to be transcoded. In order to make
@@ -412,7 +484,7 @@ Connection will be closed after 30 min of inactivity.</screen>
                     <varlistentry>
                         <term><filename>&lt;dataroot>/mp4/&lt;profile></filename></term>
                         <listitem>
-                            <para>The transcoded original MP2 files are by default placed under a
+                            <para>The transcoded original MPEG2 files are by default placed under a
                                 subdirectory under MP4 corresponding to the name of the profile used
                                 for the transcoding. This can be changed to a flat structure instead
                                 which will cause all transcoded files to be placed directly under
@@ -460,16 +532,14 @@ Connection will be closed after 30 min of inactivity.</screen>
                 considered strong security but rather a weak "stop-messing-with-my-recordings"
                 protection.</para>
             <para>The setting whether password should be used or not and the actual password is
-                specified in the ini-file. For more information on the ini-file see <citerefentry>
-                    <refentrytitle>tvpvrd</refentrytitle>
-                    <manvolnum>5</manvolnum>
-                </citerefentry>
-            </para>
+                specified in the ini-file. </para>
             <para>After connecting to the server when the password has been enabled the first string
                 sent back from the server will be the single string:</para>
             
                 <screen>Password:</screen>
             <para>The rest of the reply is the same as when no password is used.</para>
+            <para>For the WEB-interface it is also possible to specify a different user and password
+                to allow the usage of the WEB GUI.</para>
             
         </refsect1>
         <refsect1>
@@ -1917,9 +1987,9 @@ frequency_map                 : europe-west</screen>
                             only root has access to <filename>/var/run</filename></para>
                     </listitem>
                     <listitem>
-                        <para>Maximum recording time is 4 hours (in order to keep maximum MP2 file
-                            size manageable). This can result in up to ~8GB MP2 files depending on
-                            the HW bitrate defined.</para>
+                        <para>Maximum recording time is 4 hours (in order to keep maximum MPEG2 file
+                            size manageable). This can result in up to ~8GB MPEG2 files depending on
+                            the HW bitrate used.</para>
                     </listitem>
                     <listitem>
                         <para>All information and error messages are hard coded in English and
@@ -1928,7 +1998,7 @@ frequency_map                 : europe-west</screen>
                     <listitem>
                         <para>The server assumes that all installed capture cards uses the same
                             index to specify the tuner as input among all the possible input sources
-                            (as specified by the config file setting
+                            (as specified by the configuration file setting
                                 <emphasis>tuner_input_index</emphasis>)</para>
                     </listitem>
                 </itemizedlist>
@@ -1943,9 +2013,9 @@ frequency_map                 : europe-west</screen>
                 <listitem>
                     <para>Theoretically if the server is extremely busy some newer recorded files
                         could be transcoded before older recordings. This is due to the fact that
-                        there is not a central queue for the transcodings but each recording just
-                        backs off and waits a (random) time until it tries to see if it can start
-                        the transcoding (when the server load is below the set threshold).</para>
+                        there is not a central queue for the transcodings. Each recording just backs
+                        off and waits a (random) time until it tries to see if it can start the
+                        transcoding (when the server load is below the set threshold).</para>
                 </listitem>
                 <listitem>
                     <para>The '<command>i</command>' command is not yet implemented.</para>
@@ -1991,8 +2061,8 @@ frequency_map                 : europe-west</screen>
             xml:id="tvpvrd.seealso">
             <title>See also</title>
             <para><citerefentry>
-                    <refentrytitle>tvpvrd</refentrytitle>
-                    <manvolnum>5</manvolnum>
+                    <refentrytitle>tvpowerd</refentrytitle>
+                    <manvolnum>1</manvolnum>
                 </citerefentry>, <citerefentry>
                     <refentrytitle>ffmpeg</refentrytitle>
                     <manvolnum>1</manvolnum>
