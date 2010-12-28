@@ -70,32 +70,6 @@ _vsyslogf(int priority, char *msg, ...);
 void
 logmsg(int priority, char *msg, ...) ;
 
-/*
- * Utility function.
- * Create a timestamp from date and time
- */
-time_t
-totimestamp(const int year, const int month, const int day,
-            const int hour, const int min, const int sec) ;
-
-/*
- * Utility function.
- * Get date and time from a timestamp
- */
-int
-fromtimestamp(const time_t timestamp, int* year, int* month, int* day,
-              int* hour, int* min, int* sec);
-/*
- * Utility function
- * Increase start and end day as needed to get the next
- * time according to the recurrence type, day, week, monnth
- * and so on
- */
-int 
-increcdays(int rectype, time_t *ts_start, time_t *ts_end,
-           int *sy, int *sm, int *sd, int *sh, int *smin, int *ssec,
-           int *ey, int *em, int *ed, int *eh, int *emin, int *esec);
-
 
 /*
 #define matchcmd_free(field) _matchcmd_free((field),__FUNCTION__,__LINE__)
@@ -244,20 +218,6 @@ getuptime(int *totaltime, int *idletime);
 int
 set_cloexec_flag(int desc, int value);
 
-/**
- * Translate a day name (e.g. mon, tue, wed, ...) to a date relative
- * the current date. The dates will always be within the next 7 days
- * The function also recognizes the two special day names "today" and
- * "tomomrrow" which should be self explanatory.
- * @param wdayname , Name of weekday. Recognized names are
- *                   ["mon","tue","wed","thu","fri","sat","sun","today","tomorrow"]
- * @param y The year
- * @param m The month
- * @param d The day
- * @return
- */
-int
-getreldatefromdayname(const char *wdayname, int *y, int *m, int *d);
 
 /**
  * Check if a directory exists and if not then create it
@@ -297,16 +257,6 @@ getwsetsize(int pid, int *size, char *unit, int *threads);
  */
 int
 tail_logfile(unsigned n, char *buffer, size_t maxlen);
-
-/**
- * Send a simple text mail to the specified recepients
- * @param subject
- * @param to
- * @param message
- * @return 0 on success -1 otherwise
- */
-int
-send_mail(const char *subject, const char *from, const char *to, const char *message);
 
 char *
 url_encode(char *str);
@@ -348,7 +298,7 @@ trim(char *string);
  * @param maxlen
  */
 void
-escape_quotes(char *tostr, const char *fromstr, const size_t maxlen);
+escape_quotes(char *tostr, const char *fromstr, const size_t maxlen, unsigned remove_n);
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands

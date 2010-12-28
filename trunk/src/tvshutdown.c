@@ -35,6 +35,7 @@
 #include "recs.h"
 #include "utils.h"
 #include "transc.h"
+#include "mailutil.h"
 
 #define RTC_WAKEUP_DEVICE "/sys/class/rtc/rtc0/wakealarm"
 #define RTC_STATUS_DEVICE "/proc/driver/rtc"
@@ -194,6 +195,7 @@ check_for_shutdown(void) {
                 logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
                 if( shutdown_send_mail ) {
                     char subj[255];
+                    char timebuff[255];
                     char *body = calloc(1,2048);
                     char *rtc_status = calloc(1,2048);
                     char hname[255] ;
@@ -206,20 +208,27 @@ check_for_shutdown(void) {
                             *rtc_status = '\0';
                         }
 
-                        snprintf(subj,255,"Server %s shutdown until %s",hname,ctime(&nextrec));
+                        ctime_r(&nextrec,timebuff);
+                        if( timebuff[strlen(timebuff)-1] == '\n')
+                            timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
+                        snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);
                         snprintf(body,2048,
                                  "Server %s shutdown until %s\n"
                                  "Next recording is: '%s'\n\n"
                                  "RTC Status:\n%s\n",
-                                 hname,ctime(&nextrec),recs[REC_IDX(nextrec_video, nextrec_idx)]->title,rtc_status);
+                                 hname,timebuff,
+                                 recs[REC_IDX(nextrec_video, nextrec_idx)]->title,
+                                 rtc_status);
 
-                        send_mail(subj,daemon_email_from, send_mailaddress,body);
-                        logmsg(LOG_DEBUG,"Sent shutdown mail.");
+                        send_mail(subj,daemon_email_from, send_mailaddress,body);                                                
+                        logmsg(LOG_DEBUG,"Sent shutdown email to '%s'.",send_mailaddress);
                         sleep(5); // Make sure the email gets sent before we take down the server
 
                     } else {
                         logmsg(LOG_ERR,"Cannot read hostname for shutdown email. No shutdown email sent!");
                     }
+                    free(body);
+                    free(rtc_status);
 
                 }
 

@@ -9,10 +9,10 @@ BUILDNBR_FILE=buildnumber.txt
 
 if have_iniparser
 tvpowerd_SOURCES = tvpowerd.c wakelan.c tvpowerd.h wakelan.h
-tvpowerd_LDADD = ../utils.o ../lockfile.o
+tvpowerd_LDADD = ../utils.o ../lockfile.o ../mailutil.o ../datetimeutil.o
 else
 tvpowerd_SOURCES = tvpowerd.c wakelan.c tvpowerd.h wakelan.h
-tvpowerd_LDADD = ../utils.o ../lockfile.o ../iniparser.o ../dictionary.o
+tvpowerd_LDADD = ../utils.o ../lockfile.o ../iniparser.o ../dictionary.o ../mailutil.o ../datetimeutil.o
 endif
 
 tvpowerd_LDFLAGS = -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"

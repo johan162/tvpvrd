@@ -54,6 +54,7 @@
 #include "stats.h"
 #include "tvwebcmd.h"
 #include "build.h"
+#include "datetimeutil.h"
 
 /*
  * Indexes into the command table
