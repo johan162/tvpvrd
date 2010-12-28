@@ -1,17 +1,32 @@
 $Id$
 
-v2.3.0beta
-----------
-- Added automatic shutdown in the server itself by making use of the BIOS
-  real time clock. This will power off the daemon until its time for next
-  recording
-- Internal code cleanup and refactoring for easier maintenance.
-- Add some missing information in the list settings command
-- Internal code restructuring
+v2.3.0
+------
+User visible changes:
+    - Added automatic shutdown in the server itself by making use of the BIOS
+      real time clock. This will power off the daemon until its time for next
+      recording.
+
+    - Give WEB user the login page instead of not found if he/she is not logged
+      in and gives an invalid command.
+
+    - Slightly increase the quality in the default profiles with increased bitrate.
+      (disk space i cheap)
+
+    - Add some missing information in the list settings command
+
+    - Updated documentation (man pages) to reflect changes
+
+Internal changes:
+    - Internal code restructuring and refactoring in preparation for more advanced
+      mail processing as well as easier maintenance
+    - Increase allowed bps range for video ffmpeg encoding
+    - Reduce complexity of the utils module
+
 
 v2.2.0
 ------
-
+User visible changes:
   - Added option to specify an optional post recording script that is run
     after the recording has been done but before the transcoding starts.
     The script is stored in the configuration directory. The package includes
@@ -26,6 +41,7 @@ v2.2.0
     2) ENCODER_DEVICE<n>  (where <n> is the card number)
     See the configuration file for an even more detailed description
 
+Internal changes:
   - Internal change so that all v4l API calls regarding controls are now going
     through the modern extended control interface (both user and mpeg class controls)
     This will make the daemon more robust to a larger class of video/recorder cards.
