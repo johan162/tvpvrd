@@ -284,7 +284,8 @@
                 likely support BIOS wakeup alarm and since that is the easiest method we strongly
                 recommend you use that method.</para>
             <refsect2>
-                <title>Using the BIOS wakeup alarm on the server running the tvpvrd daemon</title>
+                <title>Method 1: Using the BIOS wakeup alarm on the server running the tvpvrd
+                    daemon</title>
                 <para>To use this method it is first important to recognize that the daemon must be
                     running as user '<code>root</code>' in order to have the privilege to shut down
                     the server.</para>
@@ -323,7 +324,7 @@
                     </citerefentry>  for more details.</para>                
             </refsect2>
             <refsect2>
-                <title>Using the tvpowerd-daemon on a separate server</title>
+                <title>Method 2: Using the tvpowerd-daemon on a separate server</title>
                 <para>Since some older motherboards does not have a working BIOS wakeup clock and
                     for the case where you rather sleep (or hibernate) the server instead of
                     shutting it down the package gives an alternative auto-shutdown method using the
@@ -337,6 +338,36 @@
                         <manvolnum>1</manvolnum>
                     </citerefentry>
                 </para>
+            </refsect2>
+            <refsect2>
+                <title>When shall I use Method 1 and when shall I use Method 2 ?</title>
+                <para>If only one server is available and the motherboard supports the RTC wakeup
+                    alarm then method 1 is the preferred way. Even if you have multiple servers
+                    available it is still easier to use method 1.  However there is one circumstance
+                    where it might be more practically to use the <command>tvpowerd</command>
+                    standalone daemon. For the common case where you have a NFS or SMB file share
+                    exposed from the recording server, for example to be able to view the videos on
+                    another computer, there are all kinds off issues if the SMB or NFS server is
+                    just shut down without the share unmounted. Especially the NFS protocol is
+                    notoriously bad in handling a disconnected server without a proper unmount.
+                    Running the separate <command>tvpowerd</command> daemon on the client will allow
+                    you to put in the necessary unmount commands in the shutdown script (assuming
+                    the tvpowerd is running on the server mounting shares). </para>
+                <para>In future releases of <command>tvpvrd</command> it will be possible to run
+                    user selectable scripts on clients to the recording server at the shutdown time.
+                    This can then be used to, for example, give the client notification that the
+                    recording server is shutting down and then be able to do any necessary unmounts
+                    or other cleanup activities.</para>
+                <para>In the case where you rather want to suspend to RAM/DISK then it is also
+                    necessary to run the separate <command>tvpowerd</command> daemon. The main
+                    reason here is that since the ivtv-drivers that resides in the kernel is not
+                    power management aware they must therefore be unloaded before the server is put
+                    into hibernation and then reloaded when the server is woken up. This can be (and
+                    is) all taken care of in the shutdown scripts for the tvpowerd daemon. However,
+                    there is really no practical reason to put the recording server in
+                    sleep/hibernation state compare with a full shutdown. The only thing gained is
+                    faster startup time which for these use-cases are not really interesting (nor
+                    necessary).</para>
             </refsect2>            
         </refsect1>
         <refsect1>
