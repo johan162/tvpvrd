@@ -145,7 +145,7 @@ use_transcoding=yes
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
 #----------------------------------------------------------------------------
-video_bitrate=1500
+video_bitrate=1900
 
 #----------------------------------------------------------------------------
 # VIDEO_PEAK_BITRATE integer [200,1800]
@@ -153,7 +153,7 @@ video_bitrate=1500
 # doing one pass encoding. For two pass encoding this parameter has no
 # meaning.
 #----------------------------------------------------------------------------
-video_peak_bitrate=1800
+video_peak_bitrate=2400
 
 #----------------------------------------------------------------------------
 # VCODEC string
