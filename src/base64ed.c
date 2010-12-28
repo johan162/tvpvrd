@@ -41,7 +41,7 @@ base64_decodechar(char c) {
 }
 
 int
-base64decode(char *inbuff, const unsigned inbuff_len, char *outbuff, const unsigned outbuff_maxlen) {
+base64decode(char * const inbuff, const unsigned inbuff_len, char * const outbuff, const unsigned outbuff_maxlen) {
 
     if( (outbuff_maxlen < (inbuff_len/4) * 3 + 1) ||
         (inbuff_len % 4) ) {
@@ -84,7 +84,7 @@ base64decode(char *inbuff, const unsigned inbuff_len, char *outbuff, const unsig
 }
 
 int
-base64encode(char *inbuff, const unsigned inbuff_len, char *outbuff, const unsigned outbuff_maxlen) {
+base64encode(char * const inbuff, const unsigned inbuff_len, char * const outbuff, const unsigned outbuff_maxlen) {
 
     int n=inbuff_len;
     char *pinbuff = inbuff;
