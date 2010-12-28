@@ -77,6 +77,8 @@
 #include "../config.h"
 #include "wakelan.h"
 #include "../build.h"
+#include "../mailutil.h"
+#include "../datetimeutil.h"
 
 // #define _DEBUG
 
@@ -709,36 +711,25 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
         return -4;
     }
 
-    // Check for the string "!TVPVRD!" as proof that there is a
-    // a tvpvrd daemon on the otyher side
-    if( strncmp(buffer,TVPVRD_IDENTIFICATION,strlen(TVPVRD_IDENTIFICATION)) ) {
+    // Check for possible password question
+    if( 0 == strncmp(buffer,TVPVRD_PASSWORD,strlen(TVPVRD_PASSWORD)) ) {
 
-        // Check for possible password question
-        if( 0 == strncmp(buffer,TVPVRD_PASSWORD,strlen(TVPVRD_PASSWORD)) ) {
-
-            snprintf(buffer,1023,"%s\r\n",tvpvrd_pwd);
-            ssize_t nw = write(sock,buffer,strlen(buffer));
-            if( nw != (ssize_t)strlen(buffer) ) {
-                logmsg(LOG_CRIT,"Failed to write to socket.");
-            } else {
-
-                if( waitread(sock, buffer, 1023) ) {
-                    logmsg(LOG_ERR,"Timeout on socket when trying to send password to server '%s'", server_ip);
-                    shutdown(sock, SHUT_RDWR);
-                    close(sock);
-                    return -5;
-                }
-
-            }
-
+        snprintf(buffer,1023,"%s\r\n",tvpvrd_pwd);
+        ssize_t nw = write(sock,buffer,strlen(buffer));
+        if( nw != (ssize_t)strlen(buffer) ) {
+            logmsg(LOG_CRIT,"Failed to write to socket.");
         } else {
 
-            logmsg(LOG_ERR, "It doesn't seem to be a tvpvrd daemon listening on the other side at '%s'. Aborting.", server_ip);
-            shutdown(sock, SHUT_RDWR);
-            close(sock);
-            return -6;
+            if( waitread(sock, buffer, 1023) ) {
+                logmsg(LOG_ERR,"Timeout on socket when trying to send password to server '%s'", server_ip);
+                shutdown(sock, SHUT_RDWR);
+                close(sock);
+                return -5;
+            }
+
         }
-    } 
+
+    }
 
     // Send the command
     // logmsg(LOG_DEBUG,"Trying to send tvpvr command '%s' to '%s'",cmd,server_ip);

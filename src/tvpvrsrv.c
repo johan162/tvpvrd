@@ -93,6 +93,8 @@
 #include "build.h"
 #include "pcretvmalloc.h"
 #include "tvshutdown.h"
+#include "mailutil.h"
+#include "datetimeutil.h"
 
 /*
  * Server identification

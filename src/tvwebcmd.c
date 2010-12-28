@@ -46,6 +46,7 @@
 #include "transc.h"
 #include "recs.h"
 #include "tvhtml.h"
+#include "datetimeutil.h"
 
 
 // Get the name of the CSS file from the basename of the package, i.e. "tvpvrd"
@@ -568,10 +569,8 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
             matchcmd_free(&field);
 
-        } else if ((ret = matchcmd("GET /killrec\\?"
-                _PR_AN "=" _PR_AN 
-                " HTTP/1.1",
-                buffer, &field)) > 1) {
+        } else if ((ret = matchcmd("GET /killrec\\?" _PR_AN "=" _PR_AN " HTTP/1.1",
+                                    buffer, &field)) > 1) {
 
             const int maxvlen = 256;
             char recid[maxvlen], submit[maxvlen];
@@ -743,20 +742,9 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                         html_login_page(my_socket, mobile);
                     }
                 } else {
-                    
-                    // If the user has given any other page than an index page
-                    //  we give a 404 Not Found error
-                    // matchcmd_free(&field);
-
-                    logmsg(LOG_DEBUG,"Checking possible login command");
-                    if( (0 == strncmp(buffer,"GET / HTTP",10)) || (0 == strncmp(buffer,"GET /index.html HTTP",19)) ) {
-                        logmsg(LOG_DEBUG," - Sending back login page (ret=%d)",ret);
-                        html_login_page(my_socket, mobile);
-                    } else {
-                        logmsg(LOG_DEBUG," - Sending back not found page(ret=%d)",ret);
-                        html_notfound(my_socket);
-                    }
-                    
+                    // If the login cookie is not valid and the user has not given the login command
+                    // we just send back the login page.
+                    html_login_page(my_socket, mobile);              
                 }
             } else {
                 // User has a valid login so send back the main page
@@ -767,7 +755,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
             matchcmd_free(&field);
             html_notfound(my_socket);
         }
-    } else {
+    } else {        
         html_notfound(my_socket);
         logmsg(LOG_ERR, "** Unrecognized WEB-command: %s", buffer);
     }

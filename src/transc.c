@@ -51,6 +51,8 @@
 #include "transc.h"
 #include "utils.h"
 #include "stats.h"
+#include "mailutil.h"
+#include "datetimeutil.h"
 
 
 struct ongoing_transcoding *ongoing_transcodings[3] ;
@@ -336,13 +338,13 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->video_bitrate = (unsigned)validate(100,1500,"ffmpeg_video_bitrate",
+    entry->video_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_bitrate",
                                     iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_peak_bitrate",bufsize-1);
     buffer[bufsize-1] = '\0';
-    entry->video_peak_bitrate = (unsigned)validate(100,1800,"ffmpeg_video_peak_bitrate",
+    entry->video_peak_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_peak_bitrate",
                                          iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_PEAK_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
