@@ -37,10 +37,10 @@ keep_mp2file=no
 # DEFAULT_VIDEO_PEAK_BITRATE integer
 # Deafult HW MP2 encoding bitrates in bps (bits per second).
 # Values must be in range 500,000 up to 10,000,000
-# Default values are 3.2Mbps, 4.0Mbps
+# Default values are 4.2Mbps, 5.0Mbps
 #----------------------------------------------------------------------------
-video_bitrate=3700000
-video_peak_bitrate=4700000
+video_bitrate=4200000
+video_peak_bitrate=5000000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
@@ -144,7 +144,7 @@ use_transcoding=yes
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
 #----------------------------------------------------------------------------
-video_bitrate=800
+video_bitrate=1000
 
 #----------------------------------------------------------------------------
 # VIDEO_PEAK_BITRATE integer [200,1800]
@@ -152,7 +152,7 @@ video_bitrate=800
 # doing one pass encoding. For two pass encoding this parameter has no
 # meaning.
 #----------------------------------------------------------------------------
-video_peak_bitrate=1100
+video_peak_bitrate=1500
 
 #----------------------------------------------------------------------------
 # VCODEC string
