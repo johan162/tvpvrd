@@ -1,0 +1,150 @@
+$Id$
+
+v2.3.0
+------
+User visible changes:
+    - Added automatic shutdown in the server itself by making use of the BIOS
+      real time clock. This will power off the daemon until its time for next
+      recording.
+
+    - Give WEB user the login page instead of not found if he/she is not logged
+      in and gives an invalid command.
+
+    - Slightly increase the quality in the default profiles with increased bitrate.
+      (disk space i cheap)
+
+    - Add some missing information in the list settings command
+
+    - Updated documentation (man pages) to reflect changes
+
+Internal changes:
+    - Internal code restructuring and refactoring in preparation for more advanced
+      mail processing as well as easier maintenance
+    - Increase allowed bps range for video ffmpeg encoding
+    - Reduce complexity of the utils module
+
+
+v2.2.0
+------
+User visible changes:
+  - Added option to specify an optional post recording script that is run
+    after the recording has been done but before the transcoding starts.
+    The script is stored in the configuration directory. The package includes
+    a template file "postrec_processing.sh.template" that can be used as a
+    starting point for such a script. The script is given the full video
+    filename and its length (in seconds) as two arguments.
+
+  - To support cards which use two different device interfaces for tuner and
+    MPEG encoded stream the configuration file now allow a separate setting
+    of both tuner and encoder device through the two options:
+    1) TUNER_DEVICE<n>    (where <n> is the card number)
+    2) ENCODER_DEVICE<n>  (where <n> is the card number)
+    See the configuration file for an even more detailed description
+
+Internal changes:
+  - Internal change so that all v4l API calls regarding controls are now going
+    through the modern extended control interface (both user and mpeg class controls)
+    This will make the daemon more robust to a larger class of video/recorder cards.
+
+
+v2.1.1
+------
+Fixes an oversight in the build process for 2.1.0 when building
+from a fresh directory when no buildnumber.txt file did exist
+in the tvpowerd directory.
+
+v2.1.0
+------
+Mainly internal changes. Added buildnumber handling and some utility build
+scripts. Tweaked the timing for tvpowerd daemon so that it waits a  bit longer
+to really be sure that the ivtv driver ha loaded correctly. The day of the
+ultimum autotools build script setup has finally come!
+
+
+v2.1.0beta3
+-----------
+Added configuration option --enable-webdebug to add extra debugging
+printout in reagrds to low level HTTP handling. This only has effect
+with loglevel 3.
+Refactored tvwebcmd file into two files for ease of maintenance.
+Some further minor tweaks in the build system. One day the project
+will finally have the ultimum autotools and script setup and now we are
+getting close ...
+
+v2.1.0-beta2
+------------
+Added configuration option --enable-simulate to build a version of the daemon
+that runs on a server without TV card
+
+v2.1.0-beta
+-----------
+
+Added new options "external_switch" to the configuration file to allow
+external channel switching on a cable box. Enabling this feature will
+make the card always read the input from the input source "external_input" 
+specified in the configuration file. 
+
+Channel switching is then made by  the daemon by calling the "switchchannel.sh" 
+script in the tvpvrd configuration directory, This script is provided as 
+a template that must be updated to correspond to the actual setup to change 
+channel. The channel switching is normally made by send an IR beam to the 
+cable box. This is done by the LIRC subsystem which must be installed and 
+configured.
+
+It is entirely up to the end user of this to configure and install any and
+all needed LIRC support. This must unfortunately be done by the end user since
+it is impossible to in advance know what channel switching commands to send
+that corresponds to a certain station name
+
+The channel switching script then calls "irsend" with appropriate commands
+depending on which channel should be used. It is up to th end user to adjust
+the included "switchchannel.sh.template" file and rename it to "switchchannel.sh"
+
+Since I don't have access to a cable box this will remain in beta until I 
+have received user confirmation that this works as intended.
+
+v2.0.1
+------
+
+Add option to unload the ivtv driver when the recording server is shutdown
+by the tvpowerd daemon. This is needed if the shutdown method is suspend
+to RAM or hibernate since the ivtv driver is not power management aware.
+
+This option is controlled by the boolean configuration file variables
+unload_ivtv_driver
+
+In addition there were some minor documentation update. For detailed
+changes please refer to the ChangeLog.
+
+
+v2.0.0
+------
+
+This release has a completely reworked build and configuration script setup.
+The configuration is now a first class citizen of the autotools country.
+
+This means that it will build and install itself in many more distributions.
+
+The packages is known to work out of the box on
+
+- OpenSuSE 11.1 and 11.3 (not tested on 11.2)
+ -Ubuntu 10.10
+- Fedora 13
+- Debian Lenny as well as Debian Sid
+
+In addition this release includes an optional companion daemon 'tvpowerd'. This daeomon
+is supposed to run on a different server than the recording server. When enabled it will
+manage the power of the recording daemon and turn it off and on according to the scheduled
+recordings. This will avoid the recording server running when no recording (or transcoding
+is taking place). In order for this to work the recording server must support Wake-On-Lan
+fot the managing server to be able to turn the power on.
+
+The power daemon can be found under 'src/tvpowerd'. Since it is supposed to be installed
+on a different server than the recording daemon it will not be installed with the
+make install command. Instead copy the distribution package to the server where you want to
+run the power daemon, configure and compile and the run the 'install.sh' script as root.
+(The install.sh is found in the tvpowerd directory)
+
+For more details see ChangeLog
+    
+

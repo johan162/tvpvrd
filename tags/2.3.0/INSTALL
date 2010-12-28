@@ -1,0 +1,192 @@
+$Id$
+
+Installation Instructions for tvpvrd
+====================================
+
+Copyright (C) 2010 Johan Persson (johan162@gmail.com)
+
+
+Quick installation
+==================
+
+For the impatient:
+
+Step 1.
+-------
+$>./stdbuild.sh
+[lots of output ...]
+
+Step 2. 
+-------
+$> sudo make install
+
+The above will run the configure script with the most common installation
+directories on modern system as well as do a reasonable silent build.
+The daemon will be installed under /usr/bin and the config files under
+/etc/tvpvrd
+
+If you want to customize this please read on.
+
+Basic Installation
+==================
+
+   Briefly, the shell commands `./configure; make; make install' should
+configure, build, and install this package.  The following
+more-detailed instructions are generic; see the `README' file for
+instructions specific to this package.
+
+We recommend the following basic configuration arguments for a modern
+installation 
+
+$> ./configure --prefix=/usr --sysconfdir=/etc
+
+This will put the executable in '/usr/bin' and then create the 
+configuration directory '/etc/tvpvrd/'. Without these argument the 
+default base installation location will be '/usr/local' 
+(and '/usr/local/etc')
+
+The simplest way to compile this package is:
+
+  1. `cd' to the directory containing the package's source code and type
+     `./configure' (see above) to configure the package for your system.
+
+     Running `configure' might take a while.  While running, it prints
+     some messages telling which features it is checking for.
+
+  2. Type `make' to compile the package. On most modern system the compile
+     will be faster using 'make -j N' where N is replaced by the twice
+     the number of CPU cores available.
+     
+  3. Switch to root user and type `make install' to install the programs 
+     and any data files and documentation.
+
+  4. You can remove the program binaries and object files from the
+     source code directory by typing `make clean'.  To also remove the
+     files that `configure' created (so you can compile the package for
+     a different kind of computer), type `make distclean'.  There is
+     also a `make maintainer-clean' target, but that is intended mainly
+     for the package's developers.  If you use it, you may have to get
+     all sorts of other programs in order to regenerate files that came
+     with the distribution.
+
+Installing the optional tvpowerd daemon
+=======================================
+
+The optional power daemon can be found under 'src/tvpowerd'. Since it is supposed
+to be installed on a different server than the recording daemon it will not be
+installed with the make install command. Instead copy the distribution package
+to the server where you want to run the power daemon, configure and compile as
+usual and then run the 'install.sh' script as root.
+(The install.sh is found in the tvpowerd directory)
+
+
+Notes on Specific Linux distributions
+=====================================
+
+Generic
+-------
+The package requires the three libraries libpcre (Perl Compatible Regular
+expressions), libiniparser (a library to read ini files) and libxml2.
+
+For most Linux distributions those packages are available under names
+similar to "libpcre3-devel", "libiniparser-devel" and "libxml2-devel".
+
+If the iniparser library cannot be found the package will use a built-in
+version in order to make the installation as smooth as possible.
+
+OpenSuSE
+--------
+The package is known to build and install without any problems.
+The two necessary libraries are available as packages
+ - libiniparser-devel and 
+ - pcre-devel
+ - libxml2-devel
+
+Fedora 13
+---------
+The package is known to build and install without any problems. All
+needed libraries are available as pre-built packages.
+
+Ubuntu 10.10
+------------
+The package itself is know to build without any problem but
+unfortunately there doesn't seem to be a pre-built package of
+iniparser library. So a built-in version will be used.
+
+However it is recommended to try to install the iniparser library since
+many other packages rely on this library as well.
+
+1. Download the iniparser library from http://ndevilla.free.fr/iniparser/
+
+2. Unpack and move to the installed directory and run 'make'
+
+3. Install the libraries (as root)
+   a) cp src/iniparser.h src/dictionary.h /usr/include
+   b) cp libiniparser.a libiniparser.so.0 /usr/lib
+   c) ln -s /usr/lib/libiniparser.so.0 /usr/lib/libiniparser.so
+   d) Update the linker cache by running:
+      $>ldconfig
+
+You should now be able to compile and install the tvpvrd package
+
+`configure' Invocation
+======================
+
+   `configure' recognizes the following options to control how it
+operates.
+
+`--help'
+`-h'
+     Print a summary of all of the options to `configure', and exit.
+
+`--help=short'
+`--help=recursive'
+     Print a summary of the options unique to this package's
+     `configure', and exit.  The `short' variant lists options used
+     only in the top level, while the `recursive' variant lists options
+     also present in any nested packages.
+
+`--version'
+`-V'
+     Print the version of Autoconf used to generate the `configure'
+     script, and exit.
+
+`--cache-file=FILE'
+     Enable the cache: use and save the results of the tests in FILE,
+     traditionally `config.cache'.  FILE defaults to `/dev/null' to
+     disable caching.
+
+`--config-cache'
+`-C'
+     Alias for `--cache-file=config.cache'.
+
+`--quiet'
+`--silent'
+`-q'
+     Do not print messages saying which checks are being made.  To
+     suppress all normal output, redirect it to `/dev/null' (any error
+     messages will still be shown).
+
+`--srcdir=DIR'
+     Look for the package's source code in directory DIR.  Usually
+     `configure' can determine that directory automatically.
+
+`--prefix=DIR'
+     Use DIR as the installation prefix.  *Note Installation Names::
+     for more details, including other options available for fine-tuning
+     the installation locations.
+
+`--sysconfdir=DIR'
+    Use DIR as rpefix for system configuration files. This is normally /etc or
+    /usr/local/etc
+
+`--no-create'
+`-n'
+     Run the configure checks, but stop before creating any output
+     files.
+
+`configure' also accepts some other, not widely useful, options.  Run
+`configure --help' for more details.
+
+[EOF]
+
