@@ -256,10 +256,10 @@ _cmd_setprofile(const char *cmd, int sockfd) {
     err = ret < 0;
 
     if ( ! err && ret > 2 ) {
-        if( updateprofile(atoi(field[1]),field[2]) ) {
-            snprintf(msgbuff,255,"Updated profile to '%s' on recording %03d\n",field[2],atoi(field[1]));
+        if( updateprofile(xatoi(field[1]),field[2]) ) {
+            snprintf(msgbuff,255,"Updated profile to '%s' on recording %03d\n",field[2],xatoi(field[1]));
         } else {
-            snprintf(msgbuff,255,"Failed to set profile '%s' on recording %03d\n",field[2],atoi(field[1]));
+            snprintf(msgbuff,255,"Failed to set profile '%s' on recording %03d\n",field[2],xatoi(field[1]));
         }
         _writef(sockfd,msgbuff);
         matchcmd_free(&field);
@@ -300,7 +300,7 @@ _cmd_delete(const char *cmd, int sockfd) {
 
     if ( ! err ) {
 
-        id = atoi(field[1]);
+        id = xatoi(field[1]);
         ret = deleterecid(id, cmd[1] == 'r');
 
         if (ret) {
@@ -432,7 +432,7 @@ _cmd_add(const char *cmd, int sockfd) {
         ret = matchcmd("^ar" _PR_S "([1-6]|d|w|m|f|s|t)" _PR_S _PR_ID _PR_S _PR_ANY, cmd, &field);
         if( ret == 4 ) {
             if( isdigit(*field[1]) ) {
-                repeat_type = atoi(field[1]);
+                repeat_type = xatoi(field[1]);
             } else {
                 switch( *field[1] ) {
                     case 'd': repeat_type = 1; break;
@@ -443,7 +443,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     case 't': repeat_type = 6; break;
                 }
             }
-            repeat_nbr = (unsigned)atoi(field[2]);
+            repeat_nbr = (unsigned)xatoi(field[2]);
             snprintf(cmdbuff,255, "a %s", field[3]);
             cmdbuff[255] = 0;
             matchcmd_free(&field);
@@ -456,7 +456,7 @@ _cmd_add(const char *cmd, int sockfd) {
             if( ret == 6 ) {
 
                 if( isdigit(*field[1]) ) {
-                    repeat_type = atoi(field[1]);
+                    repeat_type = xatoi(field[1]);
                 } else {
                     switch( *field[1] ) {
                         case 'd': repeat_type = 1; break;
@@ -475,9 +475,9 @@ _cmd_add(const char *cmd, int sockfd) {
                 repeat_with_enddate = 1;
 
                 // Extract the end date in components
-                int year = atoi(field[2]);
-                int month = atoi(field[3]);
-                int day = atoi(field[4]);
+                int year = xatoi(field[2]);
+                int month = xatoi(field[3]);
+                int day = xatoi(field[4]);
 
                 logmsg(LOG_DEBUG,"year=%d, month=%d, day=%d",year,month,day);
                 
@@ -547,9 +547,9 @@ _cmd_add(const char *cmd, int sockfd) {
 
             // Now determine how many more digits for time are specified
             int pos=2;
-            sh = atoi(field[pos++]);
+            sh = xatoi(field[pos++]);
             if( ret >= 5 && *field[pos++] == ':') {
-                smin = atoi(field[pos]);
+                smin = xatoi(field[pos]);
                 havemin=1;
             } else {
                 smin = 0;
@@ -557,7 +557,7 @@ _cmd_add(const char *cmd, int sockfd) {
             pos++;
 
             if( ret >= 7 &&  *field[pos++] == ':' ) {
-                ssec = atoi(field[pos]);
+                ssec = xatoi(field[pos]);
                 havesec=1;
             } else {
                 ssec = 0 ;
@@ -642,26 +642,26 @@ _cmd_add(const char *cmd, int sockfd) {
 
                 int pos = 2;
 
-                sh = atoi(field[pos++]);
+                sh = xatoi(field[pos++]);
                 if( *field[pos++] == ':')
-                    smin = atoi(field[pos]);
+                    smin = xatoi(field[pos]);
                 else
                     smin = 0;
                 pos++;
                 if( *field[pos++] == ':')
-                    ssec = atoi(field[pos]);
+                    ssec = xatoi(field[pos]);
                 else
                     ssec = 0;
                 pos++;
 
-                eh = atoi(field[pos++]);
+                eh = xatoi(field[pos++]);
                 if( *field[pos++] == ':')
-                    emin = atoi(field[pos]);
+                    emin = xatoi(field[pos]);
                 else
                     emin = 0;
                 pos++;
                 if( *field[pos++] == ':')
-                    esec = atoi(field[pos]);
+                    esec = xatoi(field[pos]);
                 else
                     esec = 0;
                 pos++;
@@ -759,9 +759,9 @@ _cmd_add(const char *cmd, int sockfd) {
                         ed = sd;
 
                     } else {
-                        sy = ey = atoi(field[4]);
-                        sm = em = atoi(field[5]);
-                        sd = ed = atoi(field[6]);
+                        sy = ey = xatoi(field[4]);
+                        sm = em = xatoi(field[5]);
+                        sd = ed = xatoi(field[6]);
                     }
 
                     // Adjust a potential recurring count in cease an end date was specified
@@ -799,27 +799,27 @@ _cmd_add(const char *cmd, int sockfd) {
                     if (!err) {
                         int pos = 7;
 
-                        sh = atoi(field[pos++]);
+                        sh = xatoi(field[pos++]);
                         if( *field[pos++] == ':')
-                            smin = atoi(field[pos]);
+                            smin = xatoi(field[pos]);
                         else
                             smin = 0;
                         pos++;
                         if( *field[pos++] == ':')
-                            ssec = atoi(field[pos]);
+                            ssec = xatoi(field[pos]);
                         else
                             ssec = 0;
                         pos++;
 
-                        eh = atoi(field[pos++]);
+                        eh = xatoi(field[pos++]);
                         if( *field[pos++] == ':')
-                            emin = atoi(field[pos]);
+                            emin = xatoi(field[pos]);
                         else
                             emin = 0;
                         pos++;
 
                         if( *field[pos++] == ':')
-                            esec = atoi(field[pos]);
+                            esec = xatoi(field[pos]);
                         else
                             esec = 0;
                         pos++;
@@ -899,22 +899,22 @@ _cmd_add(const char *cmd, int sockfd) {
                             ed = sd;
 
                         } else {
-                            sy = ey = atoi(field[4]);
-                            sm = em = atoi(field[5]);
-                            sd = ed = atoi(field[6]);
+                            sy = ey = xatoi(field[4]);
+                            sm = em = xatoi(field[5]);
+                            sd = ed = xatoi(field[6]);
                         }
 
                         if (!err) {
                             int pos = 7;
 
-                            sh = atoi(field[pos++]);
+                            sh = xatoi(field[pos++]);
                             if( *field[pos++] == ':')
-                                smin = atoi(field[pos]);
+                                smin = xatoi(field[pos]);
                             else
                                 smin = 0;
                             pos++;
                             if( *field[pos++] == ':')
-                                ssec = atoi(field[pos]);
+                                ssec = xatoi(field[pos]);
                             else
                                 ssec = 0;
                             pos++;
@@ -1152,7 +1152,7 @@ _cmd_list(const char *cmd, int sockfd) {
     if( ret > 1 ) {
         // User has limited the list
 
-        n = atoi(field[1]);
+        n = xatoi(field[1]);
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
@@ -1190,7 +1190,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
     if( ret > 1 ) {
         // User has limited the list
 
-        n = atoi(field[1]);
+        n = xatoi(field[1]);
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
@@ -1311,7 +1311,7 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
     char **field=(void *)NULL;
     int ret = matchcmd("^li" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     if( ret == 2 ) {
-        unsigned video = (unsigned)atoi(field[1]);
+        unsigned video = (unsigned)xatoi(field[1]);
         helper_list_video_inputs(video, sockfd);
     } else {
         ret = matchcmd("^li" _PR_E, cmd, &field);
@@ -1344,7 +1344,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
     char **field=(void *)NULL;
     int ret = matchcmd("^lc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     if( ret == 2 ) {
-        unsigned video = (unsigned)atoi(field[1]);
+        unsigned video = (unsigned)xatoi(field[1]);
         matchcmd_free(&field);
 
         int fd = video_open(video,TRUE);
@@ -1905,7 +1905,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
     int ret = matchcmd("^vc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
     
     if( ret == 2 ) {
-        unsigned video = (unsigned)atoi(field[1]);
+        unsigned video = (unsigned)xatoi(field[1]);
 
         int fd = video_open(video,TRUE);
         if( fd >= 0 ) {
@@ -1964,7 +1964,7 @@ _cmd_abort(const char *cmd, int sockfd) {
 
     int ret = matchcmd("^!" _PR_SO _PR_ID _PR_E,cmd,&field);
     if( ret == 2)  {
-        unsigned video = (unsigned)atoi(field[1]);
+        unsigned video = (unsigned)xatoi(field[1]);
         if( video < max_video ) {
             if( ongoing_recs[video] ) {
                 _writef(sockfd, "Cancelling recording to '%s' on video %d on user request\n",
@@ -2070,16 +2070,16 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
             }
         }
         else {
-            dh = atoi(field[2]);
-            dmin = atoi(field[3]);
+            dh = xatoi(field[2]);
+            dmin = xatoi(field[3]);
             if( ret > 4 ) {
                 profile=4;
             }
         }
     }
     else {
-        dh = atoi(field[2]);
-        dmin = atoi(field[3]);
+        dh = xatoi(field[2]);
+        dmin = xatoi(field[3]);
         strncpy(title,field[4],127);
         title[127]=0;
         if( ret > 5 ) {
@@ -2129,7 +2129,7 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
 
     if( ret == 2 ) {
 
-        int tidx = atoi(field[1]);
+        int tidx = xatoi(field[1]);
         char *filename = (char *)NULL;
         if( ongoing_transcodings[tidx] && ongoing_transcodings[tidx]->filename ) {
 
@@ -2326,7 +2326,7 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
     int ret = matchcmd("^lq" _PR_S _PR_ID _PR_E, cmd, &field);
     if( ret > 1 ) {
 
-        if( -1 == get_queued_transc_filelists_info( atoi(field[1]), buffer ,4095, 1) ) {
+        if( -1 == get_queued_transc_filelists_info( xatoi(field[1]), buffer ,4095, 1) ) {
             _writef(sockfd,"Filelist does not exist\n");
         } else {
             _writef(sockfd,buffer);
@@ -2367,7 +2367,7 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
     unsigned n;
     if( ret > 1 ) {
 
-        n = (unsigned)atoi(field[1]);
+        n = (unsigned)xatoi(field[1]);
         if( n < 1 || n > 999 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,999]\n");
             return;

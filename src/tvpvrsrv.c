@@ -372,7 +372,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'p':
                 if( optarg != NULL ) {
-                    tcpip_port = (short unsigned int)validate(0,99999,"TCP/IP port on command line",atoi(optarg));
+                    tcpip_port = (short unsigned int)validate(0,99999,"TCP/IP port on command line",xatoi(optarg));
                 }
                 break;
 
@@ -393,7 +393,7 @@ parsecmdline(int argc, char **argv) {
 
             case 't':
                 if( optarg != NULL ) {
-                    tdelay = validate(0,600,"tdelay on command line",atoi(optarg));
+                    tdelay = validate(0,600,"tdelay on command line",xatoi(optarg));
                 }
                 break;
 

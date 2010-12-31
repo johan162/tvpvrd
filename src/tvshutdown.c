@@ -113,7 +113,7 @@ get_num_users(void) {
         }
         reply[nr]='\0';
         pclose(fp);
-        nr=atoi(reply);
+        nr = xatoi(reply);
         free(reply);
         return nr;
     }

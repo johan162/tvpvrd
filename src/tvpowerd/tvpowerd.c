@@ -612,7 +612,7 @@ void startdaemon(void) {
 /*
  * Read a reply from a socket with 2s timeout.
  * We only read the first chunk of data available.
- * To real all datat on the soccket see wintreadn()
+ * To read all data on the socket see waitreadn()
  */
 int
 waitread(int sock, char *buffer, int maxbufflen) {
@@ -661,7 +661,6 @@ waitreadn(int sock, char *buffer, int maxbufflen) {
         return 0;
 }
 
-#define TVPVRD_IDENTIFICATION "!TVPVRD!"
 #define TVPVRD_PASSWORD "Password:"
 /**
  * Send a specified command to the tvpvrd server
@@ -894,7 +893,7 @@ users_on_remote_server(int *num) {
 
     snprintf(buffer,512,"who | wc -l");
     int rc = remote_command(buffer,reply,32);
-    *num = atoi(reply);
+    *num = xatoi(reply);
     logmsg(LOG_DEBUG,"Remote server has %d user(s) logged in",*num);
     return rc;
 }

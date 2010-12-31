@@ -42,7 +42,7 @@ extern "C" {
  * @return -1 on error 0 on success
  */
 int
-base64decode(char *inbuff, const unsigned inbuff_len, char *outbuff, const int outbuff_maxlen) ;
+base64decode(char * const inbuff, const unsigned inbuff_len, char * const outbuff, const size_t outbuff_maxlen);
 
 /**
  * Encode a buffer into base64 encoding
@@ -54,7 +54,7 @@ base64decode(char *inbuff, const unsigned inbuff_len, char *outbuff, const int o
  * @return -1 on error 0 on success
  */
 int
-base64encode(char *inbuff, const unsigned inbuff_len, char *outbuff, const int outbuff_maxlen);
+base64encode(char * const inbuff, const size_t inbuff_len, char * const outbuff, const size_t outbuff_maxlen);
 
 
 #ifdef	__cplusplus

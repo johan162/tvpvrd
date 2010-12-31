@@ -2,6 +2,15 @@ $Id$
 
 Contains support scripts that gets installed under '${sysconfdir}/tvpvrd/'
 
-This includes the configuration script and the CSS style sheets for the
-WEB-interface.
+Files:
+
+tvpvrd.conf                 Main configuration script for the daemon
+
+tvpvrd.css                  CSS Stylesheet for WEB-interface
+tvpvrd_mobile.css           CSS Stylesheet for WEB-interface for mobile phone browser
+
+postrec_processing.sh       Script that will be called after each recording has finished
+shutdown.sh                 Script that will be called to do automatic server shutdown
+switchchannel.sh            Script that can be used to do external channel switching
+
 

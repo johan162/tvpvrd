@@ -103,15 +103,15 @@ static void processRepeatingRecording(xmlNodePtr node, int *rectype, int *recnbr
 
             if (xmlStrcmp(node->name, xmldb_nameRecType) == 0) {
                 if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    *rectype = atoi((const char *) childnode->content);
+                    *rectype = xatoi((char * const) childnode->content);
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameRecNbr) == 0) {
                 if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    *recnbr = atoi((const char *) childnode->content);
+                    *recnbr = xatoi((char * const) childnode->content);
                 }
             } else if(xmlStrcmp(node->name,xmldb_nameRecStartNumber) == 0 ) {
                 if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    *startnumber = atoi((const char *) childnode->content);
+                    *startnumber = xatoi((char * const) childnode->content);
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameRecMangling) == 0) {
                 if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
@@ -124,7 +124,7 @@ static void processRepeatingRecording(xmlNodePtr node, int *rectype, int *recnbr
                         strncpy(recprefix, DEFAULT_PREFIX, REC_MAX_NPREFIX - 1);
                         recprefix[REC_MAX_NPREFIX - 1] = 0;
                     }
-                    *recmangling = atoi((const char *) childnode->content);
+                    *recmangling = xatoi((char * const) childnode->content);
                 }
             } else {
                 logmsg(LOG_ERR, "Unknown XML node name in repeated recording: %s", node->name);
@@ -148,10 +148,10 @@ parseTime(const char *time, int *h, int *m, int *s) {
     ret = matchcmd("([0-2][0-9]):([0-5][0-9])(:([0-5][0-9]))?",time,&field);
 
     if (ret == 3 || ret == 5 ) {
-        *h = atoi(field[1]);
-        *m = atoi(field[2]);
+        *h = xatoi(field[1]);
+        *m = xatoi(field[2]);
         if( ret == 5) {
-            *s = atoi(field[4]);
+            *s = xatoi(field[4]);
         } else {
             *s = 0;
         }
@@ -178,9 +178,9 @@ parseDate(const char *date, int *y, int *m, int *d) {
     ret = matchcmd("(20[0-4][0-9])-([0-1]?[0-9])-([0-3]?[0-9])",date,&field);
 
     if (ret == 4) {
-        *y = atoi(field[1]);
-        *m = atoi(field[2]);
-        *d = atoi(field[3]);
+        *y = xatoi(field[1]);
+        *m = xatoi(field[2]);
+        *d = xatoi(field[3]);
         matchcmd_free(&field);
         return 1;
     } else {
@@ -275,7 +275,7 @@ static void processRecording(xmlNodePtr node) {
                 }                
             } else if (xmlStrcmp(node->name, xmldb_nameVideo) == 0) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    video = atoi((const char *) childnode->content);
+                    video = xatoi((char * const) childnode->content);
                     childnode = childnode->next;
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameRecurrence) == 0) {

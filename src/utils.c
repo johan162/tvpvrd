@@ -520,45 +520,6 @@ mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
 }
 
 /**
- * String copying with extra safety
- * @param dst
- * @param src
- * @param size
- * @return Final lenght of destintaion string
- */
-size_t
-xstrlcpy(char *dst, const char *src, size_t size) {
-    *dst = '\0';
-    strncpy(dst,src,size-1);
-    if( size > 0 )
-        dst[size-1] = '\0';
-    else
-        dst[0] = '\0';
-    return strnlen(dst,size);
-}
-
-/**
- * String concatenation with extra safety
- * @param dst
- * @param src
- * @param size
- * @return final length of ddt string
- */
-size_t
-xstrlcat(char *dst, const char *src, size_t size) {
-    if( strnlen(dst,size-1) == size-1 )
-        return size-1;
-    if( strlen(src) + strlen(dst) < size ) {
-        strncat(dst,src,size-1);
-        if( size > 0 )
-            dst[size-1] = '\0';
-        else
-            dst[0] = '\0';
-    }
-    return strnlen(dst,size);
-}
-
-/**
  * Validate a given parameter against a min/max value
  * @param min
  * @param max
@@ -906,12 +867,97 @@ char *html_encode(char *str) {
     return buf;
 }
 
+/**
+ * Get associated value from a list of keys and values. The returned values are
+ * stripped from beginning and ending spaces
+ * @param value
+ * @param maxlen
+ * @param key
+ * @param list
+ * @param n
+ * @return
+ */
+int
+get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t listlen) {
+    size_t i = 0;
+    while( i < listlen ) {
+        if( 0 == strcmp(key,list[i]) ) {
+            strncpy(value,list[i+1], maxlen);
+            xstrtrim(value);
+            return 0;
+        }
+        i += 2;
+    }
+    return -1;
+}
+/* utils.c */
 
 /**
- * Trim a string by removing beginning and ending spaces
+ * A safer version of atoi using strtol with error checking
+ * @param str
+ * @return 
+ */
+int
+xatoi(char * const str) {
+    char *endptr;
+    errno = 0;
+    int val = strtol(str, &endptr, 10);
+    if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0)) {
+       logmsg(LOG_ERR,"Internal error: xatoi() (% d : %s )", errno, strerror(errno));
+       val = 0 ;
+    }
+
+    if (endptr == str) {
+       logmsg(LOG_ERR,"Internal error: xatoi() No digits found !");
+       val = 0 ;
+    }
+    return val;
+}
+
+/**
+ * String copying with extra safety
+ * @param dst
+ * @param src
+ * @param size
+ * @return Final lenght of destintaion string
+ */
+size_t
+xstrlcpy(char *dst, const char *src, size_t size) {
+    *dst = '\0';
+    strncpy(dst,src,size-1);
+    if( size > 0 )
+        dst[size-1] = '\0';
+    else
+        dst[0] = '\0';
+    return strnlen(dst,size);
+}
+
+/**
+ * String concatenation with extra safety
+ * @param dst
+ * @param src
+ * @param size
+ * @return final length of ddt string
+ */
+size_t
+xstrlcat(char *dst, const char *src, size_t size) {
+    if( strnlen(dst,size-1) == size-1 )
+        return size-1;
+    if( strlen(src) + strlen(dst) < size ) {
+        strncat(dst,src,size-1);
+        if( size > 0 )
+            dst[size-1] = '\0';
+        else
+            dst[0] = '\0';
+    }
+    return strnlen(dst,size);
+}
+
+/**
+ * Trim a string inplace by removing beginning and ending spaces
  * @param str
  */
-void strtrim(char *str) {
+void xstrtrim(char *str) {
     char *tmp = strdup(str),*startptr=tmp;
     int n=strlen(str);
     char *endptr = tmp+n-1;
@@ -930,29 +976,6 @@ void strtrim(char *str) {
     }
 
     *str = '\0';
-}
 
-/**
- * Get associated value from a list of keys and values. The returned values are
- * stripped from beginning and ending spaces
- * @param value
- * @param maxlen
- * @param key
- * @param list
- * @param n
- * @return
- */
-int
-get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t listlen) {
-    size_t i = 0;
-    while( i < listlen ) {
-        if( 0 == strcmp(key,list[i]) ) {
-            strncpy(value,list[i+1], maxlen);
-            strtrim(value);
-            return 0;
-        }
-        i += 2;
-    }
-    return -1;
+    free(tmp);
 }
-/* utils.c */
