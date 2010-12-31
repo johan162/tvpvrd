@@ -34,30 +34,39 @@
 
 static char b64table[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"};
 
+
 inline static char
 base64_decodechar(char c) {
-    char *p = strchr(b64table,c);
-    return p != NULL ? (char)(p-b64table) : 0;
+    char *p = strchr(b64table, c);
+    return p != NULL ? (char) (p - b64table) : 0;
 }
 
+/**
+ * Do bease64 encoding of input data stream
+ * @param inbuff
+ * @param inbuff_len
+ * @param outbuff
+ * @param outbuff_maxlen
+ * @return
+ */
 int
-base64decode(char * const inbuff, const unsigned inbuff_len, char * const outbuff, const unsigned outbuff_maxlen) {
+base64decode(char * const inbuff, const unsigned inbuff_len, char * const outbuff, const size_t outbuff_maxlen) {
 
-    if( (outbuff_maxlen < (inbuff_len/4) * 3 + 1) ||
-        (inbuff_len % 4) ) {
+    if ((outbuff_maxlen < (inbuff_len / 4) * 3 + 1) ||
+            (inbuff_len % 4)) {
         return -1;
     }
 
     *outbuff = '\0';
-    unsigned n=inbuff_len;
+    size_t n = inbuff_len;
     char *pinbuff = inbuff;
     char *poutbuff = outbuff;
 
-    while( n > 4 ) {
-        const char a1 = base64_decodechar(*pinbuff++);
-        const char a2 = base64_decodechar(*pinbuff++);
-        const char a3 = base64_decodechar(*pinbuff++);
-        const char a4 = base64_decodechar(*pinbuff++);
+    while (n > 4) {
+        const unsigned char a1 = base64_decodechar(*pinbuff++);
+        const unsigned char a2 = base64_decodechar(*pinbuff++);
+        const unsigned char a3 = base64_decodechar(*pinbuff++);
+        const unsigned char a4 = base64_decodechar(*pinbuff++);
 
         *poutbuff++ = (a1 << 2) | (a2 >> 4);
         *poutbuff++ = (a2 << 4) | (a3 >> 2);
@@ -68,14 +77,14 @@ base64decode(char * const inbuff, const unsigned inbuff_len, char * const outbuf
 
     // Now handle the last quartet which may or may not have padding
     // character ('=')
-    const char a1 = base64_decodechar(*pinbuff++);
-    const char a2 = base64_decodechar(*pinbuff++);
+    const unsigned char a1 = base64_decodechar(*pinbuff++);
+    const unsigned char a2 = base64_decodechar(*pinbuff++);
     *poutbuff++ = (a1 << 2) | (a2 >> 4);
-    if( *pinbuff != '=' ) {
-        const char a3 = base64_decodechar(*pinbuff++);
-        const char a4 = base64_decodechar(*pinbuff);
+    if (*pinbuff != '=') {
+        const unsigned char a3 = base64_decodechar(*pinbuff++);
+        const unsigned char a4 = base64_decodechar(*pinbuff);
         *poutbuff++ = (a2 << 4) | (a3 >> 2);
-        if( *pinbuff != '=' ) {
+        if (*pinbuff != '=') {
             *poutbuff++ = (a3 << 6) | a4;
         }
     }
@@ -83,44 +92,52 @@ base64decode(char * const inbuff, const unsigned inbuff_len, char * const outbuf
     return 0;
 }
 
+/**
+ * Do base64 decode of input data stream
+ * @param inbuff
+ * @param inbuff_len
+ * @param outbuff
+ * @param outbuff_maxlen
+ * @return
+ */
 int
-base64encode(char * const inbuff, const unsigned inbuff_len, char * const outbuff, const unsigned outbuff_maxlen) {
+base64encode(char * const inbuff, const size_t inbuff_len, char * const outbuff, const size_t outbuff_maxlen) {
 
-    int n=inbuff_len;
+    int n = inbuff_len;
     char *pinbuff = inbuff;
     char *poutbuff = outbuff;
 
-    if( outbuff_maxlen < (inbuff_len/3+1) * 4  ) {
+    if (outbuff_maxlen < (inbuff_len / 3 + 1) * 4) {
         return -1;
     }
 
-    while( n >= 3 ) {
+    while (n >= 3) {
 
-        const char a1 = *pinbuff++;
-        const char a2 = *pinbuff++;
-        const char a3 = *pinbuff++;
+        const unsigned char a1 = *pinbuff++;
+        const unsigned char a2 = *pinbuff++;
+        const unsigned char a3 = *pinbuff++;
 
         *poutbuff++ = b64table[a1 >> 2];
         *poutbuff++ = b64table[((a1 & 0x03) << 4) | (a2 >> 4)];
-        *poutbuff++ = b64table[((a2 & 0x0f) << 2 ) | ( a3>> 6)];
+        *poutbuff++ = b64table[((a2 & 0x0f) << 2) | (a3 >> 6)];
         *poutbuff++ = b64table[a3 & 0x3f];
 
         n -= 3;
     }
 
-    if( n == 2 ) {
+    if (n == 2) {
 
-        const char a1 = *pinbuff++;
-        const char a2 = *pinbuff;
+        const unsigned char a1 = *pinbuff++;
+        const unsigned char a2 = *pinbuff;
 
         *poutbuff++ = b64table[a1 >> 2];
         *poutbuff++ = b64table[((a1 & 0x03) << 4) | (a2 >> 4)];
         *poutbuff++ = b64table[(a2 & 0x0f) << 2 ];
         *poutbuff++ = '=';
 
-    } else if( n == 1 ) {
+    } else if (n == 1) {
 
-        const char a1 = *pinbuff;
+        const unsigned char a1 = *pinbuff;
 
         *poutbuff++ = b64table[a1 >> 2];
         *poutbuff++ = b64table[(a1 & 0x03) << 4];
