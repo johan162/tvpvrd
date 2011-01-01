@@ -95,6 +95,7 @@
 #include "tvshutdown.h"
 #include "mailutil.h"
 #include "datetimeutil.h"
+#include "xstr.h"
 
 /*
  * Server identification

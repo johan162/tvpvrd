@@ -36,6 +36,7 @@
 #include "utils.h"
 #include "transc.h"
 #include "mailutil.h"
+#include "xstr.h"
 
 #define RTC_WAKEUP_DEVICE "/sys/class/rtc/rtc0/wakealarm"
 #define RTC_STATUS_DEVICE "/proc/driver/rtc"

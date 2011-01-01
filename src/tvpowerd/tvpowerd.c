@@ -79,6 +79,7 @@
 #include "../build.h"
 #include "../mailutil.h"
 #include "../datetimeutil.h"
+#include "../xstr.h"
 
 // #define _DEBUG
 

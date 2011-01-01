@@ -58,6 +58,10 @@ extern "C" {
 #define SMTP_ATTACH_CONTENT_TYPE_OCTET 5
 #define SMTP_ATTACH_CONTENT_TYPE_PDF 6
 
+#define SMTP_CONTENT_TRANSFER_ENCODING_8BIT 0
+#define SMTP_CONTENT_TRANSFER_ENCODING_BASE64 1
+#define SMTP_CONTENT_TRANSFER_ENCODING_QUOTEDPRINT 2
+
 /* Type of recepients of mail */
 #define SMTP_RCPT_TO 1
 #define SMTP_RCPT_CC 2
@@ -175,26 +179,26 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
                     unsigned contenttype, unsigned encoding);
 
 /**
- * Add attachment from a fully qualified ile name
+ * Add attachment from a fully qualified file name
  * @param handle
  * @param filename
- * @return 0 on success, -1 on failuer
+ * @return 0 on success, -1 on failure
  */
 int
-smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigned contenttype);
+smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigned contenttype, unsigned encoding);
 
 /**
- * Adds an attachment in the mail that holds one inline image that is referencd i the HTML
- * section of the mail as <img href="cid:XX"> where XX is the cid specified as the last argument
- * to the function. This should be aunique ID within the mail.
+ * Adds an attachment in the mail that holds one inline image that is referencd in the HTML
+ * section of the mail as <img src="cid:XX"> where XX is the cid specified as the last argument
+ * to the function. This should be a unique ID within the mail. The contentype will be set
+ * according to the file name extension (e.g. "*.png" => image/png and so on)
  * @param handle
  * @param filename
- * @param contenttype
  * @param cid
- * @return
+ * @return 0 on success, -1 on failure
  */
 int
-smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, unsigned contenttype, char *cid);
+smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, char *cid);
 
 /**
  * Send the mail
@@ -234,6 +238,42 @@ smtp_setup(char *server_ip, char *user, char *pwd);
 void
 smtp_cleanup(struct smtp_handle **handle);
 
+/**
+ * Debug print routine. Dump all information about an SMTP session
+ * @param handle
+ */
+void
+smtp_dump_handle(struct smtp_handle * handle, FILE *fp);
+
+/**
+ * Utility function to send basic HTML or plain message through the specofoed SMTP server
+ * @param server
+ * @param user
+ * @param pwd
+ * @param subject
+ * @param from
+ * @param to
+ * @param cc
+ * @param message
+ * @param isHTML
+ * @return 0 on success, -1 on failure
+ */
+int
+smtp_simple_sendmail(char *server, char *user, char *pwd,
+                     char * subject,
+                     char * from, char *to, char *cc,
+                     char *message, unsigned isHTML);
+
+/**
+ * Insert newline after specified number of characters
+ * @param in
+ * @param out
+ * @param maxlen
+ * @param width
+ * @return 0 on success, -1 on failure
+ */
+int
+split_in_rows(char * const in, char * const out, size_t maxlen, size_t width);
 
 #ifdef	__cplusplus
 }

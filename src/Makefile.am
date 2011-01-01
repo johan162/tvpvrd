@@ -10,14 +10,18 @@ BUILDNBR_FILE=buildnumber.txt
 
 if have_iniparser
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c \
-tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c base64ed.c mailutil.c datetimeutil.c mailclientlib.c \
+tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c base64ed.c mailutil.c datetimeutil.c \
+mailclientlib.c xstr.c quotprinted.c \
 mailclientlib.h datetimeutil.h pcretvmalloc.h freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  \
-tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h base64ed.h mailutil.h
+tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
+base64ed.h mailutil.h xstr.h quotprinted.h
 else
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c \
-tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c base64ed.c mailutil.c datetimeutil.c mailclientlib.c \
+tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c base64ed.c mailutil.c datetimeutil.c \
+mailclientlib.c xstr.c quotprinted.c \
 mailclientlib.h datetimeutil.h pcretvmalloc.h freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  \
-tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h base64ed.h mailutil.h \
+tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
+base64ed.h mailutil.h xstr.h quotprinted.h \
 iniparser/iniparser.c iniparser/dictionary.c iniparser/iniparser.h iniparser/dictionary.h
 endif
 

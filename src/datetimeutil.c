@@ -31,6 +31,7 @@
 
 #include "datetimeutil.h"
 #include "utils.h"
+#include "xstr.h"
 
 
 /*
@@ -109,14 +110,14 @@ getreldatefromdayname(const char *wdayname, int *y, int *m, int *d) {
 
     fromtimestamp(time(NULL), &yy, &mm, &dd, &hh, &min, &sec);
 
-    if( stricmp("today",wdayname) == 0 || stricmp("tod",wdayname) == 0 ) {
+    if( xstricmp("today",wdayname) == 0 || xstricmp("tod",wdayname) == 0 ) {
         *y = yy;
         *m = mm;
         *d = dd;
         return 0;
     }
 
-    if( stricmp("tomorrow",wdayname) == 0 || stricmp("tom",wdayname) == 0 ) {
+    if( xstricmp("tomorrow",wdayname) == 0 || xstricmp("tom",wdayname) == 0 ) {
         dd++;
         time_t tom = totimestamp(yy, mm, dd, hh, min, sec);
         fromtimestamp(tom, &yy, &mm, &dd, &hh, &min, &sec);
@@ -137,7 +138,7 @@ getreldatefromdayname(const char *wdayname, int *y, int *m, int *d) {
     mktime(&tm_now);
 
     for(i=0; i < 7; i++) {
-        if( stricmp(wday[i], wdayname) == 0) {
+        if( xstricmp(wday[i], wdayname) == 0) {
             if( tm_now.tm_wday > i ) {
                 step = (7-tm_now.tm_wday ) + i;
             } else if(tm_now.tm_wday < i)  {

@@ -41,6 +41,7 @@
 
 #include "wakelan.h"
 #include "../utils.h"
+#include "../xstr.h"
 
 
 /**

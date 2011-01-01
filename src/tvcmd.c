@@ -55,6 +55,7 @@
 #include "tvwebcmd.h"
 #include "build.h"
 #include "datetimeutil.h"
+#include "xstr.h"
 
 /*
  * Indexes into the command table
@@ -987,7 +988,7 @@ _cmd_add(const char *cmd, int sockfd) {
         // Verify that this is either a named station or a recognized channel in the
         // current frequence map
         unsigned tmp;
-        strtolower(channel);
+        xstrtolower(channel);
 
         // Check if this is a regular channel or a direct specifciation of a
         // video input on the card, i.e. in the form "_inp01"
@@ -1065,7 +1066,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 }
             }
             strcat(filename, ".mpg");
-            strtolower(filename);
+            xstrtolower(filename);
 
             int repeat_name_mangle_type=1;
             entry = newrec(title, filename,

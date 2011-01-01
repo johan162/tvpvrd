@@ -32,6 +32,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "xstr.h"
+
 static char b64table[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"};
 
 
