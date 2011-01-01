@@ -58,6 +58,7 @@
 #include "vctrl.h"
 #include "utils.h"
 #include "freqmap.h"
+#include "xstr.h"
 
 /*
  * Common name to standard video sizes. This is primarily used to allow
@@ -1141,7 +1142,7 @@ video_get_sizename(int width,int height,char **buf) {
 int
 video_get_wh_fromname(int *width, int *height, char *name) {
     int i;
-    for(i=0; i < num_named_sizes && stricmp(name,named_size[i].name); i++)
+    for(i=0; i < num_named_sizes && xstricmp(name,named_size[i].name); i++)
         ;
     if( i>=num_named_sizes )
         return -1;

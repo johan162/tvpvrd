@@ -254,12 +254,6 @@ extern int htmlencode_flag;
 int
 get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t listlen);
 
-/**
- * Trim a string by removing beginning and ending psaces
- * @param string
- */
-void
-xstrtrim(char *string);
 
 /**
  * Escape doublequotes in a string
@@ -269,45 +263,6 @@ xstrtrim(char *string);
  */
 void
 escape_quotes(char *tostr, const char *fromstr, const size_t maxlen, unsigned remove_n);
-
-
-/**
- * Copy the string src to dst, but no more than size - 1 bytes, and
- * null-terminate dst.
- *
- * This function is the same as BSD strlcpy().
- *
- * @param dst destination buffer
- * @param src source string
- * @param maxlen size of destination buffer
- * @return the length of src
- */
-size_t
-xstrlcpy(char *dst, const char *src, size_t maxlen);
-
-/**
- * Append the string src to the string dst, but to a total length of
- * no more than size - 1 bytes, and null-terminate dst.
- *
- * This function is similar to BSD strlcat(), but differs when
- * size <= strlen(dst).
- *
- * @param dst destination buffer
- * @param src source string
- * @param size size of destination buffer
- * @return the total length of src and dst
- */
-size_t
-xstrlcat(char *dst, const char *src, size_t size);
-
-/**
- * Safe version of atoi() with extende3d error checking
- * @param str
- * @return value found in string
- */
-int
-xatoi(char * const str);
-
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands

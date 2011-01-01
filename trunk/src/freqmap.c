@@ -42,6 +42,7 @@
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "freqmap.h"
+#include "xstr.h"
 #include "utils.h"
 
 /*
@@ -1065,7 +1066,7 @@ get_stations(const char *stations[],size_t maxlen) {
 int
 get_chfromstation(const char *station, char *chbuffer, size_t size) {
     for(unsigned i=0; i < num_stations; i++) {
-        if( stricmp(station,station_map[i].name) == 0  ) {
+        if( xstricmp(station,station_map[i].name) == 0  ) {
             strncpy(chbuffer, station_map[i].channel, size);
             chbuffer[size-1]='\0';
             return 0;
@@ -1108,7 +1109,7 @@ get_current_freqmap(char *name, size_t size) {
 int
 getfmapidx(const char *name) {
     for (unsigned i = 0; i < num_fmap; i++) {
-        if (stricmp(name, frequence_map[i].name) == 0  && frequence_map[i].size > 0)
+        if (xstricmp(name, frequence_map[i].name) == 0  && frequence_map[i].size > 0)
             return (int)i;
     }
     return -1;
@@ -1144,7 +1145,7 @@ getfreqfromch(unsigned int *freq, const char *ch) {
         return -1;
     }
     for (unsigned int i = 0; i < frequence_map[curr_fmap].size; ++i) {
-        if (stricmp(ch, frequence_map[curr_fmap].tbl[i].ch) == 0 ) {
+        if (xstricmp(ch, frequence_map[curr_fmap].tbl[i].ch) == 0 ) {
             *freq = frequence_map[curr_fmap].tbl[i].freq*1000;
             return 0;
         }

@@ -44,12 +44,12 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <syslog.h>
 
-#include "utils.h"
-#include "config.h"
 #include "mailclientlib.h"
 #include "base64ed.h"
-#include "mailutil.h"
+#include "xstr.h"
+#include "quotprinted.h"
 
 // Clear variable section in memory
 #define CLEAR(x) memset (&(x), 0, sizeof(x))
@@ -58,7 +58,8 @@
  * A subset of the possible 250 return strings from EHLO command
  * used to determine what features the SMTP server supports.
  */
-static char *smtp_features[] = {
+static char *
+smtp_features[] = {
     "PIPELINING",
     "8BITMIME",
     "AUTH PLAIN LOGIN",
@@ -69,7 +70,8 @@ static char *smtp_features[] = {
 };
 static const size_t NumFeat = sizeof(smtp_features) / sizeof(char *);
 
-static char *mime_types[] = {
+static char *
+attach_mime_types[] = {
     "text/plain",
     "text/html",
     "image/png",
@@ -78,8 +80,55 @@ static char *mime_types[] = {
     "application/octet-stream",
     "application/pdf",
 } ;
-static const size_t NumMIME = sizeof(mime_types) / sizeof(char *);
+static const size_t NumMIME = sizeof(attach_mime_types) / sizeof(char *);
 
+static char *
+transfer_encoding[] = {
+    "8bit",
+    "base64",
+    "quoted-printable"
+};
+static const size_t NumTransEnc = sizeof(transfer_encoding) / sizeof(char *);
+
+/**
+ * Insert '\r\n' pair after specified number of characters. If the input contains
+ * a single '\n' it is translated to a '\r\n' pair
+ * @param in
+ * @param out
+ * @param maxlen
+ * @param width
+ * @return 0 on success, -1 on failure
+ */
+int
+split_in_rows(char * const in, char * const out, size_t maxlen, size_t width) {
+    char *pin = in;
+    char *pout = out;
+    size_t w=0;
+    const size_t n = strlen(in);
+    if( n+(n/width)+1 >= maxlen ) {
+        return -1;
+    }
+    while( *pin ) {
+        if( *pin == '\r' && *(pin+1) == '\n' ) {
+            *pout++ = *pin++;
+            *pout++ = *pin++;
+            w=0;
+        } else if( *pin == '\n' ) {
+            *pout++ = '\r';
+            *pout++ = *pin++;
+            w=0;
+        } else {
+            *pout++ = *pin++;
+            w++;
+        }
+        if( w == width ) {
+            *pout++ = '\r' ;
+            *pout++ = '\n' ;
+            w=0;
+        }
+    }
+    return 0;
+}
 
 /**
  * Free all memory associated with reply list
@@ -111,6 +160,7 @@ _smtp_chkfree(void *ptr) {
 static void
 _free_smtp_attachment(struct smtp_attachment **handle) {
     if( *handle == NULL ) return;
+    
     _smtp_chkfree((*handle)->contentdisposition);
     _smtp_chkfree((*handle)->contenttransferencoding);
     _smtp_chkfree((*handle)->contenttype);
@@ -135,13 +185,14 @@ _free_smtp_handle(struct smtp_handle **handle) {
     _smtp_chkfree((*handle)->returnpath);
     _smtp_chkfree((*handle)->subject);
     _smtp_chkfree((*handle)->mimeversion);
-    _smtp_chkfree((*handle)->databuff);
     _smtp_chkfree((*handle)->useragent);
     _smtp_chkfree((*handle)->contenttype);
     _smtp_chkfree((*handle)->contenttransferencoding);
     _smtp_chkfree((*handle)->html);
     _smtp_chkfree((*handle)->plain);
 
+    _smtp_chkfree((*handle)->databuff);
+    
     for (size_t i = 0; i < (*handle)->toidx; ++i) {
         _smtp_chkfree((*handle)->to[i]);
     }
@@ -239,7 +290,7 @@ _smtp_connect(char *server_ip, char *service) {
     hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
 
     if ((status = getaddrinfo(server_ip, service, &hints, &servinfo))) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+        //logmsg(LOG_ERR, "getaddrinfo: %s\n", gai_strerror(status));
         return NULL;
     }
     int sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
@@ -426,23 +477,34 @@ _senddata(struct smtp_handle *handle,char *cmd, char *arg) {
 }
 
 /**
- * Return text string representing the selected MIME type
+ * Return a pointer to a static string to a text representing the selected mime type
  * @param type
  * @return
  */
-/*
+
 static char *
-_smtp_get_mime(unsigned type) {
+_smtp_get_mime(size_t type) {
     if (type >= NumMIME) return NULL;
-    return mime_types[type];
+    return attach_mime_types[type];
 }
-*/
+
+/**
+ * Return a pointer to a static string to a text representing the selected transfer encoding
+ * @param type
+ * @return
+ */
+static char *
+_smtp_get_transfer_encoding(size_t type) {
+    if (type >= NumTransEnc) return NULL;
+    return transfer_encoding[type];
+}
 
 /**
  * Debug print routines
  * @param reply_list
  * @param N
  */
+
 static void
 _print_reply(struct smtp_reply *reply_list[], size_t N) {
     for (size_t i = 0; i < N && reply_list[i]; i++) {
@@ -450,17 +512,18 @@ _print_reply(struct smtp_reply *reply_list[], size_t N) {
     }
 }
 
+
 /**
  * Debug print routine. Dump all information about an SMTP session
  * @param handle
  */
 void
-_smtp_dump_handle(struct smtp_handle * handle) {
-    printf("Handle:\n");
+smtp_dump_handle(struct smtp_handle * handle, FILE *fp) {
+    fprintf(fp,"Handle:\n");
     _print_reply(handle->cap, 64);
-    printf("Subject: %s\n", handle->subject);
-    printf("From: %s\n", handle->from);
-    printf("DATA:\n%s\n", handle->databuff);
+    fprintf(fp,"Subject: %s\n", handle->subject);
+    fprintf(fp,"From: %s\n", handle->from);
+    fprintf(fp,"DATA:\n%s\n", handle->databuff);
 }
 
 /**
@@ -475,6 +538,11 @@ smtp_add_rcpt(struct smtp_handle *handle, unsigned type, char *rcpt) {
     char email_namepart[256];
     char email_addrpart[256];
     char email_full[512];
+
+    if( rcpt == NULL || *rcpt == '\0') {
+        return -1;
+    }
+
     if( -1 == _smtp_normalize_mailaddr(rcpt,email_namepart,256,email_addrpart,256) ) {
         return -1;
     }
@@ -555,15 +623,23 @@ smtp_add_html(struct smtp_handle *handle, char *buffer, char *altbuffer) {
     if (handle->plain || handle->html) {
         return -1;
     }
-    handle->html = strdup(buffer);
-    handle->plain = strdup(altbuffer);
+    if( buffer ) {
+        handle->html = strdup(buffer);
+    } else {
+        return -1;
+    }
+    if( altbuffer ) {
+        // Optional
+        handle->plain = strdup(altbuffer);
+    }
 
     return 0;
 }
 
 /**
- * Add attachment to mail and use specified filename and name. The attachment type and
- * encoding is the responsibility of the caller.
+ * Add attachment to mail and use specified filename and name. The attachment will be encoded
+ * according to the specified transfer encoding. The content type is the responsibility of the
+ * caller.
  * @param handle
  * @param filename
  * @param name
@@ -571,7 +647,7 @@ smtp_add_html(struct smtp_handle *handle, char *buffer, char *altbuffer) {
  * @param len
  * @param contenttype
  * @param encoding
- * @return
+ * @return -1 on failure, 0 on success
  */
 int
 smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char *data, size_t len,
@@ -581,17 +657,17 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
     attach->filename = strdup(filename);
     attach->name = strdup(name);
 
-    if( encoding == 1) {
-        // Do base64 encoding of original data
-        char *bdata = calloc(1,2*len);
-        if( -1 == base64encode(data,len,bdata,2*len) ) {
+    if( encoding == SMTP_CONTENT_TRANSFER_ENCODING_BASE64 ) {
+        size_t const N1=2*len;
+        char *bdata = calloc(1,N1);
+        if( -1 == base64encode(data,len,bdata,N1) ) {
             free(bdata);
             return -1;
         }
         size_t const width=76;
-        size_t const N = 2*len+(len/width)*2+3;
-        char *bsdata = calloc(1,N);
-        if( -1 == split_in_rows(bdata, bsdata, N, width) ) {
+        size_t const N2 = N1 +(len/width)*2+3;
+        char *bsdata = calloc(1,N2);
+        if( -1 == split_in_rows(bdata, bsdata, N2, width) ) {
             free(bdata);
             free(bsdata);
             return -1;
@@ -599,32 +675,29 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
         attach->data = strdup(bsdata);
         free(bdata);
         free(bsdata);
-    } else {
+    } else if( encoding == SMTP_CONTENT_TRANSFER_ENCODING_QUOTEDPRINT ) {
+        size_t const N1=3*len; // 
+        char *bdata = calloc(1,N1);
+        if( -1 == qprint_encode(data,bdata,N1) ) {
+            free(bdata);
+            return -1;
+        }
+        attach->data = strdup(bdata);
+        free(bdata);
+    } else if( encoding == SMTP_CONTENT_TRANSFER_ENCODING_8BIT ) {
         attach->data = strdup(data);
+    } else {
+        return -1;
     }
 
     char buff[255];
     switch( contenttype ) {
         case SMTP_ATTACH_CONTENT_TYPE_PLAIN:
-            snprintf(buff, 255, "text/plain; charset=\"UTF-8\"");
-            break;
         case SMTP_ATTACH_CONTENT_TYPE_HTML:
-            snprintf(buff, 255, "text/html; charset=\"UTF-8\"");
-            break;
-        case SMTP_ATTACH_CONTENT_TYPE_PNG:
-            snprintf(buff, 255, "image/png; name=\"%s\"",name);
-            break;
-        case SMTP_ATTACH_CONTENT_TYPE_JPG:
-            snprintf(buff, 255, "image/jpg; name=\"%s\"",name);
-            break;
-        case SMTP_ATTACH_CONTENT_TYPE_GIF:
-            snprintf(buff, 255, "image/gif; name=\"%s\"",name);
-            break;
-        case SMTP_ATTACH_CONTENT_TYPE_PDF:
-            snprintf(buff, 255, "image/pdf; name=\"%s\"",name);
+            snprintf(buff, 255, "%s; charset=\"UTF-8\"",_smtp_get_mime(contenttype));
             break;
         default:
-            snprintf(buff, 255, "application/octet-stream; name=\"%s\"",name);
+            snprintf(buff, 255, "%s; name=\"%s\"",_smtp_get_mime(contenttype),name);
             break;
     }
     attach->contenttype = strdup(buff);
@@ -632,22 +705,21 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
     snprintf(buff, 255, "attachment");
     attach->contentdisposition = strdup(buff);
 
-    snprintf(buff, 255, "%s",encoding == 0 ? "8bit" : "base64");
+    snprintf(buff, 255, "%s",_smtp_get_transfer_encoding(encoding));
     attach->contenttransferencoding = strdup(buff);
 
     handle->attachment[handle->attachmentidx++] = attach;
-
     return 0;
 }
 
 /**
- * Add attachment from a fully qualified ile name
+ * Add attachment from a fully qualified file name.
  * @param handle
  * @param filename
  * @return 0 on success, -1 on failuer
  */
 int
-smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigned contenttype) {
+smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigned contenttype, unsigned encoding) {
 
     FILE *fp;
     if( (fp=fopen(filename,"rb"))==NULL ) {
@@ -664,10 +736,11 @@ smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigne
         return -1;
     }
     fclose(fp);
-    int rc = smtp_add_attachment(handle,basename(filename),basename(filename),buffer,buf.st_size,contenttype,1);
+    int rc = smtp_add_attachment(handle,basename(filename),basename(filename),buffer,buf.st_size,contenttype,encoding);
     free(buffer);
     return rc;
 }
+
 
 /**
  * Adds an attachment in the mail that holds one inline image that is referencd i the HTML
@@ -680,14 +753,37 @@ smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigne
  * @return
  */
 int
-smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, unsigned contenttype, char *cid) {
+smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, char *cid) {
 
-    if( -1 == smtp_add_attachment_fromfile(handle, filename, contenttype) ) {
+    // Determine contenttype based on file name extension
+    size_t n=strlen(filename)-1,cnt=0;
+    char ebuff[5];
+    while( cnt < 5 && n > 0 && filename[n] != '.' ) {
+        n--; cnt++;
+    }
+    if( cnt < 5 && n > 0 && filename[n] == '.') {
+        strncpy(ebuff,&filename[n+1],5);
+    } else {
+        return -1;
+    }
+
+    unsigned contenttype ;
+    if( xstricmp(ebuff,"jpg") == 0 || xstricmp(ebuff,"jpeg") == 0 ) {
+        contenttype = SMTP_ATTACH_CONTENT_TYPE_JPG;
+    } else if( xstricmp(ebuff,"png") == 0 ) {
+        contenttype = SMTP_ATTACH_CONTENT_TYPE_PNG;
+    } else if( xstricmp(ebuff,"gif") == 0 ) {
+        contenttype = SMTP_ATTACH_CONTENT_TYPE_GIF;
+    } else {
+        return -1;
+    }
+
+    if( -1 == smtp_add_attachment_fromfile(handle, filename, contenttype, SMTP_CONTENT_TRANSFER_ENCODING_BASE64) ) {
         return -1;
     }
 
     // This is the content ID that is used as reference in the HTML
-    // like <img href="cid:ID"> where ID could be the unique string suplpied here
+    // like <img src="cid:ID"> where ID could be the unique string suplpied here
     handle->attachment[handle->attachmentidx-1]->cid = strdup(cid);
 
     return 0;
@@ -707,8 +803,12 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
     handle->returnpath = strdup(from);
 
     char *buff = calloc(1, 1024);
-    encodeUTF8toQ(subject, buff, 1024);
+    qprint_encode_word(subject, buff, 1024);
     handle->subject = strdup(buff);
+
+    // Use hostname as part of the unique boundary
+    char hname[255];
+    gethostname(hname,255);
 
     // Find out how we need to encode this mail. We support three ways
     // 1) The mail contains only plain text. In that case we only
@@ -718,8 +818,10 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
     // idea to include a plain version of the text as well.
     // 3) The same as 1) and 2) but with the addition of attachments
 
-
     if( handle->attachmentidx == 0) {
+
+        // Mail have no attachments
+
         if (handle->plain && handle->html == NULL ) {
             // A plain text mail
             handle->contenttransferencoding = strdup("Content-Transfer-Encoding: 8bit");
@@ -731,7 +833,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
         } else if (handle->html) {
 
             char boundary[255];
-            snprintf(boundary, 255, "_%x%x%x_", rand(), rand(), rand());
+            snprintf(boundary, 255, "_%x%x%x%x%s_", rand(), rand(), rand(), rand(), hname);
             snprintf(buff, 1024, "Content-Type: multipart/alternative; boundary=\"%s\"", boundary);
             handle->contenttype = strdup(buff);
 
@@ -749,17 +851,20 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
                     "--%s--\r\n",
                     boundary, handle->plain, boundary, handle->html, boundary);
         } else {
+            free(buff);
             return -1;
         }
+
     } else {
+
         char boundary[255];
-        snprintf(boundary, 255, "_%x%x%x_", rand(), rand(), rand());
+        snprintf(boundary, 255, "_%x%x%x%x%s_", rand(), rand(), rand(), rand(), hname);
         snprintf(buff, 1024, "Content-Type: multipart/mixed; boundary=\"%s\"", boundary);
         handle->contenttype = strdup(buff);
 
         size_t adbsize = 0;
         for (size_t i = 0; i < handle->attachmentidx; ++i) {
-            adbsize += strlen(handle->attachment[i]->data) + 512;
+            adbsize += strlen(handle->attachment[i]->data) + 256;
         }
 
         if (handle->plain && handle->html == NULL) {
@@ -775,7 +880,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
                     boundary, handle->plain);
         } else {
             char boundary2[255];
-            snprintf(boundary2, 255, "_%x%x%x_", rand(), rand(), rand());
+            snprintf(boundary2, 255, "_%x%x%x%x%s_", rand(), rand(), rand(), rand(), hname);
 
             size_t const databufflen = strlen(handle->html) + strlen(handle->plain) + adbsize + 512;
             handle->databuff = calloc(1, databufflen);
@@ -794,13 +899,15 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
                     "--%s--\r\n",
                     boundary, boundary2, boundary2, handle->plain, boundary2, handle->html, boundary2);
         }
+
         for (size_t i = 0; i < handle->attachmentidx; ++i) {
+
             size_t const abufflen = strlen(handle->attachment[i]->data) + 1024;
             char *tmpbuff = calloc(1, abufflen);
             if( handle->attachment[i]->cid ) {
 
                 // If any of the attachments have an ID it means that is related to the
-                // HTML part and in that case the overlla MIME type for the mail must be set
+                // HTML part and in that case the overall MIME type for the mail must be set
                 // to related.
                 free(handle->contenttype);
                 snprintf(buff, 1024, "Content-Type: multipart/related; boundary=\"%s\"", boundary);
@@ -847,41 +954,59 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
     }
 
+    free(buff);
+
     char email_namepart[256];
     char email_addrpart[256];
-    if( -1 == _smtp_normalize_mailaddr(from,email_namepart,256,email_addrpart,256) ) return -1;
-    if( -1 == _sendchk(handle,"MAIL FROM: ", email_addrpart, 250) ) return -1;
+
+    if( -1 == _smtp_normalize_mailaddr(from,email_namepart,256,email_addrpart,256) ||
+        -1 == _sendchk(handle,"MAIL FROM: ", email_addrpart, 250) ) {
+        return -1;
+    }
     for( size_t i=0; i < handle->toidx; i++) {
-        if( -1 == _smtp_normalize_mailaddr(handle->to[i],email_namepart,256,email_addrpart,256) ) return -1;
-        if( -1 == _sendchk(handle,"RCPT TO: ", email_addrpart, 250) ) return -1;
+        if( -1 == _smtp_normalize_mailaddr(handle->to[i],email_namepart,256,email_addrpart,256) ||
+            -1 == _sendchk(handle,"RCPT TO: ", email_addrpart, 250) ) {
+            return -1;
+        }
     }
     for( size_t i=0; i < handle->ccidx; i++) {
-        if( -1 == _smtp_normalize_mailaddr(handle->cc[i],email_namepart,256,email_addrpart,256) ) return -1;
-        if( -1 == _sendchk(handle,"RCPT TO: ", email_addrpart, 250) ) return -1;
+        if( -1 == _smtp_normalize_mailaddr(handle->cc[i],email_namepart,256,email_addrpart,256) ||
+            -1 == _sendchk(handle,"RCPT TO: ", email_addrpart, 250) ) {
+            return -1;
+        }
     }
     for( size_t i=0; i < handle->bccidx; i++) {
-        if( -1 == _smtp_normalize_mailaddr(handle->bcc[i],email_namepart,256,email_addrpart,256) ) return -1;
-        if( -1 == _sendchk(handle,"RCPT TO: ", email_addrpart, 250) ) return -1;
+        if( -1 == _smtp_normalize_mailaddr(handle->bcc[i],email_namepart,256,email_addrpart,256) ||
+            -1 == _sendchk(handle,"RCPT TO: ", email_addrpart, 250) ) {
+            return -1;
+        }
     }
 
-    if( -1 == _sendchk(handle,"DATA", "", 354) ) return -1;
-    if( -1 == _senddata(handle,"From: ", from) ) return -1;
-    if( -1 == _senddata(handle,"To: ", handle->to_concatenated) ) return -1;
-    printf("To: %s\n",handle->to_concatenated);
-    printf("Cc: %s\n",handle->cc_concatenated);
-    if( -1 == _senddata(handle,"Cc: ", handle->cc_concatenated) ) return -1;
-    if( -1 == _senddata(handle,"Subject: ", handle->subject) ) return -1;
-    if( -1 == _senddata(handle,"MIME-Version: ", handle->mimeversion) ) return -1;
-    if( -1 == _senddata(handle,handle->contenttype,"") ) return -1;
+    if( -1 == _sendchk(handle,"DATA", "", 354) ||
+        -1 == _senddata(handle,"From: ", from) ||
+        -1 == _senddata(handle,"To: ", handle->to_concatenated) ||
+        -1 == _senddata(handle,"Cc: ", handle->cc_concatenated) ||
+        -1 == _senddata(handle,"Subject: ", handle->subject) ||
+        -1 == _senddata(handle,"MIME-Version: ", handle->mimeversion) ||
+        -1 == _senddata(handle,handle->contenttype,"") ) {
+        return -1;
+    }
+
     if( handle->contenttransferencoding ) {
-        if( -1 == _senddata(handle,handle->contenttransferencoding,"") ) return -1;
+        if( -1 == _senddata(handle,handle->contenttransferencoding,"") ) {
+            return -1;
+        }
     }
-    if( -1 == _senddata(handle,"\r\n", "") ) return -1;
 
-    if( -1 == _senddata(handle,handle->databuff, "") ) return -1;
+    if( -1 == _senddata(handle,"\r\n", "") ||
+        -1 == _senddata(handle,handle->databuff, "") ) {
+        return -1;
+    }
 
-    if( -1 == _sendchk(handle,".", "", 250) ) return -1;
-    if( -1 == _sendchk(handle,"QUIT", "", 221) ) return -1;
+    if( -1 == _sendchk(handle,".", "", 250) ||
+        -1 == _sendchk(handle,"QUIT", "", 221) ) {
+        return -1;
+    }
 
     return 0;
 }
@@ -890,13 +1015,14 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
  * Check what feature the SMTP server supports
  * @param handle
  * @param feature to check for
- * @return 1 if feature is supoprted, 0 if not
+ * @return 1 if feature is supoprted, 0 if not and -1 if feature is an invalid argument
  */
 int
 smtp_server_support(struct smtp_handle *handle, size_t feature) {
 
-    if( feature > NumFeat )
+    if( feature > NumFeat ) {
         return -1;
+    }
     for( size_t i=0 ; i < handle->capidx; i++ ) {
         if( 0 == strncmp(smtp_features[feature],handle->cap[i]->str,strlen(smtp_features[feature]))) {
             return 1;
@@ -907,7 +1033,7 @@ smtp_server_support(struct smtp_handle *handle, size_t feature) {
 
 /**
  * Initialize a new connecttion to the SMTP server. The code assumed that the
- * SMTP server requres login
+ * SMTP server can use plain text login if it requires login
  * @param server_ip Server IP och fully qualified name
  * @param user User name to login to with server
  * @param pwd Password
@@ -981,4 +1107,45 @@ smtp_cleanup(struct smtp_handle **handle) {
     *handle = NULL;
 }
 
+/**
+ * Utility function to send basic HTML or plain message through the specified SMTP server
+ * @param server
+ * @param user
+ * @param pwd
+ * @param subject
+ * @param from
+ * @param to
+ * @param cc
+ * @param message
+ * @param isHTML
+ * @return 0 on success, -1 on failure
+ */
+int
+smtp_simple_sendmail(char *server, char *user, char *pwd,
+                     char * subject, 
+                     char * from, char *to, char *cc,
+                     char *message, unsigned isHTML) {
+    struct smtp_handle *handle;
+    if ((handle = smtp_setup(server, user, pwd))) {
+        int rc = -1;
+        if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_TO, to)) {
+            if( cc && *cc ) {
+                if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_CC, cc)) {
+                    smtp_cleanup(&handle);
+                    return -1;
+                }
+            }
+            if (isHTML) {
+                smtp_add_html(handle, message, NULL);
+            } else {
+                smtp_add_plain(handle, message);
+            }
+            rc = smtp_sendmail(handle, from, subject);
+        }
+        smtp_cleanup(&handle);
+        return 0;
+    } else {
+        return -1;
+    }
 
+}

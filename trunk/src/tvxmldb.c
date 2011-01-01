@@ -53,6 +53,7 @@
 #include "recs.h"
 #include "transc.h"
 #include "datetimeutil.h"
+#include "xstr.h"
 
 /* ---------------------------------------------------------------------------
  * XML File processing functions
