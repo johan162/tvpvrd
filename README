@@ -18,7 +18,7 @@ to use the alternative method.
 For installations instructions see the file INSTALL
 
 After installation you should check the configuration file 'tvpvrd.conf' so
-that it corresponds to your server setup. Escpecially it is important that the
+that it corresponds to your server setup. It is especially important that the
 following settings are correct and matching your installation.
 
     * datadir                   - Where the recorded files are stored. 

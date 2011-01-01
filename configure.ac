@@ -7,7 +7,7 @@
 # repository and create a ChangeLog file in suitable style.
 # ===============================================================================
 AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[2.3.0],[johan162@gmail.com])
+AC_INIT([tvpvrd],[2.4.0alpha],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 silent-rules])
