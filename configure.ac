@@ -21,6 +21,7 @@ src/Makefile
 src/tvpowerd/Makefile
 src/tvpowerd/install.sh
 src/tvpowerd/uninstall.sh
+src/libsmtpmail/Makefile
 scripts/Makefile
 docs/Makefile
 docs/manpages/Makefile
@@ -81,6 +82,12 @@ AC_CHECK_HEADERS(pwd.h,,AC_MSG_ERROR([pwd.h not available]))
 AC_CHECK_HEADERS(grp.h,,AC_MSG_ERROR([grp.h not available]))
 AC_CHECK_HEADERS(libgen.h,,AC_MSG_ERROR([libgen.h not available]))
 AC_CHECK_HEADERS(dirent.h,,AC_MSG_ERROR([dirent.h not available]))
+
+# ===============================================================================
+# We need to determine which ranlib to use in order to build our static
+# mail utility library
+# ===============================================================================
+AC_PROG_RANLIB
 
 # ===============================================================================
 # Checks for needed libraries. Note this will also append the correct linker flags

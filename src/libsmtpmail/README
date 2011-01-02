@@ -1,0 +1,6 @@
+$Id$
+
+This directory contains a very basic (but working) mail client lirary that
+can be used to send mails through a SMTP server. The client library can
+handle formatted mails with attachments as well as inline images in
+HTML formatted mails.
