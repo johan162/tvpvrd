@@ -22,6 +22,7 @@ src/tvpowerd/Makefile
 src/tvpowerd/install.sh
 src/tvpowerd/uninstall.sh
 src/libsmtpmail/Makefile
+src/libiniparser/Makefile
 scripts/Makefile
 docs/Makefile
 docs/manpages/Makefile

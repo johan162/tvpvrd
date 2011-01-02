@@ -6,29 +6,24 @@
 AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -pthread -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wformat=2 -fstack-protector `xml2-config --cflags`
 bin_PROGRAMS = tvpvrd
 
-SUBDIRS = libsmtpmail . tvpowerd
+SUBDIRS = libsmtpmail libiniparser . tvpowerd
 BUILDNBR_FILE=buildnumber.txt
 
-if have_iniparser
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c \
 tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c datetimeutil.c xstr.c \
 datetimeutil.h pcretvmalloc.h freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  \
 tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
 mailutil.h xstr.h 
-else
-tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c \
-tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c datetimeutil.c xstr.c \
-datetimeutil.h pcretvmalloc.h freqmap.h  recs.h  stats.h  transc.h  tvcmd.h  \
-tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
-mailutil.h xstr.h  \
-iniparser/iniparser.c iniparser/dictionary.c iniparser/iniparser.h iniparser/dictionary.h
-endif
 
 tvpvrd_LDFLAGS =  `xml2-config --libs`
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_DATE=$$(date +'%Y%m%d')"
 
+if have_iniparser
 tvpvrd_LDADD = libsmtpmail/libsmtpmail.a
+else
+tvpvrd_LDADD = libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
+endif
 
 tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) 
 

@@ -7,12 +7,12 @@ AM_CFLAGS = -DCONFDIR="\"$(sysconfdir)\"" -pedantic -Wall -Werror -Wextra -Wpoin
 noinst_PROGRAMS = tvpowerd 
 BUILDNBR_FILE=buildnumber.txt
 
-if have_iniparser
 tvpowerd_SOURCES = tvpowerd.c wakelan.c tvpowerd.h wakelan.h
+
+if have_iniparser
 tvpowerd_LDADD = ../utils.o ../lockfile.o ../mailutil.o ../datetimeutil.o ../xstr.o
 else
-tvpowerd_SOURCES = tvpowerd.c wakelan.c tvpowerd.h wakelan.h
-tvpowerd_LDADD = ../utils.o ../lockfile.o ../iniparser.o ../dictionary.o ../mailutil.o ../datetimeutil.o ../xstr.o
+tvpowerd_LDADD = ../utils.o ../lockfile.o ../mailutil.o ../datetimeutil.o ../xstr.o ../libiniparser/libiniparser.a
 endif
 
 tvpowerd_LDFLAGS = -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"
