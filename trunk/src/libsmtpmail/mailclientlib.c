@@ -48,7 +48,7 @@
 
 #include "mailclientlib.h"
 #include "base64ed.h"
-#include "xstr.h"
+#include "../xstr.h"
 #include "quotprinted.h"
 
 // Clear variable section in memory

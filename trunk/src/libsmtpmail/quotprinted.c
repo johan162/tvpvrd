@@ -123,7 +123,7 @@ qprint_encode_word(char * const in, char * const out, size_t maxlen) {
                 return -1;
             }
             *pout++ = '=';
-            snprintf(hexbuff, 16, "%02X", *pin++);
+            snprintf(hexbuff, 8, "%02X", *pin++);
             *pout++ = hexbuff[0];
             *pout++ = hexbuff[1];
             n -= 3;
@@ -136,14 +136,14 @@ qprint_encode_word(char * const in, char * const out, size_t maxlen) {
                 return -1;
             }
             *pout++ = '=';
-            snprintf(hexbuff, 16, "%02X", *pin++);
+            snprintf(hexbuff, 8, "%02X", *pin++);
             *pout++ = hexbuff[0];
             *pout++ = hexbuff[1];
             if (*pin == '\0') {
                 return -1;
             }
             *pout++ = '=';
-            snprintf(hexbuff, 16, "%02X", *pin++);
+            snprintf(hexbuff, 8, "%02X", *pin++);
             *pout++ = hexbuff[0];
             *pout++ = hexbuff[1];
             n -= 6;
@@ -199,7 +199,7 @@ qprint_encode(char * const in, char * const out, size_t maxlen) {
             }
             *pout = '=';
             _chk_softlinebreak(&pout, &n, &w) ;
-            snprintf(hexbuff, 16, "%02X", *pin++);
+            snprintf(hexbuff, 8, "%02X", *pin++);
             *pout = hexbuff[0];
             _chk_softlinebreak(&pout, &n, &w) ;
             *pout = hexbuff[1];

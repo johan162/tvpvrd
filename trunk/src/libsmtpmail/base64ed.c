@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xstr.h"
+#include "base64ed.h"
 
 static char b64table[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"};
 
