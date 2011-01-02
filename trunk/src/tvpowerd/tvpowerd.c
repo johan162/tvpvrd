@@ -59,7 +59,7 @@
 #ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
 #else
-#include "../iniparser/iniparser.h"
+#include "../libiniparser/iniparser.h"
 #endif
 
 // Needed for prctl()
