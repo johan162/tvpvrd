@@ -36,9 +36,9 @@
 
 // Standard UNIX includes
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
-#include <ctype.h>
 #include <syslog.h>
 #include <signal.h>
 #include <getopt.h>
@@ -48,13 +48,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-// Standard socket and IP address handling
-#include <sys/socket.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <sys/select.h>
-#include <arpa/inet.h>
-
 // Aplication specific libs, parse inifiles
 #ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
@@ -62,12 +55,11 @@
 #include "../libiniparser/iniparser.h"
 #endif
 
-// Needed for prctl()
+// Needed for prctl() and getaddrinfo()
 #include <sys/prctl.h>
 #include <netdb.h>
 
 // Needed for regex
-#include <sys/types.h>
 #include <regex.h>
 
 // Local header files
@@ -674,36 +666,29 @@ waitreadn(int sock, char *buffer, int maxbufflen) {
 int
 tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {   
     char buffer[1024];
+    struct addrinfo hints;
+    struct addrinfo *servinfo; // will point to the results
+    char service[32];
 
-    // Open a TCP/IP socket on the remote server
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    CLEAR(hints);
+    hints.ai_family = AF_UNSPEC; // don't care IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
+    snprintf(service,32,"%d",server_port);
+    int status = getaddrinfo(server_ip, service, &hints, &servinfo);
+    if (status) {
+        logmsg(LOG_ERR, "getaddrinfo: %s\n", gai_strerror(status));
+        return -1;
+    }
+    int sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
     if (sock < 0) {
         return -1;
     }
-
-    // Setup address structure to the remote machine
-    struct in_addr remote_adr;
-    CLEAR(remote_adr);
-    if ( !inet_aton(server_ip, &remote_adr) ) {
-        struct hostent *he = gethostbyname(server_ip);
-        if( he ) {
-            remote_adr = *(struct in_addr *)he->h_addr_list[0];
-        } else {
-            logmsg(LOG_ERR, "Illegal server host name '%s' ( %d  %s )",server_ip,errno,strerror(errno));
-            return -2;
-        }
-    }
-    struct sockaddr_in remote_sockadr;
-    remote_sockadr.sin_family      = AF_INET;
-    remote_sockadr.sin_addr.s_addr = remote_adr.s_addr;
-    remote_sockadr.sin_port        = htons(server_port);
-
-    // Connect the socket to the address
-    if( -1 == connect(sock, (struct sockaddr *)&remote_sockadr, sizeof(remote_sockadr)) ) {        
+    if (-1 == connect(sock, servinfo->ai_addr, servinfo->ai_addrlen)) {
         shutdown(sock, SHUT_RDWR);
         close(sock);
         return -3;
     }
+    freeaddrinfo(servinfo);
 
     if( waitread(sock, buffer, 1023) ) {
         shutdown(sock, SHUT_RDWR);
@@ -719,16 +704,13 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
         if( nw != (ssize_t)strlen(buffer) ) {
             logmsg(LOG_CRIT,"Failed to write to socket.");
         } else {
-
             if( waitread(sock, buffer, 1023) ) {
                 logmsg(LOG_ERR,"Timeout on socket when trying to send password to server '%s'", server_ip);
                 shutdown(sock, SHUT_RDWR);
                 close(sock);
                 return -5;
             }
-
         }
-
     }
 
     // Send the command
