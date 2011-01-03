@@ -1,6 +1,149 @@
 $Id$
 
-This directory contains a very basic (but working) mail client lirary that
+
+This directory contains a very basic (but working) mail client library that
 can be used to send mails through a SMTP server. The client library can
 handle formatted mails with attachments as well as inline images in
-HTML formatted mails.
+HTML formatted mails. The library can encode attachments (or mail) in either
+base64 or quoted-printable encoding.
+
+Limitations of library:
+-----------------------
+
+* The library assumes that text in messages are using UTF8 charset
+* The library assumes (and checks) that the SMTP server supports 8BITMIME
+
+
+Documentation:
+--------------
+
+Some examples to hide the fact that there are not any proper documentation ...
+
+In all examples below we assume the following declarations:
+
+char *user = ... // User for SMTP server
+char *pwd  = ... // Password for SMTP server
+char *smtp_server = ... // SMTP server IP or fully qualified name
+
+char *to = ... // What email address to send to
+char *from = ... // What email address to state as from
+char *cc = ... // Optional CC mail address
+
+char *msgtxt = ... // Mail text
+
+struct smtp_handle *handle;
+
+
+Example 1: Sending a plain mail.
+--------------------------------
+
+// Create handle
+handle = smtp_setup(smtp_server, user, pwd);
+if( handle == NULL )  {
+    ... // Error handling
+}
+
+// Add the text to the mail
+if( -1 == smtp_add_plain(handle, msgtxt) ) {
+    ... // Error handling
+}
+
+// Add at least one recepient
+if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, to) ) {
+    ... // Error handling
+}
+
+// Actually send the mail
+if( -1 == smtp_sendmail(handle, from, subject) ) {
+    ... // Error handling
+}
+
+// Cleanup the handle
+smtp_cleanup(&handle);
+
+
+Example 2: Sending a plain mail using the convenience function.
+---------------------------------------------------------------
+if( -1 == smtp_simple_sendmail(smtp_server, user, pwd, subject,from, to, cc, msgtxt, FALSE) ) {
+    ... // Error handling
+}
+
+Example 3: Sending a HTML mail using the convenience function.
+---------------------------------------------------------------
+char * HTMLmsg = ...
+if( -1 == smtp_simple_sendmail(smtp_server, user, pwd, subject,from, to, cc, HTMLmsg, TRUE) ) {
+    ... // Error handling
+}
+
+
+Example 4: Sending a HTML mail with a PDF attachment from file.
+---------------------------------------------------------------
+
+// Create handle
+handle = smtp_setup(smtp_server, user, pwd);
+if( handle == NULL )  {
+    ... // Error handling
+}
+
+// Add the text to the mail
+if( -1 == smtp_add_html(handle, HTMLmsg) ) {
+    ... // Error handling
+}
+
+char *pdf_filename = ...
+// Add a PDF attachment from a file and encode it using Base64
+if( -1 == smtp_add_attachment_fromfile(handle, pdf_filename,
+                                       SMTP_ATTACH_CONTENT_TYPE_PDF,
+                                       SMTP_CONTENT_TRANSFER_ENCODING_BASE64) ) {
+    ... // Error handling
+}
+
+// Add at least one recepient
+if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, to) ) {
+    ... // Error handling
+}
+
+// Actually send the mail
+if( -1 == smtp_sendmail(handle, from, subject) ) {
+    ... // Error handling
+}
+
+// Cleanup the handle
+smtp_cleanup(&handle);
+
+Example 5: Sending a HTML mail with an inline image included as attachment.
+---------------------------------------------------------------------------
+
+// Create handle
+handle = smtp_setup(smtp_server, user, pwd);
+if( handle == NULL )  {
+    ... // Error handling
+}
+
+char *cid = ...
+// Add HTML mail text and plain text. The "cid" is the content id that is used
+// in the image tag to refer to the image included as an attachment, i.e.
+// <img src="cid:XXXX">
+if( -1 == smtp_add_html(handle, HTMLmsg, msgtxt) ) {
+    ... // Error handling
+}
+
+char *image_filename = ...
+// Add a PDF attachment from a file and encode it using Base64
+if( -1 == smtp_add_attachment_inlineimage(handle, image_filename, cid) ) {
+    ... // Error handling
+}
+
+// Add at least one recepient
+if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, to) ) {
+    ... // Error handling
+}
+
+// Actually send the mail
+if( -1 == smtp_sendmail(handle, from, subject) ) {
+    ... // Error handling
+}
+
+// Cleanup the handle
+smtp_cleanup(&handle);
+

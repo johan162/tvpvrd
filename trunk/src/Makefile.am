@@ -6,8 +6,8 @@
 AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -pthread -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wformat=2 -fstack-protector `xml2-config --cflags`
 bin_PROGRAMS = tvpvrd
 
-SUBDIRS = libsmtpmail libiniparser . tvpowerd
 BUILDNBR_FILE=buildnumber.txt
+SUBDIRS = libsmtpmail libiniparser . tvpowerd
 
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c  vctrl.c \
 tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c datetimeutil.c xstr.c \
@@ -21,11 +21,11 @@ tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_DATE=$$(date +'%Y%m%d')"
 
 if have_iniparser
 tvpvrd_LDADD = libsmtpmail/libsmtpmail.a
+tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a
 else
 tvpvrd_LDADD = libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
+tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
 endif
-
-tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) 
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
 etc/postrec_processing.sh.template etc/shutdown.sh.template

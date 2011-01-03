@@ -53,6 +53,7 @@
 
 // Clear variable section in memory
 #define CLEAR(x) memset (&(x), 0, sizeof(x))
+#define CHARSET "UTF-8"
 
 /**
  * A subset of the possible 250 return strings from EHLO command
@@ -694,7 +695,7 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
     switch( contenttype ) {
         case SMTP_ATTACH_CONTENT_TYPE_PLAIN:
         case SMTP_ATTACH_CONTENT_TYPE_HTML:
-            snprintf(buff, 255, "%s; charset=\"UTF-8\"",_smtp_get_mime(contenttype));
+            snprintf(buff, 255, "%s; charset=\"%s\"",_smtp_get_mime(contenttype),CHARSET);
             break;
         default:
             snprintf(buff, 255, "%s; name=\"%s\"",_smtp_get_mime(contenttype),name);
@@ -825,7 +826,9 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
         if (handle->plain && handle->html == NULL ) {
             // A plain text mail
             handle->contenttransferencoding = strdup("Content-Transfer-Encoding: 8bit");
-            handle->contenttype = strdup("Content-Type: text/plain; charset=\"UTF-8\"");
+            char buff[128];
+            snprintf(buff,128,"Content-Type: text/plain; charset=\"%s\"",CHARSET);
+            handle->contenttype = strdup(buff);
             size_t const databufflen = strlen(handle->plain) + 512;
             handle->databuff = calloc(1, databufflen);
             snprintf(handle->databuff, databufflen, "%s", handle->plain);
@@ -842,14 +845,14 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
             snprintf(handle->databuff, databufflen,
                     "--%s\r\n"
                     "Content-Transfer-Encoding: 8bit\r\n"
-                    "Content-Type: text/plain; charset=\"UTF-8\"\r\n\r\n"
+                    "Content-Type: text/plain; charset=\"%s\"\r\n\r\n"
                     "%s\r\n"
                     "--%s\r\n"
                     "Content-Transfer-Encoding: 8bit\r\n"
-                    "Content-Type: text/html; charset=\"UTF-8\"\r\n\r\n"
+                    "Content-Type: text/html; charset=\"%s\"\r\n\r\n"
                     "%s\r\n"
                     "--%s--\r\n",
-                    boundary, handle->plain, boundary, handle->html, boundary);
+                    boundary, CHARSET, handle->plain, boundary, CHARSET, handle->html, boundary);
         } else {
             free(buff);
             return -1;
@@ -874,10 +877,10 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
             snprintf(handle->databuff, databufflen,
                     "--%s\r\n"
                     "Content-Transfer-Encoding: 8bit\r\n"
-                    "Content-Type: text/plain; charset=\"UTF-8\"\r\n"
+                    "Content-Type: text/plain; charset=\"%s\"\r\n"
                     "\r\n"
                     "%s\r\n",
-                    boundary, handle->plain);
+                    boundary, CHARSET, handle->plain);
         } else {
             char boundary2[255];
             snprintf(boundary2, 255, "_%x%x%x%x%s_", rand(), rand(), rand(), rand(), hname);
@@ -890,14 +893,14 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
                     "\r\n"
                     "--%s\r\n"
                     "Content-Transfer-Encoding: 8bit\r\n"
-                    "Content-Type: text/plain; charset=\"UTF-8\"\r\n\r\n"
+                    "Content-Type: text/plain; charset=\"%s\"\r\n\r\n"
                     "%s\r\n"
                     "--%s\r\n"
                     "Content-Transfer-Encoding: 8bit\r\n"
-                    "Content-Type: text/html; charset=\"UTF-8\"\r\n\r\n"
+                    "Content-Type: text/html; charset=\"%s\"\r\n\r\n"
                     "%s\r\n"
                     "--%s--\r\n",
-                    boundary, boundary2, boundary2, handle->plain, boundary2, handle->html, boundary2);
+                    boundary, boundary2, boundary2, CHARSET, handle->plain, boundary2, CHARSET, handle->html, boundary2);
         }
 
         for (size_t i = 0; i < handle->attachmentidx; ++i) {

@@ -118,12 +118,12 @@ xatoi(char * const str) {
     errno = 0;
     int val = strtol(str, &endptr, 10);
     if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0)) {
-       logmsg(LOG_ERR,"Internal error: xatoi() (% d : %s )", errno, strerror(errno));
+       //logmsg(LOG_ERR,"Internal error: xatoi() (% d : %s )", errno, strerror(errno));
        val = 0 ;
     }
 
     if (endptr == str) {
-       logmsg(LOG_ERR,"Internal error: xatoi() No digits found !");
+       //logmsg(LOG_ERR,"Internal error: xatoi() No digits found !");
        val = 0 ;
     }
     
@@ -134,16 +134,17 @@ xatoi(char * const str) {
 /*
  * Utility function. Convert string of maximum 4095 characters to lower case
  */
-void
+int
 xstrtolower(char *s) {
     int safetylimit = 4096;
     while ( --safetylimit > 0 && (*s = tolower(*s)) ) {
         s++;
     }
     if( safetylimit <= 0 ) {
-        logmsg(LOG_ERR,"FATAL : strtolower() : Failed safetylimit !");
-        (void)exit(EXIT_FAILURE);
+        //logmsg(LOG_ERR,"FATAL : strtolower() : Failed safetylimit !");
+        return -1;
     }
+    return 0;
 }
 
 /**
@@ -157,14 +158,14 @@ xstricmp(const char *s1, const char *s2) {
     int len1 = strnlen(s1,safetylimit);
     int len2 = strnlen(s2,safetylimit);
     if( len1 >= safetylimit || len2 >= safetylimit ) {
-        logmsg(LOG_ERR,"FATAL : stricmp() safetylimit exceedded !");
-        (void)exit(EXIT_FAILURE);
+        //logmsg(LOG_ERR,"FATAL : stricmp() safetylimit exceedded !");
+        return -1;
     }
     char *b1=strdup(s1);
     char *b2=strdup(s2);
     if( b1 == NULL || b2 == NULL ) {
-        logmsg(LOG_ERR,"FATAL: stricmp() Out of memory ! ( %d : %s )",errno,strerror(errno));
-        (void)exit(EXIT_FAILURE);
+        //logmsg(LOG_ERR,"FATAL: stricmp() Out of memory ! ( %d : %s )",errno,strerror(errno));
+        return -1;
     }
     xstrtolower(b1);
     xstrtolower(b2);
