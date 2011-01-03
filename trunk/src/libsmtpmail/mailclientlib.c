@@ -43,12 +43,12 @@
 #include <malloc.h>
 #include <errno.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <syslog.h>
 
 #include "mailclientlib.h"
 #include "base64ed.h"
-#include "../xstr.h"
 #include "quotprinted.h"
 
 // Clear variable section in memory
@@ -92,6 +92,35 @@ transfer_encoding[] = {
 static const size_t NumTransEnc = sizeof(transfer_encoding) / sizeof(char *);
 
 /**
+ * Trim a string inplace by removing beginning and ending spaces
+ * @param str
+ */
+static void
+xstrtrim(char *str) {
+    char *tmp = strdup(str),*startptr=tmp;
+    int n=strlen(str);
+    char *endptr = tmp+n-1;
+
+    while( *startptr == ' ') {
+        startptr++;
+    }
+
+    while( n>0 && *endptr == ' ') {
+        --n;
+        --endptr;
+    }
+
+    while( startptr <= endptr ) {
+        *str++ = *startptr++;
+    }
+
+    *str = '\0';
+
+    free(tmp);
+}
+
+
+/**
  * Insert '\r\n' pair after specified number of characters. If the input contains
  * a single '\n' it is translated to a '\r\n' pair
  * @param in
@@ -100,7 +129,7 @@ static const size_t NumTransEnc = sizeof(transfer_encoding) / sizeof(char *);
  * @param width
  * @return 0 on success, -1 on failure
  */
-int
+static int
 split_in_rows(char * const in, char * const out, size_t maxlen, size_t width) {
     char *pin = in;
     char *pout = out;
@@ -769,11 +798,11 @@ smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, char
     }
 
     unsigned contenttype ;
-    if( xstricmp(ebuff,"jpg") == 0 || xstricmp(ebuff,"jpeg") == 0 ) {
+    if( strcasecmp(ebuff,"jpg") == 0 || strcasecmp(ebuff,"jpeg") == 0 ) {
         contenttype = SMTP_ATTACH_CONTENT_TYPE_JPG;
-    } else if( xstricmp(ebuff,"png") == 0 ) {
+    } else if( strcasecmp(ebuff,"png") == 0 ) {
         contenttype = SMTP_ATTACH_CONTENT_TYPE_PNG;
-    } else if( xstricmp(ebuff,"gif") == 0 ) {
+    } else if( strcasecmp(ebuff,"gif") == 0 ) {
         contenttype = SMTP_ATTACH_CONTENT_TYPE_GIF;
     } else {
         return -1;

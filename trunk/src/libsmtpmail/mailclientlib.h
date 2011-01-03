@@ -264,17 +264,6 @@ smtp_simple_sendmail(char *server, char *user, char *pwd,
                      char * from, char *to, char *cc,
                      char *message, unsigned isHTML);
 
-/**
- * Insert newline after specified number of characters
- * @param in
- * @param out
- * @param maxlen
- * @param width
- * @return 0 on success, -1 on failure
- */
-int
-split_in_rows(char * const in, char * const out, size_t maxlen, size_t width);
-
 #ifdef	__cplusplus
 }
 #endif
