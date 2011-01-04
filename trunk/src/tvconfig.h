@@ -452,6 +452,12 @@ extern char *tuner_devices[] ;
 extern char *postrec_script;
 extern int use_postrec_processing;
 
+/*
+ * Name of optional post transcoding script
+ */
+extern char *posttransc_script;
+extern int use_posttransc_processing;
+
 /**
  * Shutdown parameters
  */

@@ -908,6 +908,29 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                            newname,errno,strerror(errno));
                 }
 
+
+                if (use_posttransc_processing) {
+                    logmsg(LOG_DEBUG, "Post transcoding processing enabled.");
+                    char posttransc_fullname[128];
+                    snprintf(posttransc_fullname, 128, "%s/tvpvrd/%s", CONFDIR, posttransc_script);
+                    int csfd = open(posttransc_fullname, O_RDONLY);
+                    if (csfd == -1) {
+                        logmsg(LOG_ERR, "Cannot open post transcoding script '%s' ( %d : %s )",
+                                posttransc_fullname, errno, strerror(errno));
+                    } else {
+                        char cmd[255];
+                        snprintf(cmd, 255, "%s -f \"%s\" -l %ud > /dev/null 2>&1", posttransc_fullname, newname, *filesize);
+                        logmsg(LOG_DEBUG, "Running post transcoding script '%s'", cmd);
+                        int rc = system(cmd);
+                        if (rc == -1 || WEXITSTATUS(rc)) {
+                            logmsg(LOG_ERR, "Post transcoding script '%s' ended with exit status %d", posttransc_fullname, WEXITSTATUS(rc));
+                        } else {
+                            logmsg(LOG_INFO, "Post transcoding script '%s' ended normally with exit status %d", posttransc_fullname, WEXITSTATUS(rc));
+                        }
+                    }
+                }
+
+
                 // The complete transcoding and file relocation has been successful. Now check
                 // if we should send a mail with this happy news!
                 if( send_mail_on_transcode_end ) {
