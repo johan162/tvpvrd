@@ -154,6 +154,12 @@ char *postrec_script;
 int use_postrec_processing=FALSE;
 
 /*
+ * Name of optional post transcoding script
+ */
+char *posttransc_script;
+int use_posttransc_processing=FALSE;
+
+/*
  * Password settings. The server offer a basic authentication, The
  * authentication is disabled by default.
  */
@@ -368,6 +374,10 @@ read_inisettings(void) {
 
     postrec_script = strdup(iniparser_getstring(dict, "config:postrec_processing_script", ""));
     use_postrec_processing = iniparser_getboolean(dict, "config:use_postrec_processing", FALSE);
+
+    posttransc_script = strdup(iniparser_getstring(dict, "config:posttransc_processing_script", ""));
+    use_posttransc_processing = iniparser_getboolean(dict, "config:use_posttransc_processing", FALSE);
+
 
     // Try to read explicitely specified encoder devices
     for(unsigned int i=0; i < max_video && i<16; ++i) {

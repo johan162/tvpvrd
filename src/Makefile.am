@@ -28,7 +28,7 @@ tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a libiniparser/libi
 endif
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
-etc/postrec_processing.sh.template etc/shutdown.sh.template
+etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 
