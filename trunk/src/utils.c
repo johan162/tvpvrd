@@ -33,17 +33,14 @@
 // Standard defines
 #include <stdio.h>
 #include <stdlib.h>  
-#include <fcntl.h>   
-#include <unistd.h>  
+#include <fcntl.h>
 #include <pcre.h>    
 #include <stdarg.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <libgen.h>
 #include <math.h>
-#include <locale.h>
 
 
 // Local headers

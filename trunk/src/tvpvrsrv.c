@@ -49,17 +49,14 @@
 
 // Standard UNIX includes
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
-#include <ctype.h>
-#include <libgen.h>
 #include <signal.h>
 #include <getopt.h>
-#include <dirent.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <grp.h>
-#include <sys/resource.h>
 
 // Standard socket and IP address handling
 #include <sys/socket.h>

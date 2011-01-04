@@ -30,10 +30,8 @@
 
 // Standard UNIX includes
 #include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
+#include <stdlib.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <locale.h>
 #include <pcre.h>
 

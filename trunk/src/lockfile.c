@@ -36,16 +36,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <ctype.h>
-#include <signal.h>
 #include <getopt.h>
-#include <dirent.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <pwd.h>
-#include <grp.h>
-#include <sys/resource.h>
-#include <sys/prctl.h>
 
 #include "lockfile.h"
 #include "tvpvrd.h"
