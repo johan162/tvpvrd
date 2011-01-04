@@ -38,11 +38,6 @@
 #include <sys/wait.h>
 #include <math.h>
 
-#include <sys/stat.h>
-#include <sys/time.h>
-
-#include <libgen.h> // Needed for dirname
-
 // Needed to get symbolic constants for v4l2 controls
 #include <linux/videodev2.h>
 

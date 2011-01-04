@@ -35,10 +35,6 @@
 // Standard headers
 #include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <libgen.h>
 #include <pcre.h>
 
 // XML2 lib headers

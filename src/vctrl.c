@@ -41,13 +41,10 @@
 
 // Standard UNIX headers
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
-#include <string.h>
 #include <math.h>
 #include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 // Needed for all the video stuff
 #include <linux/videodev2.h>

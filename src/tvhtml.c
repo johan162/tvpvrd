@@ -30,11 +30,7 @@
 
 // Standard UNIX includes
 #include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <locale.h>
+#include <stdlib.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"

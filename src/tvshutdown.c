@@ -25,9 +25,7 @@
 #include <stdio.h>
 #include <pwd.h>
 #include <wait.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"
