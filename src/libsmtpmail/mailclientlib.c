@@ -32,15 +32,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string.h>
-#include <errno.h>
 #include <time.h>
-#include <sys/param.h>
-#include <sys/socket.h>
 #include <netdb.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
-#include <malloc.h>
 #include <errno.h>
 #include <string.h>
 #include <strings.h>
