@@ -919,7 +919,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                                 posttransc_fullname, errno, strerror(errno));
                     } else {
                         char cmd[255];
-                        snprintf(cmd, 255, "%s -f \"%s\" -l %ud > /dev/null 2>&1", posttransc_fullname, newname, *filesize);
+                        snprintf(cmd, 255, "%s -f \"%s\" -l %u > /dev/null 2>&1", posttransc_fullname, newname, *filesize);
                         logmsg(LOG_DEBUG, "Running post transcoding script '%s'", cmd);
                         int rc = system(cmd);
                         if (rc == -1 || WEXITSTATUS(rc)) {
