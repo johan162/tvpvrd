@@ -28,7 +28,8 @@ tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a libiniparser/libi
 endif
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
-etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template
+etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template \
+etc/mail_transcend.txt
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 
@@ -40,12 +41,12 @@ install-data-local:
 	else \
 		install -D -m 644 $(abs_srcdir)/etc/tvpvrd.conf ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; \
 	fi
-	install -D -m 755 $(abs_srcdir)/etc/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; \
-	install -D -m 755 $(abs_srcdir)/etc/postrec_processing.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/postrec_processing.sh.template; \
-	install -D -m 755 $(abs_srcdir)/etc/shutdown.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/shutdown.sh.template; \
-	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css
-	install -D -m 644 $(abs_srcdir)/etc/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css
-	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.txt
+	install -D -m 755 $(abs_srcdir)/etc/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; 
+	install -D -m 755 $(abs_srcdir)/etc/postrec_processing.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/postrec_processing.sh.template; 
+	install -D -m 755 $(abs_srcdir)/etc/shutdown.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/shutdown.sh.template; 
+	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css 
+	install -D -m 644 $(abs_srcdir)/etc/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css 
+	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.txt 
 
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)
