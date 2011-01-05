@@ -38,6 +38,9 @@
 #include <string.h>
 #include <getopt.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "lockfile.h"
 #include "tvpvrd.h"
 #include "utils.h"

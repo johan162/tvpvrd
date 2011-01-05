@@ -48,6 +48,9 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 // Aplication specific libs, parse inifiles
 #ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
