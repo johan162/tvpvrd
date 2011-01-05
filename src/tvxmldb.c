@@ -37,6 +37,9 @@
 #include <fcntl.h>
 #include <pcre.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 // XML2 lib headers
 #include <libxml2/libxml/parser.h>
 #include <libxml2/libxml/tree.h>

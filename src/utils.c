@@ -42,6 +42,8 @@
 #include <libgen.h>
 #include <math.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
 
 // Local headers
 #include "tvpvrd.h"

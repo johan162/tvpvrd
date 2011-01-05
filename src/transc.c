@@ -38,6 +38,9 @@
 #include <sys/wait.h>
 #include <math.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 // Needed to get symbolic constants for v4l2 controls
 #include <linux/videodev2.h>
 

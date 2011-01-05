@@ -39,6 +39,9 @@
 #include <ctype.h>
 #include <syslog.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "mailclientlib.h"
 #include "base64ed.h"
 #include "quotprinted.h"
