@@ -45,6 +45,7 @@
 #include "mailclientlib.h"
 #include "base64ed.h"
 #include "quotprinted.h"
+#include "../utils.h"
 
 // Clear variable section in memory
 #define CLEAR(x) memset (&(x), 0, sizeof(x))
@@ -204,7 +205,6 @@ _free_smtp_attachment(struct smtp_attachment **handle) {
 static void
 _free_smtp_handle(struct smtp_handle **handle) {
     if( *handle == NULL ) return;
-
     _free_smtplist((*handle)->cap, 64);
     _smtp_chkfree((*handle)->from);
     _smtp_chkfree((*handle)->returnpath);
@@ -217,7 +217,8 @@ _free_smtp_handle(struct smtp_handle **handle) {
     _smtp_chkfree((*handle)->plain);
 
     _smtp_chkfree((*handle)->databuff);
-    
+
+   
     for (size_t i = 0; i < (*handle)->toidx; ++i) {
         _smtp_chkfree((*handle)->to[i]);
     }
@@ -233,7 +234,6 @@ _free_smtp_handle(struct smtp_handle **handle) {
     for (size_t i = 0; i < (*handle)->attachmentidx; ++i) {
         _free_smtp_attachment( & (*handle)->attachment[i] );
     }
-
     free(*handle);
     *handle = NULL;
 }
@@ -424,6 +424,7 @@ _smtp_normalize_mailaddr(char *mailaddr, char *name, size_t maxnlen, char *addr,
                 return -1;
             }
             strcpy(addr,tmp2);
+            snprintf(name,maxnlen,"\"%s\"",tmp);
             free(tmp);
             free(tmp2);
             return 0;
@@ -492,6 +493,9 @@ _sendchk(struct smtp_handle *handle,char *cmd, char *arg, int expected) {
  */
 static int
 _senddata(struct smtp_handle *handle,char *cmd, char *arg) {
+    if( cmd==NULL || arg== NULL ) {
+        return -1;
+    }
     const size_t N = strlen(cmd)+strlen(arg)+3;
     char *buff = calloc(1,N);
     snprintf(buff,N,"%s%s\r\n",cmd,arg);
@@ -571,6 +575,9 @@ smtp_add_rcpt(struct smtp_handle *handle, unsigned type, char *rcpt) {
     if( -1 == _smtp_normalize_mailaddr(rcpt,email_namepart,256,email_addrpart,256) ) {
         return -1;
     }
+
+    logmsg(LOG_DEBUG,"Normalize email RCPT: '%s' as ['%s', '%s']",rcpt,email_namepart,email_addrpart);
+
     snprintf(email_full,512,"%s %s",email_namepart,email_addrpart);
     switch (type) {
         case SMTP_RCPT_TO:
@@ -646,9 +653,10 @@ smtp_add_plain(struct smtp_handle *handle, char *buffer) {
 int
 smtp_add_html(struct smtp_handle *handle, char *buffer, char *altbuffer) {
     if (handle->plain || handle->html) {
+        // Cannot add a second body
         return -1;
     }
-    if( buffer ) {
+    if( buffer && *buffer ) {
         handle->html = strdup(buffer);
     } else {
         return -1;
@@ -824,6 +832,13 @@ smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, char
 int
 smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
+    logmsg(LOG_DEBUG, "smtp_sendmail(handle,\"%s\",\"%s\")",from,subject);
+
+    if( ! handle->to_concatenated || *handle->to_concatenated == '\0') {
+        // Must have at least one receipients before we can send
+        return -1;
+    }
+
     handle->from = strdup(from);
     handle->returnpath = strdup(from);
 
@@ -847,7 +862,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
         // Mail have no attachments
 
-        if (handle->plain && handle->html == NULL ) {
+        if (handle->plain && *handle->plain && handle->html == NULL ) {
             // A plain text mail
             handle->contenttransferencoding = strdup("Content-Transfer-Encoding: 8bit");
             char buff[128];
@@ -857,8 +872,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
             handle->databuff = calloc(1, databufflen);
             snprintf(handle->databuff, databufflen, "%s", handle->plain);
 
-        } else if (handle->html) {
-
+        } else if (handle->html && *handle->html) {
             char boundary[255];
             snprintf(boundary, 255, "_%x%x%x%x%s_", rand(), rand(), rand(), rand(), hname);
             snprintf(buff, 1024, "Content-Type: multipart/alternative; boundary=\"%s\"", boundary);
@@ -866,6 +880,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
             size_t const databufflen = strlen(handle->html) + strlen(handle->plain) + 512;
             handle->databuff = calloc(1, databufflen);
+            logmsg(LOG_DEBUG, "smtp_sendmail #5.4 (databufflen=%d)",databufflen);
             snprintf(handle->databuff, databufflen,
                     "--%s\r\n"
                     "Content-Transfer-Encoding: 8bit\r\n"
@@ -985,7 +1000,6 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
     char email_namepart[256];
     char email_addrpart[256];
-
     if( -1 == _smtp_normalize_mailaddr(from,email_namepart,256,email_addrpart,256) ||
         -1 == _sendchk(handle,"MAIL FROM: ", email_addrpart, 250) ) {
         return -1;
@@ -1008,7 +1022,21 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
             return -1;
         }
     }
+    if( -1 == _sendchk(handle,"DATA", "", 354) ) return -1;
+    if( -1 == _senddata(handle,"From: ", from) ) return -1;
+    if( -1 == _senddata(handle,"To: ", handle->to_concatenated) ) return -1;
 
+    if( handle->cc_concatenated && *handle->cc_concatenated ) {
+        if( -1 == _senddata(handle,"Cc: ", handle->cc_concatenated) ) {
+            logmsg(LOG_DEBUG, "smtp_sendmail #10.3.1");
+            return -1;
+        }
+    }
+    if( -1 == _senddata(handle,"Subject: ", handle->subject) ) return -1;
+    if( -1 == _senddata(handle,"MIME-Version: ", handle->mimeversion) ) return -1;
+    if( -1 == _senddata(handle,handle->contenttype,"") ) return -1;
+
+    /*
     if( -1 == _sendchk(handle,"DATA", "", 354) ||
         -1 == _senddata(handle,"From: ", from) ||
         -1 == _senddata(handle,"To: ", handle->to_concatenated) ||
@@ -1016,8 +1044,10 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
         -1 == _senddata(handle,"Subject: ", handle->subject) ||
         -1 == _senddata(handle,"MIME-Version: ", handle->mimeversion) ||
         -1 == _senddata(handle,handle->contenttype,"") ) {
+        logmsg(LOG_DEBUG, "smtp_sendmail #10.1");
         return -1;
     }
+*/
 
     if( handle->contenttransferencoding ) {
         if( -1 == _senddata(handle,handle->contenttransferencoding,"") ) {
