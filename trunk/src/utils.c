@@ -49,6 +49,7 @@
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "utils.h"
+#include "rkey.h"
 #include "mailutil.h"
 #include "xstr.h"
 

@@ -49,6 +49,7 @@
 #include "transc.h"
 #include "utils.h"
 #include "stats.h"
+#include "rkey.h"
 #include "mailutil.h"
 #include "datetimeutil.h"
 

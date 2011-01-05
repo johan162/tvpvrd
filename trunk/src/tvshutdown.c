@@ -33,6 +33,7 @@
 #include "recs.h"
 #include "utils.h"
 #include "transc.h"
+#include "rkey.h"
 #include "mailutil.h"
 #include "xstr.h"
 

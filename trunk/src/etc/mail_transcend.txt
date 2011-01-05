@@ -1,0 +1,17 @@
+Transcoding of "[TITLE]" using profile "@[PROFILE]" done.
+
+Server: [SERVERNAME]
+Time: [TIME]
+
+Moved file to: "[FILENAME]"
+Transcoding time: [TRANSCTIME] (hour:min)
+System load: [SL1] [SL5] [SL15]
+
+Ongoing transcodings:
+[ONGOINGTRANS]
+
+Waiting transcodings:
+[WAITTRANS]
+
+Upcoming recordings:
+[NEXTRECS]

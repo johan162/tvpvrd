@@ -113,6 +113,7 @@ int
 replace_keywords_in_file(char *filename,char **buffer, struct keypairs keys[], size_t nkeys) {
 
     FILE *fp;
+    *buffer = NULL;
     if( (fp=fopen(filename,"rb"))==NULL ) {
         return -1;
     }
