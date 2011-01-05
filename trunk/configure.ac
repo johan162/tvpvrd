@@ -1,16 +1,12 @@
 # ===============================================================================
 # $Id$
 # Autoconf script
-# To rebuild build environment please execute the bootstrap.sh script that can be 
-# found in the repository. The bootstrap script will run aclocal, autoheader,
-# autoconf and automake. In addition it will extract the ChangeLog file from the
-# repository and create a ChangeLog file in suitable style.
+# Use autoreconf to rebuild the build environment
 # ===============================================================================
 AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[2.4.0alpha],[johan162@gmail.com])
+AC_INIT([tvpvrd],[3.0.0alpha],[johan162@gmail.com])
 AC_REVISION([$Id$])
-AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010])
-AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2])
+AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2011])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 silent-rules])
 AM_SILENT_RULES
 AC_PROG_CC
