@@ -46,7 +46,8 @@ install-data-local:
 	install -D -m 755 $(abs_srcdir)/etc/shutdown.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/shutdown.sh.template; 
 	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.css 
 	install -D -m 644 $(abs_srcdir)/etc/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css 
-	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.txt 
+	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.txt
+	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.html ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.html
 
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)

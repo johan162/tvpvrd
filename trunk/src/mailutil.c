@@ -156,19 +156,21 @@ send_mail_template(char * subject, char * from, char *to,
     } else {
         snprintf(templatefile,255,"%s/tvpvrd/%s.txt",CONFDIR,templatename);
         if( use_html_mail ) {
-            logmsg(LOG_NOTICE,"Cannot send HTMl mail (no SMTP server configured) using plain text with template: \"%s\"",templatefile);
+            logmsg(LOG_NOTICE,"Cannot send HTMl mail (no SMTP server configured) using plain text instead with template: \"%s\"",templatefile);
         }
         logmsg(LOG_DEBUG,"Sending TEXT message using template: %s ",templatefile);
     }
 
-    int rc = replace_keywords_in_file(templatefile,&buffer, keys, nkeys);
+    logmsg(LOG_DEBUG,"Replacing keywords in template: \"%s\" ",templatefile);
+    int rc = replace_keywords_in_file(templatefile, &buffer, keys, nkeys);
     if( -1 == rc )  {
-        logmsg(LOG_DEBUG,"Failed to do keyword substitution with template: \"%s\". Does it exist?",templatefile);
+        logmsg(LOG_ERR,"Failed to do keyword substitution with template: \"%s\". Does it exist?",templatefile);
         return -1;
-    }
+    } 
 
     if( !smtp_use || !use_html_mail) {
-        int rc = send_mail(subject, from, to, buffer) ;
+        logmsg(LOG_DEBUG,"Sending mail via system mail command.");
+        rc = send_mail(subject, from, to, buffer) ;
         free(buffer);
         return rc;
     }
@@ -176,27 +178,57 @@ send_mail_template(char * subject, char * from, char *to,
     if (use_html_mail) {
         // Also try to get a plain text version
         snprintf(templatefile,255,"%s/tvpvrd/%s.txt",CONFDIR,templatename);
-        replace_keywords_in_file(templatefile, &buffer2, keys, nkeys);
+        logmsg(LOG_DEBUG,"Getting a plain text version of the HTML template: %s",templatefile);
+        rc = replace_keywords_in_file(templatefile, &buffer2, keys, nkeys);
+        if( -1 == rc ) {
+            logmsg(LOG_DEBUG,"Could not find a plain text version of the template '%s'",templatefile);
+        } 
     }
 
     struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
     if( handle == NULL ) {
+        logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
         free(buffer);
         if( buffer2 )
             free(buffer2);
         return -1;
     }
 
-    smtp_add_rcpt(handle,SMTP_RCPT_TO,to);
-    if( use_html_mail ) {
-        smtp_add_html(handle,buffer,buffer2);
+    logmsg(LOG_DEBUG,"Connected to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
+    rc = smtp_add_rcpt(handle,SMTP_RCPT_TO,to);
+    if( -1 == rc ) {
+        logmsg(LOG_ERR,"Could NOT add To: '%s'",to); 
+        free(buffer);
+        if( buffer2 )
+            free(buffer2);
+        return -1;
     } else {
-        smtp_add_plain(handle,buffer);
+         logmsg(LOG_DEBUG,"Added recepients To: '%s'",to); 
     }
+
+    if( use_html_mail ) {
+        rc = smtp_add_html(handle,buffer,buffer2);
+    } else {
+        rc = smtp_add_plain(handle,buffer);
+    }
+
+    if( -1 == rc ) {
+        logmsg(LOG_ERR,"Could NOT add body text to mail.");
+    }
+    
     free(buffer);
-    if (buffer2)
+    if (buffer2) {
         free(buffer2);
+    }
+
     rc = smtp_sendmail(handle,from,subject);
+
+    if( -1 == rc ) {
+        logmsg(LOG_ERR,"Could NOT send mail with subject '%s' using SMTP server !",subject);
+    } else {
+        logmsg(LOG_DEBUG,"Successfullt sent SMTP mail with subject '%s' ",subject);
+    }
+
     smtp_cleanup(&handle);
 
     return rc;

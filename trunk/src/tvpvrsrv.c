@@ -1006,13 +1006,14 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                     snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
                     subjectbuff[255] = '\0';
 
-                    if( -1 == send_mail_template(subjectbuff, daemon_email_from, send_mailaddress,
-                                                 "mail_transcend", keys, ki) ) {
+                    if( -1 == send_mail_template(subjectbuff, daemon_email_from, send_mailaddress,"mail_transcend", keys, ki) ) {
                         logmsg(LOG_ERR,"Failed to send mail using template \"mail_transcend\"");
+                    } else {
+                        logmsg(LOG_DEBUG,"Sucessfully sent mail using template \"mail_transcend\"!");
                     }
 
                     for( size_t i=0; i < ki; ++i ) {
-                        free(keys[i].key);
+                        //free(keys[i].key);
                         free(keys[i].val);
                     }
                     free(keys);
