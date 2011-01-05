@@ -383,6 +383,21 @@ extern char send_mailaddress[];
 // Should we send mail on when transcoding finished?
 extern int send_mail_on_transcode_end ;
 
+// Should we try to use HTML when sending mail from templates
+extern int use_html_mail ;
+
+// Should we use an SMTP server to send mail
+extern int smtp_use ;
+
+// Name of SMTP server
+extern char smtp_server[] ;
+
+// Name of SMTP user
+extern char smtp_user[] ;
+
+// Name of SMTP password
+extern char smtp_pwd[] ;
+
 // Name of loclae to use (used to set LC_ALL)
 extern char locale_name[];
 

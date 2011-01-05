@@ -653,7 +653,7 @@ smtp_add_html(struct smtp_handle *handle, char *buffer, char *altbuffer) {
     } else {
         return -1;
     }
-    if( altbuffer ) {
+    if( altbuffer && *altbuffer ) {
         // Optional
         handle->plain = strdup(altbuffer);
     }

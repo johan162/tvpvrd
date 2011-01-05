@@ -182,6 +182,11 @@ int use_profiledirectories = 1;
  */
 int send_mail_on_error, send_mail_on_transcode_end;
 char send_mailaddress[64] = {'\0'};
+int use_html_mail ;
+int smtp_use ;
+char smtp_server[64] ;
+char smtp_user[64] ;
+char smtp_pwd[64] ;
 
 /*
  * Shutdown controls
@@ -301,19 +306,6 @@ read_inisettings(void) {
                                     iniparser_getint(dict, "config:weblogin_timeout", WEBLOGIN_TIMEOUT));
     weblogin_timeout *= 60; // Convert to seconds
 
-    send_mail_on_transcode_end = iniparser_getboolean(dict,"config:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);
-    send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SENDMAIL_ON_ERROR);
-
-    strncpy(send_mailaddress,
-            iniparser_getstring(dict, "config:sendmail_address", SEND_MAILADDRESS),
-            63);
-    send_mailaddress[63] = '\0';
-
-    strncpy(daemon_email_from,
-            iniparser_getstring(dict, "config:daemon_email_from", ""),
-            63);
-    daemon_email_from[63] = '\0';
-
     strncpy(password,
             iniparser_getstring(dict, "config:password", ""),
             31);
@@ -409,6 +401,39 @@ read_inisettings(void) {
         }
     }
 
+    /*--------------------------------------------------------------------------
+     * MAIL Section
+     *--------------------------------------------------------------------------
+     */
+
+    send_mail_on_transcode_end = iniparser_getboolean(dict,"mail:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);
+    send_mail_on_error = iniparser_getboolean(dict,"mail:sendmail_on_error",SENDMAIL_ON_ERROR);
+
+    use_html_mail = iniparser_getboolean(dict,"mail:use_html",0);
+
+    strncpy(send_mailaddress,
+            iniparser_getstring(dict, "mail:sendmail_address", SEND_MAILADDRESS),
+            63);
+    send_mailaddress[63] = '\0';
+
+    strncpy(daemon_email_from,
+            iniparser_getstring(dict, "mail:daemon_email_from", ""),
+            63);
+    daemon_email_from[63] = '\0';
+
+    smtp_use = iniparser_getboolean(dict,"mail:smtp_use",0);
+    strncpy(smtp_server,
+            iniparser_getstring(dict, "mail:smtp_server", ""),
+            63);
+    smtp_server[63] = '\0';
+    strncpy(smtp_user,
+            iniparser_getstring(dict, "mail:smtp_user", ""),
+            63);
+    smtp_user[63] = '\0';
+    strncpy(smtp_pwd,
+            iniparser_getstring(dict, "mail:smtp_pwd", ""),
+            63);
+    smtp_pwd[63] = '\0';
 
     /*--------------------------------------------------------------------------
      * FFMPEG Section

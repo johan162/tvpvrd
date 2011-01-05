@@ -29,8 +29,12 @@
 #include <string.h>
 #include <syslog.h>
 #include <errno.h>
+#include <libgen.h>
 
 #include "utils.h"
+#include "rkey.h"
+#include "tvconfig.h"
+#include "libsmtpmail/mailclientlib.h"
 
 /**
  * Escape quotes in a string as necessary
@@ -105,4 +109,95 @@ send_mail(const char * subject, const char * from, const char *to, const char *m
 
     return rc;
 
+}
+
+/*
+static int
+get_fext(char *filename,char *fext,size_t maxlen) {
+    ssize_t n = strlen(filename) - 1;
+    while( n > 0 && filename[n] != '.' ) {
+        n--;
+    }
+    if( n <= 0 || strlen(&filename[n+1]) >= maxlen ) {
+        return -1;
+    }
+    strcpy(fext,&filename[n+1]);
+    return 0;
+}
+*/
+
+/**
+ * Send a mail based on a template file. If the template file ends in *.html the mail
+ * will be sent as an HTML mail and if a template with the same basename but with
+ * extension *.txt exists then that will be used to send a plain text version of the
+ * mail. If the template file ends in *.txt then the mail will only be sent as a
+ * plain text.
+ * @param subject
+ * @param from
+ * @param to
+ * @param templatename
+ * @param keys
+ * @param nkeys
+ * @return
+ */
+
+int
+send_mail_template(char * subject, char * from, char *to,
+                   char *templatename, struct keypairs keys[], size_t nkeys) {
+
+    char *buffer=NULL, *buffer2=NULL;
+    char templatefile[256];
+
+    logmsg(LOG_DEBUG,"smtp_use=%d, use_html_mail=%d",smtp_use,use_html_mail);
+
+    if( use_html_mail && smtp_use ) {
+        snprintf(templatefile,255,"%s/tvpvrd/%s.html",CONFDIR,templatename);
+        logmsg(LOG_DEBUG,"Sending HTML message using template: \"%s\" ",templatefile);
+    } else {
+        snprintf(templatefile,255,"%s/tvpvrd/%s.txt",CONFDIR,templatename);
+        if( use_html_mail ) {
+            logmsg(LOG_NOTICE,"Cannot send HTMl mail (no SMTP server configured) using plain text with template: \"%s\"",templatefile);
+        }
+        logmsg(LOG_DEBUG,"Sending TEXT message using template: %s ",templatefile);
+    }
+
+    int rc = replace_keywords_in_file(templatefile,&buffer, keys, nkeys);
+    if( -1 == rc )  {
+        logmsg(LOG_DEBUG,"Failed to do keyword substitution with template: \"%s\". Does it exist?",templatefile);
+        return -1;
+    }
+
+    if( !smtp_use || !use_html_mail) {
+        int rc = send_mail(subject, from, to, buffer) ;
+        free(buffer);
+        return rc;
+    }
+
+    if (use_html_mail) {
+        // Also try to get a plain text version
+        snprintf(templatefile,255,"%s/tvpvrd/%s.txt",CONFDIR,templatename);
+        replace_keywords_in_file(templatefile, &buffer2, keys, nkeys);
+    }
+
+    struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
+    if( handle == NULL ) {
+        free(buffer);
+        if( buffer2 )
+            free(buffer2);
+        return -1;
+    }
+
+    smtp_add_rcpt(handle,SMTP_RCPT_TO,to);
+    if( use_html_mail ) {
+        smtp_add_html(handle,buffer,buffer2);
+    } else {
+        smtp_add_plain(handle,buffer);
+    }
+    free(buffer);
+    if (buffer2)
+        free(buffer2);
+    rc = smtp_sendmail(handle,from,subject);
+    smtp_cleanup(&handle);
+
+    return rc;
 }
