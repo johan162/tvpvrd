@@ -1,7 +1,28 @@
 $Id$
 
-v2.3.0
-------
+v3.0.0alpha build 366
+---------------------
+User visible changes:
+    - Added option to send HTML formatted mail notifications. The  templates
+      for the mails are stored in the configuration directory.
+    - Added option to use specified SMTP server directly to send mail
+    - Updated template for hook scripts
+    - Added post transcoding script hook and associated template in config
+    - Changed structure of config file so that all mail related settings are in
+      its own section.
+    - Fixed a memory leak when CSS file was not modified when using the WEB-interface
+
+Internal changes:
+    - Some include header streamlining
+    - Update network code to use the more modern getaddrinfo() system call
+    - Added a small SMTP mail sending library in libsmtpmail directory
+    - Reworked he build system so that iniparser is now an archive library
+    - Added base64 and quoted-printable functionality since that is needed for mails
+    - Added SIGABRT handler to get some notifications when using glibs memory
+      checking routines MALLOC_CHECK
+
+v2.3.0 [r376]
+-------------
 User visible changes:
     - Added automatic shutdown in the server itself by making use of the BIOS
       real time clock. This will power off the daemon until its time for next
