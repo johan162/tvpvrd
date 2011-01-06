@@ -58,6 +58,8 @@
 #include <pwd.h>
 #include <grp.h>
 
+// #include <mcheck.h>
+
 // Standard socket and IP address handling
 #include <sys/socket.h>
 #include <sys/param.h>
@@ -2286,6 +2288,23 @@ startupsrv(void) {
     return EXIT_SUCCESS;
 }
 
+
+// We add a special global handler for the abort signal. This could for
+// example be raised if glibc finds an malloc()/alloc()/free() error
+// and we need notification. Since the library call abort() will unblock
+// our global block we must add this global handler.
+// Unfortunately this doesn't give us much information since glibc will
+// print the short stacktrace to stderr and we have directed that to
+// /dev/null when running as daemon so we have no chance of getting hold
+// of that. However, since we are notified about the error we can check
+// the logfile to get an indication of where the memory might be.
+void 
+sigabrt_handler(int signum) {
+
+    logmsg(LOG_ERR,"Abnormally terminated by abort signal (%d).",signum);
+
+}
+
 /* ==================================================================================
  * M A I N
  * ==================================================================================
@@ -2294,6 +2313,9 @@ int
 main(int argc, char *argv[]) {
     sigset_t signal_set;
     pthread_t signal_thread;
+
+
+    //mtrace();
 
     // Remember the program name we are started as
     strncpy(inibuffer,argv[0],256);
@@ -2444,6 +2466,9 @@ main(int argc, char *argv[]) {
     if( is_master_server ) {
         (void) pthread_create(&chkrec_thread, NULL, chkrec, (void *) NULL);
     }
+
+    // Setup global SIGABRT handler 
+    signal(SIGABRT,sigabrt_handler);
 
     //*********************************************************************************
     //*********************************************************************************
