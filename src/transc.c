@@ -55,14 +55,14 @@
 
 
 struct ongoing_transcoding *ongoing_transcodings[3] ;
-const int max_ongoing_transcoding = 3;
+const size_t max_ongoing_transcoding = 3;
 struct waiting_transcoding_t wtrans[MAX_WAITING_TRANSCODINGS] ;
 
 
 // We store all the details about a specific transcoding profile in an array
 // as well. In theory there is no limit to how many profiles a user may define
 static struct transcoding_profile_entry *profiles[MAX_TRANS_PROFILES];
-static unsigned num_transcoding_profiles=0;
+static size_t num_transcoding_profiles=0;
 
 /**
  * Check if ffmpeg binaries can be found at the specified location
@@ -90,10 +90,10 @@ check_ffmpeg_bin(void) {
 int
 record_ongoingtranscoding(char *workingdir,char *short_filename,char *cmd_ffmpeg, 
                           struct transcoding_profile_entry *profile, pid_t pid) {
-    int i;
+    size_t i;
     for(i=0; i < max_ongoing_transcoding && ongoing_transcodings[i]; i++)
        ;
-    if( i>= max_ongoing_transcoding ) {
+    if( i >= max_ongoing_transcoding ) {
         logmsg(LOG_ERR,"Can only record at most %d ongoing transcodings.",max_ongoing_transcoding);
         return -1;
     }
@@ -119,7 +119,7 @@ record_ongoingtranscoding(char *workingdir,char *short_filename,char *cmd_ffmpeg
  */
 void
 forget_ongoingtranscoding(int idx) {
-    if( idx >= 0 && idx < max_ongoing_transcoding ) {
+    if( idx >= 0 && idx < (int)max_ongoing_transcoding ) {
         struct ongoing_transcoding *entry = ongoing_transcodings[idx];
         if( entry ) {
             (void)free(entry);
@@ -132,10 +132,10 @@ forget_ongoingtranscoding(int idx) {
     }
 }
 
-int
+size_t
 get_num_ongoing_transcodings(void) {
-    int num=0;
-    for (int i = 0; i < max_ongoing_transcoding; i++) {
+    size_t num=0;
+    for (size_t i = 0; i < max_ongoing_transcoding; i++) {
         num += ongoing_transcodings[i] ? 1 : 0;
     }
     return num;
@@ -161,7 +161,7 @@ list_ongoing_transcodings(char *obuff, size_t size, int show_ffmpegcmd) {
         return 0;
     }
 
-    for (int i = 0; i < max_ongoing_transcoding; i++) {
+    for (size_t i = 0; i < max_ongoing_transcoding; i++) {
         if (ongoing_transcodings[i]) {
             int rtime = now-ongoing_transcodings[i]->start_ts;
             int rh = rtime/3600;
@@ -969,7 +969,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 int
 kill_ongoing_transcoding(int idx) {
 
-    if( idx >= 0 && idx < max_ongoing_transcoding ) {
+    if( idx >= 0 && idx < (int)max_ongoing_transcoding ) {
         if (ongoing_transcodings[idx]) {
             logmsg(LOG_NOTICE,"Killing 'ffmpeg' process group %d",ongoing_transcodings[idx]->pid);
             (void)killpg(ongoing_transcodings[idx]->pid,SIGSTOP);
@@ -991,7 +991,7 @@ void
 kill_all_ongoing_transcodings(void) {
 
     // Send the Kill signal to the process group of all ongoing transcodings
-    for (int i = 0; i < max_ongoing_transcoding; i++) {
+    for (size_t i = 0; i < max_ongoing_transcoding; i++) {
         kill_ongoing_transcoding(i);
     }
 

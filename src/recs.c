@@ -279,8 +279,8 @@ newrec(const char *title, const char *filename, const time_t start,
         const int recurrence_mangling,
         char *profiles[]) {
 
-    struct recording_entry* ptr =
-            (struct recording_entry *) calloc(1, sizeof (struct recording_entry));
+    struct recording_entry* ptr = 
+        (struct recording_entry *) calloc(1, sizeof (struct recording_entry));
     if (ptr == NULL) {
         logmsg(LOG_ERR, "Failed to allocate new entry due to no memory left.");
         return NULL;
