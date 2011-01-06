@@ -390,10 +390,12 @@ read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
  */
 void
 sendback_css_file(int sockd, char *name, time_t modifiedSince) {
-    char *tmpbuff = calloc(1,16000);
+    size_t const maxfilesize=16000;
+
+    char *tmpbuff = calloc(1,maxfilesize);
     const int ismobile = strcmp(name,"tvpvrd_mobile")==0;
     
-    if( read_cssfile(tmpbuff,16000,ismobile,modifiedSince) ) {
+    if( read_cssfile(tmpbuff,maxfilesize,ismobile,modifiedSince) ) {
         // Initialize a new page
         char server_id[255];
         snprintf(server_id, 254, "tvpvrd %s", server_version);
@@ -425,13 +427,12 @@ sendback_css_file(int sockd, char *name, time_t modifiedSince) {
 #endif
         logmsg(LOG_DEBUG,"Sent back CSS sheet %s",name);
 
-        free(tmpbuff);
-
     } else {
 
         html_notmodified(sockd);
     }
 
+    free(tmpbuff);
 }
 
 /**
