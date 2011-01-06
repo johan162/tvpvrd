@@ -390,7 +390,7 @@ read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
  */
 void
 sendback_css_file(int sockd, char *name, time_t modifiedSince) {
-    size_t const maxfilesize=16000;
+    size_t const maxfilesize = 16000;
 
     char *tmpbuff = calloc(1,maxfilesize);
     const int ismobile = strcmp(name,"tvpvrd_mobile")==0;
@@ -489,7 +489,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                 " HTTP/1.1",
                 buffer, &field)) > 1) {
 
-            const int maxvlen = 256;
+            const size_t maxvlen = 256;
             char channel[maxvlen], repeat[maxvlen], repeatcount[maxvlen];
             char sd[maxvlen], sh[maxvlen], smin[maxvlen], eh[maxvlen], emin[maxvlen];
             char profile[maxvlen], title[maxvlen], submit[maxvlen];
@@ -798,13 +798,13 @@ void
 web_cmd_ongoingtransc(int sockd) {
 
     _writef(sockd, "<fieldset><legend>Ongoing transcodings</legend>\n");
-    int num=get_num_ongoing_transcodings();
+    size_t num=get_num_ongoing_transcodings();
 
     if( num == 0 ) {
         _writef(sockd, "<div class=\"ongoing_transc_title_disabled\">None.</div>");
     } else {
 
-        for (int i = 0; i < max_ongoing_transcoding; i++) {
+        for (size_t i = 0; i < max_ongoing_transcoding; i++) {
 
             if (ongoing_transcodings[i]) {
 
@@ -835,7 +835,7 @@ web_cmd_ongoing(int sockd) {
 
     _writef(sockd, "<fieldset><legend>Ongoing recordings</legend>\n");
 
-    int num=0;
+    size_t num=0;
     for (unsigned i = 0; i < max_video; i++) {
         num += ongoing_recs[i] ? 1 : 0 ;
     }
@@ -843,7 +843,7 @@ web_cmd_ongoing(int sockd) {
         _writef(sockd, "<div class=\"ongoing_transc_title_disabled\">None.</div>");
     } else {
 
-        for (unsigned i = 0; i < max_video; i++) {
+        for (size_t i = 0; i < max_video; i++) {
 
             if (ongoing_recs[i]) {
 
@@ -872,13 +872,13 @@ web_cmd_ongoing(int sockd) {
 void
 web_cmd_qadd(int sockd) {
     const char *station_list[128];
-    const int n_stations = get_stations(station_list, 128);
+    const size_t n_stations = get_stations(station_list, 128);
 
     const char *profile_list[64];
-    const int n_profile = get_profile_names(profile_list, 64);
+    const size_t n_profile = get_profile_names(profile_list, 64);
 
-    const int n_hourlength = sizeof (hourlength_list) / sizeof (char *);
-    const int n_min = sizeof (min_list) / sizeof (char *);
+    const size_t n_hourlength = sizeof (hourlength_list) / sizeof (char *);
+    const size_t n_min = sizeof (min_list) / sizeof (char *);
 
     _writef(sockd, "<div class=\"cmd_qadd_container\">");
 
@@ -913,7 +913,7 @@ web_cmd_add_del(int sockd) {
     static const char *day_list[] = {
         " ", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
     };
-    const int n_day = 8;
+    const size_t n_day = 8;
     static const struct skeysval_t rpt_list[] = {
         {.key = "", .val = "(none)"},
         {.key = "w", .val = "Weekly"},
@@ -922,26 +922,26 @@ web_cmd_add_del(int sockd) {
         {.key = "t", .val = "Mon-Thu"},
         {.key = "s", .val = "Sat-Sun"},
     };
-    const int n_rpt = 6;
+    const size_t n_rpt = 6;
     static const char *rptcount_list[] = {
         " ", "02", "03", "04", "05", "06", "07", "08", "09", "10",
         "11", "12", "13", "14", "15", "16", "17", "18", "19",
         "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
         "30", "31", "33", "33", "34", "35", "36", "37", "38", "39",
     };
-    const int n_rptcount = 39;
+    const size_t n_rptcount = 39;
     static const char *yn_list[] = {
         "Yes", "No"
     };
-    const int n_ynlist = 2;
+    const size_t n_ynlist = 2;
     const char *station_list[128];
-    const int n_stations = get_stations(station_list, 128);
+    const size_t n_stations = get_stations(station_list, 128);
 
     const char *profile_list[64];
-    const int n_profile = get_profile_names(profile_list, 64);
+    const size_t n_profile = get_profile_names(profile_list, 64);
 
-    const int n_hour = sizeof (hour_list) / sizeof (char *);
-    const int n_min = sizeof (min_list) / sizeof (char *);
+    const size_t n_hour = sizeof (hour_list) / sizeof (char *);
+    const size_t n_min = sizeof (min_list) / sizeof (char *);
 
     _writef(sockd, "<div class=\"cmd_add_del_container\">");
 
@@ -977,9 +977,9 @@ web_cmd_add_del(int sockd) {
     _writef(sockd, "<fieldset>\n<legend>Delete recording</legend>\n");
 
     struct skeysval_t *listrec;
-    int num = listrecskeyval(&listrec, 3);
+    size_t num = listrecskeyval(&listrec, 3);
     html_element_select_code(sockd, "Title:", "recid", NULL, listrec, num, "id_delselect");
-    for (int i = 0; i < num; ++i) {
+    for (size_t i = 0; i < num; ++i) {
         free(listrec[i].key);
         free(listrec[i].val);
     }
@@ -1023,7 +1023,7 @@ struct cmd_entry {
 struct cmd_grp {
     char *grp_name;
     char *grp_desc;
-    int cmd_num;
+    size_t cmd_num;
     struct cmd_entry *entry;
 };
 
@@ -1138,7 +1138,7 @@ web_commandlist(int sockd) {
                 cmdgrp[i].grp_name, cmdgrp[i].grp_desc);
 
         _writef(sockd, "<div class=\"cmdgrp_commands\">");
-        for (int j = 0; j < cmdgrp[i].cmd_num; ++j) {
+        for (size_t j = 0; j < cmdgrp[i].cmd_num; ++j) {
             _writef(sockd, "<a href=\"cmd?%s\">&#8718; %s</a><br>\n", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
         }
         _writef(sockd, "</div>");
@@ -1156,7 +1156,7 @@ void
 web_commandlist_short(int sockd) {
 
     static struct cmd_grp *cmdgrp;
-    int cmdgrplen;
+    size_t cmdgrplen;
 
     if (is_master_server) {
         cmdgrp = cmd_grp_master_menu_short;
@@ -1167,9 +1167,9 @@ web_commandlist_short(int sockd) {
     }
 
     _writef(sockd, "<div class=\"cmd_menu_short\">\n");
-    for (int i = 0; i < cmdgrplen; ++i) {
+    for (size_t i = 0; i < cmdgrplen; ++i) {
 
-        for (int j = 0; j < cmdgrp[i].cmd_num; ++j) {
+        for (size_t j = 0; j < cmdgrp[i].cmd_num; ++j) {
             _writef(sockd, "<div class=\"cmdgrp_commands_short\">");
             _writef(sockd, "<a href=\"cmd?%s\">&#8718; %s</a>", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
             _writef(sockd, "</div>\n");

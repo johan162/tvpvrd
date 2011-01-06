@@ -234,7 +234,7 @@ struct ongoing_transcoding {
     pid_t pid;
 };
 extern struct ongoing_transcoding *ongoing_transcodings[] ;
-extern const int max_ongoing_transcoding;
+extern const size_t max_ongoing_transcoding;
 
 // We keep track on all transcodings that are waiting to happen
 #define MAX_WAITING_TRANSCODINGS 64
@@ -332,7 +332,7 @@ get_transcoding_profile_list(struct transcoding_profile_entry **start[]);
  * Return number of ongoing transcodings
  * @return Number of currently ongoing transcodings
  */
-int
+size_t
 get_num_ongoing_transcodings(void);
 
 
