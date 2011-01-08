@@ -20,8 +20,11 @@ Internal changes:
     - Added base64 and quoted-printable functionality since that is needed for mails
     - Added SIGABRT handler to get some notifications when using glibs memory
       checking routines MALLOC_CHECK
+    - Changed configuration so ininparser is built as a proper library. Makes the
+      build scripts slightly cleaner.
+    - Refactored all xstr* routines to there own source module
 
-v2.3.0 [r376]
+v2.3.0 [r377]
 -------------
 User visible changes:
     - Added automatic shutdown in the server itself by making use of the BIOS
