@@ -201,24 +201,33 @@ check_for_shutdown(void) {
                     char hname[255] ;
                     if( 0 == gethostname(hname,255) ) {
 
-                        int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
-                        if( -1 == read(stfd,rtc_status,2048) ) {
-                            logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",
-                                   errno,strerror(errno));
-                            *rtc_status = '\0';
-                        }
-
                         ctime_r(&nextrec,timebuff);
                         if( timebuff[strlen(timebuff)-1] == '\n')
                             timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
                         snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);
-                        snprintf(body,2048,
-                                 "Server %s shutdown until %s\n"
-                                 "Next recording is: '%s'\n\n"
-                                 "RTC Status:\n%s\n",
-                                 hname,timebuff,
-                                 recs[REC_IDX(nextrec_video, nextrec_idx)]->title,
-                                 rtc_status);
+
+                        if( verbose_log == 3 ) {
+
+                            int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
+                            if( -1 == read(stfd,rtc_status,2048) ) {
+                                logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",
+                                       errno,strerror(errno));
+                                *rtc_status = '\0';
+                            }
+                            snprintf(body,2048,
+                                     "Server %s shutdown until %s\n"
+                                     "Next recording is: '%s'\n\n"
+                                     "RTC Status:\n%s\n",
+                                     hname,timebuff,
+                                     recs[REC_IDX(nextrec_video, nextrec_idx)]->title,
+                                     rtc_status);
+                        } else {
+                            snprintf(body,2048,
+                                     "Server %s shutdown until %s\n"
+                                     "Next recording is: '%s'\n",
+                                     hname,timebuff,
+                                     recs[REC_IDX(nextrec_video, nextrec_idx)]->title);
+                        }
 
                         send_mail(subj,daemon_email_from, send_mailaddress,body);                                                
                         logmsg(LOG_DEBUG,"Sent shutdown email to '%s'.",send_mailaddress);

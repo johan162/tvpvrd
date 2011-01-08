@@ -40,7 +40,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/stat.h>
-
+#include <malloc.h>
 // Application specific includes
 #include "tvcmd.h"
 #include "tvpvrd.h"
@@ -1502,6 +1502,22 @@ _cmd_status(const char *cmd, int sockfd) {
     int nthreads=-1;
     (void)getwsetsize(getpid(), &wsize, unit, &nthreads);
 
+    // Get som additional information of the malloc strategy
+    //struct mallinfo {
+    //  int arena;    /* non-mmapped space allocated from system */
+    //  int ordblks;  /* number of free chunks */
+    //  int smblks;   /* number of fastbin blocks */
+    //  int hblks;    /* number of mmapped regions */
+    //  int hblkhd;   /* space in mmapped regions */
+    //  int usmblks;  /* maximum total allocated space */
+    //  int fsmblks;  /* space available in freed fastbin blocks */
+    //  int uordblks; /* total allocated space */
+    //  int fordblks; /* total free space */
+    //  int keepcost; /* top-most, releasable (via malloc_trim) space */
+    //};
+
+    struct mallinfo minfo = mallinfo();
+
     if( verbose_log == 3 ) {
 
         snprintf(msgbuff,511,
@@ -1511,14 +1527,23 @@ _cmd_status(const char *cmd, int sockfd) {
                 "%-16s: %02d days %02d hours %02d min\n"
                 "%-16s: %.1f %.1f %.1f\n"
                 "%-16s: %d %s\n"
-                "%-16s: %d\n",
+                "%-16s: %d\n"
+                "MALLOC Info:\n"
+                "%-16s: %d\n"
+                "%-16s: %d\n"
+                "%-16s: %d\n"
+                ,
                 "Current time", currtime,
                 "tvpvrd started", ctime(&ts_serverstart),
                 "tvpvrd uptime", sday, sh, smin,
                 "Server uptime",uday,uh,umin,
                 "Server load",avg1,avg5,avg15,
                 "Virtual memory",wsize,unit,
-                "Threads",nthreads);
+                "Threads",nthreads,
+                "Tot. allocated:",minfo.uordblks,
+                "Tot. free space:",minfo.fordblks,
+                "Max. allocated:",minfo.usmblks
+                );
 
     } else {
         
