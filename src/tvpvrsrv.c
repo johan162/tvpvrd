@@ -936,73 +936,52 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                 // The complete transcoding and file relocation has been successful. Now check
                 // if we should send a mail with this happy news!
                 if( send_mail_on_transcode_end ) {
-                    struct keypairs *keys = calloc(16, sizeof(struct keypairs)); ;
-                    //char mailbuff[2048];
-                    char loadtmpbuff[256];
+                    size_t const maxkeys=16;
+                    struct keypairs *keys = new_keypairlist(maxkeys);
+                    char str_buff[1024];
                     size_t ki = 0 ;
                     
                     // Include system load average in mail
                     float l1,l5,l15;
                     getsysload(&l1,&l5,&l15);
-                    keys[ki].key = "SL1";
-                    snprintf(loadtmpbuff,256,"%.1f",l1);
-                    keys[ki++].val = strdup(loadtmpbuff);
-                    keys[ki].key = "SL5";
-                    snprintf(loadtmpbuff,256,"%.1f",l5);
-                    keys[ki++].val = strdup(loadtmpbuff);
-                    keys[ki].key = "SL15";
-                    snprintf(loadtmpbuff,256,"%.1f",l15);
-                    keys[ki++].val = strdup(loadtmpbuff);
+                    snprintf(str_buff,256,"%.1f",l1);
+                    add_keypair(keys,maxkeys,"SL1",str_buff,&ki);
+                    snprintf(str_buff,256,"%.1f",l5);
+                    add_keypair(keys,maxkeys,"SL5",str_buff,&ki);
+                    snprintf(str_buff,256,"%.1f",l15);
+                    add_keypair(keys,maxkeys,"SL15",str_buff,&ki);
 
                     // Get full current time to include in mail
-                    static const int tblen = 32;
-                    char timebuff[tblen] ;
                     time_t now = time(NULL);
-                    ctime_r(&now,timebuff);
-                    timebuff[strnlen(timebuff,(size_t)(tblen-1))-1] = 0;
-                    keys[ki].key = "TIME";
-                    keys[ki++].val = strdup(timebuff);
+                    ctime_r(&now,str_buff);
+                    str_buff[strnlen(str_buff,1023)-1] = 0; // Remove trailing newline
+                    add_keypair(keys,maxkeys,"TIME",str_buff,&ki);
 
-                    snprintf(timebuff,tblen,"%02d:%02d",rh,rm);
-                    keys[ki].key = "TRANSCTIME";
-                    keys[ki++].val = strdup(timebuff);
+                    snprintf(str_buff,1023,"%02d:%02d",rh,rm);
+                    add_keypair(keys,maxkeys,"TRANSCTIME",str_buff,&ki);
 
                     // Include the server name in the mail
-                    char hostname[80];
-                    gethostname(hostname,80);
-                    hostname[79] = '\0';
-                    keys[ki].key = "SERVERNAME";
-                    keys[ki++].val = strdup(hostname);
+                    gethostname(str_buff,80);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"SERVERNAME",str_buff,&ki);
 
                     // Include all ongoing transcodings
-                    char ongtr_buff[1024];
-                    list_ongoing_transcodings(ongtr_buff,1023,0);
-                    ongtr_buff[1023] = '\0';
-                    keys[ki].key = "ONGOINGTRANS";
-                    keys[ki++].val = strdup(ongtr_buff);
+                    list_ongoing_transcodings(str_buff,1023,0);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"ONGOINGTRANS",str_buff,&ki);
                     
                     // Also include all waiting transcodings
-                    char waittr_buff[1024];
-                    list_waiting_transcodings(waittr_buff,1023);
-                    waittr_buff[1023] = '\0';
-                    keys[ki].key = "WAITTRANS";
-                    keys[ki++].val = strdup(waittr_buff);
+                    list_waiting_transcodings(str_buff,1023);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"WAITTRANS",str_buff,&ki);
 
                     // Finally list the three next recordings
-                    char nextrec_buff[1024];
-                    listrecsbuff(nextrec_buff,1023,3,4);
-                    nextrec_buff[1023] = '\0';
-                    keys[ki].key = "NEXTRECS";
-                    keys[ki++].val = strdup(nextrec_buff);
-
-                    keys[ki].key = "TITLE";
-                    keys[ki++].val = strdup(short_filename);
-
-                    keys[ki].key = "PROFILE";
-                    keys[ki++].val = strdup(profile->name);
-
-                    keys[ki].key = "FILENAME";
-                    keys[ki++].val = strdup(tmpbuff);
+                    listrecsbuff(str_buff,1023,3,4);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"NEXTRECS",str_buff,&ki);
+                    add_keypair(keys,maxkeys,"TITLE",short_filename,&ki);
+                    add_keypair(keys,maxkeys,"PROFILE",profile->name,&ki);
+                    add_keypair(keys,maxkeys,"FILENAME",tmpbuff,&ki);
 
                     char subjectbuff[256];
                     snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
@@ -1014,11 +993,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
                         logmsg(LOG_DEBUG,"Sucessfully sent mail using template \"mail_transcend\"!");
                     }
 
-                    for( size_t i=0; i < ki; ++i ) {
-                        //free(keys[i].key);
-                        free(keys[i].val);
-                    }
-                    free(keys);
+                    free_keypairlist(keys,ki);
                     
                 }
             }

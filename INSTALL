@@ -3,11 +3,16 @@ $Id$
 Installation Instructions for tvpvrd
 ====================================
 
-Copyright (C) 2010 Johan Persson (johan162@gmail.com)
+Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 
+**************************** IMPORTANT ! *****************************************
+See bottom of page (Installing From Repository) for extra steps if you have 
+downloaded  directly from the subversion repository. This requires some autotools 
+setup. If you are not comfortable with this please use the prepared tar-ball.
+**********************************************************************************
 
-Quick installation
-==================
+Quick installation using the tar-ball-package
+=============================================
 
 For the impatient:
 
@@ -188,5 +193,49 @@ operates.
 `configure' also accepts some other, not widely useful, options.  Run
 `configure --help' for more details.
 
+
+Installing From Repository
+==========================
+
+If you are not using the tar ball but have just grabbed the latest source from the
+repository there are two things to keep in mind.
+
+1. It may not build ... there is no guarantee that any arbitrary snapshot of the
+   repository represents a stable, tested environment.
+
+2. You must have the autotools available. If you do not know what this is then please
+   use the prepared package.
+
+If despite these warnings you want to go ahead. Then read on.
+
+Setting up a  build environment
+-------------------------------
+If you have downloaded the latest trunk all necessary build file for the autotools (eg.
+configure.ac) are available.
+
+The configuration scripts uses some features (silent builds) which are only available in
+autotools 2.65 and above so you need to have those installed to re-build the build
+environment.
+
+Move to the root directory of tvpvrd (where configure.ac is) and type
+
+$>autoreconf
+
+This will rebuild the "configure" file and the necessary "Makefile.in" in all relevant
+subdirectories.
+
+Now continue as usual.
+
+
+A final note:
+There are two schools of thought on what to save in the repository. One schools argues that
+only original source files should be stored there and not generated files based on the
+source files. The other school of thought argues that for ease of use the repository
+should contain necessary files so that even an non-developer user can re-build the package.
+
+I subscribe to the first view. This keeps the repository clean and it also reduces false
+reports of problems when people without necessary experience have failed to correctly build
+the source directly from the repository. It will also avoid a lot of unnecessary traffic to
+the repository just to keep the generated files in sync.
 [EOF]
 

@@ -29,7 +29,7 @@ endif
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
 etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template \
-etc/mail_transcend.txt etc/mail_transcend.html
+etc/mail_transcend.txt etc/mail_transcend.html /etc/mail_shutdown.html /etc/mail_shutdown.txt
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 
@@ -48,6 +48,8 @@ install-data-local:
 	install -D -m 644 $(abs_srcdir)/etc/tvpvrd_mobile.css ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd_mobile.css 
 	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.txt
 	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.html ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.html
+	install -D -m 644 $(abs_srcdir)/etc/mail_shutdown.html ${DESTDIR}${sysconfdir}/tvpvrd/mail_shutdown.html
+	install -D -m 644 $(abs_srcdir)/etc/mail_shutdown.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_shutdown.txt
 
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)

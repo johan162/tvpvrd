@@ -1,5 +1,15 @@
 $Id$
 
+v3.0.0alpha2 build 366
+---------------------
+User visible changes:
+    - Added template based mail setup for shutdown mails
+    - Updated INSTALL file with some information on extra steps needed
+      if building directly from the repository
+
+Internal changes:
+    - Improved the usability of the key/val replacement routines
+
 v3.0.0alpha build 366
 ---------------------
 User visible changes:
