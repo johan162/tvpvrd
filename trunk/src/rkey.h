@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-#define MAX_KEYPAIR_VAL_SIZE 128
+#define MAX_KEYPAIR_VAL_SIZE 1024
 
 /*
  * Holds each keypair to be replaced in the buffer/file
@@ -62,6 +62,35 @@ replace_keywords(char *buffer, size_t maxlen, struct keypairs keys[], size_t nke
  */
 int
 replace_keywords_in_file(char *filename,char **buffer, struct keypairs keys[], size_t nkeys);
+
+/**
+ * Cretae a new keypair list to use when replacing template keys in mail
+ * @param maxsize
+ * @return
+ */
+struct keypairs *
+new_keypairlist(size_t maxsize);
+
+/**
+ * Add a key/value pair ot a pre-created keypair list
+ * @param keys
+ * @param maxkeys
+ * @param key
+ * @param val
+ * @param idx
+ * @return -1 on failure, 0 on success
+ */
+int
+add_keypair(struct keypairs *keys, size_t maxkeys, char *key, char *val, size_t *idx);
+
+/**
+ * Free a keypair list previously created with new_keypairlist()
+ * @param keys
+ * @param maxkeys
+ * @return
+ */
+int
+free_keypairlist(struct keypairs *keys, size_t maxkeys);
 
 
 #ifdef	__cplusplus

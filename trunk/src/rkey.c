@@ -132,3 +132,36 @@ replace_keywords_in_file(char *filename,char **buffer, struct keypairs keys[], s
     fclose(fp);
     return replace_keywords(*buffer, N, keys, nkeys);
 }
+
+struct keypairs *
+new_keypairlist(size_t maxsize) {
+    return calloc(maxsize,sizeof(struct keypairs));
+}
+
+int
+add_keypair(struct keypairs *keys, size_t maxkeys, char *key, char *val, size_t *idx) {
+    if( *idx >= maxkeys ) {
+        return -1;
+    } else {
+        keys[*idx].key = strdup(key);
+        keys[*idx].val = strdup(val);
+        (*idx)++;
+        return 0;
+    }
+}
+
+int
+free_keypairlist(struct keypairs *keys, size_t maxkeys) {
+    if( keys == NULL )
+        return -1;
+    for( size_t i=0; i < maxkeys; ++i) {
+        if( keys[i].key ) {
+            free(keys[i].key);
+        }
+        if( keys[i].val ) {
+            free(keys[i].val);
+        }
+    }
+    free(keys);
+    return 0;
+}

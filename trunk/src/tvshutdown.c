@@ -195,42 +195,49 @@ check_for_shutdown(void) {
                 logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
                 if( shutdown_send_mail ) {
                     char subj[255];
-                    char timebuff[255];
+                    char timebuff[255],timebuff_now[255];
                     char *body = calloc(1,2048);
                     char *rtc_status = calloc(1,2048);
-                    char hname[255] ;
+                    char hname[255];
                     if( 0 == gethostname(hname,255) ) {
+                        size_t const maxkeys=16;
+                        struct keypairs *keys = new_keypairlist(maxkeys);
+                        size_t ki = 0 ;
+
+                        time_t now = time(NULL)+5;
+                        ctime_r(&now,timebuff_now);
+                        if( timebuff_now[strlen(timebuff_now)-1] == '\n')
+                            timebuff_now[strlen(timebuff_now)-1]='\0'; // Remove trailing "\n"
 
                         ctime_r(&nextrec,timebuff);
                         if( timebuff[strlen(timebuff)-1] == '\n')
                             timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
                         snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);
 
-                        if( verbose_log == 3 ) {
+                        add_keypair(keys,maxkeys,"SERVER",hname,&ki);
+                        add_keypair(keys,maxkeys,"WAKEUPTIME",timebuff,&ki);
+                        add_keypair(keys,maxkeys,"TIME",timebuff_now,&ki);
+                        add_keypair(keys,maxkeys,"NEXTREC",recs[REC_IDX(nextrec_video, nextrec_idx)]->title,&ki);
 
+                        if( verbose_log == 3 ) {
                             int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
                             if( -1 == read(stfd,rtc_status,2048) ) {
-                                logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",
-                                       errno,strerror(errno));
+                                logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",errno,strerror(errno));
                                 *rtc_status = '\0';
                             }
-                            snprintf(body,2048,
-                                     "Server %s shutdown until %s\n"
-                                     "Next recording is: '%s'\n\n"
-                                     "RTC Status:\n%s\n",
-                                     hname,timebuff,
-                                     recs[REC_IDX(nextrec_video, nextrec_idx)]->title,
-                                     rtc_status);
+                            close(stfd);
+                            add_keypair(keys,maxkeys,"RTC_STATUS",rtc_status,&ki);
                         } else {
-                            snprintf(body,2048,
-                                     "Server %s shutdown until %s\n"
-                                     "Next recording is: '%s'\n",
-                                     hname,timebuff,
-                                     recs[REC_IDX(nextrec_video, nextrec_idx)]->title);
+                            add_keypair(keys,maxkeys,"RTC_STATUS","",&ki);
                         }
 
-                        send_mail(subj,daemon_email_from, send_mailaddress,body);                                                
-                        logmsg(LOG_DEBUG,"Sent shutdown email to '%s'.",send_mailaddress);
+                        if( -1 == send_mail_template(subj, daemon_email_from, send_mailaddress, "mail_shutdown", keys, ki) ) {
+                            logmsg(LOG_ERR,"Failed to send mail using template \"mail_shutdown\"");
+                        } else {
+                            logmsg(LOG_DEBUG,"Sucessfully sent mail using template \"mail_shutdown\"!");
+                        }
+
+                        free_keypairlist(keys,ki);
                         sleep(5); // Make sure the email gets sent before we take down the server
 
                     } else {
@@ -240,6 +247,7 @@ check_for_shutdown(void) {
                     free(rtc_status);
 
                 }
+/*
 
                 int ret = system(cmd);
                 if( ret==-1 || WEXITSTATUS(ret)) {
@@ -248,6 +256,7 @@ check_for_shutdown(void) {
 
                 // Wait for shutdown
                 sleep(5);
+*/
             }
             
         } else {
