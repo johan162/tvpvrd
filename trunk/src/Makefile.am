@@ -29,7 +29,7 @@ endif
 
 EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
 etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template \
-etc/mail_transcend.txt etc/mail_transcend.html /etc/mail_shutdown.html /etc/mail_shutdown.txt
+etc/mail_transcend.txt etc/mail_transcend.html etc/mail_shutdown.html etc/mail_shutdown.txt
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 

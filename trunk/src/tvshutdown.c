@@ -247,7 +247,6 @@ check_for_shutdown(void) {
                     free(rtc_status);
 
                 }
-/*
 
                 int ret = system(cmd);
                 if( ret==-1 || WEXITSTATUS(ret)) {
@@ -256,7 +255,7 @@ check_for_shutdown(void) {
 
                 // Wait for shutdown
                 sleep(5);
-*/
+
             }
             
         } else {
