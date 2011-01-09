@@ -408,7 +408,7 @@ read_inisettings(void) {
 
     send_mail_on_transcode_end = iniparser_getboolean(dict,"mail:sendmail_on_transcode_end",SENDMAIL_ON_TRANSCODE_END);
     send_mail_on_error = iniparser_getboolean(dict,"mail:sendmail_on_error",SENDMAIL_ON_ERROR);
-
+    shutdown_send_mail = iniparser_getboolean(dict, "mail:sendmail_on_shutdown", DEFAULT_SHUTDOWN_SENDMAIL);
     use_html_mail = iniparser_getboolean(dict,"mail:use_html",0);
 
     strncpy(send_mailaddress,
@@ -488,7 +488,6 @@ read_inisettings(void) {
     datadir[127] = '\0';
 
     shutdown_enable = iniparser_getboolean(dict, "shutdown:enable", DEFAULT_SHUTDOWN_ENABLE);
-    shutdown_send_mail = iniparser_getboolean(dict, "shutdown:send_mail", DEFAULT_SHUTDOWN_SENDMAIL);
 
     shutdown_min_time = validate(120,7200,"shutdown_min_time",
                                  iniparser_getint(dict, "shutdown:min_time", DEFAULT_SHUTDOWN_MIN_TIME));

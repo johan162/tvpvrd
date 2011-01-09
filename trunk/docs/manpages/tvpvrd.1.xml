@@ -759,6 +759,53 @@ channel = E8
                 setup to do transcoding to MP4 format).</para>
         </refsect1>
         <refsect1>
+            <title>Managing notifications mails</title>
+            <para>When configuring the daemon it is possible to set options that will send
+                notification mails on important events in the daemon. This could be notifications on
+                errors that occurred but also notifications on that a transcoding was finished or
+                that the server was shutdown automatically while waiting for the next
+                recording.</para>
+            <para>All mail settings are specified in the "<code>[mail]</code>" section of the
+                configuration file.</para>
+            <para>Sending mails can be done by either using a specified SMTP server (in the
+                configuration file) or by using the systems own "<command>mail</command>" command.
+                However, if you chose the latter you cannot ask the server to send HTML formatted
+                mails (by setting the configuration "<code>use_html=yes</code>"), only plain text
+                mail with the systems built in "<command>mail</command>" command. </para>
+            <para>The actual text (and formatting in case of HTML mails) are controlled by templates
+                that are stored in the general configuration directory. All templates are prefixed
+                by "<code>mail_*</code>". The templates exists in both a "<code>*.txt</code>" and a
+                    "<code>*.html</code>" version. The text version is used when sending plain text
+                messages and the HTML version when sending HTML formatted mails. In complying with
+                internet mail standards the plain version is also included in the mail even when
+                sending HTML formatted mails so that mail clients that are unable to display HTML
+                format will use the plain text version instead. (HTML mails are formatted according
+                to internet standard MIME attachment rules.)</para>
+            <para>At the time of this writing the following templates are used by the daemon</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para><code>mail_shutdown.*</code> Used when sending notifications on
+                            automatic server shutdown</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>mail_transcend.*</code> Used when sending notifications when
+                            transcoding has finished</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>mail_error.*</code> Used when sending notifications on
+                            errors</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>In these templates you can see a number of keys (in the format of
+                    <code>[KEYNAME]</code>)  with different names that are replaced with the actual
+                values at the time the mail should be sent. The name of the keys should make it
+                obvious what value they will be replaced with is.</para>
+            <para>If you like to change the appearance of any of these templates, then by all means,
+                go ahead !</para>
+        </refsect1>
+        <refsect1>
             <title>Commands (in alphabetic order)</title>
             <para>The following is a list and detailed explanation of the commands that are
                 recognized by the server. Commands are specified by 1 to 3 letters followed by any
