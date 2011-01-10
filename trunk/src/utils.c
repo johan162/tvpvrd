@@ -34,16 +34,22 @@
 #include <stdio.h>
 #include <stdlib.h>  
 #include <fcntl.h>
-#include <pcre.h>    
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <libgen.h>
 #include <math.h>
+#include <syslog.h>
+#include <errno.h>
+#include <sys/param.h>
+#include <time.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include "config.h"
+#include <pcre.h>
 
 // Local headers
 #include "tvpvrd.h"

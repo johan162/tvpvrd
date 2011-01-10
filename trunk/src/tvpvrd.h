@@ -24,11 +24,7 @@
  * =========================================================================
  */
 
-#include <time.h>
-#include <pthread.h>
-#include <sys/param.h> // Needed to get MAX()
-#include <errno.h>
-#include <syslog.h>
+
 
 #ifndef _TVPVRD_H
 #define	_TVPVRD_H
@@ -37,7 +33,6 @@
 extern "C" {
 #endif
 
-#include "config.h"
 
 /*
  * VIDBUFSIZE integer

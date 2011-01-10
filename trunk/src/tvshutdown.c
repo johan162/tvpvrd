@@ -26,6 +26,10 @@
 #include <pwd.h>
 #include <wait.h>
 #include <fcntl.h>
+#include <syslog.h>
+#include <errno.h>
+#include <sys/param.h>
+#include <pthread.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"

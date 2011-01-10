@@ -37,6 +37,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <getopt.h>
+#include <syslog.h>
+#include <errno.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

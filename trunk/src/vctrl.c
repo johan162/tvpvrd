@@ -45,7 +45,8 @@
 #include <fcntl.h>
 #include <math.h>
 #include <sys/ioctl.h>
-
+#include <syslog.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 

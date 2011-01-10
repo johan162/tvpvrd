@@ -31,6 +31,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <syslog.h>
+#include <errno.h>
 
 #include "tvconfig.h"
 #include "tvpvrd.h"

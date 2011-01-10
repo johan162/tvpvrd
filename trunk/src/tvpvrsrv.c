@@ -57,6 +57,9 @@
 #include <sys/wait.h>
 #include <pwd.h>
 #include <grp.h>
+#include <syslog.h>
+#include <errno.h>
+#include <pthread.h>
 
 // #include <mcheck.h>
 
@@ -66,6 +69,8 @@
 #include <sys/stat.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
+
+#include "config.h"
 
 // Aplication specific libs, parse inifiles as well as Perl regular expressions
 #include <pcre.h>
