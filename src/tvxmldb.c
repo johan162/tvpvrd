@@ -35,6 +35,12 @@
 // Standard headers
 #include <stdlib.h>
 #include <fcntl.h>
+#include <syslog.h>
+#include <errno.h>
+#include <time.h>
+#include <sys/param.h>
+
+#include "config.h"
 #include <pcre.h>
 
 #include <sys/types.h>

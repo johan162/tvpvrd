@@ -11,10 +11,10 @@ tvpowerd_SOURCES = tvpowerd.c wakelan.c tvpowerd.h wakelan.h
 
 if have_iniparser
 tvpowerd_LDADD = ../utils.o ../lockfile.o  ../datetimeutil.o ../xstr.o \
-../libsmtpmail/libsmtpmail.a
+../libsmtpmail/libsmtpmail.a ${LIBPCRE}
 else
 tvpowerd_LDADD = ../utils.o ../lockfile.o ../datetimeutil.o ../xstr.o \
-../libiniparser/libiniparser.a 
+../libsmtpmail/libsmtpmail.a ../libiniparser/libiniparser.a ${LIBPCRE}
 endif
 
 tvpowerd_LDFLAGS = -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"

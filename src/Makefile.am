@@ -20,10 +20,10 @@ tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_F
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_DATE=$$(date +'%Y%m%d')"
 
 if have_iniparser
-tvpvrd_LDADD = libsmtpmail/libsmtpmail.a
+tvpvrd_LDADD = libsmtpmail/libsmtpmail.a ${LIBPCRE}
 tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a
 else
-tvpvrd_LDADD = libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
+tvpvrd_LDADD = libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a ${LIBPCRE}
 tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
 endif
 

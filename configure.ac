@@ -57,20 +57,24 @@ if test "x${enable_webdebug}" = xyes; then
     AC_DEFINE(EXTRA_WEB_DEBUG,1,[Enable more HTTP protocol level debug together with loglevel=3])
 fi
 
-
 # ===============================================================================
 # Standard checks for headers and C-compiler
 # ===============================================================================
 AC_LANG_C
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+
+# ================================================================================
+# Add a --with-libpcre-prefix[=DIR] Option to allow user specific directory
+# ================================================================================
+AC_LIB_HAVE_LINKFLAGS([pcre],[],[],[],[PCRE Library needed. Please install libpcre3-dev (or similar)])
+
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
 AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR([pcre.h not available. Please install "libpcre3-dev" package]))
 AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR([linux/videodev2.h not available]))
 have_iniparser_h=no
 AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE([iniparser.h not available. Will use built-in version]))
-
 AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR([errno.h not available]))
 AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR([syslog.h not available]))
 AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR([getopt.h not available]))
@@ -95,7 +99,7 @@ AC_CHECK_LIB(pthread,pthread_create,,AC_MSG_ERROR([No pthread library found. Ple
 if test "x${have_iniparser_h}" = xyes; then
    AC_CHECK_LIB(iniparser, iniparser_getstring,,AC_MSG_NOTICE([iniparser library seems invalid. Will use built-in ininparser]))
 fi
-AC_CHECK_LIB(pcre, pcre_exec,,AC_MSG_ERROR([pcre library seems invalid. Please reinstall libpcre3-dev (or similar)]))
+
 AC_CHECK_LIB(xml2, xmlParseFile,,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
 AC_CHECK_LIB(m, lroundf,,AC_MSG_ERROR([No math library found. Please install libm-dev (or similar)]))
 
@@ -143,9 +147,7 @@ AC_CHECK_PROG(XSLTPROC,xsltproc,xsltproc,)
 XSLTPROC_WORKS=no
 if test -n "$XSLTPROC"; then
 	AC_MSG_CHECKING([if Docbook 5 is installed])
-
-        DOCBOOK_XSL_SCHEMA="$DOCBOOK_XSL/html/docbook.xsl"
-
+    DOCBOOK_XSL_SCHEMA="$DOCBOOK_XSL/html/docbook.xsl"
 	$XSLTPROC --nonet $DOCBOOK_XSL_SCHEMA > /dev/null 2>&1 << END
 <?xml version="1.0" encoding='ISO-8859-1'?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML 5.0//EN" "http://www.oasis-open.org/docbook/xml/5.0/dtd/docbook.dtd">

@@ -33,6 +33,12 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <locale.h>
+#include <syslog.h>
+#include <errno.h>
+#include <sys/param.h>
+#include <time.h>
+
+#include "config.h"
 #include <pcre.h>
 
 #include "tvpvrd.h"

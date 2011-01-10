@@ -38,6 +38,10 @@
 #include <string.h>
 #include <libgen.h>
 #include <assert.h>
+#include <syslog.h>
+#include <errno.h>
+#include <sys/param.h> // Needed to get MIN()/MAX()
+#include <time.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"

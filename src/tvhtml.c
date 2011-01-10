@@ -31,6 +31,9 @@
 // Standard UNIX includes
 #include <stdio.h>
 #include <stdlib.h>
+#include <syslog.h>
+#include <errno.h>
+#include <pthread.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"

@@ -36,11 +36,23 @@
 // Standard UNIX includes
 #include <stdio.h>
 #include <stdlib.h>
-#include <pcre.h>
 #include <string.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #include <malloc.h>
+#include <syslog.h>
+#include <errno.h>
+
+
+#include <time.h>
+#include <pthread.h>
+#include <sys/param.h> // Needed to get MIN()/MAX()
+#include <errno.h>
+#include <syslog.h>
+
+#include "config.h"
+#include <pcre.h>
+
 // Application specific includes
 #include "tvcmd.h"
 #include "tvpvrd.h"

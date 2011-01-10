@@ -37,7 +37,11 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <math.h>
-
+#include <syslog.h>
+#include <errno.h>
+#include <sys/param.h> // Needed to get MIN()/MAX()
+#include <time.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 

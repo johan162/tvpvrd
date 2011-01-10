@@ -38,6 +38,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
+#include <errno.h>
+#include <sys/param.h> // Needed to get MIN()/MAX()
 
 #include "tvpvrd.h"
 #include "tvconfig.h"

@@ -36,6 +36,10 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <syslog.h>
+#include <errno.h>
+#include <sys/param.h> // Needed to get MIN()/MAX()
+#include <time.h>
 
 // Application specific includes
 #include "tvpvrd.h"
