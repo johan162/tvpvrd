@@ -57,17 +57,17 @@ if test "x${enable_webdebug}" = xyes; then
     AC_DEFINE(EXTRA_WEB_DEBUG,1,[Enable more HTTP protocol level debug together with loglevel=3])
 fi
 
+# ================================================================================
+# Add a --with-libpcre-prefix[=DIR] Option to allow user specific directory
+# ================================================================================
+AC_LIB_HAVE_LINKFLAGS([pcre],[],[],[],[PCRE Library needed. Please install libpcre3-dev (or similar)])
+
 # ===============================================================================
 # Standard checks for headers and C-compiler
 # ===============================================================================
 AC_LANG_C
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-
-# ================================================================================
-# Add a --with-libpcre-prefix[=DIR] Option to allow user specific directory
-# ================================================================================
-AC_LIB_HAVE_LINKFLAGS([pcre],[],[],[],[PCRE Library needed. Please install libpcre3-dev (or similar)])
 
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])

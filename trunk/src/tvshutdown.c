@@ -199,7 +199,7 @@ check_for_shutdown(void) {
                 logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
                 if( shutdown_send_mail ) {
                     char subj[255];
-                    char timebuff[255],timebuff_now[255];
+                    char timebuff[255],timebuff_now[255],timebuff_rec_st[255],timebuff_rec_en[255];
                     char *body = calloc(1,2048);
                     char *rtc_status = calloc(1,2048);
                     char hname[255];
@@ -218,10 +218,23 @@ check_for_shutdown(void) {
                             timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
                         snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);
 
+                        nextrec += shutdown_pre_startup_time;
+                        ctime_r(&nextrec,timebuff_rec_st);
+                        if( timebuff[strlen(timebuff_rec_st)-1] == '\n')
+                            timebuff[strlen(timebuff_rec_st)-1]='\0'; // Remove trailing "\n"
+
+                        ctime_r(&recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_end,timebuff_rec_en);
+                        if( timebuff[strlen(timebuff_rec_en)-1] == '\n')
+                            timebuff[strlen(timebuff_rec_en)-1]='\0'; // Remove trailing "\n"
+
+
                         add_keypair(keys,maxkeys,"SERVER",hname,&ki);
                         add_keypair(keys,maxkeys,"WAKEUPTIME",timebuff,&ki);
                         add_keypair(keys,maxkeys,"TIME",timebuff_now,&ki);
                         add_keypair(keys,maxkeys,"NEXTREC",recs[REC_IDX(nextrec_video, nextrec_idx)]->title,&ki);
+                        add_keypair(keys,maxkeys,"NEXTRECTIME_START",timebuff_rec_st,&ki);
+                        add_keypair(keys,maxkeys,"NEXTRECTIME_END",timebuff_rec_en,&ki);
+                        add_keypair(keys,maxkeys,"NEXTREC_CHANNEL",recs[REC_IDX(nextrec_video, nextrec_idx)]->channel,&ki);
 
                         if( verbose_log == 3 ) {
                             int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
