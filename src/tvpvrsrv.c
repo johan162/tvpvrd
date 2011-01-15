@@ -2284,6 +2284,38 @@ sigabrt_handler(int signum) {
     logmsg(LOG_ERR,"Abnormally terminated by abort signal (%d).",signum);
 
 }
+/**
+ * See if user has supplied a startup script
+ */
+void
+chk_startupscript(void) {
+
+    // Check if the startupscript exists
+    char script[256],indicator[256];
+    snprintf(script, 255, "%s/tvpvrd/%s", CONFDIR, DEFAULT_STARTUP_SCRIPT);
+    snprintf(indicator,255,"%s/%s",datadir,DEFAULT_AUTOSHUTDOWN_INDICATOR);
+    char *flag = (0 == access(indicator, F_OK) ? "yes" : "no" );
+
+    if ( 0 == access(script, F_OK) ) {
+
+        char cmd[512];
+        snprintf(cmd, 511, "%s -d \"%s\" -c \"%s/tvpvrd\" -a \"%s\"", script, datadir, CONFDIR, flag);
+
+        int ret = system(cmd);
+        if (ret == -1 || WEXITSTATUS(ret)) {
+            logmsg(LOG_NOTICE, "Error when executing startup script '%s' ( %d : %s) ", cmd, errno, strerror(errno));
+        } else {
+            logmsg(LOG_DEBUG,"Executed startupscript: '%s'",cmd);
+        }
+
+    } else {
+        logmsg(LOG_DEBUG,"Could not find any startup script: '%s'",script);
+    }
+
+    (void)remove(indicator); // Ignore any errors
+    logmsg(LOG_DEBUG,"Removed autoshutdown indicator: '%s'",indicator);
+    
+}
 
 /* ==================================================================================
  * M A I N
@@ -2449,6 +2481,9 @@ main(int argc, char *argv[]) {
 
     // Setup global SIGABRT handler 
     signal(SIGABRT,sigabrt_handler);
+
+    // Run the optional startup script supplied by the user
+    chk_startupscript();
 
     //*********************************************************************************
     //*********************************************************************************
