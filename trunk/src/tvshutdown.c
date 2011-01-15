@@ -207,6 +207,7 @@ check_for_shutdown(void) {
                         size_t const maxkeys=16;
                         struct keypairs *keys = new_keypairlist(maxkeys);
                         size_t ki = 0 ;
+                        struct tm tm_start, tm_end;
 
                         time_t now = time(NULL)+5;
                         ctime_r(&now,timebuff_now);
@@ -218,15 +219,10 @@ check_for_shutdown(void) {
                             timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
                         snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);
 
-                        nextrec += shutdown_pre_startup_time;
-                        ctime_r(&nextrec,timebuff_rec_st);
-                        if( timebuff[strlen(timebuff_rec_st)-1] == '\n')
-                            timebuff[strlen(timebuff_rec_st)-1]='\0'; // Remove trailing "\n"
-
-                        ctime_r(&recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_end,timebuff_rec_en);
-                        if( timebuff[strlen(timebuff_rec_en)-1] == '\n')
-                            timebuff[strlen(timebuff_rec_en)-1]='\0'; // Remove trailing "\n"
-
+                        localtime_r(&recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_start,&tm_start);
+                        localtime_r(&recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_end,&tm_end);
+                        strftime(timebuff_rec_st,255,"%H:%M",&tm_start);
+                        strftime(timebuff_rec_en,255,"%H:%M",&tm_end);
 
                         add_keypair(keys,maxkeys,"SERVER",hname,&ki);
                         add_keypair(keys,maxkeys,"WAKEUPTIME",timebuff,&ki);
@@ -268,6 +264,14 @@ check_for_shutdown(void) {
                 int ret = system(cmd);
                 if( ret==-1 || WEXITSTATUS(ret)) {
                     logmsg(LOG_ERR,"Could not execute shutdown script ( %d : %s) ",errno, strerror(errno));
+                }
+
+                snprintf(cmd,255,"touch %s/%s",datadir,DEFAULT_AUTOSHUTDOWN_INDICATOR);
+                ret = system(cmd);
+                if( ret==-1 || WEXITSTATUS(ret)) {
+                    logmsg(LOG_NOTICE,"Could not create autoshutdown indicator '%s' ( %d : %s) ",cmd,errno, strerror(errno));
+                } else {
+                    logmsg(LOG_DEBUG,"Created autoshutdown indicator with '%s'",cmd);
                 }
 
                 // Wait for shutdown

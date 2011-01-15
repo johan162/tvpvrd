@@ -474,6 +474,18 @@ extern char *posttransc_script;
 extern int use_posttransc_processing;
 
 /**
+ * Startup script name
+ */
+#define DEFAULT_STARTUP_SCRIPT "startup.sh"
+
+/**
+ * Name of empty file stored in the data directory to indicate that the
+ * daemon was last shutdown automatically. Used as information in the
+ * startup script.
+ */
+#define DEFAULT_AUTOSHUTDOWN_INDICATOR "autoshutdown"
+
+/**
  * Shutdown parameters
  */
 #define DEFAULT_SHUTDOWN_SCRIPT "shutdown.sh"

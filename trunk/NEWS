@@ -1,20 +1,22 @@
 $Id$
 
-v3.0.0alpha2 build 366
----------------------
+v3.0.0alpha2
+------------
 User visible changes:
     - Added template based mail setup for shutdown mails
     - Updated INSTALL file with some information on extra steps needed
       if building directly from the repository
     - Added --with-libpcre-prefix option to "configure" to allow user to specify
       alternative locations for PCRE library
+    - Added possibility to run a user supplied startup script and added a
+      suitable template for such a script.
 
 Internal changes:
     - Improved the usability of the key/val replacement routines
     - Cleaned up header inclusions
 
-v3.0.0alpha build 366
----------------------
+v3.0.0alpha
+-----------
 User visible changes:
     - Added option to send HTML formatted mail notifications. The  templates
       for the mails are stored in the configuration directory.

@@ -1,0 +1,60 @@
+#!/bin/sh
+# 
+# File:   startup.sh.template
+# Desc:   Template for startup scrip. If the startup.sh exists
+#         it will get run once the daemon has been started.
+#
+# SVN:    $Id$
+#
+# Note: This is just a TEMPLATE that can be modified to do
+# Specific startup actions. One possible use would be to
+# mount directories from the recording server on a client
+# and do the corresponding unmounting in the shutdown script.
+#
+# There are no arguments supplied to this script
+#-----------------------------------------------------------
+
+
+
+#-----------------------------------------------------------
+# Get options
+# -d <directory>   Base data directory used by daemon
+# -c <directory>   Config directory used by daemon
+# -a <yes/no>      "yes" if the daemon was automatically shutdown
+#                  last time "no if not
+# Note: The daemon will supply this argument to the script
+#-----------------------------------------------------------
+
+basedir=
+confdir=
+autoshutdown=
+while getopts d:c:a: o
+do  case "$o" in
+    d)      basedir="$OPTARG"
+            ;;
+    c)      confdir="$OPTARG"
+            ;;
+    a)      autoshutdown="$OPTARG"
+            ;;
+    [?])    print >&2 "Usage; $0 -d <base directory> -c <config dir> -a <shutdownflag>"
+            exit 1
+            ;;
+    esac
+done
+
+#-------------------------------------------------------------------
+# After an automatic shutdown the daemon will create a empty file
+# in the base directory as an indication. After the daemon has run
+# the startup script any such file will be deleted
+#-------------------------------------------------------------------
+if test "$autoshutdown" = "yes"; then
+    # Actions only done when the daemon was automatically shutdown
+fi
+
+# Normal exit from the script. In case of error use "exit 1"
+exit 0
+
+
+
+
+
