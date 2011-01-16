@@ -14,6 +14,9 @@ User visible changes:
 Internal changes:
     - Improved the usability of the key/val replacement routines
     - Cleaned up header inclusions
+    - Some internal code restructuring to reduce the size of the main tpvrsrv.c
+      file by creating vcard.c/vcard.h and some other move of code to more appropriate
+      places.
 
 v3.0.0alpha
 -----------

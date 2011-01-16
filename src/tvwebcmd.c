@@ -47,6 +47,7 @@
 #include "tvwebcmd.h"
 #include "tvcmd.h"
 #include "freqmap.h"
+#include "stats.h"
 #include "transc.h"
 #include "recs.h"
 #include "tvhtml.h"

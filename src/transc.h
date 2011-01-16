@@ -465,6 +465,25 @@ forget_waiting_transcoding(int idx);
 int
 list_waiting_transcodings(char *buffer, size_t maxlen);
 
+/**
+ * Transcode a specified MP2 file into MP4 using the specified profile. After
+ * transcoding is done move the file to the corresponding MP4 directory.
+ * The values returned as the last three parameters will be used to update
+ * the statistics by the calling function.
+ * @param datadir
+ * @param workingdir
+ * @param short_filename
+ * @param profile
+ * @param filesize
+ * @param transcode_time
+ * @param avg_5load
+ * @return
+ */
+int
+transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
+                        struct transcoding_profile_entry *profile,
+                        unsigned *filesize, struct timeall *transcode_time, float *avg_5load);
+
 #ifdef	__cplusplus
 }
 #endif
