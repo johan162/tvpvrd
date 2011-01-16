@@ -1675,6 +1675,12 @@ _cmd_getSettings(const char *cmd, int sockfd) {
 
             "%-30s: %d\n"
             "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %s\n"
+            "%-30s: %s\n"
+
+            "%-30s: %d\n"
+            "%-30s: %d\n"
             "%-30s: %s\n"
             "%-30s: %s\n"
 
@@ -1706,6 +1712,13 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "%-30s: %d\n"
             "%-30s: %s\n"
 
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %d\n"
+            "%-30s: %s\n"
+
             ,
             "datadir",datadir,
             "use_profile_directories",use_profiledirectories,
@@ -1715,8 +1728,14 @@ _cmd_getSettings(const char *cmd, int sockfd) {
 
             "sendmail_on_error",send_mail_on_error,
             "sendmail_on_transcode_end",send_mail_on_transcode_end,
+            "sendmail_on_shutdown",shutdown_send_mail,
             "sendmail_address",send_mailaddress,
             "locale_name",locale_name,
+
+            "smtp_use",smtp_use,
+            "use_html",use_html_mail,
+            "smtp_server",smtp_server,
+            "smtp_user",smtp_user,
 
             "daemonize",daemonize,
 
@@ -1745,8 +1764,15 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "external_input", external_input,
             "external_switch_script", external_switch_script,
             "use_postrec_processing", use_postrec_processing,
-            "postrec_processing_script", postrec_script
-            
+            "postrec_processing_script", postrec_script,
+
+            "shutdown_enable",shutdown_enable,
+            "shutdown_min_time",shutdown_min_time,
+            "shutdown_ignore_users",shutdown_ignore_users,
+            "shutdown_min_uptime",shutdown_min_uptime,
+            "shutdown_pre_startup_time",shutdown_pre_startup_time,
+            "shutdown_script_name",shutdown_script
+             
             );
 }
 
