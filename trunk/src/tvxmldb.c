@@ -56,6 +56,7 @@
 #include "tvconfig.h"
 #include "utils.h"
 #include "recs.h"
+#include "stats.h"
 #include "transc.h"
 #include "datetimeutil.h"
 #include "xstr.h"

@@ -50,12 +50,13 @@
 
 #include "tvpvrd.h"
 #include "tvconfig.h"
-#include "transc.h"
 #include "utils.h"
 #include "stats.h"
+#include "transc.h"
 #include "rkey.h"
 #include "mailutil.h"
 #include "datetimeutil.h"
+#include "recs.h"
 
 
 struct ongoing_transcoding *ongoing_transcodings[3] ;
@@ -1916,5 +1917,332 @@ transcode_whole_directory(char *dirpath, char *profilename) {
     }
 
     logmsg(LOG_INFO,"All %d video files from directory '%s' queued for transcoding.",idx,dirpath);
+    return 0;
+}
+
+
+int
+transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
+                        struct transcoding_profile_entry *profile,
+                        unsigned *filesize, struct timeall *transcode_time, float *avg_5load) {
+
+    struct rusage usage;
+    CLEAR(*transcode_time);
+    int rh, rm, rs;
+
+    // We do not start transcoding if the recording was aborted
+    // If the bitrate is set to < 10kbps then this indicates that no
+    // transcoding should be done. We just move the MP2 file to the mp2 directory
+    int transcoding_done=0;
+    if ( !profile->use_transcoding || profile->video_bitrate == 0) {
+
+        // Do nothing. The MP2 file will be moved by the calling function.
+        logmsg(LOG_DEBUG,"Transcoding disabled in profile '%s' for file '%s'",profile->name,short_filename);
+        return 0;
+
+    } else  {
+
+        // Check that we can access ffmpeg binary
+        if( -1 == check_ffmpeg_bin() ) {
+            logmsg(LOG_ERR,"Profile '%s' specifies transcoding but 'ffmpeg' executable can not be found.",profile->name);
+            return -1;
+        }
+
+        // If recording was successful then do the transcoding
+        char cmdbuff[1024], cmd_ffmpeg[512], destfile[128] ;
+        int runningtime = 0;
+
+        // We remember all wating transcodings by storing them in global queue
+        // This way we can easily list all transcoding that are waiting
+        pthread_mutex_lock(&recs_mutex);
+        int rid=remember_waiting_transcoding(short_filename,profile->name);
+        pthread_mutex_unlock(&recs_mutex);
+
+        if (0 == wait_to_transcode(short_filename)) {
+            // The system load is below the treshold to start a new transcoding
+
+            pthread_mutex_lock(&recs_mutex);
+            forget_waiting_transcoding(rid);
+            pthread_mutex_unlock(&recs_mutex);
+
+            logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, short_filename);
+
+            create_ffmpeg_cmdline(short_filename, profile, destfile, 128, cmd_ffmpeg, 512);
+
+            snprintf(cmdbuff, 1023, "cd %s;%s", workingdir, cmd_ffmpeg);
+
+#ifdef DEBUG_SIMULATE
+
+            snprintf(cmdbuff, 256, "%s/%s", workingdir, destfile);
+            const mode_t fmode =  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+            int sfd = open(cmdbuff, O_WRONLY | O_CREAT | O_TRUNC, fmode);
+            logmsg(LOG_INFO, "Simulation mode: No real transcoding. Creating fake file '%s'",cmdbuff);
+            _writef(sfd, "Fake MP4 file created during simulation at ts=%u\n", time(NULL));
+            (void) close(sfd);
+            rh = rm = rs = -1;
+            transcoding_done = 1;
+            CLEAR(usage);
+
+#else
+            pid_t pid;
+            if ((pid = fork()) == 0) {
+                // In fork child process
+                // Make absolutely sure everything is cleaned up except the standard
+                // descriptors
+                for (int i = getdtablesize(); i > 2; --i) {
+                    (void)close(i);
+                }
+
+                // Since the ffmpeg command is run as a child process (via the sh comamnd)
+                // we need to make sure all of this is in the same process group. This is
+                // done in order so that we can kill the ffmpeg command if the server
+                // is stopped by the user. The pid returned by the fork() will not be
+                // the same process as is running the 'ffmpeg' command !
+                setpgid(getpid(),0); // This sets the PGID to be the same as the PID
+                if ( -1 == nice(20) ) {
+                    logmsg(LOG_ERR, "Error when calling 'nice()' : (%d : %s)",errno,strerror(errno));
+                    _exit(EXIT_FAILURE);
+                }
+
+                if ( -1 == execl("/bin/sh", "sh", "-c", cmdbuff, (char *) 0) ) {
+                    logmsg(LOG_ERR, "Error when calling execl() '/bin/sh/%s' : ( %d : %s )", cmdbuff, errno, strerror(errno));
+                    _exit(EXIT_FAILURE);
+                }
+            } else if (pid < 0) {
+                logmsg(LOG_ERR, "Fatal. Can not create process to do transcoding for file '%s' (%d : %s)",
+                        short_filename, errno, strerror(errno));
+            } else {
+
+                // In parent process
+                logmsg(LOG_INFO, "Successfully started process pid=%d for transcoding '%s'.",pid,short_filename);
+
+                pthread_mutex_lock(&recs_mutex);
+                int tidx = record_ongoingtranscoding(workingdir, short_filename, cmd_ffmpeg, profile,pid);
+                pthread_mutex_unlock(&recs_mutex);
+
+                if (tidx != -1) {
+
+                    // Now wait for the transcoding to finish and print the status of the
+                    // transcoding to the log. We do this in a busy waiting loop for simplicity.
+                    // since we can have such a long sleep period without really affecting the
+                    // performance.
+                    pid_t rpid;
+
+                    // We only allow one transcoding to run for a maximum of 18 h any longer than
+                    // that and we consider the transcoding process as hung
+                    const int watchdog = 18 * 3600;
+                    int ret;
+                    float avg1,avg5,avg15;
+                    getsysload(&avg1,&avg5,&avg15);
+                    *avg_5load = avg5;
+                    float avg_n = 1;
+                    do {
+                        // Transcoding usually takes hours so we don't bother waking up and check
+                        // if we are done more often than once every couple of seconds. This
+                        // might still seem like a short time but keep in mind that in the case the
+                        // user termintaes the transcoding process the server will not notice this
+                        // until this check is made. Therefore we want this to be reasonable
+                        // short as well. Ideally the wait4() should have a timeout argument in
+                        // which case we would have been notified sooner.
+
+                        // Why exactly 6s wait? Well, in case the user terminates the process it
+                        // means that on average it will take 3s before the structures are updated
+                        // with the removed transcoding which is the longest time a user ever should
+                        // have to wait for feedback.
+                        sleep(6);
+                        runningtime += 6;
+                        getsysload(&avg1,&avg5,&avg15);
+                        *avg_5load += avg5;
+                        avg_n++;
+                        rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
+
+                    } while (pid != rpid && runningtime < watchdog);
+
+                    *avg_5load /= avg_n;
+
+                    pthread_mutex_lock(&recs_mutex);
+                    forget_ongoingtranscoding(tidx);
+                    pthread_mutex_unlock(&recs_mutex);
+
+                    rh = runningtime / 3600;
+                    rm = (runningtime - rh*3600)/60;
+                    rs = runningtime % 60;
+
+                    if (runningtime >= watchdog) {
+                        // Something is terrible wrong if the transcoding haven't
+                        // finished after the watchdog timeout
+                        logmsg(LOG_NOTICE, "Transcoding process for file '%s' seems hung. Have run more than %02d:%02d:%02d h",
+                                short_filename, rh,rm,rs);
+                        (void) kill(pid, SIGKILL);
+                    } else {
+
+                        if (WIFEXITED(ret)) {
+                            transcoding_done = (WEXITSTATUS(ret) == 0);
+                            if (transcoding_done) {
+                                if( runningtime < 30 ) {
+                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 30s for file '%s'. This most likely indicates a problem",
+                                        short_filename);
+                                    return -1;
+
+                                } else {
+                                    logmsg(LOG_INFO, "Transcoding process for file '%s' finished normally after %02d:%02d:%02d h. (utime=%d s, stime=%d s))",
+                                        short_filename, rh,rm,rs, usage.ru_utime.tv_sec, usage.ru_stime.tv_sec);
+
+                                }
+                            } else {
+                                logmsg(LOG_INFO, "Error in transcoding process for file '%s', exit status=%d after %02d:%02d h",
+                                        short_filename,WEXITSTATUS(ret),rh,rm);
+                                return -1;
+                            }
+                        } else {
+                            if (WIFSIGNALED(ret)) {
+                                logmsg(LOG_NOTICE, "Transcoding process for file '%s' was terminated by signal=%d (possibly by user) after %02d:%02d:%02d h",
+                                        short_filename, WTERMSIG(ret),rh,rm,rs);
+                                if( WTERMSIG(ret) == SIGKILL ) {
+                                    // Stopped by user so we don't signal this as a true error
+                                    return 0;
+                                } else {
+                                    return -1;
+                                }
+                            } else {
+                                // Child must have been stopped/paused. If so we have no choice than to kill it
+                                logmsg(LOG_NOTICE, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",
+                                        short_filename, WSTOPSIG(ret),rh,rm,rs);
+                                (void) kill(pid, SIGKILL);
+                                return -1;
+                            }
+
+                        }
+                    }
+                }
+            }
+#endif
+        } else {
+            logmsg(LOG_NOTICE, "Can not start transcoding of '%s'. Server too busy.", short_filename);
+            return -1;
+        }
+
+        // If transcoding was not successfull we give up and just leave the recording under the
+        // vtmp directory
+        if (transcoding_done) {
+            char newname[256], tmpbuff2[256], tmpbuff[256];
+
+            // Move MP4 file
+            if( use_profiledirectories ) {
+                snprintf(tmpbuff, 255, "%s/mp4/%s/%s", datadir, profile->name, destfile);
+            } else {
+                snprintf(tmpbuff, 255, "%s/mp4/%s", datadir, destfile);
+            }
+            tmpbuff[255] = '\0';
+            snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
+            tmpbuff2[255] = '\0';
+            int ret = mv_and_rename(tmpbuff2, tmpbuff, newname, 256);
+            if (ret) {
+                logmsg(LOG_ERR, "Could not move '%s' to '%s'", tmpbuff2, newname);
+                return -1;
+            } else {
+                logmsg(LOG_INFO, "Moved '%s' to '%s'", tmpbuff2, newname);
+                struct stat fstat;
+                // Find out the size of the transcoded file
+                if( 0 == stat(newname,&fstat) ) {
+
+                    *filesize = (unsigned)fstat.st_size;
+                    transcode_time->rtime.tv_sec = runningtime ;
+                    transcode_time->utime.tv_sec = usage.ru_utime.tv_sec;
+                    transcode_time->stime.tv_sec = usage.ru_stime.tv_sec;
+
+                } else {
+                    logmsg(LOG_ERR,"Can not determine size of transcoded file '%s'. ( %d : %s) ",
+                           newname,errno,strerror(errno));
+                }
+
+                if (use_posttransc_processing) {
+                    logmsg(LOG_DEBUG, "Post transcoding processing enabled.");
+                    char posttransc_fullname[128];
+                    snprintf(posttransc_fullname, 128, "%s/tvpvrd/%s", CONFDIR, posttransc_script);
+                    int csfd = open(posttransc_fullname, O_RDONLY);
+                    if (csfd == -1) {
+                        logmsg(LOG_ERR, "Cannot open post transcoding script '%s' ( %d : %s )",
+                                posttransc_fullname, errno, strerror(errno));
+                    } else {
+                        char cmd[255];
+                        snprintf(cmd, 255, "%s -f \"%s\" -l %u > /dev/null 2>&1", posttransc_fullname, newname, *filesize);
+                        logmsg(LOG_DEBUG, "Running post transcoding script '%s'", cmd);
+                        int rc = system(cmd);
+                        if (rc == -1 || WEXITSTATUS(rc)) {
+                            logmsg(LOG_ERR, "Post transcoding script '%s' ended with exit status %d", posttransc_fullname, WEXITSTATUS(rc));
+                        } else {
+                            logmsg(LOG_INFO, "Post transcoding script '%s' ended normally with exit status %d", posttransc_fullname, WEXITSTATUS(rc));
+                        }
+                    }
+                }
+
+
+                // The complete transcoding and file relocation has been successful. Now check
+                // if we should send a mail with this happy news!
+                if( send_mail_on_transcode_end ) {
+                    size_t const maxkeys=16;
+                    struct keypairs *keys = new_keypairlist(maxkeys);
+                    char str_buff[1024];
+                    size_t ki = 0 ;
+
+                    // Include system load average in mail
+                    float l1,l5,l15;
+                    getsysload(&l1,&l5,&l15);
+                    snprintf(str_buff,256,"%.1f",l1);
+                    add_keypair(keys,maxkeys,"SL1",str_buff,&ki);
+                    snprintf(str_buff,256,"%.1f",l5);
+                    add_keypair(keys,maxkeys,"SL5",str_buff,&ki);
+                    snprintf(str_buff,256,"%.1f",l15);
+                    add_keypair(keys,maxkeys,"SL15",str_buff,&ki);
+
+                    // Get full current time to include in mail
+                    time_t now = time(NULL);
+                    ctime_r(&now,str_buff);
+                    str_buff[strnlen(str_buff,1023)-1] = 0; // Remove trailing newline
+                    add_keypair(keys,maxkeys,"TIME",str_buff,&ki);
+
+                    snprintf(str_buff,1023,"%02d:%02d",rh,rm);
+                    add_keypair(keys,maxkeys,"TRANSCTIME",str_buff,&ki);
+
+                    // Include the server name in the mail
+                    gethostname(str_buff,80);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"SERVERNAME",str_buff,&ki);
+
+                    // Include all ongoing transcodings
+                    list_ongoing_transcodings(str_buff,1023,0);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"ONGOINGTRANS",str_buff,&ki);
+
+                    // Also include all waiting transcodings
+                    list_waiting_transcodings(str_buff,1023);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"WAITTRANS",str_buff,&ki);
+
+                    // Finally list the three next recordings
+                    listrecsbuff(str_buff,1023,3,4);
+                    str_buff[1023] = '\0';
+                    add_keypair(keys,maxkeys,"NEXTRECS",str_buff,&ki);
+                    add_keypair(keys,maxkeys,"TITLE",short_filename,&ki);
+                    add_keypair(keys,maxkeys,"PROFILE",profile->name,&ki);
+                    add_keypair(keys,maxkeys,"FILENAME",tmpbuff,&ki);
+
+                    char subjectbuff[256];
+                    snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
+                    subjectbuff[255] = '\0';
+
+                    if( -1 == send_mail_template(subjectbuff, daemon_email_from, send_mailaddress,"mail_transcend", keys, ki) ) {
+                        logmsg(LOG_ERR,"Failed to send mail using template \"mail_transcend\"");
+                    } else {
+                        logmsg(LOG_DEBUG,"Sucessfully sent mail using template \"mail_transcend\"!");
+                    }
+
+                    free_keypairlist(keys,ki);
+
+                }
+            }
+        }
+    }
     return 0;
 }

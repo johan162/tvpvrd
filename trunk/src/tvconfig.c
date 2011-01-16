@@ -40,6 +40,7 @@
 #include "tvxmldb.h"
 #include "freqmap.h"
 #include "vctrl.h"
+#include "stats.h"
 #include "transc.h"
 
 /*

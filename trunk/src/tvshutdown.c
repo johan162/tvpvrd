@@ -36,6 +36,7 @@
 #include "tvshutdown.h"
 #include "recs.h"
 #include "utils.h"
+#include "stats.h"
 #include "transc.h"
 #include "rkey.h"
 #include "mailutil.h"
