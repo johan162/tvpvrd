@@ -757,6 +757,8 @@ channel = E8
                 index 2, i.e.. the "<code>Composite 1</code>" input. The recording will be stored
                 with the name "<code>cctv_camera_one.mp4</code>" (assuming the default profile is
                 setup to do transcoding to MP4 format).</para>
+            <para>There is also an option to handle channel switching on a cable box. This is
+                described in the "Adding user "hooks" for special processing" section below.</para>
         </refsect1>
         <refsect1>
             <title>Managing notifications mails</title>
@@ -804,6 +806,99 @@ channel = E8
                 obvious what value they will be replaced with is.</para>
             <para>If you like to change the appearance of any of these templates, then by all means,
                 go ahead !</para>
+        </refsect1>
+        <refsect1>
+            <title>Adding user "hooks" for special processing</title>
+            <para>To maintain maximum flexibility the daemon will check for the existence of several
+                (optional) shell scripts that can be provided by the user to take special actions on
+                server shutdown, server startup, channel switching etc. The package provides
+                templates for all of them that can be tweaked and then stored in the configuration
+                directory (by default <filename>/etc/tvpvrd</filename>). The available hooks are
+                listed below with a note if they are mandatory or not. To use the hooks they must
+                first be renamed by removing the "<filename>*.template</filename>" extension. For
+                the majority of the these script the daemon will call them with optional arguments.
+                The template code shows how to make use fo these arguments, for example the full
+                filename of a video that has just been recorded.</para>
+            <para>After the list we give some examples on how these hooks can be used</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para><filename>postrec_processing.sh.template</filename> , (<emphasis
+                                role="italic">optional</emphasis>) This script is called just after
+                            a recording has been done and before any (optional) transcoding is
+                            taking place. The usage (or not) of this script is controlled in the
+                            configuration <code>use_postrec_processing</code></para>
+                    </listitem>
+                    <listitem>
+                        <para><filename>posttransc_processing.sh.template</filename> , (<emphasis
+                                role="italic">optional</emphasis>) This script is called just after
+                            a transcoding has been finished. The usage (or not) of this script is
+                            controlled in the configuration
+                            <code>use_posttransc_processing</code></para>
+                    </listitem>
+                    <listitem>
+                        <para><filename>shutdown.sh.template</filename>, (<emphasis
+                                role="italic">optional</emphasis>) This script is called when
+                            automatic shutdown has been enabled (<code>shutdown::enable=yes</code>)
+                            , By default it will just do a full system shutdown. This script is
+                            mandatory if automatic shutdown has been enabled.</para>
+                    </listitem>
+                    <listitem>
+                        <para><filename>startup.sh.template</filename> , (<emphasis
+                                role="italic">optional</emphasis>) This script is called right after
+                            the daemon has started but before any recordings are started.</para>
+                    </listitem>
+                    <listitem>
+                        <para><filename>switchchannel.sh.template</filename>, (<emphasis
+                                role="italic">optional</emphasis>) This script is called when the
+                            channel should be changed. This is controlled in the configuration file
+                                (<code>external_switch=yes</code>) </para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>Some typical usages of  these hooks are:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>Handling automatic mounting/unmounting of filesystems. If the server
+                            running the daemon have exported filesystems to allow clients to fetch
+                            the videos by either SMB or NFS mounting there will be problem if those
+                            filesystems are still mounted if the server initiates an automatic
+                            shutdown. NFS is notoriously bad in handling a server no longer
+                            available and it can cause hangs and freezes in the client when it waits
+                            indefinitely for the server to respond. </para>
+                        <para>This can be handled by allowing the recording server to execute
+                            mounting/unmounting scripts on clients (via ssh). To allow ssh execution
+                            without passwords the recording server must be allowed to access a
+                            client via ssh and using public keys without passwords. This means that
+                            the recording servers public key (<filename>id_rsa.pub</filename>) must
+                            be stored in the clients "<filename>authorized_keys</filename>" file
+                            (usually in the home directory under <filename>.ssh/</filename>)</para>
+                        <para>In the shutdown script one has then to add calls to each client to
+                            unmount the filesystems and in the startup script one can call the
+                            clients to re-mount all the necessary filesystems.</para>
+                    </listitem>
+                    <listitem>
+                        <para>If you have an external cable box connected to one of the fixed video
+                            input on the card the card itself cannot change the channels since that
+                            must be done on the cable box. The switchchannel script should be used
+                            for this. By attaching a suitable Infrared transmitter on the server
+                            which can be controlled in the switchchannel script the dameon can
+                            control the channel on the cable box via this script. It is
+                            unfortunately beyond the scope of this manual to describe how to setup
+                            an infrared sender on a Linux server (see
+                                <uri>http://www.lirc.org/</uri>for more information) </para>
+                    </listitem>
+                    <listitem>
+                        <para>Some video cards require some postprocessing on the MP2 video before
+                            it is transcoded to MP4, This postprocessing can be done in the
+                                <filename>postrec_processing.sh</filename> script.</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>Just remember to rename the templates by removing the
+                    "<filename>*.template</filename>" extension so they can be found by the
+                daemon.</para>
         </refsect1>
         <refsect1>
             <title>Commands (in alphabetic order)</title>
@@ -1190,26 +1285,26 @@ channel = E8
                         <listitem>
                             <para>Display information on the settings of the specified profile. </para>
                             <para>Output example:</para>
-                            <screen>name                  : tnormal
+                            <screen>name                  : normal
 ENCODER:
 video_bitrate         : 3700000
 video_peak_bitrate    : 4700000
 audio_sampling        : 44.1
-audio_bitrate         : 256
+audio_bitrate         : 192
 aspect                : 4x3
 size                  : pal
 FFMPEG:
-use_transcoding       : 1
+use_transcoding       : 0
 video_bitrate         : 800
 video_peak_bitrate    : 1100
 vcodec                : libx264
-vpre                  : normal
-pass                  : 2
-acodec                : aac
+vpre                  : medium
+pass                  : 1
+acodec                : libfaac
 audio_bitrate         : 128
-video_size            :
-crop                  : l=2, r=2, t=8, b=8
-ffmpeg_extra_options  :
+video_size            : 
+crop                  : l=0, r=0, t=0, b=0
+ffmpeg_extra_options  : 
 file_extension        : .mp4</screen>
                         </listitem>
                     </varlistentry>
@@ -1319,7 +1414,7 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                             role="italic">n</emphasis>] - <emphasis
                             role="bold">List all video input sources command</emphasis></term>
                     <listitem>
-                        <para>List a all video sources available for the specified card.The current
+                        <para>List a all video sources available for the specified card. The current
                             selected input source is marked with an asterisk. The type of input is
                             shown in parenthesis in front of the textual name of the input. The type
                             is either "tuner" or "camera". If no card is specified then information
@@ -1884,34 +1979,52 @@ Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
                             <para>This will list all settings made in the ini-file as well as the
                                 location of the used ini file.</para>
                             <para>Output example:</para>
-                            <screen>datadir                       : /data/pvr
-use_profile_directories       : 0
-logfile                       : /tmp/tvpvrd.log
-verbose_log                   : 3
-inifile_name                  : /etc/tvpvrd/tvpvrd.conf
-sendmail_on_error             : 1
-sendmail_on_transcode_end     : 1
-sendmail_address              : johan162@gmail.com
-locale_name                   : en_US.UTF8
-daemonize                     : 1
-enable_webinterface           : 1
-require_web_password          : 1
-web_user                      : xxx
-web_password                  : yyy
+                            <screen>datadir                       : /data/pvr                    
+use_profile_directories       : 0                            
+logfile                       : /tmp/tvpvrd.log              
+verbose_log                   : 3                            
+inifile_name                  : /etc/tvpvrd/tvpvrd.conf      
+sendmail_on_error             : 1                            
+sendmail_on_transcode_end     : 1                            
+sendmail_on_shutdown          : 1                            
+sendmail_address              : johan162@gmail.com           
+locale_name                   : sv_SE.UTF8                   
+smtp_use                      : 1                            
+use_html                      : 1                            
+smtp_server                   : 192.168.0.31                 
+smtp_user                     : ljp                          
+daemonize                     : 1                            
+enable_webinterface           : 1                            
+require_web_password          : 1                            
+web_user                      : ljp
+web_password                  : samba23
 weblogin_timeout              : 0
-username                      : tvpvrd
+username                      : root
 xmldbfile_name                : /data/pvr/xmldb/tvpvrd_db.xml
 max_video                     : 2
 max_entries                   : 1024
-max_clients                   : 5
-client_idle_time              : 1800s
+max_clients                   : 4
+client_idle_time              : 1800
 port                          : 9300
 time_resolution               : 3
-video_buffer_size             : 204800 (0.2MB)
+video_buffer_size             : 307200 (0.3MB)
 default_recording_time        : 00:59 (h:min)
 xawtv_station file            : /etc/X11/xawtvrc
-default_profile               : normal
-frequency_map                 : europe-west</screen>
+default_profile               : tnormal
+frequency_map                 : europe-west
+allow_profiles_adj_encoder    : 1
+external_switch               : 0
+external_input                : 1
+external_switch_script        : switchchannel.sh
+use_postrec_processing        : 1
+postrec_processing_script     : postrec_processing.sh
+shutdown_enable               : 1
+shutdown_min_time             : 180
+shutdown_ignore_users         : 0
+shutdown_min_uptime           : 180
+shutdown_pre_startup_time     : 180
+shutdown_script_name          : shutdown.sh
+</screen>
                         </listitem>
                     </varlistentry>
                     <varlistentry>
