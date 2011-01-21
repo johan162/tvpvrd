@@ -2,6 +2,8 @@
  * File: TVPVRD_MOBILE.CSS
  * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
  *       daemon suitable for a mobile phone with smaller screen
+ *       The main differemce compared with the normal CSS is that font sizes
+ *       are much larger and the output area is smaller.
  * SVN:  $Id$
  *----------------------------------------------------------------------------------------------
  */
@@ -86,7 +88,7 @@ div.login_title {
     background:#546349;
     font-weight:bold;
     font-family:Arial, Sans-serif;
-    font-size:12pt;
+    font-size:24pt;
     color:white;
     margin-bottom:10px;
 }
@@ -107,7 +109,7 @@ div.input_container#id_loginpwd div.input_legend {
 
 /* Submit button for login */
 input.input_submit#id_submitlogin {
-    width:10em;
+    width:14em;
 }
 
 div.input_container#id_submitlogin {
@@ -155,14 +157,14 @@ div#logout a:hover {
 
 
 /*
- * All select input formats are used in the add/delete fieldset when adding and deleteing
+ * All select input formats are used in the add/delete fieldset when adding and deleting
  * records.
  */
 div.input_select {
 }
 
 select {
-    font-size:20pt;
+    font-size:34pt;
     padding: 2px;
 }
 
@@ -171,9 +173,18 @@ select.input_select#id_seriesyn {
    width:5em;
 }
 
+select.input_select#id_length_hour,
+select.input_select#id_length_min,
+select.input_select#id_starthour,
+select.input_select#id_endhour,
+select.input_select#id_startmin,
+select.input_select#id_endmin {
+   width:2em;
+}
+
 /* Repeat count selector */
 select.input_select#id_rptcount {
-   width:3em;
+   width:4em;
 }
 
 /* Used for all select with a code table */
@@ -184,13 +195,13 @@ select.input_select_code {
 
 /* Format for selector with list of recodings to delete */
 select.input_select_code#id_delselect {
-    width: 15em;
+    width: 12em;
 }
 
 /* Input text */
 input.input_text {
     color : #202020;
-    font-size: 18pt;
+    font-size: 30pt;
 }
 
 
@@ -209,8 +220,8 @@ div.cmd_output {
     font-family: Monospace;
     border:dotted gray 1px;
     background:white;
-    height:20ex;
-    width: 97%;
+    height:12ex;
+    width: 96%;
     overflow:auto;
     clear:both;
     background:black;
@@ -227,8 +238,10 @@ legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-variant:small-caps;
-    font-size:200%;
-    color:#444;
+    font-size:350%;
+    color:#a3717d;
+    padding-bottom: 15px;
+    padding-top: 15px;
 }
 
 /* Fieldset for add/del command */
@@ -259,7 +272,7 @@ div.input_container {
 div.input_legend {
     font-family:Arial, Sans-serif;
     font-weight:bold;
-    font-size:14pt;
+    font-size:30pt;
     color:#505050;
 }
 
@@ -267,9 +280,9 @@ div.input_legend {
 input.input_submit {
     font-family:Arial, Sans-erif;
     font-weight:bold;
-    width: 6em;
+    width: 7em;
     margin-left: 10px;
-    font-size: 180%;
+    font-size: 250%;
     color:blue;
 }
 
@@ -277,7 +290,7 @@ input.input_submit {
 /* text between to and from time */
 span.be_hyphen {
     font-weight:bold;
-    font-size:30pt;
+    font-size:36pt;
 }
 #be_hyphen {
     padding-bottom:0px;
@@ -288,6 +301,7 @@ span.be_hyphen {
 input.input_submit#delrec {
     color:darkred;
 }
+
 
 /* We want the station, start and title on the "new record" to start on a new row 
  * and we do this by clearing the left side of the corresponding input containers. */
@@ -326,7 +340,8 @@ div.cmd_menu_short {
     height: 2em;
     margin:0;
     padding: 0em;
-    padding-top: 0.8em;
+    padding-top: 1.0em;
+    padding-bottom: 0.7em;
     background: #bbb;
     border-bottom: solid gray 1px;
 }
@@ -339,7 +354,7 @@ div.cmdgrp_commands_short {
 }
 
 div.cmdgrp_commands_short a {
-    font-size:190%;
+    font-size:300%;
     font-weight: bold;
     font-family: Arial, Sans-serif;
 }
