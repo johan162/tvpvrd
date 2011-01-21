@@ -125,18 +125,28 @@ create_login_cookie(char *user, char *pwd) {
     int n = MIN(strlen(_cookie_buff), strlen(buff));
 
     // Now use the "secret" cookie seed to scramble the combination
-    // os user,password and server name to create a unique cookie id
-    // consisting only of "normal" 33-127 (ASCII) characters.
+    // of user,password and server name to create a unique cookie id
+    // consisting only of "normal" 49-122 (ASCII) characters.
     for (int i = 0; i < n; ++i) {
 
         _cookie_buff[i] += buff[i];
         _cookie_buff[i] &= 127;
-        if ((int) _cookie_buff[i] < 32)
-            _cookie_buff[i] += 32;
 
-        // Remove the URL special chars, '+' , '%' 
-        if (_cookie_buff[i] == ' ' || _cookie_buff[i] == '+' || _cookie_buff[i] == '%' || _cookie_buff[i] == '=')
-            _cookie_buff[i] = '_';
+        int v = _cookie_buff[i];
+        
+        if ( v < 48)
+            v += 48;
+        
+        if ( v >  57 && v <  65 )
+            v += 7;
+
+        else if ( v >  90 && v <  97 )
+            v += 6;
+
+        else if ( v >  122 && v != 95)
+            v -= 5;
+
+        _cookie_buff[i] = v;
 
     }
 
@@ -182,6 +192,10 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
     if ((ret = matchcmd(_PR_ANY "Cookie: tvpvrd=" _PR_ANP "\\r\\n", buffer, &field)) > 1) {
 
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG, "Cookie found in HTTP Header: %s",buffer);
+#endif
+
         char *tmpbuff = url_decode(field[2]);
         logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[2], tmpbuff);
         int sucess=0;
@@ -203,7 +217,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
     } else {
 
-        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header.\n%s",buffer);
+        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header: %s",buffer);
         return 0;
 
     }
@@ -763,7 +777,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
         }
     } else {        
         html_notfound(my_socket);
-        logmsg(LOG_ERR, "** Unrecognized WEB-command: %s", buffer);
+        logmsg(LOG_NOTICE, "Unrecognized WEB-command: [len=%d]%s", buffer);
     }
 
     free(buffer);

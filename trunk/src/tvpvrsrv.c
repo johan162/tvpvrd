@@ -225,9 +225,6 @@ int dokilltranscodings = 1;
  */
 char locale_name[255];
 
-#define INIFILE_BUFFERSIZE 4096
-static char inibuffer[INIFILE_BUFFERSIZE] = {0};
-
 static const char short_options [] = "d:f:hi:l:p:vx:V:st:";
 static const struct option long_options [] = {
     { "daemon",  required_argument,     NULL, 'd'},
@@ -585,7 +582,6 @@ void startdaemon(void) {
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
 }
 
-
 /**
  * Check what user we are running as and change the user (if allowed) to the
  * specified tvpvrd user.
@@ -669,7 +665,6 @@ chkswitchuser(void) {
 
 }
 
-
 /**
  * Exit handler. Automatically called when the process calls "exit()"
  */
@@ -687,7 +682,6 @@ exithandler(void) {
         deleteockfile();
     }
 }
-
 
 /**
  * Check that the directory structure for the stored recordigs are in place. In case
@@ -1246,8 +1240,7 @@ clientsrv(void *arg) {
         client_tsconn[i] = 0;
         cli_threads[i] = 0;
         if( -1 == _dbg_close(my_socket) ) {
-            logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
-                        my_socket,client_ipadr[i],errno,strerror(errno));
+            logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",my_socket,client_ipadr[i],errno,strerror(errno));
         }
         ncli_threads--;
         pthread_mutex_unlock(&socks_mutex);
@@ -1295,8 +1288,7 @@ clientsrv(void *arg) {
             client_tsconn[i] = 0;
             cli_threads[i] = 0;
             if( -1 == _dbg_close(my_socket) ) {
-                logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
-                       my_socket,client_ipadr[i],errno,strerror(errno));
+                logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",my_socket,client_ipadr[i],errno,strerror(errno));
             }
             ncli_threads--;
 
@@ -1395,8 +1387,7 @@ clientsrv(void *arg) {
     client_tsconn[i] = 0;
     cli_threads[i] = 0;
     if( -1 == _dbg_close(my_socket) ) {
-        logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",
-                    my_socket,client_ipadr[i],errno,strerror(errno));
+        logmsg(LOG_ERR,"Failed to close socket %d to client %s. ( %d : %s )",my_socket,client_ipadr[i],errno,strerror(errno));
     }
     ncli_threads--;
     pthread_mutex_unlock(&socks_mutex);
@@ -1420,7 +1411,8 @@ webclientsrv(void *arg) {
     unsigned i;
     int ret;
     int my_socket = *(int *) arg;
-    char buffer[1024];
+    size_t const maxbufflen=4096;
+    char buffer[maxbufflen];
     fd_set read_fdset;
     struct timeval timeout;
 
@@ -1475,8 +1467,8 @@ webclientsrv(void *arg) {
 
         // We have activity so read from the socket and try to interpret the
         // given command.
-        numreads = read(my_socket, buffer, 1023);
-        buffer[1023] = '\0';
+        numreads = read(my_socket, buffer, maxbufflen-1);
+        buffer[maxbufflen-1] = '\0';
         buffer[numreads] = '\0';
         web_cmdinterp(my_socket,buffer);
 
@@ -1710,7 +1702,6 @@ startupsrv(void) {
     return EXIT_SUCCESS;
 }
 
-
 // We add a special global handler for the abort signal. This could for
 // example be raised if glibc finds an malloc()/alloc()/free() error
 // and we need notification. Since the library call abort() will unblock
@@ -1726,6 +1717,7 @@ sigabrt_handler(int signum) {
     logmsg(LOG_ERR,"Abnormally terminated by abort signal (%d).",signum);
 
 }
+
 /**
  * See if user has supplied a startup script
  */
@@ -1772,8 +1764,9 @@ main(int argc, char *argv[]) {
     //mtrace();
 
     // Remember the program name we are started as
-    strncpy(inibuffer,argv[0],256);
-    strncpy(server_program_name,basename(inibuffer),31);
+    char prognamebuffer[256];
+    strncpy(prognamebuffer,argv[0],256);
+    strncpy(server_program_name,basename(prognamebuffer),31);
     server_program_name[31] = '\0';
 
     // Parse and set cmd line options
@@ -2000,7 +1993,7 @@ main(int argc, char *argv[]) {
 
     // We don't bother freeing globals since some data structures are checked by running
     // threads and we might get sigfaults if the thread is trying to check a deleted memory structure.
-    // All dynmic memory will be returned when proram exis anyway. TO do this properly we would
+    // All dynamic memory will be returned when proram exis anyway. To do this properly we would
     // have to send cancellations to all threads and wait for eaxch of them to give up.
     // free_globs();
     exit(EXIT_SUCCESS);
