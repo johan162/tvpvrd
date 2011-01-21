@@ -102,7 +102,7 @@ html_endpage(int sockd) {
     const char postamble[] =
             "</div> <!-- top_page -->"
             "</body>"
-            "</html>";
+            "</html>\r\n";
     _writef(sockd, postamble);
 }
 
@@ -151,24 +151,30 @@ http_header(int sockd, char *cookie_val) {
 
         free(tmpbuff2);
 
+        char header[2048];
         if ( weblogin_timeout > 0 || texp < t ) {
-            _writef(sockd,
+            snprintf(header,2047,
                     "HTTP/1.1 200 OK\r\n"
                     "Date: %s\r\n"
                     "Server: %s\r\n"
-                    "Set-Cookie: tvpvrd=%s;Version=1; expires=%s\r\n"
+                    "Set-Cookie: tvpvrd=%s; Version=1; path=/; expires=%s\r\n"
                     "Connection: close\r\n"
                     "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
         } else {
-            _writef(sockd,
+            snprintf(header,2047,
                     "HTTP/1.1 200 OK\r\n"
                     "Date: %s\r\n"
                     "Server: %s\r\n"
-                    "Set-Cookie: tvpvrd=%s;Version=1;\r\n"
+                    "Set-Cookie: tvpvrd=%s; path=/; Version=1\r\n"
                     "Connection: close\r\n"
                     "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff);
         }
-
+        tmpbuff2 = esc_percentsign(header);
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG,"Sending back header: %s",tmpbuff2);
+#endif
+        _writef(sockd,tmpbuff2);
+        free(tmpbuff2);
         free(tmpbuff);
 
 
@@ -518,6 +524,8 @@ void
 html_login_page(int sockd, int mobile) {
     // Initialize a new page
 
+    logmsg(LOG_DEBUG,"Sending back login page");
+    
     // Give the special cookie value "logout" which will create a
     // header which replace the old cookie and sets it expire time
     // in the past so it is removed from the browser

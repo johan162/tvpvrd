@@ -710,7 +710,7 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen) {
 
 char *
 esc_percentsign(char *str) {
-    char *buff=calloc(1,strlen(str)*2+1), *pbuff=buff;
+    char *buff=calloc(1,strlen(str)*3+1), *pbuff=buff;
     while( *str ) {
         if( *str == '%' )  {
             *pbuff++ = '%';
