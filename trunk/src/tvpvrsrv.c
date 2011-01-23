@@ -40,7 +40,12 @@
  */
 
 // We want the full POSIX and C99 standard
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
 
 // And we need to have support for files over 2GB in size
 #define _LARGEFILE_SOURCE
@@ -48,6 +53,7 @@
 #define _FILE_OFFSET_BITS 64
 
 // Standard UNIX includes
+#include <execinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -102,6 +108,20 @@
 #include "datetimeutil.h"
 #include "xstr.h"
 #include "vcard.h"
+
+
+/*
+ * This structure mirrors the one found in /usr/include/asm/ucontext.h and is
+ * used to create a stack backtrace if the program crashes
+ */
+typedef struct _sig_ucontext {
+ unsigned long     uc_flags;
+ struct ucontext   *uc_link;
+ stack_t           uc_stack;
+ struct sigcontext uc_mcontext;
+ sigset_t          uc_sigmask;
+} sig_ucontext_t;
+
 
 /*
  * Server identification
@@ -512,6 +532,45 @@ sighand_thread(void *arg) {
     }
     return (void*) 0;
 }
+
+void
+sigsegv_handler(int sig_num, siginfo_t * info, void * ucontext) {
+    void * array[50];
+    void * caller_address;
+    char ** messages;
+    int size, i;
+    sig_ucontext_t * uc;
+
+    uc = (sig_ucontext_t *) ucontext;
+
+    /* Get the address at the time the signal was raised from the EIP (x86) */
+    caller_address = (void *) uc->uc_mcontext.eip;
+
+    // Try to create a file at /tmp/tvpvrd_stack.crash
+
+    //FILE *fp = fopen("/tmp/tvpvrd_stack.crash","w");
+
+    fprintf(stderr, "signal %d (%s), address is %p from %p\n",
+            sig_num, strsignal(sig_num), info->si_addr,
+            (void *) caller_address);
+
+    size = backtrace(array, 50);
+
+    /* overwrite sigaction with caller's address */
+    array[1] = caller_address;
+
+    messages = backtrace_symbols(array, size);
+
+    /* skip first stack frame (points here) */
+    for (i = 1; i < size && messages != NULL; ++i) {
+        fprintf(stderr, "[bt]: (%d) %s\n", i, messages[i]);
+    }
+
+    free(messages);
+    //fclose(fp);
+    //exit(EXIT_FAILURE);
+}
+
 
 /*
  * All necessary low level household stuff to kick us off as a
@@ -1757,8 +1816,8 @@ chk_startupscript(void) {
  */
 int
 main(int argc, char *argv[]) {
-    sigset_t signal_set;
-    pthread_t signal_thread;
+    //sigset_t signal_set;
+    //pthread_t signal_thread;
 
 
     //mtrace();
@@ -1904,9 +1963,10 @@ main(int argc, char *argv[]) {
     
     // We use a separate thread to receive all the signals so we must
     // block all signals in all other threads
-    sigfillset( &signal_set );
-    pthread_sigmask( SIG_BLOCK, &signal_set, NULL );
-    pthread_create( &signal_thread, NULL, sighand_thread, NULL );
+
+    //sigfillset( &signal_set );
+    //pthread_sigmask( SIG_BLOCK, &signal_set, NULL );
+    //pthread_create( &signal_thread, NULL, sighand_thread, NULL );
     
     // Start the thread that will be monitoring the recording list and
     // in turn setup a new thread to do a recording when the time has come
@@ -1915,7 +1975,26 @@ main(int argc, char *argv[]) {
     }
 
     // Setup global SIGABRT handler 
-    signal(SIGABRT,sigabrt_handler);
+    // signal(SIGABRT,sigabrt_handler);
+    struct sigaction sigact;
+
+    sigact.sa_sigaction = sigsegv_handler;
+    sigact.sa_flags = SA_RESTART | SA_SIGINFO | SA_RESETHAND;
+
+    if (sigaction(SIGSEGV, &sigact, (struct sigaction *) NULL) != 0) {
+        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGSEGV, strsignal(SIGSEGV));
+        exit(EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGABRT, &sigact, (struct sigaction *) NULL) != 0) {
+        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGSEGV, strsignal(SIGSEGV));
+        exit(EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGINT, &sigact, (struct sigaction *) NULL) != 0) {
+        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGSEGV, strsignal(SIGSEGV));
+        exit(EXIT_FAILURE);
+    }
 
     // Run the optional startup script supplied by the user
     chk_startupscript();
