@@ -108,8 +108,9 @@
 #define CMD_LIST_RECHUMAN 33
 #define CMD_LIST_VIDEO_INPUTS 34
 #define CMD_LIST_TS 35
+#define CMD_ADD_FROMFILE 36
 
-#define CMD_UNDEFINED 36
+#define CMD_UNDEFINED 37
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -153,6 +154,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "Commands:\n"\
 			"  a    - Add recording\n"\
 			"  ar   - Add repeated recording\n"\
+                        "  af   - Add recording from list in file\n"\
 			"  d    - delete single recording\n"\
                         "  dp   - display all settings for specified profile\n"\
 			"  dr   - delete all repeated recording\n"\
@@ -1141,6 +1143,54 @@ _cmd_add(const char *cmd, int sockfd) {
     }
 
     _writef(sockfd, msgbuff);
+
+}
+
+
+/**
+ * Read add commands from named file
+ * @param cmd
+ * @param sockfd
+ */
+void
+_cmd_addfromfile(const char *cmd, int sockfd) {
+    char msgbuff[256]={'\0'};
+    int err=0, ret;
+    char **field=(void *)NULL;
+
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Read recordings to add from file.\n"\
+                "af <filename> - Use <filename> as source for lines of add command\n"
+                );
+        return;
+    }
+
+    ret = matchcmd("^af" _PR_S _PR_FILEPATH _PR_E, cmd, &field);
+    err = ret < 0;
+
+    if ( ! err ) {
+        // Check that file exists
+        if( 0 == access(field[1],R_OK) ) {
+            FILE *fp = fopen(field[1],"r");
+            char linebuff[255];
+            while ( !feof(fp) && NULL != fgets(linebuff,255,fp) && strlen(linebuff) > 2 ) {
+                linebuff[strlen(linebuff)-1] = '\0'; // remove trailing newline
+                _cmd_add(linebuff,sockfd);
+            }
+
+        } else {
+            snprintf(msgbuff, 256, "Cannot access file with add commands: '%s' ( %d : %s )",field[1],errno,strerror(errno));
+            logmsg(LOG_ERR,msgbuff);
+        }
+        matchcmd_free(&field);
+
+    } else {
+        snprintf(msgbuff, 256, "Command not recognized.");
+        logmsg(LOG_ERR,msgbuff);
+    }
+
+    _writef(sockfd, "%s\n", msgbuff);
 
 }
 
@@ -2547,6 +2597,7 @@ cmdinit(void) {
     cmdtable[CMD_LISTWAITINGTRANSC] = _cmd_list_waiting_transcodings;
     cmdtable[CMD_LIST_VIDEO_INPUTS] = _cmd_list_video_inputs;
     cmdtable[CMD_LIST_TS]           = _cmd_list_ts;
+    cmdtable[CMD_ADD_FROMFILE]      = _cmd_addfromfile;
 }
 
 /**
@@ -2568,6 +2619,7 @@ _getCmdPtr(const char *cmd) {
     // value. It is then up to the command handler to verify the
     // rest of the command string.
     static struct cmd_entry cmdfunc_master[] = {
+        {"af", CMD_ADD_FROMFILE},
         {"ar", CMD_ADD},
         {"a",  CMD_ADD},
         {"dp", CMD_PRINTPROFILE},
