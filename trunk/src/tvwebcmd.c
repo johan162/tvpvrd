@@ -151,9 +151,9 @@ create_login_cookie(char *user, char *pwd) {
     }
 
     _cookie_buff[n] = '\0';
-
+#ifdef EXTRA_WEB_DEBUG
     logmsg(LOG_DEBUG,"Created cookie: '%s' from %s",_cookie_buff, buff);
-
+#endif
     return _cookie_buff;
 }
 
@@ -216,8 +216,11 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
         return sucess;
 
     } else {
-
+#ifdef EXTRA_WEB_DEBUG
         logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header: %s",buffer);
+#else
+        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header.");
+#endif
         return 0;
 
     }
@@ -365,7 +368,7 @@ read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
         struct tm t_tm1, t_tm2 ;
         char f1time[256],f2time[256];
         
-        localtime_r(&mstatbuf.st_mtime, &t_tm1);        
+        localtime_r(&mstatbuf.st_mtim.tv_sec, &t_tm1);
         strftime(f1time, 128, "%a, %d %b %Y %T %Z", &t_tm1);
 
         localtime_r(&modifiedSince, &t_tm2);
