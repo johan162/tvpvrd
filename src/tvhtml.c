@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include "config.h"
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "utils.h"
@@ -127,7 +128,9 @@ http_header(int sockd, char *cookie_val) {
     } else {
         // For logout we set the expire in the past to force the browser
         // to remove the cookie
+#ifdef EXTRA_WEB_DEBUG
         logmsg(LOG_DEBUG,"SETTING cookie() in the past");
+#endif
         texp -= 36000;
     }
     struct tm t_tm, t_tmexp;
@@ -157,7 +160,7 @@ http_header(int sockd, char *cookie_val) {
                     "HTTP/1.1 200 OK\r\n"
                     "Date: %s\r\n"
                     "Server: %s\r\n"
-                    "Set-Cookie: tvpvrd=%s; Version=1; path=/; expires=%s\r\n"
+                    "Set-Cookie: tvpvrd=%s; path=/; expires=%s\r\n"
                     "Connection: close\r\n"
                     "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
         } else {
@@ -165,7 +168,7 @@ http_header(int sockd, char *cookie_val) {
                     "HTTP/1.1 200 OK\r\n"
                     "Date: %s\r\n"
                     "Server: %s\r\n"
-                    "Set-Cookie: tvpvrd=%s; path=/; Version=1\r\n"
+                    "Set-Cookie: tvpvrd=%s; path=/\r\n"
                     "Connection: close\r\n"
                     "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff);
         }
@@ -179,13 +182,22 @@ http_header(int sockd, char *cookie_val) {
 
 
     } else {
-
-        _writef(sockd,
+        char header[2048];
+        snprintf(header,2048,
                 "HTTP/1.1 200 OK\r\n"
                 "Date: %s\r\n"
                 "Server: %s\r\n"
                 "Connection: close\r\n"
                 "Content-Type: text/html\r\n\r\n", ftime, server_id);
+        _writef(sockd,header);
+#ifdef EXTRA_WEB_DEBUG
+        if( cookie_val == (char *)NULL ) {
+            logmsg(LOG_DEBUG,"Sending back header with NO COOKIE since cookie_val==NULL. %s",header);
+        } else {
+            logmsg(LOG_DEBUG,"Sending back header with NO COOKIE since *cookie_val==\"\". %s",header);
+        }
+#endif
+
     }
 
 }

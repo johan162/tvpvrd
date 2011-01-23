@@ -718,9 +718,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
         if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) {
             // If it's not a favicon.ico GET command we proceed
-#ifdef EXTRA_WEB_DEBUG
-            logmsg(LOG_DEBUG, "==== Translated to: %s", wcmd);
-#endif
+
             static char logincookie[128];
 
             // If user does not have a valid login then send back the login page
@@ -744,13 +742,21 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                     
                     if (0 == strcmp(logsubmit, "Login")) {
 
+#ifdef EXTRA_WEB_DEBUG
+                        logmsg(LOG_DEBUG,"WEB login. users=%s, pwd=%s",user,pwd);
+#endif
+
                         if (!validate_login(user, pwd)) {
+
+                            logmsg(LOG_NOTICE,"WEB login failed. Tried users='%s', pwd='%s'",user,pwd);
 
                             // Validation of login details failed, send back the login screen
                             html_login_page(my_socket, mobile);
 
                         } else {
-
+#ifdef EXTRA_WEB_DEBUG
+                        logmsg(LOG_DEBUG,"WEB login successfull. Sending back main page with cookie",user,pwd);
+#endif
                             // Login successfull. Show the main page and used the "version" command
                             // as the default command to show in the output area.
                             html_main_page(my_socket, "v", create_login_cookie(user, pwd), mobile);
