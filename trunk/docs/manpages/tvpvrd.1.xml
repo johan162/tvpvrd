@@ -887,7 +887,7 @@ channel = E8
                             control the channel on the cable box via this script. It is
                             unfortunately beyond the scope of this manual to describe how to setup
                             an infrared sender on a Linux server (see
-                                <uri>http://www.lirc.org/</uri>for more information) </para>
+                                <uri>http://www.lirc.org/</uri>for more information)</para>
                     </listitem>
                     <listitem>
                         <para>Some video cards require some postprocessing on the MP2 video before
@@ -914,6 +914,10 @@ channel = E8
                     <listitem>
                         <para><emphasis
                                 role="bold">a</emphasis> - add new recording command</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
+                                role="bold">af</emphasis> - add recordings from file</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1203,6 +1207,35 @@ channel = E8
                             </para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term>'<command>af</command>
+                        <emphasis
+                            role="italic">&lt;filename></emphasis>' - <emphasis
+                            role="bold">Add recordings from file</emphasis></term>
+                    <listitem>
+                        <para>Add recordings (specified with either the '<emphasis
+                                role="bold">a</emphasis>' or the '<emphasis
+                                role="bold">ar</emphasis>' command) from a file. The file is simply
+                            a list with one command per line that is formatted exactly as if the
+                            command would have been entered in the teminal directly. The purpose of
+                            this is primarily to allow other programs to generate a list of future
+                            recordings that can be easily added to the daemon.</para>
+                        <para>The filename specified must be give as a full path filename since the
+                            daemon has no concept of a current directory.</para>
+                        <para><emphasis
+                                role="bold">Example:</emphasis></para>
+                        <para>
+                            <screen>af /tmp/newrecs.txt</screen>
+                        </para>
+                        <para>The file <filename>/tmp/newrecs.txt</filename> could then have the
+                            following lines (for example)</para>
+                        <para>
+                            <screen>a ch4 21:00 21:59 Child of our time @thigh
+a bbc1 20:00 20:59 Walking with dinosaurs
+a bbb1 21:00 21:29 lastnews @tlow</screen>
+                        </para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>ar</command>' - <emphasis
                                 role="bold">Add recurring recording command</emphasis></term>
