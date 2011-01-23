@@ -5,15 +5,20 @@ v3.0.0alpha3
 User visible changes:
     - Minor update of the CSS for mobile browsing for better readability
     - Added "af - Add recordings from file" command
+    - Added stack trace printout when the application is run in non-daemon
+      mode. This will make it easier for remote debugging by end user in the
+      unlikely event of a abnormal termination (i.e. SIGSEGV)
 
 Internal changes:
     - The login cookie used now restricts itself to only use characters from
       0-9A-Xa-z_ to allow the cookies to pass through some over restricting
       WebProxys which filters out cookies with character outside this range.
-      (This is most likely user visible as well!!)
+      In addition the cookie header no longer adds the "Version" attribute
+      since, again, some proxys will filter out the cookie if this attribute
+      is included. (This is most likely user visible as well)
     - Fix a possible buffer overwrite when converting cookies to URL character
       escaped encoding
-    - Code refactoring to reduce size of tvpvrsrv.c
+    - Some further code refactoring to reduce size of tvpvrsrv.c
 
 v3.0.0alpha2
 ------------
