@@ -149,9 +149,9 @@ http_header(int sockd, char *cookie_val) {
         // this will otherwise be interpetated as printf() formats in the
         // logmsg printings
         char *tmpbuff2 = esc_percentsign(tmpbuff);
-
+#ifdef EXTRA_WEB_DEBUG
         logmsg(LOG_DEBUG, "Stored cookie: '%s' as URL encoded '%s'", cookie_val, tmpbuff2);
-
+#endif
         free(tmpbuff2);
 
         char header[2048];
