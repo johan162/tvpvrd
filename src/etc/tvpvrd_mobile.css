@@ -109,7 +109,7 @@ div.input_container#id_loginpwd div.input_legend {
 
 /* Submit button for login */
 input.input_submit#id_submitlogin {
-    width:14em;
+    width:6em;
 }
 
 div.input_container#id_submitlogin {
@@ -195,7 +195,7 @@ select.input_select_code {
 
 /* Format for selector with list of recodings to delete */
 select.input_select_code#id_delselect {
-    width: 12em;
+    width: 14em;
 }
 
 /* Input text */
@@ -274,6 +274,7 @@ div.input_legend {
     font-weight:bold;
     font-size:30pt;
     color:#505050;
+    margin-bottom: 6px;
 }
 
 /* Input submit button in forms*/
