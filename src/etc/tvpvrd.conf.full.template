@@ -1,19 +1,24 @@
 ############################################################################
-# About this file.
+# About this file (tvpvrd.conf.full.template)
 #
-# This is the ini file for tvpvrd*, a unix server program, usually run as
-# a daemon. The purpose of the program is to execute scheduled recordings
-# from a TV capture card capable of HW assisted MP2 encoding.
+# This is the comlpete template config file for tvpvrd. It contains
+# all user adjustable settings. If you only want to use mostly default
+# settings consider starting with the template tvpvrd.conf.simplified.template
+# which only contains the most common settings.
 #
-# There are three major sections in this file, hey are:
+# How to use this file:
+# Copy this template to a file "tvpvrd.conf" and then make the necessary
+# changes according to your server setup.
+#
+# There are four major sections in this file, they are:
 #
 # config:     General settings for the server
 # encoder:    Setting for the TV Capture card HW MP2 encoder
 # ffmpeg:     General setting for the ffmpeg based transcoding to .mp4 files
-#             
-# (*tvpvrd = TV Personal Video Recorder Daemon)
+# shutdown:   Settings to manage the automatic shutdown of the server in
+#             between recordings
 #
-# --------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------
 #
 # Copyright (C) 2009,2010,2011 Johan Persson
 #
@@ -75,7 +80,7 @@ require_web_password=no
 # WEB_PASSWORD string
 # The login details (if enabled) for the WEB interface
 #----------------------------------------------------------------------------
-web_user=tvpvrd
+web_user=xxxxx
 web_password=
 
 #----------------------------------------------------------------------------
@@ -149,6 +154,14 @@ transcoding_tmpdir=/data/pvr/vtmp
 use_profile_directories=no
 
 #----------------------------------------------------------------------------
+# USE_REPEAT_REC_BASEDIR string
+# When recurring recordings are specified this settings determines if all
+# recordings should be stored under a subdirectory. The name of the basedir
+# will be that of the basename of the recurring recording.
+#----------------------------------------------------------------------------
+use_repeat_rec_basedir=no
+
+#----------------------------------------------------------------------------
 # LOGFILE_NAME string
 # Name of logfile to use. The name can also be one of two special values
 # 1) "syslog" - Use system logger
@@ -184,7 +197,7 @@ daemonize=yes
 #    $>adduser --system -G video tvpvrd
 # The new user will belong to the default primary group, normally "users"
 #----------------------------------------------------------------------------
-username=tvpvrd
+username=xxxxx
 
 #----------------------------------------------------------------------------
 # REQUIRE_PASSWORD boolean
