@@ -1719,6 +1719,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
     _writef(sockfd,
             "%-30s: %s\n"
             "%-30s: %d\n"
+            "%-30s: %d\n"
             "%-30s: %s\n"
             "%-30s: %d\n"
             "%-30s: %s\n"
@@ -1772,6 +1773,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             ,
             "datadir",datadir,
             "use_profile_directories",use_profiledirectories,
+            "use_repeat_rec_basedir",use_repeat_rec_basedir,
             "logfile",logfile_name,
             "verbose_log",verbose_log,
             "inifile_name",inifile,

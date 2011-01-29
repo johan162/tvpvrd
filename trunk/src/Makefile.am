@@ -3,7 +3,7 @@
 # Automake build script
 # 
 # ===============================================================================
-AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -rdynamic -ggdb -pthread -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wformat=2 -fstack-protector `xml2-config --cflags`
+AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -rdynamic -ggdb -pthread -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wformat=2 -fstack-protector `xml2-config --cflags`  -D_FORTIFY_SOURCE=2
 bin_PROGRAMS = tvpvrd
 
 BUILDNBR_FILE=buildnumber.txt
@@ -28,7 +28,8 @@ tvpvrd_LDADD = libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a ${LIBPCRE}
 tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
 endif
 
-EXTRA_DIST = etc/tvpvrd.conf etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
+EXTRA_DIST = etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template \
+etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
 etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template \
 etc/mail_transcend.txt etc/mail_transcend.html etc/mail_shutdown.html etc/mail_shutdown.txt \
 etc/startup.sh.template
@@ -38,11 +39,8 @@ DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 CLEANFILES = *~
 
 install-data-local:
-	@if test -f ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; then \
-		echo "Will not overwrite existing tvpvrd.conf file !"; \
-	else \
-		install -D -m 644 $(abs_srcdir)/etc/tvpvrd.conf ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf; \
-	fi
+	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.conf.full.template ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf.full.template;
+	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.conf.simplified.template ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf.simplified.template;
 	install -D -m 755 $(abs_srcdir)/etc/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; 
 	install -D -m 755 $(abs_srcdir)/etc/postrec_processing.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/postrec_processing.sh.template; 
 	install -D -m 755 $(abs_srcdir)/etc/shutdown.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/shutdown.sh.template; 

@@ -147,17 +147,15 @@ check_for_shutdown(void) {
         return;
     }
 
-    if( ! shutdown_ignore_users ) {
-        int ret = get_num_users();
-        if( ret > 0 ) {
-            //logmsg(LOG_DEBUG,"Aborting shutdown sequence, %d users logged on.", ret);
-            return;
-        }
+    if( ! shutdown_ignore_users && (0 < get_num_users()) ) {
+        // If we are asked to have no user logged in before a shutdown
+        // we have no other choice than to abort shutdown sequence.
+        return;
     }
 
+    // Now we need to find the next closest recording amoung all video cards
+    // to know when to wake up
     pthread_mutex_lock(&recs_mutex);
-
-    // Check all video queues for the closest next recording
     time_t nextrec = recs[REC_IDX(0, 0)]->ts_start;
     int nextrec_video=0;
     int nextrec_idx=0;
@@ -168,17 +166,18 @@ check_for_shutdown(void) {
             nextrec_idx = 0;
         }
     }
-
+    pthread_mutex_unlock(&recs_mutex);
+   
     // We need the current time to compare against
     time_t now = time(NULL);
 
+    // Before shutting down we need to also check that shutting us down will allow
+    // us to be turned off for at least as long as the minimum shutdown time
     if( nextrec - now > shutdown_min_time+(time_t)shutdown_pre_startup_time ) {
         // Yes we could potentially shutdown. Now check that
         // 1) No ongoing recordings
         // 2) No ongoing transcodings
         // 4) The server load is not too high (indicating other important work)
-
-        logmsg(LOG_DEBUG,"Verifying if conditions are fulfilled to do system shutdown");
 
         float avg1, avg5, avg15;
         getsysload(&avg1, &avg5, &avg15);
@@ -193,11 +192,7 @@ check_for_shutdown(void) {
             } else {
 
                 logmsg(LOG_DEBUG,"Initiating automatic shutdown");
-                // Call shutdown script
-                char cmd[256] ;
-                snprintf(cmd,255,"%s/tvpvrd/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
 
-                logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
                 if( shutdown_send_mail ) {
                     char subj[255];
                     char timebuff[255],timebuff_now[255],timebuff_rec_st[255],timebuff_rec_en[255];
@@ -262,30 +257,34 @@ check_for_shutdown(void) {
 
                 }
 
+                // Call shutdown script
+                char cmd[256] ;
+                snprintf(cmd,255,"%s/tvpvrd/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
+                logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
                 int ret = system(cmd);
-                if( ret==-1 || WEXITSTATUS(ret)) {
+                if( -1 == ret || WEXITSTATUS(ret)) {
                     logmsg(LOG_ERR,"Could not execute shutdown script ( %d : %s) ",errno, strerror(errno));
                 }
 
                 snprintf(cmd,255,"touch %s/%s",datadir,DEFAULT_AUTOSHUTDOWN_INDICATOR);
                 ret = system(cmd);
-                if( ret==-1 || WEXITSTATUS(ret)) {
+                if( -1==ret || WEXITSTATUS(ret)) {
                     logmsg(LOG_NOTICE,"Could not create autoshutdown indicator '%s' ( %d : %s) ",cmd,errno, strerror(errno));
                 } else {
                     logmsg(LOG_DEBUG,"Created autoshutdown indicator with '%s'",cmd);
                 }
 
-                // Wait for shutdown
-                sleep(5);
+                // Now wait for the SIGHUP signal we will receive when the server goes down
+                sleep(15);
 
+                // This should never happen !!
+                logmsg(LOG_ERR,"Automatic shutdown failed. SIGHUP (or SIGKILL) was not received");
             }
             
         } else {
-            logmsg(LOG_DEBUG,"One or more of the conditions not fullfilled. Aborting automatic shudown");
+            // logmsg(LOG_DEBUG,"One or more of the conditions not fullfilled. Aborting automatic shutdown");
         }
     }
-
-    pthread_mutex_unlock(&recs_mutex);
 
 }
 

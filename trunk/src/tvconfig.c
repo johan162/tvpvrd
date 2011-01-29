@@ -180,6 +180,12 @@ int weblogin_timeout;
 int use_profiledirectories = 1;
 
 /*
+ * Should we store all recurring recordings under the same base directory
+ * named by the basename of the recording
+ */
+int use_repeat_rec_basedir = 1;
+
+/*
  * Mail setting. Determine if we should send mail on errors and what address
  * to use. Read from the inifile normally.
  */
@@ -348,7 +354,8 @@ read_inisettings(void) {
     use_profiledirectories =
             iniparser_getboolean(dict, "config:use_profile_directories", DEFAULT_USE_PROFILE_DIRECTORIES);
 
-    datadir[127] = '\0';
+    use_repeat_rec_basedir =
+            iniparser_getboolean(dict, "config:use_repeat_rec_basedir", DEFAULT_USE_REPEAT_REC_BASEDIR);
 
     strncpy(device_basename,
             iniparser_getstring(dict, "config:video_device_basename", VIDEO_DEVICE_BASENAME),

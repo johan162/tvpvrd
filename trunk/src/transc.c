@@ -57,6 +57,7 @@
 #include "mailutil.h"
 #include "datetimeutil.h"
 #include "recs.h"
+#include "xstr.h"
 
 
 struct ongoing_transcoding *ongoing_transcodings[3] ;
@@ -1922,7 +1923,7 @@ transcode_whole_directory(char *dirpath, char *profilename) {
 
 
 int
-transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
+transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, char *recurrence_title,
                         struct transcoding_profile_entry *profile,
                         unsigned *filesize, struct timeall *transcode_time, float *avg_5load) {
 
@@ -2122,17 +2123,33 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename,
             return -1;
         }
 
-        // If transcoding was not successfull we give up and just leave the recording under the
-        // vtmp directory
+        // If transcoding was successfull then move the transcoded file to the correct subdirectory
         if (transcoding_done) {
-            char newname[256], tmpbuff2[256], tmpbuff[256];
+            char newname[256], tmpbuff[256], tmpbuff2[256], tmpbuff3[256], rectitle[256];
 
             // Move MP4 file
             if( use_profiledirectories ) {
-                snprintf(tmpbuff, 255, "%s/mp4/%s/%s", datadir, profile->name, destfile);
+                snprintf(tmpbuff3, 255, "%s/mp4/%s", datadir, profile->name);
             } else {
-                snprintf(tmpbuff, 255, "%s/mp4/%s", datadir, destfile);
+                snprintf(tmpbuff3, 255, "%s/mp4", datadir);
             }
+
+            strncpy(rectitle,recurrence_title,255);
+            rectitle[255] = '\0';
+            xstrtolower(rectitle);
+            if( use_repeat_rec_basedir ) {
+                logmsg(LOG_DEBUG,"Using basedir '%s' for recurring recording",rectitle);
+                if( 0 == chkcreatedir(tmpbuff3,rectitle) ) {
+                    snprintf(tmpbuff2,255,"%s/%s",tmpbuff3,rectitle);
+                    strncpy(tmpbuff3,tmpbuff2,255);
+                    tmpbuff3[255] = '\0';
+                } else {
+                    logmsg(LOG_ERR,"Failed to create recurring recording");
+                }
+            }
+
+            snprintf(tmpbuff,255,"%s/%s",tmpbuff3, destfile);
+
             tmpbuff[255] = '\0';
             snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
             tmpbuff2[255] = '\0';
