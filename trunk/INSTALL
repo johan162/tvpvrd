@@ -30,7 +30,8 @@ directories on modern system as well as do a reasonable silent build.
 The daemon will be installed under /usr/bin and the config files under
 /etc/tvpvrd
 
-If you want to customize this please read on.
+The next step is to make some (minimal) adjustments in the configuration file
+to adapt to your server setup.
 
 Basic Installation
 ==================
@@ -50,7 +51,7 @@ configuration directory '/etc/tvpvrd/'. Without these argument the
 default base installation location will be '/usr/local' 
 (and '/usr/local/etc')
 
-The simplest way to compile this package is:
+The simplest way to compile and install this package is:
 
   1. `cd' to the directory containing the package's source code and type
      `./configure' (see above) to configure the package for your system.
@@ -63,7 +64,11 @@ The simplest way to compile this package is:
      the number of CPU cores available.
      
   3. Switch to root user and type `make install' to install the programs 
-     and any data files and documentation.
+     and any data files and documentation. Then adjust the configuration file
+     in the configuration directory by starting with one of the two
+     templates tvpvrd.conf.full.template or tvpvrd.conf.simplified.template
+     and then copy it to tvpvrd.conf and make chnages according to your
+     preference. (More information in the next section).
 
   4. You can remove the program binaries and object files from the
      source code directory by typing `make clean'.  To also remove the
@@ -73,6 +78,20 @@ The simplest way to compile this package is:
      for the package's developers.  If you use it, you may have to get
      all sorts of other programs in order to regenerate files that came
      with the distribution.
+
+Some additional notes on configuration file
+===========================================
+There are quite a few optional settings in the configuration file. Some
+configurations really must be adapted to the local server (like directories
+where to store videos) but for the majority of users the default values
+for most settings should be ok.
+
+In order to simplify the process of adjusting the config file there are two
+templates for the config file. One simplified which only contains the most
+common options (which uses the default values for all other settings)
+and one full template. Use one of these templates, the choice  is yours,
+and then copy it to a file 'tvpvrd.conf" in the config directory and make
+the necessary changes.
 
 Installing the optional tvpowerd daemon
 =======================================
