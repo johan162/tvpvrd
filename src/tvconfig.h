@@ -158,6 +158,14 @@ extern "C" {
  * to store the transcoded and encoded videos
  */
 #define DEFAULT_USE_PROFILE_DIRECTORIES 1
+
+/*
+ * DEFAULT_USE_REPEAT_REC_BASEDIR boolean
+ * Should we store all recurring recordings under the same base directory
+ * named by the basename of the recording
+ */
+#define DEFAULT_USE_REPEAT_REC_BASEDIR 1
+
 /*
  * MAX_CLIENTS integer
  * Max number of clients that are allowed to connect to us
@@ -287,8 +295,13 @@ extern "C" {
  * the user can adjust. Some of these values can also be overridden by being
  * given as options when the daemon starts
  */
-
 extern int use_profiledirectories ;
+
+/*
+ * Should we store all recurring recordings under the same base directory
+ * named by the basename of the recording
+ */
+extern int use_repeat_rec_basedir ;
 
 /*
  * xawtv_channel_file string

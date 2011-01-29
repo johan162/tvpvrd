@@ -4,10 +4,18 @@ v3.0.0alpha3
 ------------
 User visible changes:
     - Minor update of the CSS for mobile browsing for better readability
-    - Added "af - Add recordings from file" command
-    - Added stack trace printout when the application is run in non-daemon
-      mode. This will make it easier for remote debugging by end user in the
-      unlikely event of a abnormal termination (i.e. SIGSEGV)
+    - Added "af - Add recordings from file" command to make it possible to prepare a list
+      of recordings offline
+    - Added configuration option "use_repeat_rec_basedir" to have all repeated
+      recordings for the same show stored under a subdirectory named after the
+      base-name of the recording (i.e. without all the date and repeat information).
+    - Don't ship a 'tvpvrd.conf' file directly. Instead ship two template files for the config
+      'tvpvrd.conf.simplified.template' and 'tvpvrd.conf.full.template' which will force the user
+      to at least once check them and rename them to 'tvpvrd.conf'. The two template files
+      corresponds to a simplified config file relying mostly on the default values and one
+      template file with all the settings spelled out. This has been done as a feeble try to
+      simplify the setup.
+
 
 Internal changes:
     - The login cookie used now restricts itself to only use characters from
@@ -18,7 +26,8 @@ Internal changes:
       is included. (This is most likely user visible as well)
     - Fix a possible buffer overwrite when converting cookies to URL character
       escaped encoding
-    - Some further code refactoring to reduce size of tvpvrsrv.c
+    - Some further code refactoring to reduce size of 'tvpvrsrv.c'
+
 
 v3.0.0alpha2
 ------------

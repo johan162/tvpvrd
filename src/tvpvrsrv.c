@@ -155,6 +155,12 @@ int tdelay=15;
 // One buffer for each video card. We support up to 4 simultaneous cards
 char *video_buffer[MAX_VIDEO];
 
+
+/*
+ * Keep track of the last signal we received.
+ */
+static volatile sig_atomic_t received_signal = 0;
+
 /*
  * abort_video int
  * Flag set by the main thread to signal to one of the recording thread
@@ -204,11 +210,6 @@ time_t *client_tsconn;
 pthread_mutex_t recs_mutex          = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t socks_mutex  = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t sig_mutex    = PTHREAD_MUTEX_INITIALIZER;
-
-/*
- * Keep track of the last signal we received.
- */
-static volatile int received_signal = 0;
 
 /*
  * Keep track of the socket that each client uses
@@ -504,30 +505,20 @@ sighand_thread(void *arg) {
 
     while (1) {
 
-        sigfillset(&signal_set);
-        sigwait(&signal_set, &sig);
+      // Here we wait for signals used to terminate the server
+      // SIGINT   = User presses the C-C 
+      // SIGTERM  = The normal way to stop a process
+      // SIGHUP   = Standard way to stop daemon from the init.d script
+      sigemptyset(&signal_set);
+      // sigaddset(&signal_set,SIGINT); 
+      sigaddset(&signal_set,SIGTERM);
+      sigaddset(&signal_set,SIGHUP);
+      
+      sigwait(&signal_set, &sig);
 
-        switch (sig) {
-
-#ifdef DEBUG_SIMULATE
-            case SIGSEGV:
-                abort();
-#endif
-            case SIGQUIT:
-            case SIGINT:
-	    case SIGHUP:
-	    case SIGTERM:
-                pthread_mutex_lock(&sig_mutex);
-                received_signal = sig;
-                pthread_mutex_unlock(&sig_mutex);
-                break;
-
-            default:
-                pthread_mutex_lock(&sig_mutex);
-                received_signal = 0;
-                pthread_mutex_unlock(&sig_mutex);
-                break;
-        }
+      pthread_mutex_lock(&sig_mutex);
+      received_signal = sig;
+      pthread_mutex_unlock(&sig_mutex);
 
     }
     return (void*) 0;
@@ -535,40 +526,45 @@ sighand_thread(void *arg) {
 
 void
 sigsegv_handler(int sig_num, siginfo_t * info, void * ucontext) {
+    
+    int dummy1=sig_num;
+    int *dummy2 = info->si_addr;
+    int *dummy3 = (int *) ucontext;
+    if( dummy1 && dummy2 && dummy3 )
+        dummy1 = 1;
+    raise(sig_num);
+/*
+
     void * array[50];
     void * caller_address;
     char ** messages;
     int size, i;
     sig_ucontext_t * uc;
 
-    uc = (sig_ucontext_t *) ucontext;
 
-    /* Get the address at the time the signal was raised from the EIP (x86) */
+
+
+    uc = (sig_ucontext_t *) ucontext;
     caller_address = (void *) uc->uc_mcontext.eip;
 
-    // Try to create a file at /tmp/tvpvrd_stack.crash
-
-    //FILE *fp = fopen("/tmp/tvpvrd_stack.crash","w");
-
-    fprintf(stderr, "signal %d (%s), address is %p from %p\n",
+    FILE *fp = fopen("/tmp/tvpvrd_stack.crash","w");
+    fprintf(fp, "signal %d (%s), address is %p from %p\n",
             sig_num, strsignal(sig_num), info->si_addr,
             (void *) caller_address);
 
     size = backtrace(array, 50);
-
-    /* overwrite sigaction with caller's address */
     array[1] = caller_address;
-
     messages = backtrace_symbols(array, size);
 
-    /* skip first stack frame (points here) */
     for (i = 1; i < size && messages != NULL; ++i) {
-        fprintf(stderr, "[bt]: (%d) %s\n", i, messages[i]);
+        fprintf(fp, "[bt]: (%d) %s\n", i, messages[i]);
     }
 
     free(messages);
-    //fclose(fp);
-    //exit(EXIT_FAILURE);
+    fclose(fp);
+    raise(sig_num);
+*/
+
 }
 
 
@@ -803,7 +799,7 @@ startrec(void *arg) {
     const mode_t dmode =  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
     const mode_t fmode =  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
     unsigned mp2size = 0;
-    volatile int doabort = 0 ;
+    int doabort = 0 ;
 
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
@@ -907,6 +903,7 @@ startrec(void *arg) {
         full_filename[255] = '\0';
         strncpy(short_filename,basename(full_filename),255);
         short_filename[255] = '\0';
+
         int fh = open(full_filename, O_WRONLY | O_CREAT | O_TRUNC, fmode);
         if (fh == -1) {
 
@@ -1077,9 +1074,10 @@ startrec(void *arg) {
                 keep_mp2_file |= profile->encoder_keep_mp2file | !profile->use_transcoding;
 
                 logmsg(LOG_NOTICE,"Transcoding using profile: %s",profile->name);
-                int ret = transcode_and_move_file(datadir,workingdir,short_filename,
+                int ret = transcode_and_move_file(datadir, workingdir, short_filename, 
+                                                  recording->recurrence_title,
                                                   profile,
-                                                  &mp4size,&transcode_time,&avg_5load);
+                                                  &mp4size, &transcode_time, &avg_5load);
                 transcoding_problem |= ret;
                 if( 0 == ret ) {
                     stats_update(recording->transcoding_profiles[i],
@@ -1148,9 +1146,8 @@ chkrec(void *arg) {
 
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
-    // the exit status until the thread is joined (or detached) which would meanls
-
-    // loosing 8MB for exah created thread
+    // the exit status until the thread is joined (or detached) which would mean
+    // loosing 8MB for each created thread
     pthread_detach(pthread_self());
 
     // Do some sanity checks of time_resolution
@@ -1159,7 +1156,7 @@ chkrec(void *arg) {
     // We are string as a thread that runs forever
     while (1) {
 
-        // Check all the video ques for the next possible recording
+        // Check all the video queues for the next possible recording
         // If auto shutdown has been enabled the the server will be
         // shutdown if there is no ongoing recording/transcoding and the
         // next recording is at least MIN_SHUTDOWN_TIME away.
@@ -1816,8 +1813,8 @@ chk_startupscript(void) {
  */
 int
 main(int argc, char *argv[]) {
-    //sigset_t signal_set;
-    //pthread_t signal_thread;
+    sigset_t signal_set;
+    pthread_t signal_thread;
 
 
     //mtrace();
@@ -1964,9 +1961,16 @@ main(int argc, char *argv[]) {
     // We use a separate thread to receive all the signals so we must
     // block all signals in all other threads
 
-    //sigfillset( &signal_set );
-    //pthread_sigmask( SIG_BLOCK, &signal_set, NULL );
-    //pthread_create( &signal_thread, NULL, sighand_thread, NULL );
+    sigfillset( &signal_set );
+    sigdelset( &signal_set , SIGSEGV);
+    sigdelset( &signal_set , SIGABRT);
+    sigdelset( &signal_set , SIGQUIT);
+    sigdelset( &signal_set , SIGBUS);
+    if( ! daemonize ) {
+        sigdelset( &signal_set , SIGINT);
+    }
+    pthread_sigmask( SIG_BLOCK, &signal_set, NULL );
+    pthread_create( &signal_thread, NULL, sighand_thread, NULL );
     
     // Start the thread that will be monitoring the recording list and
     // in turn setup a new thread to do a recording when the time has come
@@ -1986,13 +1990,18 @@ main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (sigaction(SIGABRT, &sigact, (struct sigaction *) NULL) != 0) {
-        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGSEGV, strsignal(SIGSEGV));
+    if (sigaction(SIGBUS, &sigact, (struct sigaction *) NULL) != 0) {
+        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGBUS, strsignal(SIGBUS));
         exit(EXIT_FAILURE);
     }
 
-    if (sigaction(SIGINT, &sigact, (struct sigaction *) NULL) != 0) {
-        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGSEGV, strsignal(SIGSEGV));
+    if (sigaction(SIGABRT, &sigact, (struct sigaction *) NULL) != 0) {
+        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGABRT, strsignal(SIGABRT));
+        exit(EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGQUIT, &sigact, (struct sigaction *) NULL) != 0) {
+        fprintf(stderr, "Cannot create signal handler for signal %d (%s)\n", SIGQUIT, strsignal(SIGQUIT));
         exit(EXIT_FAILURE);
     }
 

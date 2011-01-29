@@ -207,7 +207,8 @@ getwsetsize(int pid, int *size, char *unit, int *threads);
  * @param basedir Basedirectory where the new directory will be created
  * @param dir The name of the directory to create
  */
-int chkcreatedir(const char *basedir,char *dir);
+int
+chkcreatedir(const char *basedir,char *dir);
 
 /**
  * Strip the suffix by replacing the last '.' with a '\0'
