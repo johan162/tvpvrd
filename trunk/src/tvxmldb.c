@@ -60,6 +60,7 @@
 #include "transc.h"
 #include "datetimeutil.h"
 #include "xstr.h"
+#include "tvcmd.h"
 
 /* ---------------------------------------------------------------------------
  * XML File processing functions
@@ -69,7 +70,7 @@
 /*
  * Names of element in the XML file
  */
-#define XMLDB_VERSIONNUM "1"
+#define XMLDB_VERSIONNUM "2"
 
 static const xmlChar *xmldb_version =           (xmlChar *) XMLDB_VERSIONNUM;
 static const xmlChar *xmldb_root =              (xmlChar *) "tvrecdb";
@@ -203,7 +204,7 @@ parseDate(const char *date, int *y, int *m, int *d) {
  * and add this as a proper entry in the list of recordings.
  */
 static void processRecording(xmlNodePtr node) {
-    char directory[512], tmpbuff[512], bname_buffer[512];
+    char directory[512], bname_buffer[512];
     char filename[REC_MAX_NFILENAME], title[REC_MAX_NTITLE], channel[REC_MAX_NCHANNEL];
     char recprefix[REC_MAX_NPREFIX], *profiles[REC_MAX_TPROFILES];
     xmlNodePtr childnode;
@@ -221,12 +222,11 @@ static void processRecording(xmlNodePtr node) {
     int recnbr = 0;
     int recmangling = 0;
     int startnumber=0;
-    int video=-1;
     recprefix[0] = '\0';
     directory[0] = '\0';
 
-    int num_profiles = 0;
-    for(int i=0; i < REC_MAX_TPROFILES; i++) {
+    size_t num_profiles = 0;
+    for(size_t i=0; i < REC_MAX_TPROFILES; i++) {
         profiles[i] = calloc(1,REC_MAX_TPROFILE_LEN);
     }
 
@@ -281,8 +281,8 @@ static void processRecording(xmlNodePtr node) {
                     profiles[num_profiles++][REC_MAX_TPROFILE_LEN - 1] = 0;
                 }                
             } else if (xmlStrcmp(node->name, xmldb_nameVideo) == 0) {
+                logmsg(LOG_NOTICE,"video field in database is deprecated");
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    video = xatoi((char * const) childnode->content);
                     childnode = childnode->next;
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameRecurrence) == 0) {
@@ -300,52 +300,53 @@ static void processRecording(xmlNodePtr node) {
     bname_buffer[511] = '\0';
     strncpy(filename, basename(bname_buffer), REC_MAX_NFILENAME);
 
-    if( video >= (int)max_video || video < 0 ) {
-        logmsg(LOG_ERR, "Cannot insert record: '%s' invalid video card specified (%d)", title,video);
+    // Create a new recording. This means that a recurrent recording is expanded with
+    // a single record for all its occurrences
+    ts_start = totimestamp(sy, sm, sd, sh, smin, ssec);
+    ts_end = totimestamp(ey, em, ed, eh, emin, esec);
+
+    if (0 == num_profiles) {
+        logmsg(LOG_ERR, "No profiles defined for recording: '%s'. Adding default profile '%s' ",
+                title, default_transcoding_profile);
+        num_profiles = 1;
+        strncpy(profiles[0], default_transcoding_profile, REC_MAX_TPROFILE_LEN);
+        profiles[0][REC_MAX_TPROFILE_LEN - 1] = '\0';
     }
-    else {
-        // Create a new recording. This means that a recurrent recording is expanded with
-        // a single record for all its occurrences
-        ts_start = totimestamp(sy, sm, sd, sh, smin, ssec);
-        ts_end = totimestamp(ey, em, ed, eh, emin, esec);
-
-        if( num_profiles == 0 ) {
-            logmsg(LOG_ERR,"No profiles defined for recording: '%s'. Adding default profile '%s' ",
-                    title,default_transcoding_profile);
-            num_profiles=1;
-            strncpy(profiles[0],default_transcoding_profile,REC_MAX_TPROFILE_LEN);
-            profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
-        }
-        for( int k=0; k < num_profiles; k++) {
-            if(!transcoding_profile_exist(profiles[k]) ) {
-                logmsg(LOG_NOTICE,"Transcoding profile %s does not exist. Falling back on default profile.",profiles[k]);
-                strncpy(profiles[k],default_transcoding_profile,REC_MAX_TPROFILE_LEN-1);
-                profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
-            }
-        }
-
-        entry = newrec(title, filename,
-                       ts_start, ts_end,
-                       channel,
-                       recurrence, rectype, recnbr, recmangling,
-                       profiles);
-
-        entry->recurrence_start_number = startnumber;
-        
-        for(int i=0; i < REC_MAX_TPROFILES; i++) {
-            free(profiles[i]);
-        }
-
-        if ( FALSE == insertrec(video, entry) ) {
-            snprintf(tmpbuff, 512, "Cannot insert record '%s' since it collides with existing recordings.", entry->title);
-            tmpbuff[512-1] = '\0';
-            logmsg(LOG_ERR, tmpbuff);
-            freerec(entry);
-            entry = NULL;
-        } else {
-            logmsg(LOG_NOTICE, "  -- inserted record '%s'", title);
+    for (size_t k = 0; k < num_profiles; k++) {
+        if (!transcoding_profile_exist(profiles[k])) {
+            logmsg(LOG_NOTICE, "Transcoding profile %s does not exist. Falling back on default profile.", profiles[k]);
+            strncpy(profiles[k], default_transcoding_profile, REC_MAX_TPROFILE_LEN - 1);
+            profiles[0][REC_MAX_TPROFILE_LEN - 1] = '\0';
         }
     }
+
+    entry = newrec(title, filename,
+            ts_start, ts_end,
+            channel,
+            recurrence, rectype, recnbr, recmangling,
+            profiles);
+
+    entry->recurrence_start_number = startnumber;
+
+    for (size_t i = 0; i < REC_MAX_TPROFILES; i++) {
+        free(profiles[i]);
+    }
+
+    // Now insert the record in the first available queue
+    int ret;
+    size_t v = 0;
+    do {
+        ret = insertrec(v, entry);
+    } while (-1 == ret && ++v < max_video);
+
+    if (-1 == ret) {
+        logmsg(LOG_ERR, "Can't insert record '%s'. No free video queues for this recording.", entry->title);
+        freerec(entry);
+        entry = NULL;
+    } else {
+        logmsg(LOG_INFO, "  -- inserted record '%s' in queue for video %d", title, v);
+    }
+
 }
 
 /**
@@ -357,8 +358,8 @@ int
 readXMLFile(const char *filename) {
     xmlNodePtr node;
     xmlDocPtr doc;
-
     xmlChar *xmlver;
+    int forceUpdate=0;
     /*
      * 1  == Element
      * 15 == EndElement
@@ -395,10 +396,15 @@ readXMLFile(const char *filename) {
     // Check that the version of the file is the expected
     xmlver = xmlGetProp(node, xmldb_nameVersion);
     if (xmlStrcmp(xmlver, xmldb_version)) {
-        logmsg(LOG_ERR, "XML file is not a proper recording database file. Wrong version. Found '%s' when expecting '%s'",
-                xmlver,xmldb_version);
-        xmlFreeDoc(doc);
-        return -1;
+        logmsg(LOG_NOTICE, "Expected XML DB version '%s' but found version '%s'.",xmldb_version,xmlver);
+        if( xatoi((char *)xmlver) > xatoi((char *)xmldb_version) ) {
+            logmsg(LOG_NOTICE, "Can not handle a newer database version. Please upgrade daaemon.");
+            xmlFreeDoc(doc);
+            return -1;
+        } else {
+            logmsg(LOG_NOTICE, "Will update XML DB to new schema");
+            forceUpdate=1;
+        }
     }
     xmlFree(xmlver);
 
@@ -413,6 +419,10 @@ readXMLFile(const char *filename) {
 
     xmlFreeDoc(doc);
     xmlCleanupParser();
+
+    if( forceUpdate ) {
+        UPDATE_DB();
+    }
 
     return 0;
 }
@@ -449,7 +459,7 @@ _writeXMLFileHTML(const int fd) {
         return -1;
     }
     _writef(fd, "<!-- Created: %s -->\n", ctime(&now));
-    _writef(fd, "<%s %s=\"1\">\n",xmldb_root,xmldb_nameVersion);
+    _writef(fd, "<%s %s=\"%s\">\n",xmldb_root,xmldb_nameVersion,XMLDB_VERSIONNUM);
 
     for (unsigned video = 0; video < max_video; video++) {
 
@@ -503,7 +513,7 @@ _writeXMLFileHTML(const int fd) {
                     _writef(fd, "  <%s>\n",xmldb_nameRecording);
                     _writef(fd, "    <%s>%s</%s>\n",xmldb_nameTitle, recs[REC_IDX(video, i)]->recurrence_title, xmldb_nameTitle);
                     _writef(fd, "    <%s>%s</%s>\n",xmldb_nameChannel, recs[REC_IDX(video, i)]->channel, xmldb_nameChannel);
-                    _writef(fd, "    <%s>%d</%s>\n", xmldb_nameVideo,video,xmldb_nameVideo);
+                    //_writef(fd, "    <%s>%d</%s>\n", xmldb_nameVideo,video,xmldb_nameVideo);
 
                     fromtimestamp(recs[REC_IDX(video, i)]->ts_start, &y, &m, &d, &h, &min, &sec);
                     _writef(fd, "    <%s>%02d-%02d-%02d</%s>\n",xmldb_nameStartdate, y, m, d,xmldb_nameStartdate);

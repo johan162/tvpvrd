@@ -1106,11 +1106,11 @@ _cmd_add(const char *cmd, int sockfd) {
                 }
             }
 
-            if (ret) {
-                dumprecordid(ret, 1, 0, msgbuff, 2047);
-            } else {
+            if (-1 == ret) {
                 freerec(entry);
                 err = 5;
+            } else {
+                dumprecordid(ret, 1, 0, msgbuff, 2047);
             }
         }
     }
@@ -1887,18 +1887,10 @@ _cmd_updatexmlfile(const char *cmd, int sockfd) {
         logmsg(LOG_INFO,msgbuff);
     }
 
-    /*
-    else {
-    
-        snprintf(msgbuff, 347,"Could not update database '%s', xmldbfile);
-        msgbuff[347] = 0 ;
-        logmsg(LOG_ERR,msgbuff);
-
+    if( sockfd > -1 ) {
+        strcat(msgbuff,"\n");
+        _writef(sockfd, msgbuff);
     }
-    */
-
-    strcat(msgbuff,"\n");
-    _writef(sockfd, msgbuff);
 }
 
 /**
