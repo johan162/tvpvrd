@@ -1,0 +1,198 @@
+=======================================================================================
+README FILE FOR PACKAGE : 'TVPVRD'
+'tvpvrd' = TV Personal Video Recorder Daemon
+$Id$
+=======================================================================================
+This package contains two installable daemons, tvpvrd and tvpowerd.
+
+The package will install tvpvrd as explained below. The other daemon cannot be
+automatically installed since this is an optional monitoring daemon that is
+supposed to be running on a physically separate server. The purpose of the
+optional tvpowerd daemon is to provide an alternative way of monitoring 
+the power on/off of the recording server compared with the built-in method
+of automatic shut-down/power-on of the daemon
+
+See manpages for much more detailed information (docs/manpages/) on when
+to use the alternative method.
+
+For installations instructions see the file INSTALL
+
+After installation you should check the configuration file 'tvpvrd.conf' so
+that it corresponds to your server setup. It is especially important that the
+following settings are correct and matching your installation.
+
+    * datadir                   - Where the recorded files are stored. 
+    * video_device_basename     - The device basename for the capture device,
+                                  normally '/dev/video'. The first device is
+                                  then named '/dev/video0'
+    * username                  - Make sure you have user with the specified
+                                  user name
+    * max_video                 - This must be less or equal to the actual number 
+                                  of video cards you have installed
+
+Some notes on where to store the data
+-------------------------------------
+
+The Linux File Hierarchy standard suggests that variable program data is
+stored under the '/var' directory. However, for this application this might
+not be the optimal choice. The main reason is that this application has the
+potential to make use of a *lot* of disk space. In many standard installations
+it is not uncommon to keep the root directory and the '/var' directory in a
+partition with a size of ~10GB even if the disk itself is a  1TB. The
+remaining data is usually allocated to '/home'
+
+Since the disk requirements for this application is potentiall so huge we
+suggest that a separate partition of at least 20GB is used. In the default
+configuration file this partition is assumed to be mounted at '/data/pvr'
+
+What is 'tvpvrd'?
+-----------------
+The purpose of this program is to act as a digital video recorder
+where it is possible to schedule, record and transcode (with the help
+pf ffmpeg) TV analogue broadcasts.
+
+The pre-requisite to be able to do this is that the computer
+running this software has a TV capture card installed capable
+of producing an MPEG2 stream. Example of such cards are, 
+
+   - Hauppauge 350
+   - Hauppauge 150
+
+The program will normally run as a daemon in the system and
+should be started when the system is booted. 
+
+The server is interfaced through a TCP/IP port (by default 9300)
+using a command language. It is also posible to interface the dameon
+and a subset of its function through the built-in WEB-server/interface.
+By default the WEB-interface is disabled and must first be enabled
+in the configuration file (normally /etc/tvpvrd/tvpvrd.conf).
+
+Example session:
+
+(Note: The example assumes that password is not enabled.)
+
+The following example will use 'telnet' to open a communication
+channel to the server and schedule a recroding between 19:00 and
+20:45 tommorrow (relative to todays date)
+
+$>telnet localhost 9300
+Connected to 192.168.0.21.
+Escape character is '^]'.
+!TVPVRD!
+Welcome to tvpvrd-2.1.2beta  [Server] (build:20101211.46)
+You are user number 1 out of 4 allowed.
+Type 'exit' to disconnect.
+Type 'h' to list available commands.
+Connection will be closed after 30 min of inactivity.
+
+a bbc1 tomorrow 19:00 20:45 World in focus
+[#032|bbc1    |2009-12-28|19:00|20:45|World in focus          |@normal]
+exit
+Goodbye.
+Connection closed by foreign host.
+
+- The first line 'telnet localhost 9300' assumes that the server is
+  running on the local machine. If it were running on another machine you would
+  have to sue the proper IP-number. By default the port is '9300' that we should
+  connect to.
+
+- Then some information from the server is shown (your version number and
+  build will most likely be different)
+
+- The next user entered line gives the 'add' command to schedule a new recording.
+  A recording is specifed by the station name, date, time and name.
+  Since each recording can also be transcoded (from the original MP2 format to
+  a more efficient MP4 formst using ffmpeg) the profile to use for this
+  transcoding is by default the 'normal' profile. This profile determines the
+  size and quality of the resulting video file.
+
+      Note: There are many possible ways to schedule a recording in order to make
+      it as easy as possible. The following are some examples of recognized formats
+
+      a bbc2 19 News at 19
+            - Will start recording today at 19:00 on station 'bbc2' using the default 
+              duration (0:59) and will give title 'New at 19' as the name of the recording.
+              Note: If the time is already past 19 the recording will automatically 
+              be scheduled for tomorrow.
+
+      a bbc2 19:00 19:30 Short news
+            - Start recording today at 19:00 on station 'bbc2' and stop at 19:30
+              Note: If the time is already past 19 the recording will automatically 
+              be scheduled for tomorrow.
+
+      a bbc2 tomorrow 18 Wheather
+            - Will start the recording for the default duration tomorrow at 18 and 
+              give the recording the name 'Wheather'
+
+      a bbc2 Thu 21:00 22:50 The Movie
+            - Will schedule the recording to start at the next Thursday during the 
+              given time and title
+
+      a channel3 2010-01-22 20:00 23:00 The Evening
+            - Will schedule a recording on the 22 january during the specified time 
+              and title Note: Dates are given in the format 'year-month-day'
+
+      To start a recording immediately the 'q' (for 'quick recording') can be used.
+
+      q tv4 0:45 The rest of the movie
+            - Will start a recording immediately with 45 min duration and give it 
+              the title "The rest of the Movie"
+
+      The documentation (use man tvpvrd) gives more details on how to specify 
+recurrent recordings as well as specifying what transcoding profile to use for a 
+specific recording.
+
+- The third line is echoed back from the server as a confirmation that the
+  recording has been accepted and will be perfoemed at the specified time.
+  The fields are self explanatory (teh first field is a unique seqeunce number
+  that the server have assigned to this recording.
+
+- Finally we give the 'exit' command which will cause the server to
+  break the telnet connection.
+  
+
+Please note that unlike a video recorder the computer must be fully powered on in 
+order to be able to start recordings.  If the computer is turned off or in 
+sleep/hibernation mode the recording will not start. In order to save energy the
+package includes an additional daemon "tvpowerd". This daaemon is supposed to run
+on a separate server from the recording server. This daemon will automatically
+shut down and power on the recording server to match its recording schedule. You
+can find out more details about how this is setup by reading the documentation 
+(see doc/ directory).
+
+    SIDENOTE: There is simply no way for the program
+    to kickstart the copmputer when it is not running. The only
+    way this could be done is by setting the alarm in the bios
+    to have the computer wake at a specified time. Unfortunately there
+    is no standard interface for the program to interact with the BIOS
+    power management as far as I know so this is not really possible.
+    Hence, the need to run an external daemon.
+
+
+Pre-requisites
+--------------
+In order to compile and run the program the following libaries are required
+
+- libxml2
+        XML processing library. The recordings DB is in XML format
+
+- libpcre
+        Perl Compatible regular expressions
+
+- v4l2
+        Low level support for interfacing with the video device drivers
+
+
+Documentation
+-------------
+
+Full documentation is available i the 'docs/' subdirectory.
+
+Author
+------
+Johan Persson (johan162@gmail.com)
+
+License
+-------
+This software is distributed under the GNU v3 license (See Copying for more information)
+
