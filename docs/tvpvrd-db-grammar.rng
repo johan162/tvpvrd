@@ -30,7 +30,6 @@
             <interleave>
                 <ref name="title"/>
                 <ref name="channel"/>
-                <ref name="video"/>
                 <ref name="startdate"/>
                 <ref name="starttime"/>
                 <ref name="enddate"/>
