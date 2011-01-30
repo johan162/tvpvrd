@@ -52,7 +52,9 @@
                 broadcasted and encoded streams from the capture card to disk. In effect a digital
                 version of a programmable VHS. In a similar way as a VCR the daemon also have the
                 capability to shutdown and power on the server in time for recordings (see the
-                auto-shutdown section below).</para>
+                auto-shutdown section below). In the same way as the old-fashioned VHS it has the
+                capability to turn off the power of the server and wake it up in time for a
+                recording in a fully automated way (by using the BIOS wakeup alarm).</para>
             <para>The original HW MPEG2 encoded videofile (from the capture card) can then be
                 optionally transcoded (using <citerefentry>
                     <refentrytitle>ffmpeg</refentrytitle>
@@ -65,10 +67,11 @@
                 always have at least one profile, the primary profile. In this way it is possible to
                 create multiple transcoded versions of one recording, for example one high quality
                 version for viewing on a computer and one low quality versions for viewing on a
-                mobile device. By default the distribution includes four profiles 'high', 'normal',
-                'low', 'mobile'. Additional profiles can easily be added by the user. A profile is
-                specified in the traditional ini-file text file format and is stored under the
-                'profiles' directory which is a subdirectory to the settings directory (normally
+                mobile device. By default the distribution includes six profiles 'high', 'normal',
+                'low' without transcoding and 'thigh', 'tnormal', 'tlow' with transcoding enabled.
+                Additional profiles can easily be added by the user. A profile is specified in the
+                traditional ini-file text file format and is stored under the 'profiles' directory
+                which is a subdirectory to the settings directory (normally
                     <filename>/etc/tvpvrd</filename>). Each setting in the profile is well
                 documented in the profiles. </para>
             <para>The primary interface to the server is via a TCP/IP connection to the server
@@ -76,7 +79,7 @@
                 server is controlled via a simple (but efficient) command language which allows
                 manipulation of future recordings and various other administrative tasks. All
                 commands are extensively described in the section 'Command language' below. </para>
-            <para>As an optional way there is also a native simple WEB-interface that allows a
+            <para>As an optional way there is also a native basic WEB-interface that allows a
                 limited number of commands such as basic adding of new recording, deleting existing
                 recordings, viewing status, showing upcoming recordings etc. The WEB-interface must
                 be enabled in the ini-file since it is by default disabled. The WEB interface is
@@ -224,7 +227,10 @@
                 'root' user. This user should be a system user without login shell. Such a user can
                 normally be created by running the command '<emphasis>useradd</emphasis>'. (If the
                 server is installed via the RPM package this user will be automatically
-                created)</para>            
+                created).</para>
+            <para>Note: If you want to use the automatic shutdown/wakeup functionality the daemon
+                must be run as root (since only root has privileges to access the BIOS wakeup
+                functionality)</para>            
                 <screen>$> useradd -r tvpvrd</screen>            
             <para>To start the server as root the simplest way is to just call</para>
                 <screen>$root> tvpvrd</screen>            
@@ -1284,6 +1290,12 @@ a bbb1 21:00 21:29 lastnews @tlow</screen>
                                 list the title will usually be shown as "Base title (xx/yy)" where
                                 xx is the sequence number and yy is the total number of recordings
                                 in this sequence.</para>
+                        <para>By default a series of recordings specified with this command is
+                            stored under a subdirectory with the same name as the basename of the
+                            recording. If you instead prefer to have all recordings stored in a flat
+                            structure directly under the recordings directory then set the config
+                            setting (in the config file) '<code>use_repeat_rec_basedir</code>' to
+                                '<code>no</code>'.</para>
                             <para><emphasis
                                     role="bold">Examples:</emphasis></para>
                             <screen>ar f 10 bbc1 18 18:30 News</screen>
@@ -2013,7 +2025,8 @@ Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
                                 location of the used ini file.</para>
                             <para>Output example:</para>
                             <screen>datadir                       : /data/pvr                    
-use_profile_directories       : 0                            
+use_profile_directories       : 0
+use_repeat_rec_basedir        : 1                            
 logfile                       : /tmp/tvpvrd.log              
 verbose_log                   : 3                            
 inifile_name                  : /etc/tvpvrd/tvpvrd.conf      

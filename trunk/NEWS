@@ -1,31 +1,32 @@
 $Id$
 
-v3.0.0alpha4
-------------
+v3.0.0
+------
 User visible changes:
     - Update XML DB format.
         -- Removed the specific "video" field. This is not necessary. Better to assign new
-           video cards when the DB file is read at startup.
+           video cards when the DB file is read at startup. This will also make it possible
+           to dynamically add and remove video cards while still maintaining an optimal
+           recording schedule (as far as permitted).
         -- Bumped DB version to "2". Any existing version "1" DBs will be automatically updated.
 
-Internal changes:
-    - Added conditional compilation #ifdef SIGSEGV_HANDLER for the stack dump code for debugging
-      purpose. Will help with remote end user debugging when they cannot create a core dump.
-      This will make it possible to have a stacktrace stored in file '/tmp/tvpvrd_stack.crash'
-      (hardcoded name) even without a core dump. If sources are compiled with this define
-      any SIGSEGV, SIGBUS or SIGQUIT will cause a stack trace to be generated.
-      This is controlled with an extra option to 'configure' --enable-stacktrace
+    - Added new flag for configure "--enable-stacktrace"
+      This will help with remote end user debugging (if ever needed) when they cannot create
+      a core dump.  If enabled a stacktrace will be stored in a file, '/tmp/tvpvrd_stack.crash'
+      (hardcoded name), when the daemon receives a SIGSEGV or SIGBUS signal. Added "-rdynamic"
+      as a compiler switch to force better stack traces. This is not as complete as a full
+      gdb trace (with all threads) but better than nothing if this is ever needed (knock on
+      wood...)
 
+    - Update of the CSS for mobile browsing for better readability
 
-v3.0.0alpha3
-------------
-User visible changes:
-    - Minor update of the CSS for mobile browsing for better readability
     - Added "af - Add recordings from file" command to make it possible to prepare a list
       of recordings offline
+
     - Added configuration option "use_repeat_rec_basedir" to have all repeated
       recordings for the same show stored under a subdirectory named after the
       base-name of the recording (i.e. without all the date and repeat information).
+
     - Don't ship a 'tvpvrd.conf' file directly. Instead ship two template files for the config
       'tvpvrd.conf.simplified.template' and 'tvpvrd.conf.full.template' which will force the user
       to at least once check them and rename them to 'tvpvrd.conf'. The two template files
@@ -33,6 +34,32 @@ User visible changes:
       template file with all the settings spelled out. This has been done as a feeble try to
       simplify the setup.
 
+    - Added template based mail setup for shutdown and transcoding mails
+
+    - Added a basic SMTP mail sending library to allow for more advanced formatting of mails
+
+    - Updated INSTALL file with some information on extra steps needed
+      if building directly from the repository
+
+    - Added --with-libpcre-prefix option to "configure" to allow user to specify
+      alternative locations for PCRE library
+
+    - Added possibility to run a user supplied startup script and added a
+      suitable template for such a script.
+
+    - Added option to send HTML formatted mail notifications. The  templates
+      for the mails are stored in the configuration directory.
+
+    - Added option to use specified SMTP server directly to send mail
+
+    - Updated template for hook scripts
+
+    - Added post transcoding script hook and associated template in config
+
+    - Changed structure of config file so that all mail related settings are in
+      its own section.
+
+    - Fixed a memory leak when CSS file was not modified when using the WEB-interface
 
 Internal changes:
     - The login cookie used now restricts itself to only use characters from
@@ -41,52 +68,36 @@ Internal changes:
       In addition the cookie header no longer adds the "Version" attribute
       since, again, some proxys will filter out the cookie if this attribute
       is included. (This is most likely user visible as well)
+
     - Fix a possible buffer overwrite when converting cookies to URL character
       escaped encoding
+
     - Some further code refactoring to reduce size of 'tvpvrsrv.c'
 
-
-v3.0.0alpha2
-------------
-User visible changes:
-    - Added template based mail setup for shutdown mails
-    - Updated INSTALL file with some information on extra steps needed
-      if building directly from the repository
-    - Added --with-libpcre-prefix option to "configure" to allow user to specify
-      alternative locations for PCRE library
-    - Added possibility to run a user supplied startup script and added a
-      suitable template for such a script.
-
-Internal changes:
     - Improved the usability of the key/val replacement routines
+
     - Cleaned up header inclusions
+
     - Some internal code restructuring to reduce the size of the main tpvrsrv.c
       file by creating vcard.c/vcard.h and some other move of code to more appropriate
       places.
 
-v3.0.0alpha
------------
-User visible changes:
-    - Added option to send HTML formatted mail notifications. The  templates
-      for the mails are stored in the configuration directory.
-    - Added option to use specified SMTP server directly to send mail
-    - Updated template for hook scripts
-    - Added post transcoding script hook and associated template in config
-    - Changed structure of config file so that all mail related settings are in
-      its own section.
-    - Fixed a memory leak when CSS file was not modified when using the WEB-interface
-
-Internal changes:
     - Some include header streamlining
+
     - Update network code to use the more modern getaddrinfo() system call
-    - Added a small SMTP mail sending library in libsmtpmail directory
+
     - Reworked he build system so that iniparser is now an archive library
+
     - Added base64 and quoted-printable functionality since that is needed for mails
+
     - Added SIGABRT handler to get some notifications when using glibs memory
       checking routines MALLOC_CHECK
+
     - Changed configuration so ininparser is built as a proper library. Makes the
       build scripts slightly cleaner.
+
     - Refactored all xstr* routines to there own source module
+
 
 v2.3.0 [r377]
 -------------
