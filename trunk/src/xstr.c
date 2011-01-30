@@ -116,18 +116,16 @@ int
 xatoi(char * const str) {
     char *endptr;
     errno = 0;
-    int val = strtol(str, &endptr, 10);
+    long val = strtol(str, &endptr, 10);
     if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0)) {
-       //logmsg(LOG_ERR,"Internal error: xatoi() (% d : %s )", errno, strerror(errno));
        val = 0 ;
     }
 
     if (endptr == str) {
-       //logmsg(LOG_ERR,"Internal error: xatoi() No digits found !");
        val = 0 ;
     }
     
-    return val;
+    return (int)val;
 }
 
 

@@ -533,7 +533,7 @@ insertrec(unsigned video, struct recording_entry * entry) {
             } else {
                 snprintf(tmpbuff, 512, "%s (%02d/%02d)", 
                          entry->title,
-                         i + entry->recurrence_start_number,
+                         (int)i + entry->recurrence_start_number,
                          entry->recurrence_num+entry->recurrence_start_number-1);
             }
 
