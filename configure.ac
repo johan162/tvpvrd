@@ -4,7 +4,7 @@
 # Use autoreconf to rebuild the build environment
 # ===============================================================================
 AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[3.0.0alpha3],[johan162@gmail.com])
+AC_INIT([tvpvrd],[3.0.0alpha4],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2011])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 silent-rules])
@@ -38,6 +38,9 @@ docs/manpages/Makefile
 #                     received and sent. This only has effect as long as the
 #                     log level is also set to 3 (in the application configuration
 #                     file)
+#
+# --enable-stacktrace Force a stack trace to be written to /tmp/tvpvrd_stack.crash
+#                     in case of a SIGSEGV or SIGBUS signal to help with debugging
 # ===============================================================================
 AC_ARG_ENABLE([simulate],
     [  --enable-simulate    Make daemon run on server without TV-Card],
@@ -55,6 +58,15 @@ AC_ARG_ENABLE([webdebug],
 
 if test "x${enable_webdebug}" = xyes; then
     AC_DEFINE(EXTRA_WEB_DEBUG,1,[Enable more HTTP protocol level debug together with loglevel=3])
+fi
+
+AC_ARG_ENABLE([stacktrace],
+    [  --enable-stacktrace    Enable a stacktrace dump in case of SIGSEGV or SIGBUS error],
+    [enable_stacktrace=${enableval}],
+    [enable_stacktrace=no])
+
+if test "x${enable_stacktrace}" = xyes; then
+    AC_DEFINE(SIGSEGV_HANDLER,1,[Enable a stacktrace dump in case of SIGSEGV or SIGBUS error])
 fi
 
 # ================================================================================

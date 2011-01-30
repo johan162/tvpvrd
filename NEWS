@@ -1,5 +1,22 @@
 $Id$
 
+v3.0.0alpha4
+------------
+User visible changes:
+    - Update XML DB format.
+        -- Removed the specific "video" field. This is not necessary. Better to assign new
+           video cards when the DB file is read at startup.
+        -- Bumped DB version to "2". Any existing version "1" DBs will be automatically updated.
+
+Internal changes:
+    - Added conditional compilation #ifdef SIGSEGV_HANDLER for the stack dump code for debugging
+      purpose. Will help with remote end user debugging when they cannot create a core dump.
+      This will make it possible to have a stacktrace stored in file '/tmp/tvpvrd_stack.crash'
+      (hardcoded name) even without a core dump. If sources are compiled with this define
+      any SIGSEGV, SIGBUS or SIGQUIT will cause a stack trace to be generated.
+      This is controlled with an extra option to 'configure' --enable-stacktrace
+
+
 v3.0.0alpha3
 ------------
 User visible changes:
