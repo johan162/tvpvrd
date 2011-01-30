@@ -537,7 +537,7 @@ _smtp_get_transfer_encoding(size_t type) {
 static void
 _print_reply(struct smtp_reply *reply_list[], size_t N) {
     for (size_t i = 0; i < N && reply_list[i]; i++) {
-        printf("%02d: [%03d, \"%s\"]\n", i, reply_list[i]->status, reply_list[i]->str);
+        printf("%02d: [%03d, \"%s\"]\n", (int)i, reply_list[i]->status, reply_list[i]->str);
     }
 }
 

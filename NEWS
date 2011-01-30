@@ -1,5 +1,13 @@
 $Id$
 
+v3.0.1
+------
+User visible changes:
+    - Fix some minor build issues specific to a x86_64 platform
+
+Internal changes:
+    - None.
+
 v3.0.0
 ------
 User visible changes:

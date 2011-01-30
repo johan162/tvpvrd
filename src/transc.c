@@ -175,7 +175,7 @@ list_ongoing_transcodings(char *obuff, size_t size, int show_ffmpegcmd) {
             fromtimestamp(ongoing_transcodings[i]->start_ts, &y, &m, &d, &h, &min, &sec);
             if( show_ffmpegcmd ) {
                 snprintf(tmpbuff, 511, "[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|@%s]\n(cmd: %s)\n",
-                         i,
+                         (int)i,
                          h, min,
                          rh,rmin,						 
                          ongoing_transcodings[i]->filename,
@@ -183,7 +183,7 @@ list_ongoing_transcodings(char *obuff, size_t size, int show_ffmpegcmd) {
                          ongoing_transcodings[i]->cmd);
             } else {
                 snprintf(tmpbuff, 511, "[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|@%s]\n",
-                         i,
+                         (int)i,
                          h, min,
                          rh,rmin,
                          ongoing_transcodings[i]->filename,
