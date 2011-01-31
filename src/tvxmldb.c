@@ -203,7 +203,8 @@ parseDate(const char *date, int *y, int *m, int *d) {
  * Parse a single recording in the XML file. Extract the necessary fields
  * and add this as a proper entry in the list of recordings.
  */
-static void processRecording(xmlNodePtr node) {
+static void
+processRecording(xmlNodePtr node) {
     char directory[512], bname_buffer[512];
     char filename[REC_MAX_NFILENAME], title[REC_MAX_NTITLE], channel[REC_MAX_NCHANNEL];
     char recprefix[REC_MAX_NPREFIX], *profiles[REC_MAX_TPROFILES];
@@ -304,6 +305,16 @@ static void processRecording(xmlNodePtr node) {
     // a single record for all its occurrences
     ts_start = totimestamp(sy, sm, sd, sh, smin, ssec);
     ts_end = totimestamp(ey, em, ed, eh, emin, esec);
+
+    // A sanity check that DB is not corrupt
+    if( ts_start >= ts_end ) {
+        logmsg(LOG_ERR, "Database corrupt for entry '%s'. Start time >= end time. Ignoring this recording.", title);
+        for (size_t i = 0; i < REC_MAX_TPROFILES; i++) {
+            free(profiles[i]);
+        }
+        return;
+    }
+
 
     if (0 == num_profiles) {
         logmsg(LOG_ERR, "No profiles defined for recording: '%s'. Adding default profile '%s' ",
