@@ -109,8 +109,9 @@
 #define CMD_LIST_VIDEO_INPUTS 34
 #define CMD_LIST_TS 35
 #define CMD_ADD_FROMFILE 36
+#define CMD_DISK_USED 37
 
-#define CMD_UNDEFINED 37
+#define CMD_UNDEFINED 38
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -156,6 +157,7 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  ar   - Add repeated recording\n"\
                         "  af   - Add recording from list in file\n"\
 			"  d    - delete single recording\n"\
+                        "  df   - display total and used diskspace\n"
                         "  dp   - display all settings for specified profile\n"\
 			"  dr   - delete all repeated recording\n"\
 			"  h    - help\n"\
@@ -221,14 +223,13 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(ar|a|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lh|li|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lh|li|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
     }
     if( ret > 0 ) {
-        (_getCmdPtr(field[1]))(cmd,sockfd);
-        
+        (_getCmdPtr(field[1]))(cmd,sockfd);        
         matchcmd_free(&field);
     }
     else {
@@ -1429,6 +1430,36 @@ _cmd_list_controls(const char *cmd, int sockfd) {
     }
 }
 
+/**
+ * Command: _cmd_diskused
+ * Give back the used space of the disk in the dat directory
+ * <used> / <tot> (<percent_used>%)
+ * For example: 345GG / 2.5TB (15% used)
+ * Syntax:
+ * df
+ */
+static void
+_cmd_diskused(const char *cmd, int sockfd) {
+    char msgbuff[2048];
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Print the total and used disk space\n"\
+                "df \n"
+                );
+        return;
+    }
+    char fs[256], size[128], used[128], avail[128];
+    int use;
+    int ret = get_diskspace(datadir, fs, size, used, avail, &use);
+    if( 0 == ret ) {
+        snprintf(msgbuff,2048,"%s of %s (%d percent used)\n",used,size,use);
+    } else {
+        snprintf(msgbuff,2048,"Error. Cannot determine disk space.\n");
+    }
+
+    _writef(sockfd, msgbuff);
+}
+
 
 /**
  * Command: _cmd_info
@@ -2592,6 +2623,7 @@ cmdinit(void) {
     cmdtable[CMD_LIST_VIDEO_INPUTS] = _cmd_list_video_inputs;
     cmdtable[CMD_LIST_TS]           = _cmd_list_ts;
     cmdtable[CMD_ADD_FROMFILE]      = _cmd_addfromfile;
+    cmdtable[CMD_DISK_USED]         = _cmd_diskused;
 }
 
 /**
@@ -2616,6 +2648,7 @@ _getCmdPtr(const char *cmd) {
         {"af", CMD_ADD_FROMFILE},
         {"ar", CMD_ADD},
         {"a",  CMD_ADD},
+        {"df", CMD_DISK_USED},
         {"dp", CMD_PRINTPROFILE},
         {"dr", CMD_DELETE},
         {"d",  CMD_DELETE},

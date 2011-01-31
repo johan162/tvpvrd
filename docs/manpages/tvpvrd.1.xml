@@ -935,6 +935,11 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
+                                role="bold">df</emphasis> - display used disk space for data
+                            directory</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
                                 role="bold">dp</emphasis> - display all settings for specified
                             profile</para>
                     </listitem>
@@ -1324,6 +1329,20 @@ a bbb1 21:00 21:29 lastnews @tlow</screen>
                                 other recordings in the same sequence are untouched.</para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term>'<command>df</command>' - <emphasis
+                            role="bold">Display total and used disk space</emphasis></term>
+                    <listitem>
+                        <para>Displays in both absolute and relative terms the amount of disk space
+                            on the partition containing the specified data directory (as specified
+                            in the config file). The size is given in "human" readable format which
+                            means the use of M = Megabyte, G = Gigabyte and T = Terabyte. </para>
+                        <para>Output example:</para>
+                        <para>
+                            <screen>612G of 4,1T (15 percent used) </screen>
+                        </para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>dp</command> [<emphasis>@profile</emphasis>]' - Display
                             profile information command</term>
