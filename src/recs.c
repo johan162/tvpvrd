@@ -102,7 +102,7 @@ isentryoverlapping(unsigned video, struct recording_entry* entry) {
 
     if (entry->recurrence == 0) {
         // No recurrence
-        for (unsigned i = 0; i < num_entries[video]; ++i) {
+        for (size_t i = 0; i < num_entries[video]; ++i) {
             if (entry->ts_start >= recs[REC_IDX(video, i)]->ts_start &&
                 entry->ts_start <= recs[REC_IDX(video, i)]->ts_end) {
 
@@ -149,6 +149,10 @@ isentryoverlapping(unsigned video, struct recording_entry* entry) {
         int sy, sm, sd, sh, smin, ssec;
         int ey, em, ed, eh, emin, esec;
 
+        int esy, esm, esd, esh, esmin, essec;
+        int eey, eem, eed, eeh, eemin, eesec;
+
+
         // Recurrence. This means we need to check all future
         // recurrences for collisins as well.
         fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
@@ -156,45 +160,61 @@ isentryoverlapping(unsigned video, struct recording_entry* entry) {
         time_t ts_start = entry->ts_start;
         time_t ts_end = entry->ts_end;
 
-        for (unsigned j = 0; j < entry->recurrence_num; j++) {
+        for (size_t j = 0; j < entry->recurrence_num; j++) {
 
-            for (unsigned i = 0; i < num_entries[video]; ++i) {
-                if (ts_start >= recs[REC_IDX(video, i)]->ts_start &&
-                    ts_start <= recs[REC_IDX(video, i)]->ts_end) {
+            for (size_t i = 0; i < num_entries[video]; ++i) {
+                struct recording_entry *e = recs[REC_IDX(video, i)];
+                if (ts_start >= e->ts_start && ts_start <= e->ts_end) {
 
-                    logmsg(LOG_DEBUG,"New recurring entry collides at occurence %d with: '%s'",j,recs[REC_IDX(video, i)]->title);
+                    logmsg(LOG_DEBUG,"New recurring entry collides at occurence %d with: '%s' on video %d in position %d",
+                            j,e->title,video,i);
+                    fromtimestamp(e->ts_start, &esy, &esm, &esd, &esh, &esmin, &essec);
+                    fromtimestamp(e->ts_end, &eey, &eem, &eed, &eeh, &eemin, &eesec);
+                    logmsg(LOG_DEBUG,"[e->ts_start=%u, e->ts_end=%u]=(%02d:%02d-%02d:%02d %02d/%02d-%02d/%02d)",
+                                      e->ts_start,e->ts_end,esh,esmin,eeh,eemin,esd,esm,eed,eem);
+                    logmsg(LOG_DEBUG,"[entry->ts_start=%u, entry->ts_end=%u]=(%02d:%02d-%02d:%02d %02d/%02d)",
+                                      ts_start,ts_end,sh,smin,eh,emin,sd,sm);
                     return 1;
                 }
-                if (ts_end >= recs[REC_IDX(video, i)]->ts_start &&
-                    ts_end <= recs[REC_IDX(video, i)]->ts_end) {
+                if (ts_end >= e->ts_start && ts_end <= e->ts_end) {
 
-                    logmsg(LOG_DEBUG,"New recurring entry collides at occurence %d with: '%s'",j,recs[REC_IDX(video, i)]->title);
+                    logmsg(LOG_DEBUG,"New recurring entry collides at occurence %d with: '%s' on video %d in position %d",
+                            j,e->title,video,i);
+                    fromtimestamp(e->ts_start, &esy, &esm, &esd, &esh, &esmin, &essec);
+                    fromtimestamp(e->ts_end, &eey, &eem, &eed, &eeh, &eemin, &eesec);
+                    logmsg(LOG_DEBUG,"[e->ts_start=%u, e->ts_end=%u]=(%02d:%02d-%02d:%02d %02d/%02d-%02d/%02d)",
+                                      e->ts_start,e->ts_end,esh,esmin,eeh,eemin,esd,esm,eed,eem);
+                    logmsg(LOG_DEBUG,"[entry->ts_start=%u, entry->ts_end=%u]=(%02d:%02d-%02d:%02d %02d/%02d)",
+                                      ts_start,ts_end,sh,smin,eh,emin,sd,sm);
                     return 1;
                 }
-                if (ts_start < recs[REC_IDX(video, i)]->ts_start &&
-                    ts_end > recs[REC_IDX(video, i)]->ts_end) {
+                if (ts_start < e->ts_start && ts_end > e->ts_end) {
 
-                    logmsg(LOG_DEBUG,"New recurring entry collides at occurence %d with: '%s'",j,recs[REC_IDX(video, i)]->title);
+                    logmsg(LOG_DEBUG,"New recurring entry collides at occurence %d with: '%s' on video %d in position %d",
+                            j,e->title,video,i);
+                    fromtimestamp(e->ts_start, &esy, &esm, &esd, &esh, &esmin, &essec);
+                    fromtimestamp(e->ts_end, &eey, &eem, &eed, &eeh, &eemin, &eesec);
+                    logmsg(LOG_DEBUG,"[e->ts_start=%u, e->ts_end=%u]=(%02d:%02d-%02d:%02d %02d/%02d-%02d/%02d)",
+                                      e->ts_start,e->ts_end,esh,esmin,eeh,eemin,esd,esm,eed,eem);
+                    logmsg(LOG_DEBUG,"[entry->ts_start=%u, entry->ts_end=%u]=(%02d:%02d-%02d:%02d %02d/%02d)",
+                                      ts_start,ts_end,sh,smin,eh,emin,sd,sm);
                     return 1;
                 }
             }
 
             if( ongoing_recs[video] ) {
-                if (ts_start >= ongoing_recs[video]->ts_start &&
-                    ts_start <= ongoing_recs[video]->ts_end) {
+                if (ts_start >= ongoing_recs[video]->ts_start && ts_start <= ongoing_recs[video]->ts_end) {
 
                     logmsg(LOG_DEBUG,"New entry collides at occurrence %d with ongoing recording at video=%d",j,video);
                     return 1;
                 }
-                if (ts_end >= ongoing_recs[video]->ts_start &&
-                    ts_end <= ongoing_recs[video]->ts_end) {
+                if (ts_end >= ongoing_recs[video]->ts_start && ts_end <= ongoing_recs[video]->ts_end) {
 
                     logmsg(LOG_DEBUG,"New entry collides at occurrence %d with ongoing recording at video=%d",j,video);
                     return 1;
                 }
 
-                if (ts_start < ongoing_recs[video]->ts_start &&
-                    ts_end > ongoing_recs[video]->ts_end) {
+                if (ts_start < ongoing_recs[video]->ts_start && ts_end > ongoing_recs[video]->ts_end) {
 
                     logmsg(LOG_DEBUG,"New entry collides at occurrence %d with ongoing recording at video=%d",j,video);
                     return 1;
@@ -305,7 +325,6 @@ newrec(const char *title, const char *filename, const time_t start,
         strncpy(ptr->transcoding_profiles[0],default_transcoding_profile,REC_MAX_TPROFILE_LEN-1);
         ptr->transcoding_profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
     }
-
 
     // This will be updated after a sucessfull insertrec()
     ptr->seqnbr = -1;
@@ -898,8 +917,8 @@ listrecs(size_t maxrecs, int style, int fd) {
     // We combine all recordings on all videos in order to
     // give a combined sorted list of pending recordings
     size_t k=0;
-    for (unsigned video = 0; video < max_video; video++) {
-        for (unsigned i = 0; i < num_entries[video]; ++i) {
+    for (size_t video = 0; video < max_video; video++) {
+        for (size_t i = 0; i < num_entries[video]; ++i) {
             entries[k++] = recs[REC_IDX(video, i)];
         }
     }
