@@ -1,5 +1,17 @@
 $Id$
 
+v3.0.2
+------
+User visible changes:
+    - Fix an issue introduced in the last minute for 3.0.0 which could wrongly find colliding
+      recordings even when multiple video cards where available. Lessons learned: Never ,never
+      do a "simple" change before a release ...
+
+Internal changes:
+    - Added some more verbose debug output with time stamp translation.
+    - Added a sanity check when reading the database to detect errors in time specification.
+
+
 v3.0.1
 ------
 User visible changes:
