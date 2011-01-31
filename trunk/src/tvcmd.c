@@ -1091,7 +1091,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     profiles);
 
 
-            ret = 0;
+            ret = -1;
             if( input_card >= 0 ) {
                 // Recording should be made on the specific video card
                 // and input source
@@ -1101,7 +1101,7 @@ _cmd_add(const char *cmd, int sockfd) {
             } else {
                 
                 // Take the first video stream available
-                for (unsigned video = 0; video < max_video && !ret; video++) {
+                for (size_t video = 0; video < max_video && (-1 == ret); video++) {
                     ret = insertrec(video, entry);
                 }
             }
