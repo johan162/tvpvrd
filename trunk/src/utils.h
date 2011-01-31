@@ -178,6 +178,20 @@ void
 getuptime(int *totaltime, int *idletime);
 
 /**
+ * Make a call to 'df' system function in rder to find out remaining disk
+ * space
+ * @param dir
+ * @param fs
+ * @param size
+ * @param used
+ * @param avail
+ * @param use
+ * @return 0 success, -1 failure
+ */
+int
+get_diskspace(char *dir, char *fs, char *size, char *used, char *avail, int *use);
+
+/**
  * Set the FD_CLOEXEC flag on the specified file. This will cause the
  * file descriptor to automatically close when we do a process replacement
  * via a exec() family call.

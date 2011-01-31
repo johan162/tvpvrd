@@ -1,5 +1,14 @@
 $Id$
 
+v3.0.3
+------
+User visible changes:
+    - Added 'df' = 'Display total and used disk space' command
+
+Internal changes:
+    - None.
+
+
 v3.0.2
 ------
 User visible changes:

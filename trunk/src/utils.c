@@ -663,6 +663,49 @@ getwsetsize(int pid, int *size, char *unit, int *threads) {
 }
 
 /**
+ * Make a call to 'df' system function in rder to find out remaining disk
+ * space
+ * @param dir
+ * @param fs
+ * @param size
+ * @param used
+ * @param avail
+ * @param use
+ * @return 0 success, -1 failure
+ */
+int
+get_diskspace(char *dir, char *fs, char *size, char *used, char *avail, int *use) {
+    int const maxbuff = 512;
+    char cmd[maxbuff];
+    snprintf(cmd, 512, "df -hP %s 2>&1", dir);
+    FILE *fp = popen(cmd, "r");
+    if (fp) {
+        char buffer[maxbuff];
+        fgets(buffer, maxbuff - 1, fp); // Read and discard header
+        fgets(buffer, maxbuff - 1, fp);
+        buffer[maxbuff - 1] = '\0';
+        buffer[strlen(buffer) - 1] = '\0'; // Get rid of newline
+
+        if (0 == pclose(fp)) {
+            // A typical returned string looks like
+            // //192.168.0.199/media  4.1T  612G  3.5T  15% /mnt/omega/mm
+
+            int ret = sscanf(buffer, "%s %s %s %s %d", fs, size, used, avail, use);
+            if (5 != ret) {
+                return -1;
+            } else {
+                return 0;
+            }
+        } else {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+}
+
+
+/**
  * Return the last n line from the logfile
  * @param n Number of lines to return
  * @param buffer Buffer
