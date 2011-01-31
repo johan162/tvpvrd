@@ -681,8 +681,12 @@ get_diskspace(char *dir, char *fs, char *size, char *used, char *avail, int *use
     FILE *fp = popen(cmd, "r");
     if (fp) {
         char buffer[maxbuff];
-        fgets(buffer, maxbuff - 1, fp); // Read and discard header
-        fgets(buffer, maxbuff - 1, fp);
+        char * ret1 = fgets(buffer, maxbuff - 1, fp); // Read and discard header
+        char * ret2 = fgets(buffer, maxbuff - 1, fp);
+        if( NULL == ret1 || NULL == ret2 ) {
+            (void)pclose(fp);
+            return -1;
+        }
         buffer[maxbuff - 1] = '\0';
         buffer[strlen(buffer) - 1] = '\0'; // Get rid of newline
 
