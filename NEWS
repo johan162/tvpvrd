@@ -3,7 +3,8 @@ $Id$
 v3.0.3
 ------
 User visible changes:
-    - Added 'df' = 'Display total and used disk space' command
+    - Added 'df' = 'Display used and total disk space' command
+    - Added information on disk usage in transcoding notification mail (updated mail templates)
 
 Internal changes:
     - None.
