@@ -2237,6 +2237,16 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                     str_buff[1023] = '\0';
                     add_keypair(keys,maxkeys,"WAITTRANS",str_buff,&ki);
 
+                    // Add information on disk usage
+                    char ds_fs[255],ds_size[128],ds_avail[128],ds_used[128];
+                    int ds_use;
+                    if( 0 == get_diskspace(datadir,ds_fs,ds_size,ds_used,ds_avail,&ds_use) ) {
+                        add_keypair(keys,maxkeys,"DISK_SIZE",ds_size,&ki);
+                        add_keypair(keys,maxkeys,"DISK_USED",ds_used,&ki);
+                        snprintf(str_buff,1023,"%d",ds_use);
+                        add_keypair(keys,maxkeys,"DISK_PERCENT_USED",str_buff,&ki);
+                    }
+
                     // Finally list the three next recordings
                     listrecsbuff(str_buff,1023,3,4);
                     str_buff[1023] = '\0';
@@ -2244,6 +2254,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                     add_keypair(keys,maxkeys,"TITLE",short_filename,&ki);
                     add_keypair(keys,maxkeys,"PROFILE",profile->name,&ki);
                     add_keypair(keys,maxkeys,"FILENAME",tmpbuff,&ki);
+
+
 
                     char subjectbuff[256];
                     snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
