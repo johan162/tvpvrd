@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010 Johan Persson
+ * Copyright (C) 2009,2010,2011 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1064,7 +1064,7 @@ struct cmd_grp {
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
     {"lh", "List"},
-    {"l", "Raw list"}
+    {"df", "Disk space"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
@@ -1115,8 +1115,7 @@ static struct cmd_entry cmdfunc_slave_view[] = {
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_menu_short[] = {
     {"s", "Status"},
-    {"lh", "Recs"},
-    {"n", "Next"},
+    {"lh", "List"},
     {"o", "Ongoing"}
 };
 
