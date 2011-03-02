@@ -419,8 +419,8 @@ _cmd_add(const char *cmd, int sockfd) {
                     "ar <type> <nbr> <ch> <s.time> [<title>] [@profile, @profile, ...]\n"\
                     "ar <type> <nbr> <ch> <s.time> <e.time> <title> [@profile, @profile, ...]\n"\
                     "ar <type> <nbr> <ch> <s.date> <s.time> <e.time> <title> [@profile, @profile, ...]\n"\
-                    "    type: 1=daily, 2=weekly, 3=monthly, 4=Mon-Fri, 5=Sat-Sun, 6=Mon-Thu\n"
-                    "      or: d=daily, w=weekly, m=monthly, f=Mon-Fri, s=Sat-Sun, t=Mon-Thu\n"
+                    "    type: 1=daily, 2=weekly, 3=monthly, 4=Mon-Fri, 5=Sat-Sun, 6=Mon-Thu, 7=Tue-Fri\n"
+                    "      or: d=daily, w=weekly, m=monthly, f=Mon-Fri, s=Sat-Sun, t=Mon-Thu, n=Tue-Fri\n"
                     "     nbr: Number of repeats\n"
                     );
         } else {
@@ -445,7 +445,7 @@ _cmd_add(const char *cmd, int sockfd) {
 
         // Repeated variant 1
         // ar <type> <id> <...>
-        ret = matchcmd("^ar" _PR_S "([1-6]|d|w|m|f|s|t)" _PR_S _PR_ID _PR_S _PR_ANY, cmd, &field);
+        ret = matchcmd("^ar" _PR_S "([1-7]|d|w|m|f|s|t|n)" _PR_S _PR_ID _PR_S _PR_ANY, cmd, &field);
         if( ret == 4 ) {
             if( isdigit(*field[1]) ) {
                 repeat_type = xatoi(field[1]);
@@ -457,6 +457,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     case 'f': repeat_type = 4; break;
                     case 's': repeat_type = 5; break;
                     case 't': repeat_type = 6; break;
+                    case 'n': repeat_type = 7; break;
                 }
             }
             repeat_nbr = (unsigned)xatoi(field[2]);
@@ -467,7 +468,7 @@ _cmd_add(const char *cmd, int sockfd) {
         }
         else {
             // See if number of instances was specified with an end date instead
-            ret = matchcmd("^ar" _PR_S "([1-6]|d|w|m|f|s|t)" _PR_S _PR_FULLDATE _PR_S _PR_ANY, cmd, &field);
+            ret = matchcmd("^ar" _PR_S "([1-7]|d|w|m|f|s|t|n)" _PR_S _PR_FULLDATE _PR_S _PR_ANY, cmd, &field);
             logmsg(LOG_DEBUG,"ret=%d after 'ar' command",ret);
             if( ret == 6 ) {
 
@@ -481,6 +482,7 @@ _cmd_add(const char *cmd, int sockfd) {
                         case 'f': repeat_type = 4; break;
                         case 's': repeat_type = 5; break;
                         case 't': repeat_type = 6; break;
+                        case 'n': repeat_type = 7; break;
                     }
                 }
 
