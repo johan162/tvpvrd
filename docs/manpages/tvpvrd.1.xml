@@ -1283,6 +1283,8 @@ a bbb1 21:00 21:29 lastnews @tlow</screen>
                             
                             <para>'<option>t</option>' - Repeat every Monday
                                 to Thursday (can also be specified as '6')</para>
+                        <para>'<option>n</option>' - Repeat every Tuesday to Friday (can also be
+                            specified as '7')</para>
                                                         
                             <para><emphasis>repeat-cnt | end-date</emphasis></para>
                             <para>This specifies the number of repeated recordings

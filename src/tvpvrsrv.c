@@ -831,7 +831,7 @@ startrec(void *arg) {
 
     abort_video[video] = 0;
             
-    if (vh == -1) {
+    if (-1 == vh) {
 
        logmsg(LOG_ERR, "Cannot setup video stream %02d. '%s' recording aborted",video,recording->title);
        pthread_mutex_lock(&recs_mutex);
@@ -902,7 +902,7 @@ startrec(void *arg) {
         short_filename[255] = '\0';
 
         int fh = open(full_filename, O_WRONLY | O_CREAT | O_TRUNC, fmode);
-        if (fh == -1) {
+        if (-1 == fh) {
 
             logmsg(LOG_ERR, "Cannot open '%s' for writing. Recording aborted. ( %d : %s ) ",
                    full_filename,errno,strerror(errno));
@@ -974,7 +974,7 @@ startrec(void *arg) {
 
                         nwrite = write(fh, video_buffer[video], (size_t)nread);
 
-                        if( nwrite == -1 ) {
+                        if( -1 == nwrite ) {
                             logmsg(LOG_ERR, "Error while writing to '%s' while recording. (%d : %s) ",
                                     full_filename,errno,strerror(errno));
                             doabort = 1;
@@ -1032,7 +1032,7 @@ startrec(void *arg) {
             char postrec_fullname[128];
             snprintf(postrec_fullname,128,"%s/tvpvrd/%s",CONFDIR,postrec_script);
             int csfd = open(postrec_fullname,O_RDONLY) ;
-            if( csfd == -1 ) {
+            if( -1 == csfd ) {
                 logmsg(LOG_ERR,"Cannot open post recording script '%s' ( %d : %s )",
                        postrec_fullname,errno,strerror(errno));
             } else {
@@ -1774,7 +1774,7 @@ chk_startupscript(void) {
         snprintf(cmd, 511, "%s -d \"%s\" -c \"%s/tvpvrd\" -a \"%s\"", script, datadir, CONFDIR, flag);
 
         int ret = system(cmd);
-        if (ret == -1 || WEXITSTATUS(ret)) {
+        if (-1 == ret || WEXITSTATUS(ret)) {
             logmsg(LOG_NOTICE, "Error when executing startup script '%s' ( %d : %s) ", cmd, errno, strerror(errno));
         } else {
             logmsg(LOG_DEBUG,"Executed startupscript: '%s'",cmd);
@@ -1861,7 +1861,7 @@ main(int argc, char *argv[]) {
     tzset();
     ts_serverstart = time(NULL);
 
-    if( verbose_log == -1 ) {
+    if( -1 == verbose_log ) {
         verbose_log = iniparser_getint(dict, "config:verbose_log", VERBOSE_LOG);
     }
     if( strlen(logfile_name) == 0 ) {
@@ -1877,7 +1877,7 @@ main(int argc, char *argv[]) {
            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
     logmsg(LOG_INFO,"Using ini-file '%s'",inifile);          
     
-    if( daemonize == -1 ) {
+    if( -1 == daemonize ) {
         daemonize = iniparser_getboolean(dict, "config:daemonize", DEFAULT_DAEMONIZE);
     }
 

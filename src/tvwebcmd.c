@@ -935,7 +935,7 @@ web_cmd_qadd(int sockd) {
 }
 
 /**
- * Display the delete recording area
+ * Display the add and delete recording area
  * @param sockd
  */
 void
@@ -950,14 +950,16 @@ web_cmd_add_del(int sockd) {
         {.key = "d", .val = "Daily"},
         {.key = "f", .val = "Mon-Fri"},
         {.key = "t", .val = "Mon-Thu"},
-        {.key = "s", .val = "Sat-Sun"},
+        {.key = "n", .val = "Tue-Fri"},
+        {.key = "s", .val = "Sat-Sun"}
     };
-    const size_t n_rpt = 6;
+    const size_t n_rpt = 7;
     static const char *rptcount_list[] = {
         " ", "02", "03", "04", "05", "06", "07", "08", "09", "10",
         "11", "12", "13", "14", "15", "16", "17", "18", "19",
         "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-        "30", "31", "33", "33", "34", "35", "36", "37", "38", "39",
+        "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+        "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50"
     };
     const size_t n_rptcount = 39;
     static const char *yn_list[] = {
@@ -1087,7 +1089,8 @@ static struct cmd_entry cmdfunc_master_view[] = {
 static struct cmd_entry cmdfunc_master_driver[] = {
     {"vc", "Driver"},
     {"li", "Inputs"},
-    {"lc%200", "Settings #0"}
+    {"lc%200", "Settings #0"},
+    {"lc%201", "Settings #1"}
 };
 
 //------------------------------------------------------------------

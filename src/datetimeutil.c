@@ -249,6 +249,23 @@ increcdays(int rectype,
             } while (tm_start.tm_wday >= 5 || tm_start.tm_wday == 0 );
             break;
 
+        case 7:
+            // Tue-Fri
+            do {
+                *sd += 1;
+                *ed += 1;
+                tm_start.tm_sec = *ssec;
+                tm_start.tm_min = *smin;
+                tm_start.tm_hour = *sh;
+                tm_start.tm_mday = *sd;
+                tm_start.tm_mon = *sm - 1;
+                tm_start.tm_year = *sy - 1900;
+                tm_start.tm_isdst = -1;
+                mktime(&tm_start);
+            } while (tm_start.tm_wday == 6 || tm_start.tm_wday <= 1 );
+            break;
+
+
         default:
             logmsg(LOG_ERR, "Unknown type of repeat specified for record.");
             return -1;

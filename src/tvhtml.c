@@ -519,7 +519,7 @@ html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     _writef(sockd, "<div class=\"single_side\">");
     web_commandlist_short(sockd);
     web_cmd_output(sockd, wcmd);
-    web_cmd_qadd(sockd);
+    // web_cmd_qadd(sockd);
     web_cmd_add_del(sockd);
     _writef(sockd, "\n</div> <!-- single_side -->");
 

@@ -431,11 +431,11 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
     fromtimestamp(*start, &sy, &sm, &sd, &sh, &smin, &ssec);
     fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);
 
-    // If we have a recurrence on Mod-Fri (or possible Sat-Sun)
+    // If we have a recurrence on Mon-Fri (or possible Sat-Sun)
     // The we need to make sure that the start date also
     // obeys this. If this is not the case we move the start
     // day forward until the condition is met.
-    if( recurrence_type == 4 || recurrence_type == 6 ) {
+    if( recurrence_type == 4 || recurrence_type == 6 || recurrence_type == 7) {
         // Mon Fri
         struct tm tm_start;
         tm_start.tm_sec = ssec;
@@ -448,6 +448,7 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
         mktime(&tm_start);
 
         if( recurrence_type == 4  ) {
+            // Type is 7 (Mon-Fri)
             if( tm_start.tm_wday == 6 ) {
                 sd += 2;
                 ed += 2;
@@ -470,6 +471,22 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
                 sd += 3;
                 ed += 3;
             }
+        } else {
+            // Type is 7 (Tue-Fri)
+            if (tm_start.tm_wday == 6) {
+                // skip a sat+sun+mon
+                sd += 3;
+                ed += 3;
+            } else if (tm_start.tm_wday == 0) {
+                // skip a sunday and monday
+                sd += 2;
+                ed += 2;
+            } else if (tm_start.tm_wday == 1) {
+                // skip monday
+                sd += 1;
+                ed += 1;
+            }
+
         }
 
     } else if( recurrence_type == 5 ) {

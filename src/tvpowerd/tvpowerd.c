@@ -1500,7 +1500,7 @@ main(int argc, char** argv) {
     setenv("LC_ALL",locale_name,1);
     logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
 
-    if( verbose_log == -1 ) {
+    if( -1 == verbose_log ) {
         verbose_log = iniparser_getint(dict, "config:verbose_log", VERBOSE_LOG);
     }
     if( strlen(logfile_name) == 0 ) {
@@ -1516,7 +1516,7 @@ main(int argc, char** argv) {
            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
     logmsg(LOG_INFO,"Using ini-file '%s'",inifile);
 
-    if( daemonize == -1 ) {
+    if( -1 == daemonize ) {
         daemonize = iniparser_getboolean(dict, "config:daemonize", DEFAULT_DAEMONIZE);
     }
 

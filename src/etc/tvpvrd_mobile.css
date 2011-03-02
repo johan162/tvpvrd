@@ -119,7 +119,6 @@ div.input_container#id_submitlogin {
     margin-right: 20%;
 }
 
-
 div#logout_container {
     float:left;
     width:99%;
@@ -204,7 +203,6 @@ input.input_text {
     font-size: 30pt;
 }
 
-
 /* This div encloses the command output */
 div.cmd_output {
     padding-top: 0;
@@ -219,15 +217,15 @@ div.cmd_output {
     font-size:130%;
     font-family: Monospace;
     border:dotted gray 1px;
-    background:white;
     height:12ex;
-    width: 96%;
+    width: 45em;
     overflow:auto;
     clear:both;
     background:black;
     color: #0f0;
 }
 
+/* The inside of the command output */
 pre {
     margin:0;
     padding: 0;
@@ -248,10 +246,10 @@ legend {
 fieldset {
     border:dotted #333 2px;
     layout: block;
-   margin-top:1%;
-   margin-right:0px;
-   margin-left:1%;
-   width:94%;
+    margin-top:1%;
+    margin-right:0px;
+    margin-left:1%;
+    width:94%;
 }
 
 

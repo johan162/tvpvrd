@@ -1,5 +1,16 @@
 $Id$
 
+v3.0.4
+------
+User visible changes:
+    - Minor change in menu for WEB-interface (Added "Disk space")
+    - Some minor tweaks in the layout for mobile phone version of the web interface
+    - Added repeat type: n=Tue-Fri
+
+Internal changes:
+    - Updated file headers.
+
+
 v3.0.3
 ------
 User visible changes:
