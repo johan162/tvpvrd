@@ -576,7 +576,7 @@ smtp_add_rcpt(struct smtp_handle *handle, unsigned type, char *rcpt) {
         return -1;
     }
 
-    logmsg(LOG_DEBUG,"Normalize email RCPT: '%s' as ['%s', '%s']",rcpt,email_namepart,email_addrpart);
+    // logmsg(LOG_DEBUG,"Normalize email RCPT: '%s' as ['%s', '%s']",rcpt,email_namepart,email_addrpart);
 
     snprintf(email_full,512,"%s %s",email_namepart,email_addrpart);
     switch (type) {
@@ -832,7 +832,7 @@ smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, char
 int
 smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
-    logmsg(LOG_DEBUG, "smtp_sendmail(handle,\"%s\",\"%s\")",from,subject);
+    // logmsg(LOG_DEBUG, "smtp_sendmail(handle,\"%s\",\"%s\")",from,subject);
 
     if( ! handle->to_concatenated || *handle->to_concatenated == '\0') {
         // Must have at least one receipients before we can send
@@ -880,7 +880,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
             size_t const databufflen = strlen(handle->html) + strlen(handle->plain) + 512;
             handle->databuff = calloc(1, databufflen);
-            logmsg(LOG_DEBUG, "smtp_sendmail #5.4 (databufflen=%d)",databufflen);
+            // logmsg(LOG_DEBUG, "smtp_sendmail #5.4 (databufflen=%d)",databufflen);
             snprintf(handle->databuff, databufflen,
                     "--%s\r\n"
                     "Content-Transfer-Encoding: 8bit\r\n"
@@ -1028,7 +1028,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 
     if( handle->cc_concatenated && *handle->cc_concatenated ) {
         if( -1 == _senddata(handle,"Cc: ", handle->cc_concatenated) ) {
-            logmsg(LOG_DEBUG, "smtp_sendmail #10.3.1");
+            // logmsg(LOG_DEBUG, "smtp_sendmail #10.3.1");
             return -1;
         }
     }

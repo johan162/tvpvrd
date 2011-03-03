@@ -794,9 +794,13 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
 
 
-static const char *min_list[] = {
-    "00", "05", "10", "14", "15", "20", "25", "29", "30",
-    "35", "40", "44", "45", "50", "55", "59"
+static const char *min_list_start[] = {
+    "00", "05", "10", "15", "20", "25", "30",
+    "35", "40", "45", "50", "55"
+};
+static const char *min_list_end[] = {
+    "00", "04", "09", "14", "24", "29", "30",
+    "39", "44", "49", "54", "59"
 };
 static const char *hour_list[] = {
     "17", "18", "19", "20", "21", "22", "23",
@@ -908,7 +912,7 @@ web_cmd_qadd(int sockd) {
     const size_t n_profile = get_profile_names(profile_list, 64);
 
     const size_t n_hourlength = sizeof (hourlength_list) / sizeof (char *);
-    const size_t n_min = sizeof (min_list) / sizeof (char *);
+    const size_t n_min_end = sizeof (min_list_end) / sizeof (char *);
 
     _writef(sockd, "<div class=\"cmd_qadd_container\">");
 
@@ -922,7 +926,7 @@ web_cmd_qadd(int sockd) {
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_qstation");
 
     html_element_select(sockd, "Length:", "length_hour", "00", hourlength_list, n_hourlength, "id_length_hour");
-    html_element_select(sockd, "&nbsp;", "length_min", "45", min_list, n_min, "id_length_min");
+    html_element_select(sockd, "&nbsp;", "length_min", "45", min_list_end, n_min_end, "id_length_min");
 
     html_element_input_text(sockd, "Title:", "title", "id_qtitle");
     html_element_submit(sockd, "submit_qaddrec", "Start", "id_qaddrec");
@@ -973,7 +977,8 @@ web_cmd_add_del(int sockd) {
     const size_t n_profile = get_profile_names(profile_list, 64);
 
     const size_t n_hour = sizeof (hour_list) / sizeof (char *);
-    const size_t n_min = sizeof (min_list) / sizeof (char *);
+    const size_t n_min_start = sizeof (min_list_start) / sizeof (char *);
+    const size_t n_min_end = sizeof (min_list_end) / sizeof (char *);
 
     _writef(sockd, "<div class=\"cmd_add_del_container\">");
 
@@ -989,10 +994,10 @@ web_cmd_add_del(int sockd) {
     html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
     html_element_select(sockd, "Day:", "start_day", NULL, day_list, n_day, "id_start");
     html_element_select(sockd, "Start:", "start_hour", "18", hour_list, n_hour, "id_starthour");
-    html_element_select(sockd, "&nbsp;", "start_min", NULL, min_list, n_min, NULL);
+    html_element_select(sockd, "&nbsp;", "start_min", NULL, min_list_start, n_min_start, NULL);
     _writef(sockd, "<div class=\"input_container\" id=\"be_hyphen\"><span class=\"be_hyphen\"> &rarr; </span></div>");
     html_element_select(sockd, "End:", "end_hour", "18", hour_list, n_hour, "id_endhour");
-    html_element_select(sockd, "&nbsp;", "end_min", "59", min_list, n_min, NULL);
+    html_element_select(sockd, "&nbsp;", "end_min", "59", min_list_end, n_min_end, NULL);
 
     html_element_input_text(sockd, "Title:", "title", "id_title");
     html_element_submit(sockd, "submit_addrec", "Add", "id_addrec");

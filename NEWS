@@ -1,5 +1,18 @@
 $Id$
 
+v3.0.5
+------
+User visible changes:
+    - Optimized Web-GUI minute list to better match start and end times often used
+    - Added "lm" command. Will mail the list of recordings (in both plain and HTML format) to the
+      email adress specified to receive mails.  The format of the HTML mail is controlled by CSS
+      styles and for now stored in tvconfig.h (eventually these should be moved out to the INI-file
+      but that file (unfortunately) already has too many settings.)
+
+Internal changes:
+    - None.
+
+
 v3.0.4
 ------
 User visible changes:

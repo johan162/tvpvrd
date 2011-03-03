@@ -410,108 +410,6 @@ _insertrec(unsigned video, struct recording_entry* entry) {
     return 1;
 }
 
-/**
- * Make sure a repetaing recording that is set to record only certain weekdays
- * have a first date that obey this restriction
- * @param start
- * @param end
- * @param recurrence_type
- * @return
- */
-int
-adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
-    int sy, sm, sd, sh, smin, ssec;
-    int ey, em, ed, eh, emin, esec;
-
-    if( recurrence_type < 0 || recurrence_type > 6 ) {
-        logmsg(LOG_ERR, "FATAL: Internal error. Unknown recurrence type %d in adjust_initital_repeat_date()",recurrence_type);
-        return -1;
-    }
-
-    fromtimestamp(*start, &sy, &sm, &sd, &sh, &smin, &ssec);
-    fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);
-
-    // If we have a recurrence on Mon-Fri (or possible Sat-Sun)
-    // The we need to make sure that the start date also
-    // obeys this. If this is not the case we move the start
-    // day forward until the condition is met.
-    if( recurrence_type == 4 || recurrence_type == 6 || recurrence_type == 7) {
-        // Mon Fri
-        struct tm tm_start;
-        tm_start.tm_sec = ssec;
-        tm_start.tm_min = smin;
-        tm_start.tm_hour = sh;
-        tm_start.tm_mday = sd;
-        tm_start.tm_mon = sm - 1;
-        tm_start.tm_year = sy - 1900;
-        tm_start.tm_isdst = -1;
-        mktime(&tm_start);
-
-        if( recurrence_type == 4  ) {
-            // Type is 7 (Mon-Fri)
-            if( tm_start.tm_wday == 6 ) {
-                sd += 2;
-                ed += 2;
-            } else if( tm_start.tm_wday == 0 ) {
-                sd++;
-                ed++;
-            }
-        } else if( recurrence_type == 6  ) {
-            // Type must be 6 (Mon-Thu)
-            if (tm_start.tm_wday == 6) {
-                // Mon - Thu so skip a sat+sun
-                sd += 2;
-                ed += 2;
-            } else if (tm_start.tm_wday == 0) {
-                // Mon - Thu so skip a sun
-                sd++;
-                ed++;
-            } else if (tm_start.tm_wday == 5) {
-                // Mon - Thu so skip a friday+weekend
-                sd += 3;
-                ed += 3;
-            }
-        } else {
-            // Type is 7 (Tue-Fri)
-            if (tm_start.tm_wday == 6) {
-                // skip a sat+sun+mon
-                sd += 3;
-                ed += 3;
-            } else if (tm_start.tm_wday == 0) {
-                // skip a sunday and monday
-                sd += 2;
-                ed += 2;
-            } else if (tm_start.tm_wday == 1) {
-                // skip monday
-                sd += 1;
-                ed += 1;
-            }
-
-        }
-
-    } else if( recurrence_type == 5 ) {
-        // Sat-Sun
-        struct tm tm_start;
-        tm_start.tm_sec = ssec;
-        tm_start.tm_min = smin;
-        tm_start.tm_hour = sh;
-        tm_start.tm_mday = sd;
-        tm_start.tm_mon = sm - 1;
-        tm_start.tm_year = sy - 1900;
-        tm_start.tm_isdst = -1;
-        mktime(&tm_start);
-        if( tm_start.tm_wday < 6 && tm_start.tm_wday > 0) {
-            sd += 6-tm_start.tm_wday;
-            ed += 6-tm_start.tm_wday;
-        }
-    }
-
-    *start = totimestamp(sy, sm, sd, sh, smin, ssec);
-    *end = totimestamp(ey, em, ed, eh, emin, esec);
-
-    return 0;
-}
-
 /*
  * Insert a new recording in the list after checking that it doesn't
  * collide with an existing recording.
@@ -673,6 +571,239 @@ dumprecord_header(int style, char *buffer, size_t bufflen) {
     buffer[bufflen-1] = '\0';
 }
 
+/**
+ * Fill the supplied buffer with a representatation of the record in the format
+ * of a row in a HTML table
+ * @param entry
+ * @param buffer
+ * @param bufflen
+ */
+
+
+void
+dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size_t idx,struct css_record_style *rs) {
+    int sy, sm, sd, sh, smi, ss;
+    int ey, em, ed, eh, emi, es;
+    char rectypename[16];
+    char rectypelongname[16];
+    char profbuff[256], profile[REC_MAX_TPROFILE_LEN+1];
+    struct tm result;
+    static char wday_name[7][4] = {
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
+    static char month_name[12][4] = {
+        "Jan","Feb","Mar","Apr","May","Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
+    profbuff[0] = '\0';
+    unsigned left=255;
+    for(int k=0; k < REC_MAX_TPROFILES && strlen(entry->transcoding_profiles[k]) > 0; k++) {
+        snprintf(profile,REC_MAX_TPROFILE_LEN,"@%s",entry->transcoding_profiles[k]);
+        if( k > 0 ) {
+            strcat(profbuff,", ");
+            left -= 2;
+        }
+        strncat(profbuff,profile,left);
+        left -= strlen(profile);
+    }
+    profbuff[255] = '\0';
+
+    fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
+    fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emi, &es);
+    (void)getrectypestr(entry->recurrence_type, 0, rectypename,16);
+    (void)getrectypestr(entry->recurrence_type, 1, rectypelongname,16);
+
+    // We need localtime to find the day of week for the start
+    (void)localtime_r(&entry->ts_start, &result);
+
+    snprintf(buffer, bufflen, "<tr style=\"%s\">"
+                              "<td style=\"%s\">%03d</td>"
+                              "<td style=\"%s\">%s</td>"
+                              "<td style=\"%s\">%s %s %02d</td>"
+                              "<td style=\"%s\">%02d:%02d</td>"
+                              "<td style=\"%s\">%02d:%02d</td>"
+                              "<td style=\"%s\">%s</td>"
+                              "<td style=\"%s\">%s</td></tr>\n",
+                            rs->tr,
+                            rs->td_l, idx, /*entry->seqnbr,*/
+                            rs->td_i, entry->channel,
+                            rs->td_i, wday_name[result.tm_wday], month_name[sm-1], sd,
+                            rs->td_i, sh, smi,
+                            rs->td_i, eh, emi,
+                            rs->td_i, entry->title,
+                            rs->td_r, profbuff);
+
+    buffer[bufflen-1] = '\0';
+    
+}
+
+void
+dumphtmlrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs) {
+
+    snprintf(buffer, bufflen,
+            "<tr style=\"%s\">"
+            "<th style=\"%s\">#</th>"
+            "<th style=\"%s\">Ch</th>"
+            "<th style=\"%s\">Date</th>"
+            "<th style=\"%s\">Start</th>"
+            "<th style=\"%s\">End</th>"
+            "<th style=\"%s\">Title</th>"
+            "<th style=\"%s\">Profile</th>"
+            "</tr>\n",
+            rs->tr,
+            rs->td_l, 
+            rs->td_i, 
+            rs->td_i, 
+            rs->td_i, 
+            rs->td_i, 
+            rs->td_i, 
+            rs->td_r);
+
+    buffer[bufflen-1] = '\0';
+    
+}
+
+int
+set_listhtmlcss(struct css_table_style *ts, size_t style) {
+    
+    if( style > 0 ) {
+        logmsg(LOG_DEBUG,"Unknown style (%u) specified in set_listhtmlcss()",style);
+        style=0;
+    }
+
+    static struct css_table_style css_style[] = {
+        {
+            .table = TBLCSS_TABLE_1,
+            .even_row = { .td_i      = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
+            .td_l      = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
+            .td_r      = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
+            .tr  = ""
+            },
+            .odd_row = { .td_i       = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
+            .td_l       = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
+            .td_r       = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:" TBLCSS_VBORDER_OUTER_1  ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
+            .tr  = ""
+            },
+            .header_row = { .td_i    = "color:" TBLCSS_HEADER_TEXTCOLOR_1 ";background:" TBLCSS_HEADER_BACKGROUND_1   ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";border-top:" TBLCSS_HBORDER_OUTER_1 ";",
+            .td_l    = "color:" TBLCSS_HEADER_TEXTCOLOR_1 ";background:" TBLCSS_HEADER_BACKGROUND_1   ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";border-top:" TBLCSS_HBORDER_OUTER_1 ";",
+            .td_r    = "color:" TBLCSS_HEADER_TEXTCOLOR_1 ";background:" TBLCSS_HEADER_BACKGROUND_1   ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:" TBLCSS_VBORDER_OUTER_1  ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";border-top:" TBLCSS_HBORDER_OUTER_1 ";",
+            .tr  = ""
+            },
+            .last_even_row = { .td_i = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_OUTER_1 ";",
+            .td_l = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1    ";",
+            .td_r = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:"TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1    ";",
+            .tr  = ""
+            },
+            .last_odd_row = { .td_i  = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_OUTER_1 ";",
+            .td_l  = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1    ";",
+            .td_r  = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:"  TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1 ";",
+            .tr  = ""
+            }
+        }
+    };
+
+    strcpy(ts->table,css_style[style].table);
+
+    strcpy(ts->even_row.td_i,css_style[style].even_row.td_i);
+    strcpy(ts->even_row.td_l,css_style[style].even_row.td_l);
+    strcpy(ts->even_row.td_r,css_style[style].even_row.td_r);
+
+    strcpy(ts->odd_row.td_i,css_style[style].odd_row.td_i);
+    strcpy(ts->odd_row.td_l,css_style[style].odd_row.td_l);
+    strcpy(ts->odd_row.td_r,css_style[style].odd_row.td_r);
+
+    strcpy(ts->header_row.td_i,css_style[style].header_row.td_i);
+    strcpy(ts->header_row.td_l,css_style[style].header_row.td_l);
+    strcpy(ts->header_row.td_r,css_style[style].header_row.td_r);
+
+    strcpy(ts->last_even_row.td_i,css_style[style].last_even_row.td_i);
+    strcpy(ts->last_even_row.td_l,css_style[style].last_even_row.td_l);
+    strcpy(ts->last_even_row.td_r,css_style[style].last_even_row.td_r);
+
+    strcpy(ts->last_odd_row.td_i,css_style[style].last_odd_row.td_i);
+    strcpy(ts->last_odd_row.td_l,css_style[style].last_odd_row.td_l);
+    strcpy(ts->last_odd_row.td_r,css_style[style].last_odd_row.td_r);
+
+    return 0;
+}
+
+int
+listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
+    struct recording_entry **entries;
+    char tmpbuffer[2048];
+    size_t const n_tmpbuff=2048;
+    struct css_table_style ts;
+
+    bzero(&ts, sizeof(struct css_table_style));
+    set_listhtmlcss(&ts, style);
+
+    entries = calloc((size_t)(max_video*max_entries),sizeof (struct recording_entry *));
+    if( entries == NULL ) {
+        logmsg(LOG_ERR,"_listrecs() : Out of memory. Aborting program.");
+        exit(EXIT_FAILURE);
+    }
+    bzero(tmpbuffer, n_tmpbuff);
+    *buffer = '\0';
+
+    // We combine all recordings on all videos in order to
+    // give a combined sorted list of pending recordings
+    size_t k=0;
+    for (unsigned video = 0; video < max_video; video++) {
+        for (unsigned i = 0; i < num_entries[video]; ++i) {
+            entries[k++] = recs[REC_IDX(video, i)];
+        }
+    }
+
+    qsort(entries, k, sizeof (struct recording_entry *), _cmprec);
+
+    if( maxrecs > 0 )
+        k = MIN(k,maxrecs);
+
+    int max = maxlen;
+
+    snprintf(buffer,max,"<table border=0 style=\"%s\" cellpadding=4 cellspacing=0>\n",ts.table);
+    max -= strlen(buffer);
+
+    dumphtmlrecord_header(tmpbuffer, n_tmpbuff, &ts.header_row);
+    strncat(buffer,tmpbuffer,max-1);
+    max -= strlen(tmpbuffer);
+
+    for( size_t i=0; i < k && max > 0; i++ ) {
+        if( i==k-1 ) {
+            if( i % 2 )
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_odd_row);
+            else
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_even_row);
+        } else {
+            if( i % 2 )
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.odd_row);
+            else
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.even_row);
+        }
+        if( strlen(tmpbuffer) >= (size_t)max ) {
+            max = -1;
+            logmsg(LOG_ERR,"Internal error. Not enough memory allocated for recording list");
+        } else {
+            strncat(buffer,tmpbuffer,max-1);
+            max -= strlen(tmpbuffer);
+        }
+    }
+
+    if( max > 0 ) {
+        snprintf(tmpbuffer,n_tmpbuff,"</table>\n");
+        strncat(buffer,tmpbuffer,max-1);
+        buffer[maxlen-1] = '\0';
+    }
+
+    free(entries);
+
+    return max > 0 ? 0 : -1;
+
+}
+
+
+
 /*
  * Fill the supplied buffer with a textual representation of the recording
  * entry pointed to by 'entry'. The styöe affect how the string is fomratted
@@ -728,11 +859,10 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, size_t buffle
         }
         profbuff[255] = '\0';
 
-        snprintf(buffer, bufflen, "[%03d|%-8.8s|%s %s %02d|%.3s|%02d:%02d|%02d:%02d|%-30s|%s]\n",
+        snprintf(buffer, bufflen, "[%03d|%-8.8s|%s %s %02d|%02d:%02d|%02d:%02d|%-30s|%s]\n",
                 entry->seqnbr,
                 entry->channel,
                 wday_name[result.tm_wday], month_name[sm-1], sd,
-                wday_name[result.tm_wday],
                 sh, smi, eh, emi, entry->title,profbuff);
 
     } else if ( style == 3 ) {
@@ -777,7 +907,7 @@ dumprecord(struct recording_entry* entry, int style, char *buffer, size_t buffle
         snprintf(buffer, bufflen, "%ld %ld %s\n",entry->ts_start,entry->ts_end,entry->title);
 
     } else {
-        // Format 1 or 2 so we must differntiate a recurring and single record
+        // Format 1 or 2 so we must differentiate a recurring and single record
         // 1 Record several lines, long format
         // 2 Record several lines, short format
         if (entry->recurrence) {
@@ -957,7 +1087,7 @@ listrecs(size_t maxrecs, int style, int fd) {
  * Same as listrecs() but dump all records to the specified buffer instead
  * of a file descriptor
  */
-void
+int
 listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style) {
     struct recording_entry **entries;
     char tmpbuffer[2048];
@@ -984,15 +1114,24 @@ listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style) {
     if( maxrecs > 0 )
         k = MIN(k,maxrecs);
 
-    size_t max = maxlen;
-    for(size_t i=0; i < k; i++ ) {
+    int max = maxlen;
+    for(size_t i=0; i < k && max > 0; i++ ) {
         dumprecord(entries[i], style, tmpbuffer, 2048);
-        strncat(buffer,tmpbuffer,max-1);
-        max -= strlen(tmpbuffer);
+
+        if( strlen(tmpbuffer) >= (size_t)max ) {
+            max = -1;
+            logmsg(LOG_ERR,"Internal error. Not enough memory allocated for recording list");
+        } else {
+            strncat(buffer,tmpbuffer,max-1);
+            max -= strlen(tmpbuffer);
+        }
     }
+
     buffer[maxlen-1] = '\0';
 
     free(entries);
+
+    return max > 0 ? 0 : -1;
 
 }
 

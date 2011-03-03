@@ -123,6 +123,30 @@ struct skeysval_t {
     char *val;
 };
 
+/*
+ * Holds the CSS style to be used when generating a list of recordings in HTML
+ * format for one row.
+ */
+struct css_record_style {
+    char tr[255];
+    char td_l[255];
+    char td_i[255];
+    char td_r[255];
+};
+
+/*
+ * Holds the CSS style to be used when generating a list of recordings in HTML
+ * format for the entire table.
+ */
+struct css_table_style {
+    struct css_record_style header_row;
+    struct css_record_style even_row;
+    struct css_record_style odd_row;
+    struct css_record_style first_row;
+    struct css_record_style last_odd_row;
+    struct css_record_style last_even_row;
+    char table[255];
+};
 
 /**
  * The list with all planned recordings
@@ -254,9 +278,21 @@ listrecs(size_t maxrecs, int style, int fd);
  * @param maxlen
  * @param maxrecs
  * @param style
+ * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
  */
-void
+int
 listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style);
+
+/**
+ * Dump a list of all future recordings in the specified buffer using HTML output format
+ * @param buffer
+ * @param maxlen
+ * @param maxrecs
+ * @param ts
+ * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
+ */
+int
+listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style);
 
 /**
  * Create a list of all currnet recordings
@@ -284,19 +320,6 @@ deleterecid(unsigned seqnbr, int allrecurrences);
  */
 int
 updateprofile(unsigned seqnbr, char *profile);
-
-/**
- * Adjust the given start and end date for a recording so that it actually starts
- * on a day that is allowed according to the repeat type. For example if the repeat
- * is onlye said to be on weekebds and the start date is on a wed we need to adjust
- * it by three days.
- * @param start
- * @param end
- * @param recurrence_type
- * @return
- */
-int
-adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type);
 
 #ifdef	__cplusplus
 }

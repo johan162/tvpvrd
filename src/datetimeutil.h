@@ -54,7 +54,20 @@ int
 increcdays(int rectype, time_t *ts_start, time_t *ts_end,
            int *sy, int *sm, int *sd, int *sh, int *smin, int *ssec,
            int *ey, int *em, int *ed, int *eh, int *emin, int *esec);
-   
+
+/**
+ * Adjust the given start and end date for a recording so that it actually starts
+ * on a day that is allowed according to the repeat type. For example if the repeat
+ * is only said to be on weekebds and the start date is on a wed we need to adjust
+ * it by three days.
+ * @param start
+ * @param end
+ * @param recurrence_type
+ * @return 0 on success, -1 on failure
+ */
+int
+adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type);
+
 /**
  * Translate a day name (e.g. mon, tue, wed, ...) to a date relative
  * the current date. The dates will always be within the next 7 days

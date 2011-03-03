@@ -2200,7 +2200,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                 if( send_mail_on_transcode_end ) {
                     size_t const maxkeys=16;
                     struct keypairs *keys = new_keypairlist(maxkeys);
-                    char str_buff[1024];
+                    size_t const n_str_buff = 2048;
+                    char str_buff[n_str_buff];
                     size_t ki = 0 ;
 
                     // Include system load average in mail
@@ -2216,25 +2217,25 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                     // Get full current time to include in mail
                     time_t now = time(NULL);
                     ctime_r(&now,str_buff);
-                    str_buff[strnlen(str_buff,1023)-1] = 0; // Remove trailing newline
+                    str_buff[strnlen(str_buff,n_str_buff-1)-1] = 0; // Remove trailing newline
                     add_keypair(keys,maxkeys,"TIME",str_buff,&ki);
 
-                    snprintf(str_buff,1023,"%02d:%02d",rh,rm);
+                    snprintf(str_buff,n_str_buff-1,"%02d:%02d",rh,rm);
                     add_keypair(keys,maxkeys,"TRANSCTIME",str_buff,&ki);
 
                     // Include the server name in the mail
                     gethostname(str_buff,80);
-                    str_buff[1023] = '\0';
+                    str_buff[n_str_buff-1] = '\0';
                     add_keypair(keys,maxkeys,"SERVERNAME",str_buff,&ki);
 
                     // Include all ongoing transcodings
-                    list_ongoing_transcodings(str_buff,1023,0);
-                    str_buff[1023] = '\0';
+                    list_ongoing_transcodings(str_buff,n_str_buff-1,0);
+                    str_buff[n_str_buff-1] = '\0';
                     add_keypair(keys,maxkeys,"ONGOINGTRANS",str_buff,&ki);
 
                     // Also include all waiting transcodings
-                    list_waiting_transcodings(str_buff,1023);
-                    str_buff[1023] = '\0';
+                    list_waiting_transcodings(str_buff,n_str_buff-1);
+                    str_buff[n_str_buff-1] = '\0';
                     add_keypair(keys,maxkeys,"WAITTRANS",str_buff,&ki);
 
                     // Add information on disk usage
@@ -2248,8 +2249,8 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                     }
 
                     // Finally list the three next recordings
-                    listrecsbuff(str_buff,1023,3,4);
-                    str_buff[1023] = '\0';
+                    listrecsbuff(str_buff,n_str_buff-1,3,4);
+                    str_buff[n_str_buff-1] = '\0';
                     add_keypair(keys,maxkeys,"NEXTRECS",str_buff,&ki);
                     add_keypair(keys,maxkeys,"TITLE",short_filename,&ki);
                     add_keypair(keys,maxkeys,"PROFILE",profile->name,&ki);
