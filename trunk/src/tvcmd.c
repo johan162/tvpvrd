@@ -68,6 +68,7 @@
 #include "build.h"
 #include "datetimeutil.h"
 #include "xstr.h"
+#include "libsmtpmail/mailclientlib.h"
 
 /*
  * Indexes into the command table
@@ -110,8 +111,9 @@
 #define CMD_LIST_TS 35
 #define CMD_ADD_FROMFILE 36
 #define CMD_DISK_USED 37
+#define CMD_LIST_HTML 38
 
-#define CMD_UNDEFINED 38
+#define CMD_UNDEFINED 39
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -171,6 +173,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  lc   - list all controls for the capture card\n"\
                         "  log n -show the last n lines of the logfile\n"\
                         "  ls   - list all stations\n"\
+                        "  lm   - list all stations, HTML format\n"\
                         "  lp   - list all profiles\n"\
                         "  lq n - list queued transcodings\n"\
 			"  n    - list the immediate next recording on each video\n"\
@@ -223,7 +226,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lp|lq|ls|lh|li|lc|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lm|lp|lq|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -1252,7 +1255,8 @@ _cmd_list_human(const char *cmd, int sockfd) {
     }
 
     int ret = matchcmd("^lh" _PR_SO _PR_OPID _PR_E, cmd, &field);
-    int n;
+    size_t n;
+
     if( ret > 1 ) {
         // User has limited the list
 
@@ -1266,7 +1270,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
 
     } else if ( ret == 1 ) {
 
-        n = -1; // Default to all records
+        n = 0; // Default to all records
 
     } else {
 
@@ -1276,7 +1280,91 @@ _cmd_list_human(const char *cmd, int sockfd) {
     }
 
     matchcmd_free(&field);
-    listrecs((size_t)n, 3, sockfd);
+    listrecs(n, 3, sockfd);
+}
+
+/*
+ */
+static void
+_cmd_list_html(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "lm <n>         - List all pending recordings in HTML. If <n> is given, only list the first n records\n"
+                 );
+        return;
+    }
+
+    int ret = matchcmd("^lm" _PR_SO _PR_OPID _PR_E, cmd, &field);
+    size_t n;
+
+    if( ret > 1 ) {
+        // User has limited the list
+
+        n = xatoi(field[1]);
+
+        if( n < 1 || n > 99 ) {
+            _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
+            matchcmd_free(&field);
+            return;
+        }
+
+    } else if ( ret == 1 ) {
+
+        n = 0; // Default to all records
+
+    } else {
+
+        _writef(sockfd,"Syntax error.\n",ret);
+        return;
+
+    }
+
+    matchcmd_free(&field);
+
+    size_t const maxlen=(max_video*max_entries)*1024;
+    char *buffer = calloc(maxlen, sizeof(char));
+    listhtmlrecsbuff(buffer, maxlen, n, 0);
+
+    char *buffer_plain = calloc(maxlen, sizeof(char));
+    listrecsbuff(buffer_plain, maxlen, n, 3);
+
+    struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
+    if( handle == NULL ) {
+        logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
+        free(buffer);
+        _writef(sockfd,"Could NOT connect to SMTP server (%s)\n",smtp_server);
+        return;
+    }
+
+    if( -1 == smtp_add_html(handle, buffer, buffer_plain) ) {
+        free(buffer);
+        free(buffer_plain);
+        _writef(sockfd,"Failed to created mail.\n");
+        smtp_cleanup(&handle);
+        return;
+    }
+
+    if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, send_mailaddress) ) {
+        free(buffer);
+        free(buffer_plain);
+        _writef(sockfd,"Failed to created mail.\n");
+        smtp_cleanup(&handle);
+        return;
+    }
+
+    char title[255];
+    snprintf(title,255,"Recording list from tvpvrd");
+    if( 0 == smtp_sendmail(handle, daemon_email_from, title) ) {
+        _writef(sockfd,"Mail sent.\n");
+    } else {
+        _writef(sockfd,"Failed to send mail.\n");
+    }
+
+    smtp_cleanup(&handle);
+    free(buffer);
+    free(buffer_plain);
+
 }
 
 static void
@@ -2626,6 +2714,7 @@ cmdinit(void) {
     cmdtable[CMD_LIST_TS]           = _cmd_list_ts;
     cmdtable[CMD_ADD_FROMFILE]      = _cmd_addfromfile;
     cmdtable[CMD_DISK_USED]         = _cmd_diskused;
+    cmdtable[CMD_LIST_HTML]         = _cmd_list_html;
 }
 
 /**
@@ -2664,6 +2753,7 @@ _getCmdPtr(const char *cmd) {
         {"lh", CMD_LIST_RECHUMAN},
         {"ls", CMD_LIST_STATIONS},
         {"li", CMD_LIST_VIDEO_INPUTS},
+        {"lm", CMD_LIST_HTML},
         {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},
         {"l",  CMD_LIST},

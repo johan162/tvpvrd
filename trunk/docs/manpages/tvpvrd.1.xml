@@ -972,6 +972,11 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
+                                role="bold">lm [n]</emphasis> - list all pending record and send
+                            them in a mail (in HTML format)</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
                                 role="bold">lc</emphasis> - list all controls for the capture
                             card</para>
                     </listitem>
@@ -1463,6 +1468,22 @@ killflag=n</screen>
                         <para>Output example:</para>
                         <screen>Fri Oct 01 21:00-21:55 disc     Mountains
 Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>'<command>lm</command>' [<emphasis>n</emphasis>] - <emphasis
+                            role="bold">List future recordings and send them in a
+                        mail</emphasis></term>
+                    <listitem>
+                        <para>This command will create a mail (in HTML) format and send them to the
+                            mail address already specified in the config file. The mail will be
+                            formatted as both a HTML mail as well as in plain text format. This will
+                            allow mail clients both with and without HTML rendering capability to
+                            read the mail. This command assumes the setup if the SMTP mail client
+                            and will return an error of this has not been done. </para>
+                        <para>(Note: The format style of the HTML table is controlled by CSS and is
+                            as of now specified at compile time (in tvconfig.h) but should
+                            eventually move out to the main config file.)</para>
                     </listitem>
                 </varlistentry>
                     <varlistentry>

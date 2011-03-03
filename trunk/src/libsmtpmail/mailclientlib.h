@@ -220,12 +220,12 @@ int
 smtp_server_support(struct smtp_handle *handle, size_t feature);
 
 /**
- * Initialize a new connecttion to the SMTP server. The code assumed that the
+ * Initialize a new connection to the SMTP server. The code assumed that the
  * SMTP server requres login
  * @param server_ip Server IP och fully qualified name
  * @param user User name to login to with server
  * @param pwd Password
- * @return -1 on failure , 0 on success
+ * @return NULL on failure, handle to mail object if success
  */
 struct smtp_handle *
 smtp_setup(char *server_ip, char *user, char *pwd);

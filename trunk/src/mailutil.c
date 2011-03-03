@@ -201,6 +201,7 @@ send_mail_template(char * subject, char * from, char *to,
         free(buffer);
         if( buffer2 )
             free(buffer2);
+        smtp_cleanup(&handle);
         return -1;
     } else {
          logmsg(LOG_DEBUG,"Added recepients To: '%s'",to); 
@@ -226,7 +227,7 @@ send_mail_template(char * subject, char * from, char *to,
     if( -1 == rc ) {
         logmsg(LOG_ERR,"Could NOT send mail with subject '%s' using SMTP server !",subject);
     } else {
-        logmsg(LOG_DEBUG,"Successfullt sent SMTP mail with subject '%s' ",subject);
+        logmsg(LOG_DEBUG,"Successfully sent SMTP mail with subject '%s' ",subject);
     }
 
     smtp_cleanup(&handle);

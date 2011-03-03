@@ -164,6 +164,112 @@ getreldatefromdayname(const char *wdayname, int *y, int *m, int *d) {
     return 0;
 }
 
+
+
+/**
+ * Adjust the given start and end date for a recording so that it actually starts
+ * on a day that is allowed according to the repeat type. For example if the repeat
+ * is onlye said to be on weekebds and the start date is on a wed we need to adjust
+ * it by three days.
+ * @param start
+ * @param end
+ * @param recurrence_type
+ * @return 0 on success, -1 on failure
+ */
+int
+adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
+    int sy, sm, sd, sh, smin, ssec;
+    int ey, em, ed, eh, emin, esec;
+
+    if( recurrence_type < 0 || recurrence_type > 7 ) {
+        logmsg(LOG_ERR, "FATAL: Internal error. Unknown recurrence type %d in adjust_initital_repeat_date()",recurrence_type);
+        return -1;
+    }
+
+    fromtimestamp(*start, &sy, &sm, &sd, &sh, &smin, &ssec);
+    fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);
+
+    // If we have a recurrence on Mon-Fri (or possible Sat-Sun)
+    // The we need to make sure that the start date also
+    // obeys this. If this is not the case we move the start
+    // day forward until the condition is met.
+    if( recurrence_type == 4 || recurrence_type == 6 || recurrence_type == 7) {
+        // Mon Fri
+        struct tm tm_start;
+        tm_start.tm_sec = ssec;
+        tm_start.tm_min = smin;
+        tm_start.tm_hour = sh;
+        tm_start.tm_mday = sd;
+        tm_start.tm_mon = sm - 1;
+        tm_start.tm_year = sy - 1900;
+        tm_start.tm_isdst = -1;
+        mktime(&tm_start);
+
+        if( recurrence_type == 4  ) {
+            // Type is 7 (Mon-Fri)
+            if( tm_start.tm_wday == 6 ) {
+                sd += 2;
+                ed += 2;
+            } else if( tm_start.tm_wday == 0 ) {
+                sd++;
+                ed++;
+            }
+        } else if( recurrence_type == 6  ) {
+            // Type must be 6 (Mon-Thu)
+            if (tm_start.tm_wday == 6) {
+                // Mon - Thu so skip a sat+sun
+                sd += 2;
+                ed += 2;
+            } else if (tm_start.tm_wday == 0) {
+                // Mon - Thu so skip a sun
+                sd++;
+                ed++;
+            } else if (tm_start.tm_wday == 5) {
+                // Mon - Thu so skip a friday+weekend
+                sd += 3;
+                ed += 3;
+            }
+        } else {
+            // Type is 7 (Tue-Fri)
+            if (tm_start.tm_wday == 6) {
+                // skip a sat+sun+mon
+                sd += 3;
+                ed += 3;
+            } else if (tm_start.tm_wday == 0) {
+                // skip a sunday and monday
+                sd += 2;
+                ed += 2;
+            } else if (tm_start.tm_wday == 1) {
+                // skip monday
+                sd += 1;
+                ed += 1;
+            }
+
+        }
+
+    } else if( recurrence_type == 5 ) {
+        // Sat-Sun
+        struct tm tm_start;
+        tm_start.tm_sec = ssec;
+        tm_start.tm_min = smin;
+        tm_start.tm_hour = sh;
+        tm_start.tm_mday = sd;
+        tm_start.tm_mon = sm - 1;
+        tm_start.tm_year = sy - 1900;
+        tm_start.tm_isdst = -1;
+        mktime(&tm_start);
+        if( tm_start.tm_wday < 6 && tm_start.tm_wday > 0) {
+            sd += 6-tm_start.tm_wday;
+            ed += 6-tm_start.tm_wday;
+        }
+    }
+
+    *start = totimestamp(sy, sm, sd, sh, smin, ssec);
+    *end = totimestamp(ey, em, ed, eh, emin, esec);
+
+    return 0;
+}
+
 /*
  * Utility function
  * Increase start and end day as needed to get the next
@@ -171,14 +277,19 @@ getreldatefromdayname(const char *wdayname, int *y, int *m, int *d) {
  * and so on
  */
 int
-increcdays(int rectype,
+increcdays(int recurrence_type,
         time_t *ts_start, time_t *ts_end,
         int *sy, int *sm, int *sd, int *sh, int *smin, int *ssec,
         int *ey, int *em, int *ed, int *eh, int *emin, int *esec) {
     struct tm tm_start;
 
+    if( recurrence_type < 0 || recurrence_type > 7 ) {
+        logmsg(LOG_ERR, "FATAL: Internal error. Unknown recurrence type %d in increcdays()",recurrence_type);
+        return -1;
+    }
+
     // Find out the new date for the next recording in sequence
-    switch (rectype) {
+    switch (recurrence_type) {
         case 0:
             // Single, do nothing
             break;
