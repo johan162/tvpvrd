@@ -5,9 +5,11 @@ v3.0.5
 User visible changes:
     - Optimized Web-GUI minute list to better match start and end times often used
     - Added "lm" command. Will mail the list of recordings (in both plain and HTML format) to the
-      email adress specified to receive mails.  The format of the HTML mail is controlled by CSS
-      styles and for now stored in tvconfig.h (eventually these should be moved out to the INI-file
-      but that file (unfortunately) already has too many settings.)
+      email address specified to receive mails.  The format of the HTML mail is controlled by CSS
+      styles and adjustable in the config file in the "format" section
+    - Fixed a bug whereby if a recurring recording had the new type Tue-Fri (7) it gave an error
+      when the server was restarted and claimed it was an unrecognized recurring type. This was a 
+      false alarm since the range check had not been updated to reflect this new type.
 
 Internal changes:
     - None.

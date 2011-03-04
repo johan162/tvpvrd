@@ -545,15 +545,28 @@ read_inisettings(void);
  * located in the config directory. But this is not a high priority right now since we expect very few people
  * to bother to change this very frequently.
  */
-#define TBLCSS_VBORDER_INTERIOR_1 "1px solid lightgray"
-#define TBLCSS_VBORDER_OUTER_1 "2px solid black"
-#define TBLCSS_HBORDER_INTERIOR_1 "0px dotted gray"
-#define TBLCSS_HBORDER_OUTER_1 "2px solid black"
-#define TBLCSS_EVEN_ROW_BACKGROUND_1 "white"
-#define TBLCSS_ODD_ROW_BACKGROUND_1 "#E6E6E6"
-#define TBLCSS_HEADER_BACKGROUND_1 "darkgreen"
-#define TBLCSS_HEADER_TEXTCOLOR_1 "white"
-#define TBLCSS_TABLE_1 "width:600px;"
+#define TBLCSS_VBORDER_INTERIOR "1px solid lightgray"
+#define TBLCSS_VBORDER_OUTER "2px solid black"
+#define TBLCSS_HBORDER_INTERIOR "0px dotted gray"
+#define TBLCSS_HBORDER_OUTER "2px solid black"
+#define TBLCSS_EVEN_ROW_BACKGROUND "white"
+#define TBLCSS_ODD_ROW_BACKGROUND "#E6E6E6"
+#define TBLCSS_HEADER_BACKGROUND "#404040"
+#define TBLCSS_HEADER_TEXTCOLOR "white"
+#define TBLCSS_TABLE "width:600px;"
+
+/*
+ * Formats for HTML recording table in mail ('lm' command)
+ */
+extern char tblcss_vborder_interior[];
+extern char tblcss_vborder_outer[];
+extern char tblcss_hborder_interior[];
+extern char tblcss_hborder_outer[];
+extern char tblcss_even_row_background[];
+extern char tblcss_odd_row_background[];
+extern char tblcss_header_background[];
+extern char tblcss_header_textcolor[];
+extern char tblcss_table[];
 
 
 #ifdef	__cplusplus
