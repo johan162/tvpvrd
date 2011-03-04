@@ -653,6 +653,8 @@ tblcss_odd_row_background = "#e7e7e7"
 tblcss_header_background  = "#404040"
 tblcss_header_textcolor   = "white"
 tblcss_table              = "width:600px;"
+tblcss_header_fontfamily  = "sans-serif"
+tblcss_fontfamily         = "monospace"
 
 
 # EOF - End of ini file

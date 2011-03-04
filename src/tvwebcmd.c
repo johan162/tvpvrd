@@ -1071,7 +1071,7 @@ struct cmd_grp {
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
     {"lh", "List"},
-    {"df", "Disk space"}
+    {"lm", "Mail"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
@@ -1082,7 +1082,8 @@ static struct cmd_entry cmdfunc_master_transcoding[] = {
 
 static struct cmd_entry cmdfunc_master_status[] = {
     {"s", "Status"},
-    {"t", "Time"}
+    {"t", "Time"},
+    {"df", "Disk space"}
 };
 
 static struct cmd_entry cmdfunc_master_view[] = {

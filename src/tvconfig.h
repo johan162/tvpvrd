@@ -554,6 +554,8 @@ read_inisettings(void);
 #define TBLCSS_HEADER_BACKGROUND "#404040"
 #define TBLCSS_HEADER_TEXTCOLOR "white"
 #define TBLCSS_TABLE "width:600px;"
+#define TBLCSS_HEADER_FONTFAMILY "sans-serif"
+#define TBLCSS_FONTFAMILY "monospace"
 
 /*
  * Formats for HTML recording table in mail ('lm' command)
@@ -567,7 +569,8 @@ extern char tblcss_odd_row_background[];
 extern char tblcss_header_background[];
 extern char tblcss_header_textcolor[];
 extern char tblcss_table[];
-
+extern char tblcss_header_fontfamily[];
+extern char tblcss_fontfamily[];
 
 #ifdef	__cplusplus
 }
