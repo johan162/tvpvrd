@@ -224,6 +224,8 @@ char tblcss_odd_row_background[MAX_TBLCSS_SIZE];
 char tblcss_header_background[MAX_TBLCSS_SIZE];
 char tblcss_header_textcolor[MAX_TBLCSS_SIZE];
 char tblcss_table[MAX_TBLCSS_SIZE];
+char tblcss_header_fontfamily[MAX_TBLCSS_SIZE];
+char tblcss_fontfamily[MAX_TBLCSS_SIZE];
 
 /**
  * Setup the dictionary file (ini-file) name. Check if it is specified on
@@ -574,6 +576,16 @@ read_inisettings(void) {
             iniparser_getstring(dict, "format:tblcss_table", TBLCSS_TABLE),
             MAX_TBLCSS_SIZE-1);
     tblcss_table[MAX_TBLCSS_SIZE-1] = '\0';
+
+    strncpy(tblcss_fontfamily,
+            iniparser_getstring(dict, "format:tblcss_fontfamily", TBLCSS_FONTFAMILY),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_fontfamily[MAX_TBLCSS_SIZE-1] = '\0';
+    strncpy(tblcss_header_fontfamily,
+            iniparser_getstring(dict, "format:tblcss_header_fontfamily", TBLCSS_HEADER_FONTFAMILY),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_header_fontfamily[MAX_TBLCSS_SIZE-1] = '\0';
+
 
     /*--------------------------------------------------------------------------
      * Final verification of combination of values in the INI-file
