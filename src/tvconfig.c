@@ -42,6 +42,7 @@
 #include "vctrl.h"
 #include "stats.h"
 #include "transc.h"
+#include "recs.h"
 
 /*
  * The value of the following variables are read from the ini-file.
@@ -211,6 +212,18 @@ unsigned shutdown_min_uptime = 0;
 unsigned shutdown_send_mail ;
 unsigned shutdown_pre_startup_time ;
 
+/*
+ * Formats for HTML recording table in mail ('lm' command)
+ */
+char tblcss_vborder_interior[MAX_TBLCSS_SIZE];
+char tblcss_vborder_outer[MAX_TBLCSS_SIZE];
+char tblcss_hborder_interior[MAX_TBLCSS_SIZE];
+char tblcss_hborder_outer[MAX_TBLCSS_SIZE];
+char tblcss_even_row_background[MAX_TBLCSS_SIZE];
+char tblcss_odd_row_background[MAX_TBLCSS_SIZE];
+char tblcss_header_background[MAX_TBLCSS_SIZE];
+char tblcss_header_textcolor[MAX_TBLCSS_SIZE];
+char tblcss_table[MAX_TBLCSS_SIZE];
 
 /**
  * Setup the dictionary file (ini-file) name. Check if it is specified on
@@ -514,6 +527,53 @@ read_inisettings(void) {
     
     shutdown_min_uptime = validate(3*60,7200,"shutdown_min_uptime",
                                  iniparser_getint(dict, "shutdown:min_uptime", DEFAULT_SHUTDOWN_MIN_UPTIME));
+
+
+   /*--------------------------------------------------------------------------
+     * FORMAT section
+     *--------------------------------------------------------------------------
+     */
+
+    strncpy(tblcss_vborder_interior,
+            iniparser_getstring(dict, "format:tblcss_vborder_interior", TBLCSS_VBORDER_INTERIOR),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_vborder_interior[MAX_TBLCSS_SIZE-1] = '\0';
+    strncpy(tblcss_vborder_outer,
+            iniparser_getstring(dict, "format:tblcss_vborder_outer", TBLCSS_VBORDER_OUTER),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_vborder_outer[MAX_TBLCSS_SIZE-1] = '\0';
+
+    strncpy(tblcss_hborder_interior,
+            iniparser_getstring(dict, "format:tblcss_hborder_interior", TBLCSS_HBORDER_INTERIOR),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_hborder_interior[MAX_TBLCSS_SIZE-1] = '\0';
+    strncpy(tblcss_hborder_outer,
+            iniparser_getstring(dict, "format:tblcss_hborder_outer", TBLCSS_HBORDER_OUTER),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_hborder_outer[MAX_TBLCSS_SIZE-1] = '\0';
+
+    strncpy(tblcss_even_row_background,
+            iniparser_getstring(dict, "format:tblcss_even_row_background", TBLCSS_EVEN_ROW_BACKGROUND),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_even_row_background[MAX_TBLCSS_SIZE-1] = '\0';
+    strncpy(tblcss_odd_row_background,
+            iniparser_getstring(dict, "format:tblcss_odd_row_background", TBLCSS_ODD_ROW_BACKGROUND),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_odd_row_background[MAX_TBLCSS_SIZE-1] = '\0';
+
+    strncpy(tblcss_header_background,
+            iniparser_getstring(dict, "format:tblcss_header_background", TBLCSS_HEADER_BACKGROUND),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_header_background[MAX_TBLCSS_SIZE-1] = '\0';
+    strncpy(tblcss_header_textcolor,
+            iniparser_getstring(dict, "format:tblcss_header_textcolor", TBLCSS_HEADER_TEXTCOLOR),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_header_textcolor[MAX_TBLCSS_SIZE-1] = '\0';
+
+    strncpy(tblcss_table,
+            iniparser_getstring(dict, "format:tblcss_table", TBLCSS_TABLE),
+            MAX_TBLCSS_SIZE-1);
+    tblcss_table[MAX_TBLCSS_SIZE-1] = '\0';
 
     /*--------------------------------------------------------------------------
      * Final verification of combination of values in the INI-file

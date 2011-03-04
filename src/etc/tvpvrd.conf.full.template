@@ -630,5 +630,29 @@ pre_startup_time=180
 #----------------------------------------------------------------------------
 script_name=shutdown.sh
 
+############################################################################
+# format - Format for adjustable HTML styles
+# As of now this only includes the style setting for the mail with the
+# list of recordings
+#
+############################################################################
+
+[format]
+
+#----------------------------------------------------------------------------
+# CSS Style for table with recordings included in the mail sent by the 'lm'
+# command.
+#----------------------------------------------------------------------------
+
+tblcss_vborder_interior   = "1px solid lightgray"
+tblcss_vborder_outer      = "2px solid black"
+tblcss_hborder_interior   = "0px dotted gray"
+tblcss_hborder_outer      = "2px solid black"
+tblcss_even_row_background= "white"
+tblcss_odd_row_background = "#e7e7e7"
+tblcss_header_background  = "#404040"
+tblcss_header_textcolor   = "white"
+tblcss_table              = "width:600px;"
+
 
 # EOF - End of ini file

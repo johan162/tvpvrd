@@ -672,58 +672,34 @@ set_listhtmlcss(struct css_table_style *ts, size_t style) {
         style=0;
     }
 
-    static struct css_table_style css_style[] = {
-        {
-            .table = TBLCSS_TABLE_1,
-            .even_row = { .td_i      = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
-            .td_l      = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
-            .td_r      = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
-            .tr  = ""
-            },
-            .odd_row = { .td_i       = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
-            .td_l       = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
-            .td_r       = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:" TBLCSS_VBORDER_OUTER_1  ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";",
-            .tr  = ""
-            },
-            .header_row = { .td_i    = "color:" TBLCSS_HEADER_TEXTCOLOR_1 ";background:" TBLCSS_HEADER_BACKGROUND_1   ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";border-top:" TBLCSS_HBORDER_OUTER_1 ";",
-            .td_l    = "color:" TBLCSS_HEADER_TEXTCOLOR_1 ";background:" TBLCSS_HEADER_BACKGROUND_1   ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";border-top:" TBLCSS_HBORDER_OUTER_1 ";",
-            .td_r    = "color:" TBLCSS_HEADER_TEXTCOLOR_1 ";background:" TBLCSS_HEADER_BACKGROUND_1   ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:" TBLCSS_VBORDER_OUTER_1  ";border-bottom:" TBLCSS_HBORDER_INTERIOR_1 ";border-top:" TBLCSS_HBORDER_OUTER_1 ";",
-            .tr  = ""
-            },
-            .last_even_row = { .td_i = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_OUTER_1 ";",
-            .td_l = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1    ";",
-            .td_r = "background:" TBLCSS_EVEN_ROW_BACKGROUND_1 ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:"TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1    ";",
-            .tr  = ""
-            },
-            .last_odd_row = { .td_i  = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-bottom:" TBLCSS_HBORDER_OUTER_1 ";",
-            .td_l  = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1    ";",
-            .td_r  = "background:" TBLCSS_ODD_ROW_BACKGROUND_1  ";border-left:" TBLCSS_VBORDER_INTERIOR_1 ";border-right:"  TBLCSS_VBORDER_OUTER_1    ";border-bottom:" TBLCSS_HBORDER_OUTER_1 ";",
-            .tr  = ""
-            }
-        }
-    };
+    bzero(ts,sizeof(struct css_table_style));
 
-    strcpy(ts->table,css_style[style].table);
+    snprintf(ts->even_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_interior, tblcss_hborder_interior);
+    snprintf(ts->even_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_outer, tblcss_hborder_interior);
+    snprintf(ts->even_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_even_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_interior);
+    snprintf(ts->even_row.tr,MAX_TBLCSS_SIZE,"%s","");
 
-    strcpy(ts->even_row.td_i,css_style[style].even_row.td_i);
-    strcpy(ts->even_row.td_l,css_style[style].even_row.td_l);
-    strcpy(ts->even_row.td_r,css_style[style].even_row.td_r);
+    snprintf(ts->odd_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_interior, tblcss_hborder_interior);
+    snprintf(ts->odd_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_outer, tblcss_hborder_interior);
+    snprintf(ts->odd_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_odd_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_interior);
+    snprintf(ts->odd_row.tr,MAX_TBLCSS_SIZE,"%s","");
 
-    strcpy(ts->odd_row.td_i,css_style[style].odd_row.td_i);
-    strcpy(ts->odd_row.td_l,css_style[style].odd_row.td_l);
-    strcpy(ts->odd_row.td_r,css_style[style].odd_row.td_r);
+    snprintf(ts->header_row.td_i,MAX_TBLCSS_SIZE,"color:%s;background:%s;border-left:%s;border-bottom:%s;border-top:%s;",tblcss_header_textcolor, tblcss_header_background, tblcss_vborder_interior, tblcss_hborder_interior, tblcss_hborder_outer);
+    snprintf(ts->header_row.td_l,MAX_TBLCSS_SIZE,"color:%s;background:%s;border-left:%s;border-bottom:%s;border-top:%s;",tblcss_header_textcolor, tblcss_header_background, tblcss_vborder_outer, tblcss_hborder_interior, tblcss_hborder_outer);
+    snprintf(ts->header_row.td_r,MAX_TBLCSS_SIZE,"color:%s;background:%s;border-left:%s;border-right:%s;border-bottom:%s;border-top:%s;",tblcss_header_textcolor, tblcss_header_background , tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_interior, tblcss_hborder_outer);
+    snprintf(ts->header_row.tr,MAX_TBLCSS_SIZE,"%s","");
 
-    strcpy(ts->header_row.td_i,css_style[style].header_row.td_i);
-    strcpy(ts->header_row.td_l,css_style[style].header_row.td_l);
-    strcpy(ts->header_row.td_r,css_style[style].header_row.td_r);
+    snprintf(ts->last_even_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_interior, tblcss_hborder_outer);
+    snprintf(ts->last_even_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_outer, tblcss_hborder_outer);
+    snprintf(ts->last_even_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_even_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_outer);
+    snprintf(ts->last_even_row.tr,MAX_TBLCSS_SIZE,"%s","");
 
-    strcpy(ts->last_even_row.td_i,css_style[style].last_even_row.td_i);
-    strcpy(ts->last_even_row.td_l,css_style[style].last_even_row.td_l);
-    strcpy(ts->last_even_row.td_r,css_style[style].last_even_row.td_r);
+    snprintf(ts->last_odd_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_interior, tblcss_hborder_outer);
+    snprintf(ts->last_odd_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_outer, tblcss_hborder_outer);
+    snprintf(ts->last_odd_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_odd_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_outer);
+    snprintf(ts->last_odd_row.tr,MAX_TBLCSS_SIZE,"%s","");
 
-    strcpy(ts->last_odd_row.td_i,css_style[style].last_odd_row.td_i);
-    strcpy(ts->last_odd_row.td_l,css_style[style].last_odd_row.td_l);
-    strcpy(ts->last_odd_row.td_r,css_style[style].last_odd_row.td_r);
+    snprintf(ts->table,MAX_TBLCSS_SIZE,"%s",tblcss_table);
 
     return 0;
 }
