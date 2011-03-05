@@ -2,6 +2,8 @@
 README FILE FOR PACKAGE : 'TVPVRD'
 'tvpvrd' = TV Personal Video Recorder Daemon
 $Id$
+
+Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 This package contains two installable daemons, tvpvrd and tvpowerd.
 
@@ -30,6 +32,12 @@ following settings are correct and matching your installation.
     * max_video                 - This must be less or equal to the actual number 
                                   of video cards you have installed
 
+The package contains two templates for the config file. One simplified template
+with only the most necessary settings and one with all possible settings.
+Using the simplified version will use default values for all non-specified fields.
+Decide which template you want to use and remove the ".template" ending so that
+the config file is named "tvpvrd.conf".
+
 Some notes on where to store the data
 -------------------------------------
 
@@ -42,8 +50,8 @@ partition with a size of ~10GB even if the disk itself is a  1TB. The
 remaining data is usually allocated to '/home'
 
 Since the disk requirements for this application is potentiall so huge we
-suggest that a separate partition of at least 20GB is used. In the default
-configuration file this partition is assumed to be mounted at '/data/pvr'
+suggest that a separate partition of at least 20GB is used (or more likely 300-500GB).
+In the default configuration file this partition is assumed to be mounted at '/data/pvr'
 
 What is 'tvpvrd'?
 -----------------

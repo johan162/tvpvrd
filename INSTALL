@@ -1,9 +1,13 @@
+=======================================================================================
+INSTALL FILE FOR PACKAGE : 'TVPVRD'
+'tvpvrd' = TV Personal Video Recorder Daemon
 $Id$
+
+Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
+=======================================================================================
 
 Installation Instructions for tvpvrd
 ====================================
-
-Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 
 **************************** IMPORTANT ! *****************************************
 See bottom of page (Installing From Repository) for extra steps if you have 

@@ -231,6 +231,14 @@ pre {
     padding: 0;
 }
 
+pre a:hover {
+    color:white;
+}
+
+pre a {
+    color:#0ef;
+}
+
 /* Legend for the fieldset */
 legend {
     font-family:Arial, Sans-erif;
