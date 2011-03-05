@@ -422,7 +422,7 @@ div#logout {
     padding-top: 2px;
     width: 70px;
     height: 1.0em;
-    background: white;
+    background: lightgray;
     font-weight:bold;
     margin-top:20px;
     margin-left:15px;
@@ -435,7 +435,7 @@ div#logout a {
     font-weight:bold;
     font-family:Arial,Sans-serif;
     font-size:10pt;
-    color:black;
+    color:darkred;
 }
 
 div#logout a:hover {
@@ -443,7 +443,7 @@ div#logout a:hover {
     font-weight:bold;
     font-family:Arial,Sans-serif;
     font-size:10pt;
-    color:darkred;
+    color:red;
 }
 
 /* EOF CSS Style for tvpvrd */
