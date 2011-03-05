@@ -424,9 +424,20 @@ get_queued_transc_filelists_info(int num, char *buffer, size_t len, int incfiles
  * Return a list of all defined profiles
  * @param buff
  * @param maxlen
+  * @return -1 on error 0 otherwise
  */
 int
 list_profile_names(char *buff, size_t maxlen);
+
+/**
+ * Return a list of all defined profiles with HTML links to display
+ * the details of the profile (assumes the Web-interface)
+ * @param buff
+ * @param maxlen
+ * @return -1 on error 0 otherwise
+ */
+int
+list_profile_names_htmllinks(char *buff, size_t maxlen);
 
 /**
  * Store a list of pointers to profile names in the supplied buffer

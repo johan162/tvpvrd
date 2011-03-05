@@ -112,8 +112,9 @@
 #define CMD_ADD_FROMFILE 36
 #define CMD_DISK_USED 37
 #define CMD_LIST_HTML 38
+#define CMD_LIST_PROFILES_HTMLLINKS 39
 
-#define CMD_UNDEFINED 39
+#define CMD_UNDEFINED 40
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -175,6 +176,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  ls   - list all stations\n"\
                         "  lm   - list all stations, HTML format\n"\
                         "  lp   - list all profiles\n"\
+                        "  lph  - list all profiles with HTML links\n"\
                         "  lq n - list queued transcodings\n"\
 			"  n    - list the immediate next recording on each video\n"\
 			"  o    - list the ongoing recording(s)\n"\
@@ -226,7 +228,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lm|lp|lq|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lm|lph|lp|lq|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -2647,6 +2649,30 @@ _cmd_list_profiles(const char *cmd, int sockfd) {
 }
 
 static void
+_cmd_list_profiles_htmllinks(const char *cmd, int sockfd) {
+    size_t const n_buff=1024;
+    char buff[n_buff];
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Return a list with names of all defined profiles.\n"
+                );
+        return;
+    }
+    list_profile_names_htmllinks(buff,n_buff);
+    buff[n_buff-1] = '\0';
+    
+    // This is a bit of a kludge. Normally we HTML encode all output but in
+    // this special case we really want to have the HTML proper interpretation
+    // so we turn off the HTML encoding by resetting the global falg which controls
+    // the output of the _writef() function.
+    int old_flag = htmlencode_flag;
+    htmlencode_flag = 0;
+    _writef(sockfd,buff);
+    htmlencode_flag = old_flag;
+}
+
+
+static void
 _cmd_list_waiting_transcodings(const char *cmd, int sockfd) {
     char buff[2048];
     if (cmd[0] == 'h') {
@@ -2715,6 +2741,7 @@ cmdinit(void) {
     cmdtable[CMD_ADD_FROMFILE]      = _cmd_addfromfile;
     cmdtable[CMD_DISK_USED]         = _cmd_diskused;
     cmdtable[CMD_LIST_HTML]         = _cmd_list_html;
+    cmdtable[CMD_LIST_PROFILES_HTMLLINKS] = _cmd_list_profiles_htmllinks;
 }
 
 /**
@@ -2754,6 +2781,7 @@ _getCmdPtr(const char *cmd) {
         {"ls", CMD_LIST_STATIONS},
         {"li", CMD_LIST_VIDEO_INPUTS},
         {"lm", CMD_LIST_HTML},
+        {"lph",CMD_LIST_PROFILES_HTMLLINKS},
         {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},
         {"l",  CMD_LIST},

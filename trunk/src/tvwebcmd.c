@@ -1077,7 +1077,7 @@ static struct cmd_entry cmdfunc_master_recs[] = {
 static struct cmd_entry cmdfunc_master_transcoding[] = {
     {"wt", "Queue"},
     {"st", "Statistics"},
-    {"lp", "Profiles"}
+    {"lph", "Profiles"}
 };
 
 static struct cmd_entry cmdfunc_master_status[] = {
@@ -1106,7 +1106,7 @@ static struct cmd_entry cmdfunc_slave_transcoding[] = {
     {"ot", "Ongoing transcoding"},
     {"wt", "Waiting transcodings"},
     {"st", "Statistics"},
-    {"lp", "Profiles"}
+    {"lph", "Profiles"}
 };
 
 static struct cmd_entry cmdfunc_slave_status[] = {

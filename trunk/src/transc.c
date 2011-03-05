@@ -640,10 +640,11 @@ get_transcoding_profile(char *name, struct transcoding_profile_entry **entry) {
 int
 list_profile_names(char *buff,size_t maxlen) {
     unsigned idx=0;
-    char tmpbuff[255];
+    size_t const bufflen = 255;
+    char tmpbuff[bufflen];
     *buff = '\0';
     while( idx < num_transcoding_profiles ) {
-        snprintf(tmpbuff,254,"#%02d : %s\n",idx+1,profiles[idx]->name);
+        snprintf(tmpbuff,bufflen-1,"#%02d : %s\n",idx+1,profiles[idx]->name);
         if( maxlen > strlen(tmpbuff) ) {
             strcat(buff,tmpbuff);
             maxlen -= strlen(tmpbuff);
@@ -655,6 +656,32 @@ list_profile_names(char *buff,size_t maxlen) {
     }
     return 0;
 }
+
+/**
+ * Generate a textual list of all currently specified transcoding profiles
+ * @param buff
+ * @param maxlen
+ */
+int
+list_profile_names_htmllinks(char *buff,size_t maxlen) {
+    unsigned idx=0;
+    size_t const bufflen = 255;
+    char tmpbuff[bufflen];
+    *buff = '\0';
+    while( idx < num_transcoding_profiles ) {
+        snprintf(tmpbuff,bufflen-1,"#%02d : <a href=\"?dp @%s\">%s</a>\n",idx+1,profiles[idx]->name,profiles[idx]->name);
+        if( maxlen > strlen(tmpbuff) ) {
+            strcat(buff,tmpbuff);
+            maxlen -= strlen(tmpbuff);
+        } else {
+            logmsg(LOG_ERR,"supplied buffer size in list_profile_names() too small to hold all profiles");
+            return -1;
+        }
+        ++idx;
+    }
+    return 0;
+}
+
 
 unsigned
 get_profile_names(const char *list[],size_t maxlen) {
