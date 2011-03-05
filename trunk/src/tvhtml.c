@@ -73,7 +73,7 @@ html_topbanner(int sockd) {
 void
 web_cmd_output(int sockd, char *wcmd) {
 
-    _writef(sockd, "<div class=\"cmd_output\"><pre>");
+    _writef(sockd, "<div class=\"cmd_output\">\n<pre>");
 
     // We must wait for the semphore since since commands
     // might alter data structures and we can only have one
