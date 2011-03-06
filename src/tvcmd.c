@@ -1356,9 +1356,9 @@ _cmd_list_html(const char *cmd, int sockfd) {
     }
 
     char title[255];
-    snprintf(title,255,"Recording list from tvpvrd");
+    snprintf(title,255,"List of upcoming recordings");
     if( 0 == smtp_sendmail(handle, daemon_email_from, title) ) {
-        _writef(sockfd,"Mail sent.\n");
+        _writef(sockfd,"List of recordings sent to '%s'\n",send_mailaddress);
     } else {
         _writef(sockfd,"Failed to send mail.\n");
     }
@@ -1775,7 +1775,6 @@ _cmd_status(const char *cmd, int sockfd) {
 static void
 _cmd_time(const char *cmd, int sockfd) {
     char msgbuff[128];
-    time_t ts_tmp;
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
@@ -1784,7 +1783,7 @@ _cmd_time(const char *cmd, int sockfd) {
         return;
     }
 
-    ts_tmp = time(NULL);
+    time_t ts_tmp = time(NULL);
     snprintf(msgbuff, 127, "%s", ctime(&ts_tmp));
     msgbuff[127] = 0 ;
     _writef(sockfd, msgbuff);
