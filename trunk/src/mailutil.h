@@ -24,6 +24,8 @@
 #ifndef MAILUTIL_H
 #define	MAILUTIL_H
 
+#include "rkey.h"
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
