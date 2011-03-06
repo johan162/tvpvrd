@@ -1070,8 +1070,8 @@ struct cmd_grp {
 // MASTER personality
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
-    {"lh", "List"},
-    {"lm", "Mail"}
+    {"lh", "List recs"},
+    {"lm", "Mail recs"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
