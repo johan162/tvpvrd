@@ -147,6 +147,7 @@ struct css_table_style {
     struct css_record_style last_odd_row;
     struct css_record_style last_even_row;
     char table[MAX_TBLCSS_SIZE];
+    char date[MAX_TBLCSS_SIZE];
 };
 
 /**

@@ -644,6 +644,8 @@ script_name=shutdown.sh
 # command.
 #----------------------------------------------------------------------------
 
+# The following block only specifies a specific property. There should be no
+# ending ';' character.
 tblcss_vborder_interior   = "1px solid lightgray"
 tblcss_vborder_outer      = "2px solid black"
 tblcss_hborder_interior   = "0px dotted gray"
@@ -652,9 +654,12 @@ tblcss_even_row_background= "white"
 tblcss_odd_row_background = "#e7e7e7"
 tblcss_header_background  = "#404040"
 tblcss_header_textcolor   = "white"
-tblcss_table              = "width:600px;"
 tblcss_header_fontfamily  = "sans-serif"
 tblcss_fontfamily         = "monospace"
 
+# The following two formats specify the full CSS style. This means that they
+# must have an ending ';' character.
+tblcss_table              = "width:600px;"
+tblcss_date               = "font-size:small;font-style:italic;margin-bottom:1px;color:#404040;"
 
 # EOF - End of ini file

@@ -553,10 +553,13 @@ read_inisettings(void);
 #define TBLCSS_ODD_ROW_BACKGROUND "#E6E6E6"
 #define TBLCSS_HEADER_BACKGROUND "#404040"
 #define TBLCSS_HEADER_TEXTCOLOR "white"
-#define TBLCSS_TABLE "width:600px;"
 #define TBLCSS_HEADER_FONTFAMILY "sans-serif"
 #define TBLCSS_FONTFAMILY "monospace"
 
+// The following two settings specifies the full CSS style property for the table and
+// the date
+#define TBLCSS_TABLE "width:600px;"
+#define TBLCSS_DATE "font-size:small;font-style:italic;margin-bottom:1px;color:#404040;"
 /*
  * Formats for HTML recording table in mail ('lm' command)
  */
@@ -568,9 +571,10 @@ extern char tblcss_even_row_background[];
 extern char tblcss_odd_row_background[];
 extern char tblcss_header_background[];
 extern char tblcss_header_textcolor[];
-extern char tblcss_table[];
 extern char tblcss_header_fontfamily[];
 extern char tblcss_fontfamily[];
+extern char tblcss_table[];
+extern char tblcss_date[];
 
 #ifdef	__cplusplus
 }
