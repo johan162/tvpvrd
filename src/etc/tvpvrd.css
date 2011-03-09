@@ -413,7 +413,7 @@ div.input_container#id_submitlogin {
 div#logout_container {
     float:left;
     width:99%;
-    height: 10%;
+    height: 11%;
 }
 
 div#logout {
@@ -424,7 +424,7 @@ div#logout {
     height: 1.0em;
     background: lightgray;
     font-weight:bold;
-    margin-top:20px;
+    margin-top:60px;
     margin-left:15px;
     padding-left:20px;
     padding-right:0px;
