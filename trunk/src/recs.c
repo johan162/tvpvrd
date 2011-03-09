@@ -351,7 +351,7 @@ newrec(const char *title, const char *filename, const time_t start,
     // Recurrence 0=No, 1=Yes
     ptr->recurrence = recurrence;
 
-    // Type: 0=Single, 1=day, 2=week, 3=month, 4=mon-fri, 5=sat-sun, 6=mon-thu
+    // Type: 0=Single, 1=day, 2=week, 3=month, 4=mon-fri, 5=sat-sun, 6=mon-thu, 7=tue-fri
     ptr->recurrence_type = recurrence_type;
 
     // Number: num = Number of recurrences
@@ -526,9 +526,9 @@ insertrec(unsigned video, struct recording_entry * entry) {
 int
 getrectypestr(const int type, const int longformat, char *buffer, size_t maxlen) {
     // d=daily, w=weekly, m=monthly, f=Mon-Fri, s=Sat-Sun, t=Mon-Thu
-    static char *names[] = {"-","d","w","m","f","s","t"};
-    static char *longnames[] = {"-","daily","weekly","monthly","Mon-Fri","Sat-Sun","Mon-Thu"};
-    if( type >= 0 && type < 7 ) {
+    static char *names[] = {"-","d","w","m","f","s","t","n"};
+    static char *longnames[] = {"-","daily","weekly","monthly","Mon-Fri","Sat-Sun","Mon-Thu","Tue-Fri"};
+    if( type >= 0 && type < 8 ) {
         if( longformat == 0 )
             strncpy(buffer,names[type],maxlen);
         else
@@ -581,7 +581,8 @@ dumprecord_header(int style, char *buffer, size_t bufflen) {
 
 
 void
-dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size_t idx,struct css_record_style *rs) {
+dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size_t idx,
+                   struct css_record_style *rs, int format_repeat) {
     int sy, sm, sd, sh, smi, ss;
     int ey, em, ed, eh, emi, es;
     char rectypename[16];
@@ -617,23 +618,46 @@ dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, 
     // We need localtime to find the day of week for the start
     (void)localtime_r(&entry->ts_start, &result);
 
-    snprintf(buffer, bufflen, "<tr style=\"%s\">"
-                              "<td style=\"%s\">%03d</td>"
-                              "<td style=\"%s\">%s</td>"
-                              "<td style=\"%s\">%s %s %02d</td>"
-                              "<td style=\"%s\">%02d:%02d</td>"
-                              "<td style=\"%s\">%02d:%02d</td>"
-                              "<td style=\"%s\">%s</td>"
-                              "<td style=\"%s\">%s</td></tr>\n",
-                            rs->tr,
-                            rs->td_l, idx, /*entry->seqnbr,*/
-                            rs->td_i, entry->channel,
-                            rs->td_i, wday_name[result.tm_wday], month_name[sm-1], sd,
-                            rs->td_i, sh, smi,
-                            rs->td_i, eh, emi,
-                            rs->td_i, entry->title,
-                            rs->td_r, profbuff);
+    if( ! format_repeat ) {
+        snprintf(buffer, bufflen, "<tr style=\"%s\">"
+                                  "<td style=\"%s\">%03d</td>\n"
+                                  "<td style=\"%s\">%s</td>\n"
+                                  "<td style=\"%s\">%s %s %02d</td>\n"
+                                  "<td style=\"%s\">%02d:%02d</td>\n"
+                                  "<td style=\"%s\">%02d:%02d</td>\n"
+                                  "<td style=\"%s\">%s</td>\n"
+                                  "<td style=\"%s\">%s</td></tr>\n",
+                                rs->tr,
+                                rs->td_l, idx,
+                                rs->td_i, entry->channel,
+                                rs->td_i, wday_name[result.tm_wday], month_name[sm-1], sd,
+                                rs->td_i, sh, smi,
+                                rs->td_i, eh, emi,
+                                rs->td_i, entry->title,
+                                rs->td_r, profbuff);
+    } else {
+        snprintf(buffer, bufflen, "<tr style=\"%s\">"
+                                  "<td style=\"%s\">%03d</td>\n"
+                                  "<td style=\"%s\">%s</td>\n"
+                                  "<td style=\"%s\">%s %s %02d</td>\n"
+                                  "<td style=\"%s\">%02d:%02d</td>\n"
+                                  "<td style=\"%s\">%02d:%02d</td>\n"
+                                  "<td style=\"%s\">%s</td>\n"
+                                  "<td style=\"%s\">%02d / %02d</td>\n"
+                                  "<td style=\"%s\">%s</td>\n"
+                                  "<td style=\"%s\">%s</td></tr>\n",
+                                rs->tr,
+                                rs->td_l, idx,
+                                rs->td_i, entry->channel,
+                                rs->td_i, wday_name[result.tm_wday], month_name[sm-1], sd,
+                                rs->td_i, sh, smi,
+                                rs->td_i, eh, emi,
+                                rs->td_i, rectypelongname,
+                                rs->td_i, entry->recurrence_start_number, entry->recurrence_num+entry->recurrence_start_number-1,
+                                rs->td_i, entry->recurrence_title,
+                                rs->td_r, profbuff);
 
+    }
     buffer[bufflen-1] = '\0';
     
 }
@@ -643,13 +667,13 @@ dumphtmlrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs)
 
     snprintf(buffer, bufflen,
             "<tr style=\"%s\">"
-            "<th style=\"%s\">#</th>"
-            "<th style=\"%s\">Ch</th>"
-            "<th style=\"%s\">Date</th>"
-            "<th style=\"%s\">Start</th>"
-            "<th style=\"%s\">End</th>"
-            "<th style=\"%s\">Title</th>"
-            "<th style=\"%s\">Profile</th>"
+            "<th style=\"%s\">#</th>\n"
+            "<th style=\"%s\">Ch</th>\n"
+            "<th style=\"%s\">Date</th>\n"
+            "<th style=\"%s\">Start</th>\n"
+            "<th style=\"%s\">End</th>\n"
+            "<th style=\"%s\">Title</th>\n"
+            "<th style=\"%s\">Profile</th>\n"
             "</tr>\n",
             rs->tr,
             rs->td_l, 
@@ -662,6 +686,36 @@ dumphtmlrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs)
 
     buffer[bufflen-1] = '\0';
     
+}
+
+void
+dumphtmlrepeatrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs) {
+
+    snprintf(buffer, bufflen,
+            "<tr style=\"%s\">"
+            "<th style=\"%s\">#</th>\n"
+            "<th style=\"%s\">Ch</th>\n"
+            "<th style=\"%s\">Date</th>\n"
+            "<th style=\"%s\">Start</th>\n"
+            "<th style=\"%s\">End</th>\n"
+            "<th style=\"%s\">Repeat</th>\n"
+            "<th style=\"%s\">Next/Tot</th>\n"
+            "<th style=\"%s\">Title</th>\n"
+            "<th style=\"%s\">Profile</th>\n"
+            "</tr>\n",
+            rs->tr,
+            rs->td_l,
+            rs->td_i,
+            rs->td_i,
+            rs->td_i,
+            rs->td_i,
+            rs->td_i,
+            rs->td_i,
+            rs->td_i,
+            rs->td_r);
+
+    buffer[bufflen-1] = '\0';
+
 }
 
 int
@@ -753,14 +807,14 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
     for( size_t i=0; i < k && max > 0; i++ ) {
         if( i==k-1 ) {
             if( i % 2 )
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_odd_row);
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_odd_row, FALSE);
             else
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_even_row);
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_even_row, FALSE);
         } else {
             if( i % 2 )
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.odd_row);
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.odd_row, FALSE);
             else
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.even_row);
+                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.even_row, FALSE);
         }
         if( strlen(tmpbuffer) >= (size_t)max ) {
             max = -1;
@@ -783,6 +837,124 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
 
 }
 
+int
+listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
+    struct recording_entry **entries;
+    char tmpbuffer[2048];
+    size_t const n_tmpbuff = 2048;
+    struct css_table_style ts;
+    int max = maxlen;
+    unsigned saved_recrec[2 * MAX_ENTRIES];
+
+    bzero(&ts, sizeof (struct css_table_style));
+    set_listhtmlcss(&ts, style);
+
+    entries = calloc((size_t) (max_video * max_entries), sizeof (struct recording_entry *));
+    if (entries == NULL) {
+        logmsg(LOG_ERR, "_listrecs() : Out of memory. Aborting program.");
+        exit(EXIT_FAILURE);
+    }
+    bzero(tmpbuffer, n_tmpbuff);
+    *buffer = '\0';
+
+    // We combine all recordings on all videos in order to
+    // give a combined sorted list of pending recordings
+    size_t numrecs = 0;
+    for (unsigned video = 0; video < max_video; video++) {
+        for (unsigned i = 0; i < num_entries[video]; ++i) {
+            entries[numrecs++] = recs[REC_IDX(video, i)];
+        }
+    }
+
+    qsort(entries, numrecs, sizeof (struct recording_entry *), _cmprec);
+
+    if (maxrecs > 0)
+        numrecs = MIN(numrecs, maxrecs);
+
+    time_t ts_tmp = time(NULL);
+    snprintf(buffer, max, "<div style=\"%s\">Generated by: <strong>%s %s</strong>, %s</div>"
+            "<table border=0 style=\"%s\" cellpadding=4 cellspacing=0>\n",
+            ts.date, server_program_name, server_version, ctime(&ts_tmp),
+            ts.table);
+    max -= strlen(buffer);
+
+    dumphtmlrepeatrecord_header(tmpbuffer, n_tmpbuff, &ts.header_row);
+    strncat(buffer,tmpbuffer,max-1);
+    max -= strlen(tmpbuffer);
+
+    // Find out all the recurring entries first in order to figure out how many there are
+    size_t nsaved_recrec = 0;
+    size_t nprinted_recrec=0;
+    for (size_t idx = 0; idx < numrecs; ++idx) {
+        if (entries[idx]->recurrence == 0)
+            continue;
+        size_t i = 0;
+        while (i < nsaved_recrec && (saved_recrec[i] != entries[idx]->recurrence_id)) {
+            i++;
+        }
+        if (i == nsaved_recrec) {
+            saved_recrec[nsaved_recrec] = entries[idx]->recurrence_id;
+            nsaved_recrec++;
+        }
+    }
+
+    for (size_t idx = 0; idx < numrecs; ++idx) {
+
+        // We are only interested in recurring entries. Skip other
+        if (entries[idx]->recurrence == 0)
+            continue;
+
+        size_t i = 0;
+        while (i < nprinted_recrec && (saved_recrec[i] != entries[idx]->recurrence_id)) {
+            i++;
+        }
+        if (i == nprinted_recrec) {
+            // Not yet printed
+
+            // Start by finding the lowest start number in the sequence, this will be the number
+            // of the next recording
+            unsigned min_start_number = entries[idx]->recurrence_start_number;
+            for (unsigned j = idx + 1; j < numrecs; j++) {
+                if (entries[j]->recurrence &&
+                    entries[j]->recurrence_id == entries[idx]->recurrence_id) {
+                    min_start_number = MIN(entries[j]->recurrence_start_number, min_start_number);
+                }
+            }
+            saved_recrec[nprinted_recrec] = entries[idx]->recurrence_id;
+            nprinted_recrec++;
+                      
+            if( nprinted_recrec == nsaved_recrec ) { // lastrow
+                if( i % 2 )
+                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.last_odd_row, TRUE);
+                else
+                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.last_even_row, TRUE);
+            } else {
+                if( i % 2 )
+                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.odd_row, TRUE);
+                else
+                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.even_row, TRUE);
+            }
+
+            if( strlen(tmpbuffer) >= (size_t)max ) {
+                max = -1;
+                logmsg(LOG_ERR,"Internal error. Not enough memory allocated for recording list");
+            } else {
+                strncat(buffer,tmpbuffer,max-1);
+                max -= strlen(tmpbuffer);
+            }
+        }
+    }
+
+    if( max > 0 ) {
+        snprintf(tmpbuffer,n_tmpbuff,"</table>\n");
+        strncat(buffer,tmpbuffer,max-1);
+        buffer[maxlen-1] = '\0';
+    }
+
+    free(entries);
+
+    return max > 0 ? 0 : -1;
+}
 
 
 /*

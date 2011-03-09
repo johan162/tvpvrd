@@ -297,6 +297,17 @@ int
 listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style);
 
 /**
+ * Dump a list of all future repeating recordings in the specified buffer using HTML output format
+ * @param buffer
+ * @param maxlen
+ * @param maxrecs
+ * @param ts
+ * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
+ */
+int
+listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style);
+
+/**
  * Create a list of all currnet recordings
  * @param list
  * @param style

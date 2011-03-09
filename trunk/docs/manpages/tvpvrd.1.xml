@@ -977,6 +977,11 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
+                                role="bold">lmr [n]</emphasis> - list all pending repeat records and
+                            send them in a mail (in HTML format)</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis
                                 role="bold">lc</emphasis> - list all controls for the capture
                             card</para>
                     </listitem>
@@ -1484,6 +1489,20 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                         <para>(Note: The format style of the HTML table is controlled by CSS and is
                             as of now specified at compile time (in tvconfig.h) but should
                             eventually move out to the main config file.)</para>
+                        <para/>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>'<command>lmr</command>' [<emphasis>n</emphasis>] - <emphasis
+                            role="bold">List future repeating recordings and send them in a
+                            mail</emphasis></term>
+                    <listitem>
+                        <para>This command will create and send a mail (in HTML) format with just
+                            the repeat recordings. In contrast with <command>lm</command> command
+                            where all recordings in a series are individually listed. Using this
+                            command all repeat recordings will clump together. Each recurring
+                            sequence will be listed as one line indicating name and type of
+                            recurrence.</para>
                     </listitem>
                 </varlistentry>
                     <varlistentry>
