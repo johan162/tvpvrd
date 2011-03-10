@@ -831,7 +831,7 @@ set_listhtmlcss(struct css_table_style *ts, size_t style) {
 }
 
 int
-listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
+listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int only_nonrepeat) {
     struct recording_entry **entries;
     char tmpbuffer[2048];
     size_t const n_tmpbuff=2048;
@@ -875,17 +875,21 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
     strncat(buffer,tmpbuffer,max-1);
     max -= strlen(tmpbuffer);
 
+    int nbr=0;
     for( size_t i=0; i < k && max > 0; i++ ) {
+        if( entries[i]->recurrence && only_nonrepeat ) {
+            continue;
+        }
         if( i==k-1 ) {
-            if( i % 2 )
-                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_odd_row, FALSE, TRUE);
+            if( nbr % 2 )
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, nbr+1, &ts.last_odd_row, FALSE, TRUE);
             else
-                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_even_row, FALSE, TRUE);
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, nbr+1, &ts.last_even_row, FALSE, TRUE);
         } else {
-            if( i % 2 )
-                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.odd_row, FALSE, TRUE);
+            if( nbr % 2 )
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, nbr+1, &ts.odd_row, FALSE, TRUE);
             else
-                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.even_row, FALSE, TRUE);
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, nbr+1, &ts.even_row, FALSE, TRUE);
         }
         if( strlen(tmpbuffer) >= (size_t)max ) {
             max = -1;
@@ -894,6 +898,7 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
             strncat(buffer,tmpbuffer,max-1);
             max -= strlen(tmpbuffer);
         }
+        ++nbr;
     }
 
     if( max > 0 ) {

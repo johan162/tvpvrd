@@ -17,6 +17,7 @@ User visible changes:
     - Added hyper-linked transcoding profiles in the Web-interface to allow easy viewing of profile details
     - Added 'lmr' command - Send repeat recordings in HTML format in a mail
     - Added 'lr' command list only repeating recordings
+    - Added 'lms' command to mail a list of both repeat and single recordings in HTML format
 
 Bugs fixed:
     - Fixed a bug whereby if a recurring recording had the new type Tue-Fri (7) it gave an error

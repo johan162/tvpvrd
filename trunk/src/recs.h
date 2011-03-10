@@ -294,7 +294,7 @@ listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style);
  * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
  */
 int
-listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style);
+listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int only_nonrepeat);
 
 /**
  * Dump a list of all future repeating recordings in the specified buffer using HTML output format
