@@ -581,8 +581,8 @@ dumprecord_header(int style, char *buffer, size_t bufflen) {
 
 
 void
-dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size_t idx,
-                   struct css_record_style *rs, int format_repeat) {
+dumprecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size_t idx,
+                   struct css_record_style *rs, int format_repeat, int use_csshtml) {
     int sy, sm, sd, sh, smi, ss;
     int ey, em, ed, eh, emi, es;
     char rectypename[16];
@@ -619,7 +619,8 @@ dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, 
     (void)localtime_r(&entry->ts_start, &result);
 
     if( ! format_repeat ) {
-        snprintf(buffer, bufflen, "<tr style=\"%s\">"
+        if( use_csshtml ) {
+            snprintf(buffer, bufflen, "<tr style=\"%s\">"
                                   "<td style=\"%s\">%03d</td>\n"
                                   "<td style=\"%s\">%s</td>\n"
                                   "<td style=\"%s\">%s %s %02d</td>\n"
@@ -635,8 +636,25 @@ dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, 
                                 rs->td_i, eh, emi,
                                 rs->td_i, entry->title,
                                 rs->td_r, profbuff);
+        } else {
+            snprintf(buffer, bufflen, "%03d "
+                                  "%s "
+                                  "%s %s %02d "
+                                  "%02d:%02d "
+                                  "%02d:%02d "
+                                  "%s "
+                                  "%s \n",
+                                idx,
+                                entry->channel,
+                                wday_name[result.tm_wday], month_name[sm-1], sd,
+                                sh, smi,
+                                eh, emi,
+                                entry->title,
+                                profbuff);
+        }
     } else {
-        snprintf(buffer, bufflen, "<tr style=\"%s\">"
+        if( use_csshtml ) {
+            snprintf(buffer, bufflen, "<tr style=\"%s\">"
                                   "<td style=\"%s\">%03d</td>\n"
                                   "<td style=\"%s\">%s</td>\n"
                                   "<td style=\"%s\">%s %s %02d</td>\n"
@@ -656,6 +674,26 @@ dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, 
                                 rs->td_i, entry->recurrence_start_number, entry->recurrence_num+entry->recurrence_start_number-1,
                                 rs->td_i, entry->recurrence_title,
                                 rs->td_r, profbuff);
+        } else {
+            snprintf(buffer, bufflen,"%03d "
+                                      "%-8s"
+                                      "%s %s %02d "
+                                      "%02d:%02d "
+                                      "%02d:%02d "
+                                      "%-9s"
+                                      "%03d/%03d  "
+                                      "%-25s"
+                                      "%-10s\n",
+                                        idx,
+                                        entry->channel,
+                                        wday_name[result.tm_wday], month_name[sm-1], sd,
+                                        sh, smi,
+                                        eh, emi,
+                                        rectypelongname,
+                                        entry->recurrence_start_number, entry->recurrence_num+entry->recurrence_start_number-1,
+                                        entry->recurrence_title,
+                                        profbuff);
+        }
 
     }
     buffer[bufflen-1] = '\0';
@@ -663,9 +701,10 @@ dumphtmlrecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, 
 }
 
 void
-dumphtmlrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs) {
+dumprecord_header2(char *buffer, size_t bufflen, struct css_record_style *rs, int use_csshtml) {
 
-    snprintf(buffer, bufflen,
+    if( use_csshtml ) {
+        snprintf(buffer, bufflen,
             "<tr style=\"%s\">"
             "<th style=\"%s\">#</th>\n"
             "<th style=\"%s\">Ch</th>\n"
@@ -683,39 +722,71 @@ dumphtmlrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs)
             rs->td_i, 
             rs->td_i, 
             rs->td_r);
-
+    } else {
+        snprintf(buffer, bufflen,
+            "# "
+            "Ch "
+            "Date "
+            "Start "
+            "End "
+            "Title "
+            "Profile\n");
+    }
     buffer[bufflen-1] = '\0';
     
 }
 
 void
-dumphtmlrepeatrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs) {
+dumprepeatrecord_header(char *buffer, size_t bufflen, struct css_record_style *rs, int use_csshtml) {
 
-    snprintf(buffer, bufflen,
-            "<tr style=\"%s\">"
-            "<th style=\"%s\">#</th>\n"
-            "<th style=\"%s\">Ch</th>\n"
-            "<th style=\"%s\">Date</th>\n"
-            "<th style=\"%s\">Start</th>\n"
-            "<th style=\"%s\">End</th>\n"
-            "<th style=\"%s\">Repeat</th>\n"
-            "<th style=\"%s\">Next/Tot</th>\n"
-            "<th style=\"%s\">Title</th>\n"
-            "<th style=\"%s\">Profile</th>\n"
-            "</tr>\n",
-            rs->tr,
-            rs->td_l,
-            rs->td_i,
-            rs->td_i,
-            rs->td_i,
-            rs->td_i,
-            rs->td_i,
-            rs->td_i,
-            rs->td_i,
-            rs->td_r);
+    if (use_csshtml) {
+        snprintf(buffer, bufflen,
+                "<tr style=\"%s\">"
+                "<th style=\"%s\">#</th>\n"
+                "<th style=\"%s\">Ch</th>\n"
+                "<th style=\"%s\">Date</th>\n"
+                "<th style=\"%s\">Start</th>\n"
+                "<th style=\"%s\">End</th>\n"
+                "<th style=\"%s\">Repeat</th>\n"
+                "<th style=\"%s\">Next/Tot</th>\n"
+                "<th style=\"%s\">Title</th>\n"
+                "<th style=\"%s\">Profile</th>\n"
+                "</tr>\n",
+                rs->tr,
+                rs->td_l,
+                rs->td_i,
+                rs->td_i,
+                rs->td_i,
+                rs->td_i,
+                rs->td_i,
+                rs->td_i,
+                rs->td_i,
+                rs->td_r);
+    } else {
+        snprintf(buffer, bufflen,
+                "=======================================================================================\n"
+                "%-4s"
+                "%-8s"
+                "%-11s"
+                "%-6s"
+                "%-6s"
+                "%-9s"
+                "%-8s"
+                "%-25s"
+                "%-10s\n"
+                "=======================================================================================\n",
+                "# ",
+                "Ch ",
+                "Date ",
+                "Start ",
+                "End ",
+                "Repeat ",
+                "Next/Tot ",
+                "Title ",
+                "Profile");
 
-    buffer[bufflen-1] = '\0';
-
+    }
+    buffer[bufflen - 1] = '\0';
 }
 
 int
@@ -800,21 +871,21 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
                         ts.table);
     max -= strlen(buffer);
 
-    dumphtmlrecord_header(tmpbuffer, n_tmpbuff, &ts.header_row);
+    dumprecord_header2(tmpbuffer, n_tmpbuff, &ts.header_row, TRUE);
     strncat(buffer,tmpbuffer,max-1);
     max -= strlen(tmpbuffer);
 
     for( size_t i=0; i < k && max > 0; i++ ) {
         if( i==k-1 ) {
             if( i % 2 )
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_odd_row, FALSE);
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_odd_row, FALSE, TRUE);
             else
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_even_row, FALSE);
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.last_even_row, FALSE, TRUE);
         } else {
             if( i % 2 )
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.odd_row, FALSE);
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.odd_row, FALSE, TRUE);
             else
-                dumphtmlrecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.even_row, FALSE);
+                dumprecord_row(entries[i], tmpbuffer, n_tmpbuff, i+1, &ts.even_row, FALSE, TRUE);
         }
         if( strlen(tmpbuffer) >= (size_t)max ) {
             max = -1;
@@ -838,7 +909,7 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
 }
 
 int
-listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
+_listrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int use_csshtml) {
     struct recording_entry **entries;
     char tmpbuffer[2048];
     size_t const n_tmpbuff = 2048;
@@ -872,15 +943,22 @@ listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style
         numrecs = MIN(numrecs, maxrecs);
 
     time_t ts_tmp = time(NULL);
-    snprintf(buffer, max, "<div style=\"%s\">Generated by: <strong>%s %s</strong>, %s</div>"
+
+    if( use_csshtml ) {
+        snprintf(buffer, max, "<div style=\"%s\">Generated by: <strong>%s %s</strong>, %s</div>"
             "<table border=0 style=\"%s\" cellpadding=4 cellspacing=0>\n",
             ts.date, server_program_name, server_version, ctime(&ts_tmp),
             ts.table);
+    } else {
+        snprintf(buffer, max, "Generated by: %s %s, %s",
+                 server_program_name, server_version, ctime(&ts_tmp));
+    }
     max -= strlen(buffer);
 
-    dumphtmlrepeatrecord_header(tmpbuffer, n_tmpbuff, &ts.header_row);
+    dumprepeatrecord_header(tmpbuffer, n_tmpbuff, &ts.header_row, use_csshtml);
     strncat(buffer,tmpbuffer,max-1);
     max -= strlen(tmpbuffer);
+    
 
     // Find out all the recurring entries first in order to figure out how many there are
     size_t nsaved_recrec = 0;
@@ -925,14 +1003,14 @@ listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style
                       
             if( nprinted_recrec == nsaved_recrec ) { // lastrow
                 if( i % 2 )
-                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.last_odd_row, TRUE);
+                    dumprecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.last_odd_row, TRUE, use_csshtml);
                 else
-                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.last_even_row, TRUE);
+                    dumprecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.last_even_row, TRUE, use_csshtml);
             } else {
                 if( i % 2 )
-                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.odd_row, TRUE);
+                    dumprecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.odd_row, TRUE, use_csshtml);
                 else
-                    dumphtmlrecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.even_row, TRUE);
+                    dumprecord_row(entries[idx], tmpbuffer, n_tmpbuff, nprinted_recrec, &ts.even_row, TRUE, use_csshtml);
             }
 
             if( strlen(tmpbuffer) >= (size_t)max ) {
@@ -945,7 +1023,7 @@ listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style
         }
     }
 
-    if( max > 0 ) {
+    if( max > 0 && use_csshtml) {
         snprintf(tmpbuffer,n_tmpbuff,"</table>\n");
         strncat(buffer,tmpbuffer,max-1);
         buffer[maxlen-1] = '\0';
@@ -954,6 +1032,16 @@ listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style
     free(entries);
 
     return max > 0 ? 0 : -1;
+}
+
+int
+listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style) {
+   return _listrepeatrecsbuff(buffer, maxlen, maxrecs, style, TRUE);
+}
+
+int
+listrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs) {
+   return _listrepeatrecsbuff(buffer, maxlen, maxrecs, 0, FALSE);
 }
 
 
