@@ -116,8 +116,9 @@
 #define CMD_LIST_PROFILES_HTMLLINKS 39
 #define CMD_MAILLISTREC_HTML 40
 #define CMD_LISTRECREC 41
+#define CMD_MAILLIST_RECSINGLE_HTML 42
 
-#define CMD_UNDEFINED 42
+#define CMD_UNDEFINED 43
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -174,8 +175,9 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  lc   - list all controls for the capture card\n"\
                         "  li   - list all video inputs for the capture card\n"\
     			"  lh   - list of recordings, human format\n"\
-                        "  lm   - send mail with list of recordings\n"\
+                        "  lm   - send mail with list of all recordings\n"\
                         "  lmr  - send mail with list of repeating recordings\n"\
+                        "  lms  - send mail with list repeat and single recordings\n"\
                         "  lr   - list repeating recordings\n"\
                         "  lt   - list recordings, using timestamps good for m2m communications\n"\
                         "  log n -show the last n lines of the logfile\n"\
@@ -233,7 +235,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lms|lm|lph|lp|lq|lr|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -1366,7 +1368,7 @@ _cmd_maillist_html(const char *cmd, int sockfd) {
         }
 
         char *buffer = calloc(maxlen, sizeof(char));
-        listhtmlrecsbuff(buffer, maxlen, n, 0);
+        listhtmlrecsbuff(buffer, maxlen, n, 0, FALSE);
 
         if( -1 == smtp_add_html(handle, buffer, buffer_plain) ) {
             free(buffer);
@@ -1494,6 +1496,112 @@ _cmd_maillistrep_html(const char *cmd, int sockfd) {
 
         smtp_cleanup(&handle);
         free(buffer);
+        free(buffer_plain);
+
+    }
+
+}
+
+static void
+_cmd_maillist_recsingle(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "lms <n>         - Send a HTML mail with pucoming repeated and single recordings. If <n> is given, only list the first n records\n"
+                 );
+        return;
+    }
+
+    int ret = matchcmd("^lms" _PR_SO _PR_OPID _PR_E, cmd, &field);
+    size_t n;
+
+    if( ret > 1 ) {
+        // User has limited the list
+
+        n = xatoi(field[1]);
+
+        if( n < 1 || n > 99 ) {
+            _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
+            matchcmd_free(&field);
+            return;
+        }
+
+    } else if ( ret == 1 ) {
+
+        n = 0; // Default to all records
+
+    } else {
+
+        _writef(sockfd,"Syntax error.\n",ret);
+        return;
+
+    }
+
+    matchcmd_free(&field);
+
+    size_t const maxlen=(max_video*max_entries)*1024;
+
+    char *buffer_plain = calloc(maxlen, sizeof(char));
+    listrepeatrecsbuff(buffer_plain, maxlen, n);
+
+    char title[255];
+    snprintf(title,255,"List of upcoming repeat and single recordings");
+
+    if( !smtp_use || !use_html_mail) {
+
+        logmsg(LOG_DEBUG,"Sending list of recordings via mail system command.");
+        if( 0 == send_mail(title, daemon_email_from, send_mailaddress, buffer_plain) ) {
+            _writef(sockfd,"List of recordings as plain text sent to '%s'\n",send_mailaddress);
+        } else {
+            _writef(sockfd,"Failed to send mail.\n");
+        }
+        free(buffer_plain);
+        return ;
+
+    } else {
+
+        struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
+        if( handle == NULL ) {
+            logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
+            free(buffer_plain);
+            _writef(sockfd,"Could NOT connect to SMTP server (%s)\n",smtp_server);
+            return;
+        }
+
+        char *buffer = calloc(maxlen, sizeof(char));
+        listhtmlrepeatrecsbuff(buffer, maxlen, n, 0);
+
+        char *buffer2 = calloc(maxlen, sizeof(char));
+        listhtmlrecsbuff(buffer2, maxlen ,n ,0, TRUE);
+
+        strcat(buffer,"\n<p>&nbsp;</p>\n");
+        strncat(buffer,buffer2,maxlen);
+
+        if( -1 == smtp_add_html(handle, buffer, buffer_plain) ) {
+            free(buffer);
+            free(buffer_plain);
+            _writef(sockfd,"Failed to create mail.\n");
+            smtp_cleanup(&handle);
+            return;
+        }
+
+        if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, send_mailaddress) ) {
+            free(buffer);
+            free(buffer_plain);
+            _writef(sockfd,"Failed to create mail.\n");
+            smtp_cleanup(&handle);
+            return;
+        }
+
+        if( 0 == smtp_sendmail(handle, daemon_email_from, title) ) {
+            _writef(sockfd,"List of repeated recordings sent to '%s'\n",send_mailaddress);
+        } else {
+            _writef(sockfd,"Failed to send mail.\n");
+        }
+
+        smtp_cleanup(&handle);
+        free(buffer);
+        free(buffer2);
         free(buffer_plain);
 
     }
@@ -2926,6 +3034,7 @@ cmdinit(void) {
     cmdtable[CMD_LIST_PROFILES_HTMLLINKS] = _cmd_list_profiles_htmllinks;
     cmdtable[CMD_MAILLISTREC_HTML]  = _cmd_maillistrep_html;
     cmdtable[CMD_LISTRECREC]        = _cmd_listrep;
+    cmdtable[CMD_MAILLIST_RECSINGLE_HTML] = _cmd_maillist_recsingle;
 }
 
 /**
@@ -2967,6 +3076,7 @@ _getCmdPtr(const char *cmd) {
         {"lm", CMD_MAILLIST_HTML},
         {"lr", CMD_LISTRECREC},
         {"lmr",CMD_MAILLISTREC_HTML},
+        {"lms",CMD_MAILLIST_RECSINGLE_HTML},
         {"lph",CMD_LIST_PROFILES_HTMLLINKS},
         {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},

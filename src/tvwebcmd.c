@@ -1070,9 +1070,9 @@ struct cmd_grp {
 // MASTER personality
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
-    {"lh", "List recs"},
-    {"lm", "Mail recs"},
+    {"lh", "List all recs"},
     {"lr", "List rep. recs"},
+    {"lm",  "Mail all recs"},
     {"lmr", "Mail rep. recs"}
 };
 
