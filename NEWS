@@ -14,7 +14,9 @@ User visible changes:
       email address specified to receive mails.  The format of the HTML mail is controlled by CSS
       styles and adjustable in the config file in the "format" section
     - Added 'lm' command to the Web-interface
-    - Added linked profiles in the Web-interface to allow easy viewing of profile details
+    - Added hyper-linked transcoding profiles in the Web-interface to allow easy viewing of profile details
+    - Added 'lmr' command - Send repeat recordings in HTML format in a mail
+    - Added 'lr' command list only repeating recordings
 
 Bugs fixed:
     - Fixed a bug whereby if a recurring recording had the new type Tue-Fri (7) it gave an error
