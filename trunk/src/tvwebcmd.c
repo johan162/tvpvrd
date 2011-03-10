@@ -1071,6 +1071,7 @@ struct cmd_grp {
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
     {"lh", "List recs"},
+    {"lr", "List rep. recs"},
     {"lm", "Mail recs"}
 };
 
