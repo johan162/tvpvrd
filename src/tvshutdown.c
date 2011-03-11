@@ -278,7 +278,14 @@ check_for_shutdown(void) {
                 sleep(15);
 
                 // This should never happen !!
-                logmsg(LOG_ERR,"Automatic shutdown failed. SIGHUP (or SIGKILL) was not received");
+                logmsg(LOG_ERR,"Automatic shutdown failed. SIGHUP (or SIGKILL) was not received.");
+                logmsg(LOG_DEBUG,"Trying to call shutdown directly.");
+                int rc = system("shutdown now");
+                logmsg(LOG_DEBUG,"rc=%d for shutdown() command.",rc);
+
+                sleep(10);
+                logmsg(LOG_ERR,"Unable to shutdown server!!");
+
             }
             
         } else {
