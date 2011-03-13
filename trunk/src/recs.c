@@ -889,11 +889,23 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int 
     strncat(buffer,tmpbuffer,max-1);
     max -= strlen(tmpbuffer);
 
+
+    struct recording_entry *last=NULL;
+    if( !only_nonrepeat ) {
+        last = entries[0];
+    } else {
+        for( size_t i=0; i < k && last != NULL ; i++ ) {
+            if( !only_nonrepeat ) {
+                last = entries[i];
+            } else if( !entries[i]->recurrence ) {
+                last = entries[i];
+            }
+        }
+    }
+
     int nbr=0;
-    struct recording_entry *last = entries[0];
-    for( size_t i=1; i < k && max > 0; i++ ) {
+    for( size_t i=1; i < k && max > 0 && last != NULL ; i++ ) {
         if( entries[i]->recurrence && only_nonrepeat ) {
-            last = entries[i];
             continue;
         }
 
@@ -910,6 +922,8 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int 
             max -= strlen(tmpbuffer);
         }
         ++nbr;
+        last = entries[i];
+
     }
 
     if( 0 == nbr ) {

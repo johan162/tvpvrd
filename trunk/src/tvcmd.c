@@ -178,7 +178,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  lm   - send mail with list of all recordings\n"\
                         "  lmr  - send mail with list of repeating recordings\n"\
                         "  lms  - send mail with list repeat and single recordings\n"\
-                        "  lr   - list repeating recordings\n"\
+                        "  lr   - list repeating and single recordings\n"\
                         "  lt   - list recordings, using timestamps good for m2m communications\n"\
                         "  log n -show the last n lines of the logfile\n"\
                         "  ls   - list all stations\n"\
@@ -1474,7 +1474,7 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "lms <n>         - Send a HTML mail with pucoming repeated and single recordings. If <n> is given, only list the first n records\n"
+                "lms <n>         - Send a HTML mail with upcoming repeated and single recordings. If <n> is given, only list the first n records\n"
                  );
         return;
     }
@@ -1517,13 +1517,13 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
         exit(1);
     }
 
-    listrepeatrecsbuff(buffer_plain, maxlen, n);
-    listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, FALSE);
+    listrepeatrecsbuff(buffer_plain, maxlen, n); // Get plain list of repeating recordings
+    listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, FALSE); // Get plain list of single recordings
     strcat(buffer_plain,"\n\n");
     strncat(buffer_plain,buffer,maxlen);
 
-    listhtmlrepeatrecsbuff(buffer_html, maxlen, n, 0);
-    listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, TRUE);
+    listhtmlrepeatrecsbuff(buffer_html, maxlen, n, 0); // Get list ot repeating recs i HTML format
+    listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, TRUE); // Get list of single recordings in HTML format
     
     strcat(buffer_html,"\n<p>&nbsp;</p>\n");
     strncat(buffer_html,buffer,maxlen);
@@ -1549,30 +1549,14 @@ _cmd_listrep(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "lr <n>         - List repeated recordings. If <n> is given, only list the first n records\n"
+                "lr             - List repeated and single recordings.\n"
                  );
         return;
     }
 
-    int ret = matchcmd("^lr" _PR_SO _PR_OPID _PR_E, cmd, &field);
-    size_t n;
+    int ret = matchcmd("^lr" _PR_E, cmd, &field);
 
-    if( ret > 1 ) {
-        // User has limited the list
-
-        n = xatoi(field[1]);
-
-        if( n < 1 || n > 99 ) {
-            _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
-            matchcmd_free(&field);
-            return;
-        }
-
-    } else if ( ret == 1 ) {
-
-        n = 0; // Default to all records
-
-    } else {
+    if ( ret != 1 ) {
 
         _writef(sockfd,"Syntax error.\n",ret);
         return;
@@ -1583,14 +1567,21 @@ _cmd_listrep(const char *cmd, int sockfd) {
 
     size_t const maxlen=(max_video*max_entries)*1024;
     char *buffer_plain = calloc(maxlen, sizeof(char));
-    if( buffer_plain == NULL ) {
+    char *buffer = calloc(maxlen, sizeof(char));
+    if( buffer_plain == NULL || buffer == NULL ) {
         _writef(sockfd,"Error. Server out of memory.\n");
         return;
     }
 
-    listrepeatrecsbuff(buffer_plain, maxlen, n);
+    listrepeatrecsbuff(buffer_plain, maxlen, 0);
+    listhtmlrecsbuff(buffer, maxlen ,0 ,0, TRUE, FALSE); // Get plain list of single recordings
+    strcat(buffer_plain,"\n\n");
+    strncat(buffer_plain,buffer,maxlen);
+
     _writef(sockfd,"%s\n",buffer_plain);
     free(buffer_plain);
+    free(buffer);
+
 }
 
 static void
