@@ -775,7 +775,7 @@ channel = E8
                 recording.</para>
             <para>All mail settings are specified in the "<code>[mail]</code>" section of the
                 configuration file.</para>
-            <para>Sending mails can be done by either using a specified SMTP server (in the
+            <para>Sending mails can be done by either using a specified SMTP outgoing server (in the
                 configuration file) or by using the systems own "<command>mail</command>" command.
                 However, if you chose the latter you cannot ask the server to send HTML formatted
                 mails (by setting the configuration "<code>use_html=yes</code>"), only plain text
@@ -813,6 +813,23 @@ channel = E8
             <para>If you like to change the appearance of any of these templates, then by all means,
                 go ahead !</para>
         </refsect1>
+        <refsect1><title>Other mail sending options</title>
+            <para>In addition to sending notification mail it is also possible to have the server
+                send HTML formatted mails with various layouts of the list of upcoming recordings.
+                These lists can eiether be formatted as a list of all upcoming individual recordings
+                one by one or as a concise format where the repeating recordings are presented as
+                one line. The repeat interval and the number of occurrences left are stated in the
+                table. Using this format the mail will contain two tables; one with the repeating
+                recordings and one table with the single recordings. </para>
+            <para>The style of the HTML (look &amp; feel) tables used can be modified with CSS
+                format statement which are stored in the config file under the <emphasis
+                    role="bold">[format]</emphasis> section. By default they have a rather strict
+                and as some may think, boring, color schema. </para>
+            <para>Read more below regarding the '<command>lmr</command>' and '<command>lm</command>'
+                commands.</para>
+            <para>Please also note that sending these mails in HTML format require the config option
+                    "<code>use_html</code>" to be set to "<code/>" as well as a configures outgoing
+                SMTP server (in the mail config section of the configuration file)</para></refsect1>
         <refsect1>
             <title>Adding user "hooks" for special processing</title>
             <para>To maintain maximum flexibility the daemon will check for the existence of several
@@ -1015,8 +1032,8 @@ channel = E8
                     </listitem>
                     <listitem>
                         <para><emphasis
-                                role="bold">lr &lt;n></emphasis> - list only repeating recordings,
-                            maximum length &lt;n></para>
+                                role="bold">lr </emphasis> - list all repeating and single
+                            recordings</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1496,10 +1513,8 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                             allow mail clients both with and without HTML rendering capability to
                             read the mail. This command assumes the setup if the SMTP mail client
                             and will return an error of this has not been done. </para>
-                        <para>(Note: The format style of the HTML table is controlled by CSS and is
-                            as of now specified at compile time (in tvconfig.h) but should
-                            eventually move out to the main config file.)</para>
-                        <para/>
+                        <para>(Note: The format style of the HTML table is controlled by CSS
+                            specified in the tvpvrd config file.)</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1512,7 +1527,10 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                             where all recordings in a series are individually listed. Using this
                             command all repeat recordings will clump together. Each recurring
                             sequence will be listed as one line indicating name and type of
-                            recurrence.</para>
+                            recurrence. See also <command>lr</command> command which will print only
+                            the plain text version of these tables.</para>
+                        <para>(Note: The format style of the HTML table is controlled by CSS
+                            specified in the tvpvrd config file.)</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1681,11 +1699,13 @@ Not processed:
                     </varlistentry>
                 <varlistentry>
                     <term>'<command>lr</command>' - <emphasis
-                            role="bold">List only repeating recordings</emphasis></term>
+                            role="bold">List repeating and single recordings</emphasis></term>
                     <listitem>
-                        <para>This command will print a concise list with only repeating recordings
-                            and with what interval they repeat. The date given will be the date for
-                            the next recording.</para>
+                        <para>This command will print a concise list with repeating recordings in
+                            one table and single recordings in a separate table. The date given for
+                            the repeating recordings will be the date for the next recording. See
+                            also '<command>lmr</command>' command which will mail a HTML version of
+                            these tables.</para>
                         <para>Output example:</para>
                         <para>
                             <screen>Generated by: tvpvrd 3.0.5, Thu Mar 10 19:44:39 2011
@@ -1693,7 +1713,14 @@ Not processed:
 #   Ch      Date       Start End   Repeat   Next/Tot Title                    Profile   
 =======================================================================================
 001 ch12    Thu Mar 10 23:35 00:10 Mon-Thu  028/102  Mash                     @tnormal  
-002 ch12    Fri Mar 11 03:00 04:05 Tue-Fri  008/102  Amy                      @tnormal </screen>
+002 ch12    Fri Mar 11 03:00 04:05 Tue-Fri  008/102  Amy                      @tnormal
+
+Generated by: tvpvrd 3.0.5, Thu Mar 10 19:44:39 2011
+=======================================================================================
+#   Ch      Date       Start End   Title                                      Profile   
+=======================================================================================
+                        (No recordings)
+</screen>
                         </para>
                     </listitem>
                 </varlistentry>
