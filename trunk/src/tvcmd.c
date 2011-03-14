@@ -114,11 +114,10 @@
 #define CMD_DISK_USED 37
 #define CMD_MAILLIST_HTML 38
 #define CMD_LIST_PROFILES_HTMLLINKS 39
-#define CMD_MAILLISTREC_HTML 40
-#define CMD_LISTRECREC 41
-#define CMD_MAILLIST_RECSINGLE_HTML 42
+#define CMD_LISTRECREC 40
+#define CMD_MAILLIST_RECSINGLE_HTML 41
 
-#define CMD_UNDEFINED 43
+#define CMD_UNDEFINED 42
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -176,8 +175,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  li   - list all video inputs for the capture card\n"\
     			"  lh   - list of recordings, human format\n"\
                         "  lm   - send mail with list of all recordings\n"\
-                        "  lmr  - send mail with list of repeating recordings\n"\
-                        "  lms  - send mail with list repeat and single recordings\n"\
+                        "  lmr  - send mail with list repeat and single recordings\n"\
                         "  lr   - list repeating and single recordings\n"\
                         "  lt   - list recordings, using timestamps good for m2m communications\n"\
                         "  log n -show the last n lines of the logfile\n"\
@@ -235,7 +233,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lms|lm|lph|lp|lq|lr|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -1406,7 +1404,7 @@ _cmd_maillist_html(const char *cmd, int sockfd) {
 
 /*
  * Send mail with repeating recordings
- */
+ 
 static void
 _cmd_maillistrep_html(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
@@ -1469,17 +1467,20 @@ _cmd_maillistrep_html(const char *cmd, int sockfd) {
     free(buffer_plain);
 }
 
+ */
+
+
 static void
 _cmd_maillist_recsingle(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "lms <n>         - Send a HTML mail with upcoming repeated and single recordings. If <n> is given, only list the first n records\n"
+                "lmr <n>         - Send a HTML mail with upcoming repeated and single recordings. If <n> is given, only list the first n records\n"
                  );
         return;
     }
 
-    int ret = matchcmd("^lms" _PR_SO _PR_OPID _PR_E, cmd, &field);
+    int ret = matchcmd("^lmr" _PR_SO _PR_OPID _PR_E, cmd, &field);
     size_t n;
 
     if( ret > 1 ) {
@@ -1516,13 +1517,13 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
         logmsg(LOG_ERR,"Out of memory when trying to allocate buffer! CRITICAL!");
         exit(1);
     }
-
+// listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int only_nonrepeat, int use_csshtml)
     listrepeatrecsbuff(buffer_plain, maxlen, n); // Get plain list of repeating recordings
     listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, FALSE); // Get plain list of single recordings
     strcat(buffer_plain,"\n\n");
     strncat(buffer_plain,buffer,maxlen);
 
-    listhtmlrepeatrecsbuff(buffer_html, maxlen, n, 0); // Get list ot repeating recs i HTML format
+    listhtmlrepeatrecsbuff(buffer_html, maxlen, n, 0); // Get list of repeating recs i HTML format
     listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, TRUE); // Get list of single recordings in HTML format
     
     strcat(buffer_html,"\n<p>&nbsp;</p>\n");
@@ -2956,7 +2957,6 @@ cmdinit(void) {
     cmdtable[CMD_DISK_USED]         = _cmd_diskused;
     cmdtable[CMD_MAILLIST_HTML]     = _cmd_maillist_html;
     cmdtable[CMD_LIST_PROFILES_HTMLLINKS] = _cmd_list_profiles_htmllinks;
-    cmdtable[CMD_MAILLISTREC_HTML]  = _cmd_maillistrep_html;
     cmdtable[CMD_LISTRECREC]        = _cmd_listrep;
     cmdtable[CMD_MAILLIST_RECSINGLE_HTML] = _cmd_maillist_recsingle;
 }
@@ -2999,8 +2999,7 @@ _getCmdPtr(const char *cmd) {
         {"li", CMD_LIST_VIDEO_INPUTS},
         {"lm", CMD_MAILLIST_HTML},
         {"lr", CMD_LISTRECREC},
-        {"lmr",CMD_MAILLISTREC_HTML},
-        {"lms",CMD_MAILLIST_RECSINGLE_HTML},
+        {"lmr",CMD_MAILLIST_RECSINGLE_HTML},
         {"lph",CMD_LIST_PROFILES_HTMLLINKS},
         {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},
