@@ -13,11 +13,11 @@ User visible changes:
     - Added 'lm' command. Will mail the list of recordings (in both plain and HTML format) to the
       email address specified to receive mails.  The format of the HTML mail is controlled by CSS
       styles and adjustable in the config file in the "format" section
-    - Added 'lm' command to the Web-interface
     - Added hyper-linked transcoding profiles in the Web-interface to allow easy viewing of profile details
-    - Added 'lmr' command - Send repeat recordings in HTML format in a mail
-    - Added 'lr' command list only repeating recordings
-    - Added 'lms' command to mail a list of both repeat and single recordings in HTML format
+    - Added 'lmr' command - Send repeat and single recordings in HTML format in a mail
+    - Added 'lr' command list repeating and single recordings in text format
+    - Updated menu structure in Web-interface to include the mailing commands 'lm' and 'lmr'
+
 
 Bugs fixed:
     - Fixed a bug whereby if a recurring recording had the new type Tue-Fri (7) it gave an error
