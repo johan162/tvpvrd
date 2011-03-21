@@ -63,11 +63,11 @@
  * correct web page.
  *
  * At the moment the interface is very simplistic. The WEB adress to be used
- * is specified as "/cmd?<command>" where "<command>" should be replaced by the
+ * is specified as "/cmd?c=<command>" where "<command>" should be replaced by the
  * corresponding tvpvrd command. For example, running on the localserver the following
  * command will return a list of all upcoming recordings to the browser
  *
- * http://localhost:9300/cmd?l
+ * http://localhost:9300/cmd?c=l
  *
  * The above URL assumes that the server listens on port 9300 as is the default in
  * the distribution. If you change the port the URL has to be udpated accordingly.
@@ -234,6 +234,9 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 int
 is_mobile_connection(char *buffer) {
 
+    if( !use_mobile )
+        return FALSE;
+    
     char **field = (void *) NULL;
     if (matchcmd("X-Wap-Profile:", buffer, &field) > 0) {
 
@@ -274,6 +277,7 @@ is_mobile_connection(char *buffer) {
 int
 webconnection(const char *buffer, char *cmd, int maxlen) {
 
+/*
     static char *allowed_commands[] = {
         "^GET /favicon.ico" _PR_ANY _PR_E,
         "^GET /addrec\\?" _PR_ANY _PR_E,
@@ -283,6 +287,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
         "^GET /killrec\\?" _PR_ANY _PR_E,
         "^GET /logout" _PR_ANY _PR_E
     };
+*/
 
     *cmd = '\0';
     if (0 == strncmp(buffer, "GET", 3)) {
@@ -291,7 +296,17 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
         char **field = (void *) NULL;
         int ret=0, found=0;
 
-        if ((ret = matchcmd("^GET /cmd\\?" _PR_ANPS "HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
+/*
+        static char dumpbuff[2048];
+        *dumpbuff='\0';
+        if( 0==dump_string_chars(dumpbuff, 2048, buffer) ) {
+            logmsg(LOG_DEBUG,"Decoded GET string: %s",dumpbuff);
+        } else {
+            logmsg(LOG_DEBUG,"Decoded GET string TOO LARGE FOR BUFFER!");
+        }
+*/
+
+        if ((ret = matchcmd("^GET /cmd\\?c=" _PR_ANPS _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
 
             // Found a command string so store it in the buffer
             char *tmpbuff = url_decode(field[1]);
@@ -304,31 +319,29 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
             found = 1;
             matchcmd_free(&field);
 
-        } else if ((ret = matchcmd("^GET / HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
+        } else if ((ret = matchcmd("^GET / " _PR_HTTP_VER _PR_E , buffer, &field)) >= 1) {
 
             // When only the root directory is called we default the command
             // to a "time" command.
             strncpy(cmd, "t", maxlen);
             found = 1;
             matchcmd_free(&field);
+            logmsg(LOG_DEBUG,"Found empty GET directory. Assuming command 't'");
 
-        } else if ((ret = matchcmd("^GET /" _PR_ANP " HTTP" _PR_ANY _PR_E, buffer, &field)) > 1) {
-            
+        } else if ((ret = matchcmd("^GET /" _PR_ANY _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
+
+            // We get here when the client tries to get the CSS file
             found = 1;
             matchcmd_free(&field);
-
-        } else {
-            int i=0;
-            int nmax = sizeof(allowed_commands)/sizeof(char *);
-            while( i < nmax && ret <= 1 ) {
-                ret = matchcmd(allowed_commands[i], buffer, &field);
-                if( ret > 1 ) {
-                    matchcmd_free(&field);
-                }
-                ++i;
+            logmsg(LOG_DEBUG,"Found CATCH ALL");
+            if( access("/tmp/header.txt",R_OK) ) {
+                FILE *fp=fopen("/tmp/header.txt","w");
+                fprintf(fp,"%s",buffer);
+                fclose(fp);
             }
-            found = ret > 1;
+                                            
         }
+        logmsg(LOG_DEBUG,"FOUND WEBCOMMAND: found=%d",found);
 
         return found;
 
@@ -510,7 +523,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                 _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_AN
-                " HTTP/1.1",
+                " " _PR_HTTP_VER ,
                 buffer, &field)) > 1) {
 
             const size_t maxvlen = 256;
@@ -564,7 +577,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                 _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_ANPSO "&"
                 _PR_AN "=" _PR_AN
-                " HTTP/1.1",
+                " " _PR_HTTP_VER,
                 buffer, &field)) > 1) {
 
             const int maxvlen = 256;
@@ -592,7 +605,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
             matchcmd_free(&field);
 
-        } else if ((ret = matchcmd("GET /killrec\\?" _PR_AN "=" _PR_AN " HTTP/1.1",
+        } else if ((ret = matchcmd("GET /killrec\\?" _PR_AN "=" _PR_AN _PR_HTTP_VER ,
                                     buffer, &field)) > 1) {
 
             const int maxvlen = 256;
@@ -630,7 +643,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
             matchcmd_free(&field);
 
-        } else if ( (ret = matchcmd("^GET /" _PR_ANP ".css HTTP/1.1", buffer, &field)) > 1) {
+        } else if ( (ret = matchcmd("^GET /" _PR_ANP ".css " _PR_HTTP_VER , buffer, &field)) > 1) {
                        
             // Check if this is a call for one of the CSS files that we recognize
             if( strcmp(field[1],"tvpvrd")==0 ||  strcmp(field[1],"tvpvrd_mobile")==0 ) {
@@ -732,7 +745,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                         _PR_AN "=" _PR_ANPO "&"
                         _PR_AN "=" _PR_ANPO "&"
                         _PR_AN "=" _PR_ANPO
-                        " HTTP/1.[1|0]",
+                        " " _PR_HTTP_VER,
                         buffer, &field)) > 1) {
 
                     const int maxvlen = 64;
@@ -786,7 +799,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
         }
     } else {        
         html_notfound(my_socket);
-        logmsg(LOG_NOTICE, "Unrecognized WEB-command: [len=%d]%s", buffer);
+        logmsg(LOG_NOTICE, "Unrecognized WEB-command: [len=%d] %s", strlen(buffer), buffer);
     }
 
     free(buffer);
@@ -850,7 +863,7 @@ web_cmd_ongoingtransc(int sockd) {
                 int rmin = (rtime - rh*3600)/60;
 
                 _writef(sockd, "<div class=\"ongoing_transc_title\">(%02d:%02d) %s</div>",rh,rmin,ongoing_transcodings[i]->filename);
-                _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?kt%%20%d\">Stop</a></div>",i);
+                _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?c=kt%%20%d\">Stop</a></div>",i);
 
                 _writef(sockd, "</div>\n");
             }
@@ -1179,7 +1192,7 @@ web_commandlist(int sockd) {
 
         _writef(sockd, "<div class=\"cmdgrp_commands\">");
         for (size_t j = 0; j < cmdgrp[i].cmd_num; ++j) {
-            _writef(sockd, "<a href=\"cmd?%s\">&#8718; %s</a><br>\n", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
+            _writef(sockd, "<a href=\"cmd?c=%s\">&#8718; %s</a><br>\n", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
         }
         _writef(sockd, "</div>");
 
@@ -1211,7 +1224,7 @@ web_commandlist_short(int sockd) {
 
         for (size_t j = 0; j < cmdgrp[i].cmd_num; ++j) {
             _writef(sockd, "<div class=\"cmdgrp_commands_short\">");
-            _writef(sockd, "<a href=\"cmd?%s\">&#8718; %s</a>", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
+            _writef(sockd, "<a href=\"cmd?c=%s\">&#8718; %s</a>", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
             _writef(sockd, "</div>\n");
         }
     }

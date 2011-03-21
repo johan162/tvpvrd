@@ -669,7 +669,7 @@ list_profile_names_htmllinks(char *buff,size_t maxlen) {
     char tmpbuff[bufflen];
     *buff = '\0';
     while( idx < num_transcoding_profiles ) {
-        snprintf(tmpbuff,bufflen-1,"#%02d : <a href=\"?dp @%s\">%s</a>\n",idx+1,profiles[idx]->name,profiles[idx]->name);
+        snprintf(tmpbuff,bufflen-1,"#%02d : <a href=\"?c=dp @%s\">%s</a>\n",idx+1,profiles[idx]->name,profiles[idx]->name);
         if( maxlen > strlen(tmpbuff) ) {
             strcat(buff,tmpbuff);
             maxlen -= strlen(tmpbuff);

@@ -486,6 +486,12 @@ extern int use_postrec_processing;
 extern char *posttransc_script;
 extern int use_posttransc_processing;
 
+/*
+ * Determine if we should use mobile Phone web-interface when phone is detected
+ */
+extern int use_mobile;
+#define USE_MOBILE 1
+
 /**
  * Startup script name
  */

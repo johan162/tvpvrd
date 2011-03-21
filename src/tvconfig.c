@@ -187,6 +187,12 @@ int use_profiledirectories = 1;
 int use_repeat_rec_basedir = 1;
 
 /*
+ * Determine if we should use the mobile Web interface when a phone is detected
+ */
+int use_mobile = 1;
+
+
+/*
  * Mail setting. Determine if we should send mail on errors and what address
  * to use. Read from the inifile normally.
  */
@@ -397,6 +403,7 @@ read_inisettings(void) {
     posttransc_script = strdup(iniparser_getstring(dict, "config:posttransc_processing_script", ""));
     use_posttransc_processing = iniparser_getboolean(dict, "config:use_posttransc_processing", FALSE);
 
+    use_mobile = iniparser_getboolean(dict, "config:use_mobile", USE_MOBILE);
 
     // Try to read explicitely specified encoder devices
     for(unsigned int i=0; i < max_video && i<16; ++i) {
