@@ -55,7 +55,7 @@ div.right_side {
 div.cmd_menu {
     float: left; 
     width : 99%;
-    height : 75%; /* Leave some room for the logout button */
+    height : 90%; /* Leave some room for the logout button */
     margin-left : 5px;
     color:black;
     font-size:12pt;
@@ -413,7 +413,7 @@ div.input_container#id_submitlogin {
 div#logout_container {
     float:left;
     width:99%;
-    height: 11%;
+    height: 20px;
 }
 
 div#logout {
@@ -424,9 +424,9 @@ div#logout {
     height: 1.0em;
     background: lightgray;
     font-weight:bold;
-    margin-top:80px;
+    margin-top:5px;
     margin-left:15px;
-    padding-left:20px;
+    padding-left:25px;
     padding-right:0px;
 }
 

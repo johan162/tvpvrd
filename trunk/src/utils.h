@@ -279,6 +279,17 @@ get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t list
 void
 escape_quotes(char *tostr, const char *fromstr, const size_t maxlen, unsigned remove_n);
 
+
+/**
+ * Dump ascii values in string together with the string
+ * @param buffer
+ * @param maxlen
+ * @param str
+ * @return
+ */
+int
+dump_string_chars(char *buffer, size_t maxlen, char const *str);
+
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands
 // This is normally used with the matchcmd() function
@@ -309,18 +320,21 @@ escape_quotes(char *tostr, const char *fromstr, const size_t maxlen, unsigned re
 // Required numeric sequence
 #define _PR_N "([\\p{N}]+)"
 
+//  HTTP/1\\.(1|0)
+#define _PR_HTTP_VER "(HTTP/1.[0-1])"
+
 // Required filepath
 #define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
 
 // Required alphanumeric and punctuation sequence
-#define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#]+)"
+#define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]+)"
 
-#define _PR_ANPO "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#]*)"
+#define _PR_ANPO "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]*)"
 
 // Required alphanumeric, punctuation and space sequence
-#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\']+)"
+#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]+)"
 
-#define _PR_ANPSO "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\']*)"
+#define _PR_ANPSO "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]*)"
 
 // Any sequence of symbols
 #define _PR_ANY "(\\X+)"

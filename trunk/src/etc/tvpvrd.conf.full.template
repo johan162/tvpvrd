@@ -451,6 +451,13 @@ use_posttransc_processing=no
 #----------------------------------------------------------------------------
 posttransc_processing_script="posttransc_processing.sh"
 
+#----------------------------------------------------------------------------
+# Should the Web-Ui use a phone version when a connection from a mobile
+# device is detected. (The Phone UI has fewer commands and is optimized
+# for the smaller screen)
+#----------------------------------------------------------------------------
+use_mobile=yes
+
 ############################################################################
 # mail - Settings for daemon email sending
 ############################################################################

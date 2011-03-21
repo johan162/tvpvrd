@@ -302,7 +302,10 @@ matchcmd(const char *regex, const char *cmd, char ***field) { //, const char *fu
     int erroff,ret;
 
     //logmsg(LOG_DEBUG, "matchcmd() called from '%s()' at line #%05d",func,line);
-    cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_UTF8,&errptr,&erroff,NULL);
+    cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_MULTILINE|PCRE_NEWLINE_CRLF|PCRE_UTF8,
+            &errptr,&erroff,NULL);
+
+    //cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_UTF8,&errptr,&erroff,NULL);
     if( cregex ) {
         ret = pcre_exec(cregex,NULL,cmd,strlen(cmd),0,0,ovector,90);
         pcre_free(cregex);
@@ -899,6 +902,37 @@ get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t list
         i += 2;
     }
     return -1;
+}
+
+/**
+ * Dump ascii values in string together with the string
+ * @param buffer
+ * @param maxlen
+ * @param str
+ * @return 
+ */
+int
+dump_string_chars(char *buffer, size_t maxlen, char const *str) {
+    char tmpbuff[16];
+    size_t len = strlen(str);
+    snprintf(buffer,maxlen,"%s \n(",str);
+    maxlen -= len+3;
+    for(size_t i=0; i < len; ++i ) {
+        snprintf(tmpbuff,15,"%02X,",(unsigned)str[i]);
+        if( maxlen > 2 )
+            strcat(buffer,tmpbuff);
+        else
+            return -1;
+        maxlen -= 3;
+    }
+    snprintf(tmpbuff,15,")\n");
+    
+    if( maxlen > 2 )
+        strcat(buffer,tmpbuff);
+    else
+        return -1;
+    
+    return 0;
 }
 
 /* utils.c */
