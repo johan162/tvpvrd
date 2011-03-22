@@ -12,12 +12,14 @@ v3.0.6
 User visible changes:
     - Added use_mobile flag in the config file to allow user to determine if the modified
       phone WEB-UI should be used or not when connection from a phone is detected.
+    - Added string "(tvpvrd) " as prompt for the TCP/IP interface
 
 Bugs fixed:
     - Fixed CSS issue that caused the link in the last two menu items not to be active
 
 Internal changes:
     - Changed command format in URL string
+    - Logger now eliminates repeated messages and just prints how many of the same message
 
 
 
