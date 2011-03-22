@@ -44,6 +44,7 @@
 #include <errno.h>
 #include <sys/param.h>
 #include <time.h>
+#include <pthread.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -162,6 +163,7 @@ void logmsg(int priority, char *msg, ...) {
     static int _loginit = 0 ;
     char *msgbuff,*tmpbuff,*logfilebuff;
 
+
     msgbuff = calloc(1,blen);
     tmpbuff = calloc(1,blen);
     logfilebuff = calloc(1,blen);
@@ -203,15 +205,18 @@ void logmsg(int priority, char *msg, ...) {
             free(logfilebuff);
             _lastlogcnt++;
             return;
-        }
-        if( _lastlogcnt > 0 ) {
-            char tmpbuff2[256];
-            snprintf(tmpbuff2,255,"(... last message repeated %d times)",_lastlogcnt);
-            _lastlogcnt = -1;
-            logmsg(priority,tmpbuff2);
-            _lastlogcnt=0;
-        } else if( 0 == _lastlogcnt ) {
-            strncpy(_lastlogmsg,tmpbuff,4095);
+        } else {
+            if( _lastlogcnt > 0 ) {
+                char *tmpbuff2 = calloc(1,blen);
+                snprintf(tmpbuff2,blen,"[Repeated %d times] : %s",_lastlogcnt,_lastlogmsg);
+                _lastlogcnt = -1;
+                logmsg(priority,tmpbuff2);
+                free(tmpbuff2);
+                _lastlogcnt=0;
+                *_lastlogmsg = '\0';
+            } else if( 0 == _lastlogcnt ) {
+                strncpy(_lastlogmsg,tmpbuff,4095);
+            }
         }
         tmpbuff[blen-1] = 0 ;
 
@@ -304,6 +309,7 @@ void logmsg(int priority, char *msg, ...) {
     free(msgbuff);
     free(tmpbuff);
     free(logfilebuff);
+    
 }
 
 /*

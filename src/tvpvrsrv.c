@@ -1371,6 +1371,8 @@ clientsrv(void *arg) {
 
     do  {
 
+        _writef(my_socket, "(tvpvrd) ");
+
         FD_ZERO(&read_fdset);
         FD_SET(my_socket, &read_fdset);
 
