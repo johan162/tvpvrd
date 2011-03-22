@@ -154,6 +154,8 @@ _vsyslogf(int priority, char *msg, ...) {
  * program and communicated here with a global variable
  */
 #define MAXLOGFILEBUFF 10*1024
+static char _lastlogmsg[4096] = {'\0'};
+static int _lastlogcnt=0;
 
 void logmsg(int priority, char *msg, ...) {
     static const int blen = 20*1024;
@@ -194,6 +196,23 @@ void logmsg(int priority, char *msg, ...) {
             erroffset = 5;
         }
         vsnprintf(tmpbuff+erroffset,blen-1-erroffset,msg,ap);
+
+        if( 0==strcmp(tmpbuff,_lastlogmsg) ) {
+            free(msgbuff);
+            free(tmpbuff);
+            free(logfilebuff);
+            _lastlogcnt++;
+            return;
+        }
+        if( _lastlogcnt > 0 ) {
+            char tmpbuff2[256];
+            snprintf(tmpbuff2,255,"(... last message repeated %d times)",_lastlogcnt);
+            _lastlogcnt = -1;
+            logmsg(priority,tmpbuff2);
+            _lastlogcnt=0;
+        } else if( 0 == _lastlogcnt ) {
+            strncpy(_lastlogmsg,tmpbuff,4095);
+        }
         tmpbuff[blen-1] = 0 ;
 
         if ( *logfile_name == '\0' ||  strcmp(logfile_name, LOGFILE_SYSLOG) == 0 ) {

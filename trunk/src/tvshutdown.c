@@ -144,12 +144,15 @@ check_for_shutdown(void) {
     if( uptime < (int)shutdown_min_uptime ) {
         // We will not initiate a shutdown unless the server has been awake for at least
         // this amount of time
+        logmsg(LOG_DEBUG,"Aborting automatic shutdown. Server has not been powered on long enough to initiate a shutdown.");
         return;
     }
 
-    if( ! shutdown_ignore_users && (0 < get_num_users()) ) {
+    size_t numusers = get_num_users();
+    if( ! shutdown_ignore_users && (0 < numusers) ) {
         // If we are asked to have no user logged in before a shutdown
         // we have no other choice than to abort shutdown sequence.
+        logmsg(LOG_DEBUG,"Aborting automatic shutdown, %d users connected to server.",numusers);
         return;
     }
 
@@ -289,8 +292,10 @@ check_for_shutdown(void) {
             }
             
         } else {
-            // logmsg(LOG_DEBUG,"One or more of the conditions not fullfilled. Aborting automatic shutdown");
+            logmsg(LOG_DEBUG,"Aborting automatic shutdown. One or more of the conditions not fullfilled.");
         }
+    } else {
+        logmsg(LOG_DEBUG,"Aborting automatic shutdown. Too short off time.");
     }
 
 }

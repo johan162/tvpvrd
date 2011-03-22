@@ -1784,9 +1784,11 @@ chk_startupscript(void) {
         logmsg(LOG_DEBUG,"Could not find any startup script: '%s'",script);
     }
 
-    (void)remove(indicator); // Ignore any errors
-    logmsg(LOG_DEBUG,"Removed autoshutdown indicator: '%s'",indicator);
-    
+    if ( 0 == access(indicator, F_OK) ) {
+        (void)remove(indicator); // Ignore any errors
+        logmsg(LOG_DEBUG,"Removed autoshutdown indicator: '%s'",indicator);
+    }
+ 
 }
 
 /* ==================================================================================
