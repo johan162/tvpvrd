@@ -2126,12 +2126,20 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                             if (WIFSIGNALED(ret)) {
                                 logmsg(LOG_NOTICE, "Transcoding process for file '%s' was terminated by signal=%d (possibly by user) after %02d:%02d:%02d h",
                                         short_filename, WTERMSIG(ret),rh,rm,rs);
+
+                                // If we dont signal a kill with -1 then a user stopped transcoding will have its
+                                // original files removed and we dont want that. The files are only kept if the transcode
+                                // process signals an error by returning -1
+                                return -1;
+/*
                                 if( WTERMSIG(ret) == SIGKILL ) {
                                     // Stopped by user so we don't signal this as a true error
                                     return 0;
                                 } else {
                                     return -1;
                                 }
+
+*/
                             } else {
                                 // Child must have been stopped/paused. If so we have no choice than to kill it
                                 logmsg(LOG_NOTICE, "Transcoding process for file '%s' was unexpectedly stopped by signal=%d after %02d:%02d:%02d h",

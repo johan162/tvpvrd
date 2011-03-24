@@ -13,6 +13,10 @@ User visible changes:
     - Added use_mobile flag in the config file to allow user to determine if the modified
       phone WEB-UI should be used or not when connection from a phone is detected.
     - Added string "(tvpvrd) " as prompt for the TCP/IP interface
+    - If a transcoding is forced to stop by user then keep the original MP2 file and directory in
+      the vtmp directory.
+    - Add "mlg - mail log file" command which will send the entire logfile in a mail to the predefined
+      system ail address. The logfile is sent as an attachment.
 
 Bugs fixed:
     - Fixed CSS issue that caused the link in the last two menu items not to be active
