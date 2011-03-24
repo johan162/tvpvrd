@@ -812,7 +812,7 @@ static const char *min_list_start[] = {
     "35", "40", "45", "50", "55"
 };
 static const char *min_list_end[] = {
-    "00", "04", "09", "14", "24", "29", "30",
+    "00", "04", "09", "14", "19", "24", "29", "30",
     "39", "44", "49", "54", "59"
 };
 static const char *hour_list[] = {

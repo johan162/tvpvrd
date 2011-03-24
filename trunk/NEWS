@@ -16,6 +16,7 @@ User visible changes:
 
 Bugs fixed:
     - Fixed CSS issue that caused the link in the last two menu items not to be active
+    - Fixed bug where the wrong min shutdown time was read from the config file (copy&paste error)
 
 Internal changes:
     - Changed command format in URL string
