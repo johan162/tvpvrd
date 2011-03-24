@@ -116,8 +116,9 @@
 #define CMD_LIST_PROFILES_HTMLLINKS 39
 #define CMD_LISTRECREC 40
 #define CMD_MAILLIST_RECSINGLE_HTML 41
+#define CMD_MAIL_LOG 42
 
-#define CMD_UNDEFINED 42
+#define CMD_UNDEFINED 43
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -179,6 +180,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  lr   - list repeating and single recordings\n"\
                         "  lt   - list recordings, using timestamps good for m2m communications\n"\
                         "  log n -show the last n lines of the logfile\n"\
+                        "  mlg  - mail logfile as attachment\n"\
                         "  ls   - list all stations\n"\
                         "  lp   - list all profiles\n"\
                         "  lph  - list all profiles with HTML links\n"\
@@ -233,7 +235,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|l|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|l|mlg|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -2849,6 +2851,38 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
     free(buffer);
 }
 
+/**
+ * Mail log file
+ * @param cmd
+ * @param sockfd
+ */
+static void
+_cmd_mail_log(const char *cmd, int sockfd) {
+    char subject[128];
+    char message[512];
+
+
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "mlg - Send logfile as attachment to rpedefined mail address\n");
+        return;
+    }
+
+    snprintf(subject,127,"%s","tvpvrd logfile");
+    snprintf(message,511,"%s","Logfile from tvpvrd included as attachment.\n\nBest regards\nYour friendly tvpvrd daemon\n\n");
+    int rc = smtp_simple_sendmail_with_fileattachment(smtp_server,smtp_user,smtp_pwd,
+                                                      subject,
+                                                      daemon_email_from, send_mailaddress,NULL,
+                                                      message, FALSE,
+                                                      logfile_name, -1, -1);
+
+    if( -1 == rc ) {
+        _writef(sockfd,"Failed to create and send mail with logfile.\n");
+    } else {
+        _writef(sockfd,"Logfile sent to '%s'\n",send_mailaddress);
+    }
+}
+
 static void
 _cmd_list_profiles(const char *cmd, int sockfd) {
     char buff[2048];
@@ -2959,6 +2993,7 @@ cmdinit(void) {
     cmdtable[CMD_LIST_PROFILES_HTMLLINKS] = _cmd_list_profiles_htmllinks;
     cmdtable[CMD_LISTRECREC]        = _cmd_listrep;
     cmdtable[CMD_MAILLIST_RECSINGLE_HTML] = _cmd_maillist_recsingle;
+    cmdtable[CMD_MAIL_LOG]          = _cmd_mail_log;
 }
 
 /**
@@ -3003,6 +3038,7 @@ _getCmdPtr(const char *cmd) {
         {"lph",CMD_LIST_PROFILES_HTMLLINKS},
         {"lp", CMD_LIST_PROFILES},
         {"log", CMD_SHOW_LASTLOG},
+        {"mlg", CMD_MAIL_LOG},
         {"l",  CMD_LIST},
         {"n",  CMD_NEXTREC},
         {"otl",CMD_ONGOINGTRANS},

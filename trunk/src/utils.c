@@ -739,14 +739,14 @@ get_diskspace(char *dir, char *fs, char *size, char *used, char *avail, int *use
 
 /**
  * Return the last n line from the logfile
- * @param n Number of lines to return
+ * @param n Number of lines to return, 0 to return entire log file
  * @param buffer Buffer
  * @param maxlen Maximum length of the buffer
  * @return 0 success, -1 failure
  */
 int
 tail_logfile(unsigned n, char *buffer, size_t maxlen) {
-    if( n < 1 || n > 999 )
+    if( n > 999 )
         return -1;
 
     // We can only show the logfile if a proper file has been specified
@@ -757,7 +757,11 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen) {
     }
 
     char cmd[512];
-    snprintf(cmd,512,"tail -n %d %s",n,logfile_name);
+    if( n > 0 ) {
+        snprintf(cmd,512,"tail -n %d %s",n,logfile_name);
+    } else {
+        snprintf(cmd,512,"cat %s",logfile_name);
+    }
 
     FILE *fp = popen(cmd, "r");
     if( fp == NULL ) {
@@ -768,19 +772,18 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen) {
     const size_t maxbuff=512;
     char linebuffer[maxbuff];
     *buffer = '\0';
-    while( maxlen > 1024 && NULL != fgets(linebuffer,maxbuff,fp) ) {
+    while( maxlen > 512 && NULL != fgets(linebuffer,maxbuff,fp) ) {
         strncat(buffer,linebuffer,maxlen);
         maxlen -= strlen(linebuffer);
     }
 
-    if( maxlen <= maxbuff ) {
-        *buffer = '\0';
-        pclose(fp);
-        return -1;
+    int ret = 0;
+    if( maxlen <= maxbuff || maxlen <= 512 ) {
+        strncat(buffer,"\n(..logfile truncated)\n",maxlen);
+        ret = -1;
     }
     pclose(fp);
-
-    return 0;
+    return ret;
 }
 
 char *

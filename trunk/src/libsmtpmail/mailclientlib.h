@@ -246,7 +246,7 @@ void
 smtp_dump_handle(struct smtp_handle * handle, FILE *fp);
 
 /**
- * Utility function to send basic HTML or plain message through the specofoed SMTP server
+ * Utility function to send basic HTML or plain message through the specified SMTP server
  * @param server
  * @param user
  * @param pwd
@@ -263,6 +263,30 @@ smtp_simple_sendmail(char *server, char *user, char *pwd,
                      char * subject,
                      char * from, char *to, char *cc,
                      char *message, unsigned isHTML);
+
+/**
+ * Utility function to send basic HTML or plain message with an attachment from a file 
+ * through the specified SMTP server
+ * @param server
+ * @param user
+ * @param pwd
+ * @param subject
+ * @param from
+ * @param to
+ * @param cc
+ * @param message
+ * @param isHTML
+ * @param filename
+ * @param contenttype if speciried as -1 then assume plain type
+ * @param encoding if specified as -1 then assume quoted printables
+ * @return 
+ */
+int
+smtp_simple_sendmail_with_fileattachment(char *server, char *user, char *pwd,
+                     char * subject,
+                     char * from, char *to, char *cc,
+                     char *message, unsigned isHTML,
+                     char *filename, int contenttype, int encoding);
 
 #ifdef	__cplusplus
 }
