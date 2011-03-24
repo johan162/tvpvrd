@@ -533,7 +533,7 @@ read_inisettings(void) {
     shutdown_time_delay = validate(0,600,"shutdown_time_delay",
                                  iniparser_getint(dict, "shutdown:time_delay", DEFAULT_SHUTDOWN_TIME_DELAY));
 
-    shutdown_pre_startup_time =  shutdown_min_time = validate(60,600,"pre_startup_time",
+    shutdown_pre_startup_time = validate(60,600,"pre_startup_time",
                                  iniparser_getint(dict, "shutdown:pre_startup_time", DEFAULT_SHUTDOWN_PRE_STARTUP_TIME));
     
     shutdown_min_uptime = validate(3*60,7200,"shutdown_min_uptime",
