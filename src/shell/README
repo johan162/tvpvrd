@@ -1,0 +1,13 @@
+$Id$
+
+This directory contains a very basic shell program which connects to the tvpvrd daemon using the
+TCP/IP port specified in the config file for tvpvrd.
+
+Using this shell it is possible to create a specific user on the server and then
+use this program as the shell for that user. In that way it is possible to connect
+to the daemon by logging in to the server using for example ssh, as a normal user.
+
+The password handling will then be controlled by the normal Unix password as specified
+in /etc/passwd
+
+See INSTALL for more details.
