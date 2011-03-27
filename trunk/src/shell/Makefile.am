@@ -26,7 +26,7 @@ DISTCLEANFILES=*.Po $(BUILDNBR_FILE)
 
 tvpsh_DEPENDENCIES=$(BUILDNBR_FILE)
 
-$(BUILDNBR_FILE): $(tvpshell_OBJECTS)
+$(BUILDNBR_FILE): $(tvpsh_OBJECTS)
 	@if ! test -f $(BUILDNBR_FILE); then \
 		echo 0 > $(BUILDNBR_FILE); \
 	fi
