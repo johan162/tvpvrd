@@ -8,10 +8,15 @@ This is alternative way to connect and issue commands to the daemon
 than to connect using telnet. It is also more convenient since this
 supports history and command line editing.
 
-Using this shell it is also possible to create a specific user on the 
-server and then use this program as the shell for that user. In that 
-way it is possible to connect to the daemon by logging in to the server 
-using for example ssh, as a normal user. 
+This is the preferred way to connect to the daemon when not using
+the Web-interface.
+
+An alternative way of using this shell is to use the shell as a
+login shell for a new user.
+
+In that way it is possible to connect to the daemon by logging in to
+the server  using for example ssh, as the user which has this shell
+as the login shell.
 
 The password handling will then be controlled by the normal Unix password 
 as specified in /etc/passwd (or shadow passwords if that is used).
