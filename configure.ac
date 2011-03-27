@@ -4,7 +4,7 @@
 # Use autoreconf to rebuild the build environment
 # ===============================================================================
 AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[3.0.6],[johan162@gmail.com])
+AC_INIT([tvpvrd],[3.1.0],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2011])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 silent-rules])
@@ -20,6 +20,7 @@ src/tvpowerd/install.sh
 src/tvpowerd/uninstall.sh
 src/libsmtpmail/Makefile
 src/libiniparser/Makefile
+src/shell/Makefile
 scripts/Makefile
 docs/Makefile
 docs/manpages/Makefile
@@ -87,6 +88,8 @@ AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR([pcre.h not available. Please install "lib
 AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR([linux/videodev2.h not available]))
 have_iniparser_h=no
 AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE([iniparser.h not available. Will use built-in version]))
+have_readline_h=no
+AC_CHECK_HEADERS(readline/readline.h,[have_readline_h=yes],AC_MSG_NOTICE([readline/readline.h not available. tvpsh will not be built]))
 AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR([errno.h not available]))
 AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR([syslog.h not available]))
 AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR([getopt.h not available]))
@@ -114,6 +117,10 @@ fi
 
 AC_CHECK_LIB(xml2, xmlParseFile,,AC_MSG_ERROR([No XML2 library found. Please install libxml2-dev (or similar)]))
 AC_CHECK_LIB(m, lroundf,,AC_MSG_ERROR([No math library found. Please install libm-dev (or similar)]))
+
+if test "x${have_readline_h}" = xyes; then
+AC_CHECK_LIB(readline,readline,,AC_MSG_NOTICE([No GNU readline library found. tvpsh will not be built!]))
+fi
 
 # ===============================================================================
 # Check for working fork and mktime functions just to be on the safe side
@@ -246,6 +253,11 @@ AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 AM_CONDITIONAL(have_iniparser, test "x${have_iniparser_h}" = xyes)
 
 # ===============================================================================
+# We need to define an automake conditional to know if we can build the shell
+# ===============================================================================
+AM_CONDITIONAL(have_readline, test "x${have_readline_h}" = xyes)
+
+# ===============================================================================
 # Create a unique (well almost) login cookie seed for this installation
 # ===============================================================================
 cookie_seed="424bbb619133439ced118b6ea1cb1a01"
@@ -271,9 +283,14 @@ AC_OUTPUT
 # ===============================================================================
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 AC_MSG_NOTICE([INSTALLATION SUMMARY])
-    AC_MSG_NOTICE([System configuration looks fine.])
+    AC_MSG_NOTICE([Basic system configuration is ok.])
 if test "x${have_iniparser_h}" = xno; then
-   AC_MSG_NOTICE([Will use built-in iniparser library.])
+   AC_MSG_NOTICE([ ])
+   AC_MSG_NOTICE([  - Will use built-in iniparser library.])
+fi
+if test "x${have_readline_h}" = xno; then
+   AC_MSG_NOTICE([ ])
+   AC_MSG_NOTICE([  - Can NOT build 'tvpsh' shell since no GNU readline library could be found.])
 fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    AC_MSG_NOTICE([ ])
@@ -306,7 +323,7 @@ if  test "$XSLTPROC_WORKS" = "yes"; then
         AC_MSG_NOTICE([   "SEVERE: Couldn't find hyphenation pattern en" ])
         AC_MSG_NOTICE([Due to licensing issues most distributions does not include the necessary hyphenation])
         AC_MSG_NOTICE([so you would have to do this manually if you want to rebuild the PDF files yourself.])
-        AC_MSG_NOTICE([Please see: http://offo.sourceforge.net/hyphenation/binary/installation.html for information.])
+        AC_MSG_NOTICE([Please see: http://offo.sourceforge.net/hyphenation/binary/installation.html ])
         AC_MSG_NOTICE([ ])
         AC_MSG_NOTICE([(Usually it is enough to copy the fop-hyph.jar file into "/usr/share/fop-0.95/lib")])
     fi

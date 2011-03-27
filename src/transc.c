@@ -58,6 +58,7 @@
 #include "datetimeutil.h"
 #include "recs.h"
 #include "xstr.h"
+#include "tvplog.h"
 
 
 struct ongoing_transcoding *ongoing_transcodings[3] ;

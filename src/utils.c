@@ -41,9 +41,11 @@
 #include <libgen.h>
 #include <math.h>
 #include <syslog.h>
+
 #include <errno.h>
 #include <sys/param.h>
 #include <time.h>
+#include <sys/time.h>
 #include <pthread.h>
 
 #include <sys/types.h>
@@ -57,23 +59,10 @@
 #include "tvconfig.h"
 #include "utils.h"
 #include "rkey.h"
-#include "mailutil.h"
 #include "xstr.h"
+#include "tvplog.h"
 
-// Last logmessage
-#define MAX_LASTLOGMSG 1024
-char last_logmsg[MAX_LASTLOGMSG] = {'\0'};
-
-// Needed to flag we are in the logmsg function to avoid
-// _writef doing possible html output encoding
-static int inlogfunction=0;
-int htmlencode_flag=0;
-
-// We will define this config variable here insead of the propre place in
-// yvconfig since otherwise tvpowerd will note get this variable defined
-// since it doesn't include the tvconfig module.
-char daemon_email_from[64] = {'\0'};
-
+int htmlencode_flag;
 
 /**
  * Debug version of close()
@@ -107,7 +96,7 @@ _writef(int fd, const char *buf, ...) {
         vsnprintf(tmpbuff, blen, buf, ap);
         tmpbuff[blen-1] = 0;
         int ret;
-        if( !inlogfunction && htmlencode_flag ) {
+        if( htmlencode_flag ) {
             char *htmlbuff = html_encode(tmpbuff);
             ret = write(fd, htmlbuff, strlen(htmlbuff));
             free( htmlbuff);
@@ -120,197 +109,7 @@ _writef(int fd, const char *buf, ...) {
     return -1;
 }
 
-/**
- * _vsyslogf
- * Write a message to the system logger with printf() formatting capabilities
- * @param priority Priority
- * @param msg Format string
- * @param ... Arguments for format string
- */
-void
-_vsyslogf(int priority, char *msg, ...) {
-    static const int blen = 4096;
-    char tmpbuff[blen];
 
-    va_list ap;
-    va_start(ap,msg);
-
-    int erroffset = 0 ;
-    if( priority == LOG_ERR ) {
-        tmpbuff[0] = '*';
-        tmpbuff[1] = '*';
-        tmpbuff[2] = '*';
-        tmpbuff[3] = ' ';
-        erroffset = 4;
-    }
-    vsnprintf(tmpbuff+erroffset,blen-1-erroffset,msg,ap);
-    tmpbuff[blen-1] = 0 ;
-    syslog(priority,"%s", tmpbuff);
-}
-
-/*
- * Utility function
- * Log message to either specified log file or if no file is specified use
- * system logger. The name of the output device to use is set in the main
- * program and communicated here with a global variable
- */
-#define MAXLOGFILEBUFF 10*1024
-static char _lastlogmsg[4096] = {'\0'};
-static int _lastlogcnt=0;
-
-void logmsg(int priority, char *msg, ...) {
-    static const int blen = 20*1024;
-    static int _loginit = 0 ;
-    char *msgbuff,*tmpbuff,*logfilebuff;
-
-
-    msgbuff = calloc(1,blen);
-    tmpbuff = calloc(1,blen);
-    logfilebuff = calloc(1,blen);
-    if( msgbuff == NULL || tmpbuff == NULL || logfilebuff == NULL ) {
-        free(msgbuff);
-        free(tmpbuff);
-        free(logfilebuff);
-        syslog(priority,"FATAL. Can not allocate message buffers in logmsg().");
-        return;
-    }
-
-    // We only print errors by default and info if the verbose flag is set
-    if ( (priority == LOG_ERR) || (priority == LOG_CRIT) ||
-         ((priority == LOG_INFO)   && verbose_log > 0) ||
-         ((priority == LOG_NOTICE) && verbose_log > 1) ||
-         ((priority == LOG_DEBUG)  && verbose_log > 2)      ) {
-        va_list ap;
-        va_start(ap,msg);
-
-        int erroffset = 0 ;
-        if( priority == LOG_ERR ) {
-            tmpbuff[0] = '*';
-            tmpbuff[1] = '*';
-            tmpbuff[2] = ' ';
-            erroffset = 3;
-        } else if(priority == LOG_CRIT) {
-            tmpbuff[0] = '*';
-            tmpbuff[1] = '*';
-            tmpbuff[2] = '*';
-            tmpbuff[3] = '*';
-            tmpbuff[4] = ' ';
-            erroffset = 5;
-        }
-        vsnprintf(tmpbuff+erroffset,blen-1-erroffset,msg,ap);
-
-        if( 0==strcmp(tmpbuff,_lastlogmsg) ) {
-            free(msgbuff);
-            free(tmpbuff);
-            free(logfilebuff);
-            _lastlogcnt++;
-            return;
-        } else {
-            if( _lastlogcnt > 0 ) {
-                char *tmpbuff2 = calloc(1,blen);
-                snprintf(tmpbuff2,blen,"[Repeated %d times] : %s",_lastlogcnt,_lastlogmsg);
-                _lastlogcnt = -1;
-                logmsg(priority,tmpbuff2);
-                free(tmpbuff2);
-                _lastlogcnt=0;
-                *_lastlogmsg = '\0';
-            } else if( 0 == _lastlogcnt ) {
-                strncpy(_lastlogmsg,tmpbuff,4095);
-            }
-        }
-        tmpbuff[blen-1] = 0 ;
-
-        if ( *logfile_name == '\0' ||  strcmp(logfile_name, LOGFILE_SYSLOG) == 0 ) {
-            if( !_loginit ) {
-                openlog(server_program_name, LOG_PID | LOG_CONS, LOG_DAEMON);
-                _loginit = 1;
-            }
-            syslog(priority, "%s", tmpbuff);
-            // Syslogger
-        } else {
-            mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-            int fd;
-
-            // Use file
-            if( strcmp(logfile_name,"stdout") == 0) {
-                fd=STDOUT_FILENO;
-            }
-            else {
-                fd = open(logfile_name, O_APPEND | O_CREAT | O_WRONLY , mode);
-            }
-            if (fd < 0) {
-                // Use syslogger as last resort
-                if( !_loginit ) {
-                    openlog(server_program_name, LOG_PID | LOG_CONS, LOG_USER);
-                    _loginit = 1;
-                }
-                syslog(LOG_ERR, "Couldn't open specified log file. Falling back to syslog.");
-                syslog(priority, "%s", tmpbuff);
-            } else {
-                static const int tblen = 32;
-                char timebuff[tblen] ;
-                //char *envloc = getenv("LC_ALL");
-
-                time_t now = time(NULL);
-                ctime_r(&now,timebuff);
-                timebuff[strnlen(timebuff,tblen)-1] = 0;
-                //snprintf(msgbuff, blen-1, "(%ld) (%s) %s: %s\n", now, envloc, timebuff, tmpbuff);
-                snprintf(msgbuff, blen-1, "%s: %s\n", timebuff, tmpbuff);
-                msgbuff[blen-1] = 0 ;
-                inlogfunction = 1;
-                _writef(fd, msgbuff);
-                inlogfunction = 0;
-                if( fd != STDOUT_FILENO ) {
-                    close(fd);
-                }
-                strncpy(last_logmsg,msgbuff,MAX_LASTLOGMSG-1);
-                last_logmsg[MAX_LASTLOGMSG-1]='\0';
-            }
-        }
-
-        if( priority == LOG_ERR && send_mail_on_error ) {
-            // The sibject in the mail will be the name of the daemon together with
-            // the canonical hostname
-            const char mailSubjectFormat[] = {"tvpvrd@%s - FAILURE"};
-            const int tblen = 32;
-            const int shortblen = 80;
-            char timebuff[tblen] ;
-            char subjbuff[shortblen], hostname[shortblen];
-            time_t now = time(NULL);
-            ctime_r(&now,timebuff);
-            timebuff[strnlen(timebuff,tblen)-1] = 0;
-            snprintf(msgbuff, blen-1, "%s: %s\n", timebuff, tmpbuff);
-            msgbuff[blen-1] = '\0' ;
- 
-            // Create subject line with host name
-            gethostname(hostname,shortblen);
-            hostname[shortblen-1] = '\0';
-            snprintf(subjbuff, shortblen, mailSubjectFormat, hostname);
-            subjbuff[shortblen-1] = '\0';
-
-            // Extract the last lines from the log file and include in the mail.
-            if( strcmp(logfile_name,"stdout") && 0 == tail_logfile(20,logfilebuff,blen) ) {
-                strncat(msgbuff,"\n\n---- LAST 20 LINES FROM LOG FILE ----\n",blen);
-                strncat(msgbuff,logfilebuff,blen-1);
-                msgbuff[blen-1] = '\0' ;
-            }
-
-            if( send_mail(subjbuff,daemon_email_from, send_mailaddress,msgbuff) ) {
-                syslog(priority, "'tvpvrd' Failed sending error notification mail. ");
-                syslog(priority, "%s", tmpbuff);
-            } else {
-                logmsg(LOG_DEBUG,"Mail notification on error sent to '%s'",send_mailaddress);
-            }
-        }
-
-        va_end(ap);
-    }
-
-    free(msgbuff);
-    free(tmpbuff);
-    free(logfilebuff);
-    
-}
 
 /*
  * Utility function that uses Perl Regular Expression library to match
@@ -325,7 +124,6 @@ matchcmd(const char *regex, const char *cmd, char ***field) { //, const char *fu
     int ovector[100];
     const char *errptr;
     int erroff,ret;
-
     //logmsg(LOG_DEBUG, "matchcmd() called from '%s()' at line #%05d",func,line);
     cregex = pcre_compile(regex,PCRE_CASELESS|PCRE_MULTILINE|PCRE_NEWLINE_CRLF|PCRE_UTF8,
             &errptr,&erroff,NULL);
@@ -466,16 +264,15 @@ mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
         if( short_filename[k] == '.' ) {
             if( strlen(&short_filename[k]) > 7 ) {
                 // A suffix > 7 characters, don't think so!
-                logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s'. Invalid file suffix '%s'",
-                       from,to,&short_filename[k]);
+                //logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s'. Invalid file suffix '%s'",
+                //      from,to,&short_filename[k]);
                 return -1;
             }
             strncpy(suffix,&short_filename[k],7);
             suffix[7] = '\0';
             short_filename[k] = '\0';
         } else {
-            logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' destination file must have a valid suffix.",
-                   from,to);
+            //logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' destination file must have a valid suffix.",from,to);
             return -1;
         }
 
@@ -486,8 +283,7 @@ mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
             ret = stat(buff1,&fstat);
         } while( i < 999 && ret == 0 );
         if( i >= 999 ) {
-            logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s'. Too many duplicates.",
-                   from,to);
+            logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s'. Too many duplicates.",from,to);
             return -1;
         }
     } else if( errno == ENOENT ) {
@@ -496,14 +292,12 @@ mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
         buff1[255] = '\0';
     } else {
         // Some other problems
-        logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' (%d : %s)",
-               from,to,errno,strerror(errno));
+        logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' (%d : %s)",from,to,errno,strerror(errno));
         return -1;
     }
     int ret = rename(from, buff1);
     if( -1 == ret ) {
-        logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' (%d : %s)",
-              from,buff1,errno,strerror(errno));
+        logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s' (%d : %s)",from,buff1,errno,strerror(errno));
     }
     strncpy(newname,buff1,maxlen);
     newname[maxlen-1] = '\0';
@@ -961,6 +755,60 @@ dump_string_chars(char *buffer, size_t maxlen, char const *str) {
         return -1;
     
     return 0;
+}
+
+
+
+/*
+ * Read a reply from a socket with 2s timeout.
+ * We only read the first chunk of data available.
+ * To read all data on the socket see waitreadn()
+ */
+int
+waitread(int sock, char *buffer, int maxbufflen) {
+    fd_set read_fdset;
+    struct timeval timeout;
+
+    FD_ZERO(&read_fdset);
+    FD_SET(sock, &read_fdset);
+
+    timerclear(&timeout);
+    timeout.tv_sec = 2;
+
+    int ret = select(sock + 1, &read_fdset, NULL, NULL, &timeout);
+    if( 0 == ret ) {
+        // Timeout
+        return -1;
+    } else {
+        int nread = read(sock, buffer, maxbufflen);
+        buffer[nread] = '\0';
+    }
+    return 0;
+}
+
+/*
+ * Used to read an unknown amount of data from a socket
+ * We keep filling the buffer until we get a timeout and there
+ * is nothing more to read.
+ */
+int
+waitreadn(int sock, char *buffer, int maxbufflen) {
+    const int buffsize = 128*1024;
+    char *pbuff = calloc(buffsize,sizeof(char));
+    *buffer = '\0';
+    int totlen=0;
+    while( totlen < maxbufflen && waitread(sock,pbuff,buffsize) > -1 ) {
+        strcat(buffer,pbuff);
+        int len=strlen(pbuff);
+        totlen += len;
+        buffer[totlen] = '\0';
+    }
+    buffer[maxbufflen-1] = '\0';
+    free(pbuff);
+    if( *buffer == '\0' )
+        return -1;
+    else
+        return 0;
 }
 
 /* utils.c */

@@ -35,13 +35,12 @@ extern "C" {
 #define _dbg_close(fd) close(fd)
 #endif
 
+
+extern int htmlencode_flag;
+
+
 int
 _x_dbg_close(int fd);
-
-/*
- * Always holds a copy of the last log message printed to log
- */
-extern char last_logmsg[];
 
 /*
  * Pointer to a suitable pre-format function used with the _writef()
@@ -55,21 +54,6 @@ extern char * (*_write_preformat_func)(char *);
  */
 int
 _writef(int fd, const char *buf, ...) ;
-
-/*
- * Utility funciotn. Formatting version of syslogger
- */
-void
-_vsyslogf(int priority, char *msg, ...);
-
-/*
- * Utility function
- * Log message to either specified log file or if no file is specified use
- * system logger
- */
-void
-logmsg(int priority, char *msg, ...) ;
-
 
 /*
 #define matchcmd_free(field) _matchcmd_free((field),__FUNCTION__,__LINE__)
@@ -255,7 +239,6 @@ html_encode(char *str);
 char *
 esc_percentsign(char *str);
 
-extern int htmlencode_flag;
 
 /**
  * Return the associated value in an aray of key/value pairs
@@ -289,6 +272,17 @@ escape_quotes(char *tostr, const char *fromstr, const size_t maxlen, unsigned re
  */
 int
 dump_string_chars(char *buffer, size_t maxlen, char const *str);
+
+int
+waitread(int sock, char *buffer, int maxbufflen);
+
+int
+waitreadn(int sock, char *buffer, int maxbufflen);
+
+
+// Clear variable section in memory
+#define CLEAR(x) memset (&(x), 0, sizeof(x))
+
 
 //-----------------------------------------------------------------------------
 // Various defines for Regular expression matching of commands

@@ -43,6 +43,7 @@
 #include "stats.h"
 #include "transc.h"
 #include "recs.h"
+#include "tvplog.h"
 
 /*
  * The value of the following variables are read from the ini-file.

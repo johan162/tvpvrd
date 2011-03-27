@@ -47,6 +47,7 @@
 #include "vctrl.h"
 #include "vcard.h"
 #include "freqmap.h"
+#include "tvplog.h"
 
 /**
  * Set the video encoding HW parameters on the video card from the values specified in the

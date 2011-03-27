@@ -35,6 +35,7 @@
 #include "rkey.h"
 #include "tvconfig.h"
 #include "libsmtpmail/mailclientlib.h"
+#include "tvplog.h"
 
 /**
  * Escape quotes in a string as necessary

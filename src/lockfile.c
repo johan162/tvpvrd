@@ -46,6 +46,7 @@
 #include "lockfile.h"
 #include "tvpvrd.h"
 #include "utils.h"
+#include "tvplog.h"
 
 
 /*

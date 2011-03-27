@@ -47,6 +47,7 @@
 #include "freqmap.h"
 #include "xstr.h"
 #include "utils.h"
+#include "tvplog.h"
 
 /*
  * Structure to hold all frequency channel maps. Each maps consists of

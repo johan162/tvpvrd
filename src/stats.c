@@ -47,6 +47,7 @@
 #include "stats.h"
 #include "transc.h"
 #include "utils.h"
+#include "tvplog.h"
 
 /**
  * Array of statistics for each profile

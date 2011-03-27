@@ -20,7 +20,7 @@ tvpsh_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_DATE=$$(date +'%Y%m%d')"
 
 EXTRA_DIST = README INSTALL
 
-CLEANFILES = *~ tvpshell *.pid 
+CLEANFILES = *~ tvpsh *.pid 
 
 DISTCLEANFILES=*.Po $(BUILDNBR_FILE)
 

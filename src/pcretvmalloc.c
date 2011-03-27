@@ -34,6 +34,7 @@
 
 #include "utils.h"
 #include "pcretvmalloc.h"
+#include "tvplog.h"
 
 /*
  * The following memory routines are just used to double check that
