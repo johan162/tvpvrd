@@ -70,6 +70,7 @@
 #include "xstr.h"
 #include "libsmtpmail/mailclientlib.h"
 #include "mailutil.h"
+#include "tvplog.h"
 
 /*
  * Indexes into the command table
@@ -180,11 +181,11 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  lr   - list repeating and single recordings\n"\
                         "  lt   - list recordings, using timestamps good for m2m communications\n"\
                         "  log n -show the last n lines of the logfile\n"\
-                        "  mlg  - mail logfile as attachment\n"\
                         "  ls   - list all stations\n"\
                         "  lp   - list all profiles\n"\
                         "  lph  - list all profiles with HTML links\n"\
                         "  lq n - list queued transcodings\n"\
+                        "  mlg  - mail logfile as attachment\n"\
 			"  n    - list the immediate next recording on each video\n"\
 			"  o    - list the ongoing recording(s)\n"\
                         "  ot   - list the ongoing transcoding(s)\n"\
@@ -2864,7 +2865,7 @@ _cmd_mail_log(const char *cmd, int sockfd) {
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "mlg - Send logfile as attachment to rpedefined mail address\n");
+                "mlg - Send entire logfile as attachment to predefined mail address in the config file\n");
         return;
     }
 

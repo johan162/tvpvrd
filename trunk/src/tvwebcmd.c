@@ -52,6 +52,7 @@
 #include "recs.h"
 #include "tvhtml.h"
 #include "datetimeutil.h"
+#include "tvplog.h"
 
 
 // Get the name of the CSS file from the basename of the package, i.e. "tvpvrd"

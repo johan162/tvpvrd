@@ -44,7 +44,7 @@
 #include "tvhtml.h"
 #include "tvwebcmd.h"
 #include "build.h"
-
+#include "tvplog.h"
 
 /**
  * Display the top banner in the WEB interface

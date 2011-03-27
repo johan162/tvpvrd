@@ -60,6 +60,7 @@
 #include "utils.h"
 #include "freqmap.h"
 #include "xstr.h"
+#include "tvplog.h"
 
 /*
  * Common name to standard video sizes. This is primarily used to allow

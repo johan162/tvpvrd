@@ -119,9 +119,6 @@ extern char server_program_name[];
 
 
 
-// Clear variable section in memory
-#define CLEAR(x) memset (&(x), 0, sizeof(x))
-
 #ifdef	__cplusplus
 }
 #endif

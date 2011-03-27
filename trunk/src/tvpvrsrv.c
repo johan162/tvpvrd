@@ -108,7 +108,7 @@
 #include "datetimeutil.h"
 #include "xstr.h"
 #include "vcard.h"
-
+#include "tvplog.h"
 
 /*
  * This structure mirrors the one found in /usr/include/asm/ucontext.h and is
@@ -1368,10 +1368,13 @@ clientsrv(void *arg) {
 
     // Keep track of client idle time
     unsigned idle_time=0;
-
+    _Bool wasTimeout=FALSE;
     do  {
 
-        _writef(my_socket, "(tvpvrd) ");
+/*
+        if( !wasTimeout )
+            _writef(my_socket, "(tvpvrd) ");
+*/
 
         FD_ZERO(&read_fdset);
         FD_SET(my_socket, &read_fdset);
@@ -1382,6 +1385,7 @@ clientsrv(void *arg) {
         ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
         if (ret == 0) {
 
+            wasTimeout = TRUE;
             //Timeout
             idle_time += 60;
             // logmsg(LOG_DEBUG, "Client %d terminal timeout. Idle for a total of %d seconds",i,idle_time);
@@ -1394,6 +1398,8 @@ clientsrv(void *arg) {
             }
             
         } else {
+
+            wasTimeout = FALSE;
             idle_time = 0;
             numreads = read(my_socket, buffer, 1023);
 
@@ -1423,11 +1429,15 @@ clientsrv(void *arg) {
                         break;
                     }
                 } else {
-                    buffer[MAX(strnlen(buffer,1023) - 2, 0)] = 0;
-                    pthread_mutex_lock(&recs_mutex);
-                    logmsg(LOG_INFO, "Client (%s) sent command: %s [len=%d]", client_ipadr[i], buffer, strlen(buffer));
-                    cmdinterp(buffer, my_socket);
-                    pthread_mutex_unlock(&recs_mutex);
+                    buffer[MAX(strnlen(buffer,1023) - 2, 0)] = 0; // REmove trailing newline and carrige return
+                    xstrtrim(buffer);
+                    if( *buffer ) {
+                        // Ignore empty command
+                        pthread_mutex_lock(&recs_mutex);
+                        logmsg(LOG_INFO, "Client (%s) sent command: %s [len=%d]", client_ipadr[i], buffer, strlen(buffer));
+                        cmdinterp(buffer, my_socket);
+                        pthread_mutex_unlock(&recs_mutex);
+                    }
                 }
 
             }

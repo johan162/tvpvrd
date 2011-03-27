@@ -54,9 +54,6 @@ extern "C" {
 	"Type 'h' to list available commands.\n"\
 	"Connection will be closed after %d min of inactivity.\n\n"
 
-// Clear variable section in memory
-#define CLEAR(x) memset (&(x), 0, sizeof (x))
-
 /*
  * Structure to hold the details on how to make the transcoding depending
  * on the profile. The actual transcoding is done via 'ffmpeg'

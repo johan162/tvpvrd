@@ -31,11 +31,6 @@
 extern "C" {
 #endif
 
-/*
- * Utility to initialize defined structures before passing
- * then on to the ioctl() method
- */
-#define CLEAR(x) memset (&(x), 0, sizeof (x))
 	
 /*
  * The first argument ot a number of _vctrl functions and 

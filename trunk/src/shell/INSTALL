@@ -10,7 +10,25 @@ INSTALL file for tvpsh - A basic shell replacement to interact with the daemon
 
 This program normally gets installed under "/usr/bin/tvpsh"
 
-Steps to install
+Installing the shell
+-----------------------------
+Type
+make
+sudo make install
+
+This will install the binary shell in the directory specified when the build
+was configured. Normally /usr/bin/tvpsh
+
+Running the shell is then just a matter of running the shell from the command
+line as
+
+$> tvpsh
+
+
+Steps to install this as a user login shell
+----------------------------------------------------
+
+This will allow connection to the daemon directly with (for example) ssh.
 
 1. Add the the shell as one of the allowed user interactive shells in /etc/shells
 2. Create a new user. How this is done depends on your system. Most systems now aday

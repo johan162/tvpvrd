@@ -67,6 +67,7 @@
 
 // Local header files
 #include "../utils.h"
+#include "../tvplog.h"
 #include "tvpowerd.h"
 #include "../lockfile.h"
 #include "../config.h"
@@ -678,58 +679,6 @@ void startdaemon(void) {
     int dummy=dup(i);
     dummy=dup(i);
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
-}
-
-/*
- * Read a reply from a socket with 2s timeout.
- * We only read the first chunk of data available.
- * To read all data on the socket see waitreadn()
- */
-int
-waitread(int sock, char *buffer, int maxbufflen) {
-    fd_set read_fdset;
-    struct timeval timeout;
-
-    FD_ZERO(&read_fdset);
-    FD_SET(sock, &read_fdset);
-
-    timerclear(&timeout);
-    timeout.tv_sec = 2;
-
-    int ret = select(sock + 1, &read_fdset, NULL, NULL, &timeout);
-    if( 0 == ret ) {
-        // Timeout
-        return -1;
-    } else {
-        int nread = read(sock, buffer, maxbufflen);
-        buffer[nread] = '\0';
-    }
-    return 0;
-}
-
-/*
- * Used to read an unknown amount of data from a socket
- * We keep filling the buffer until we get a timeout and there
- * is nothing more to read.
- */
-int
-waitreadn(int sock, char *buffer, int maxbufflen) {
-    const int buffsize = 128*1024;
-    char *pbuff = calloc(buffsize,sizeof(char));
-    *buffer = '\0';
-    int totlen=0;
-    while( totlen < maxbufflen && waitread(sock,pbuff,buffsize) > -1 ) {
-        strcat(buffer,pbuff);
-        int len=strlen(pbuff);
-        totlen += len;
-        buffer[totlen] = '\0';
-    }
-    buffer[maxbufflen-1] = '\0';
-    free(pbuff);
-    if( *buffer == '\0' )
-        return -1;
-    else
-        return 0;
 }
 
 #define TVPVRD_PASSWORD "Password:"

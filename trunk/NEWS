@@ -6,6 +6,26 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+v3.1.0
+------
+User visible changes:
+    - Added a real client shell to interact with the daemon. This have features like
+      history. By allowing the shell to be used as an interactive login shell (adding it to
+      /etc/shells) it is possible to create a user that will use this shell as the login
+      shell. It is then possible to login to the server, for example using ssh, as this
+      user to interact with the daemon.
+    - Don't give an error on empty command. Just ignore it.
+    - Remove the prompt from the pure TCP/IP command since it casues all kinds
+      of issues with the real client added to 3.1.0
+
+
+Bugs fixed:
+    - Don't write the prompt after each timeout in the client interface
+    - Added documentation for mlg (mail log) command
+
+Internal changes:
+    - Refactored logging to it's own file
+
 
 v3.0.6
 ------

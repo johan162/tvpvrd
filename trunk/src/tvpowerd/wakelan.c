@@ -42,7 +42,7 @@
 #include "wakelan.h"
 #include "../utils.h"
 #include "../xstr.h"
-
+#include "../tvplog.h"
 
 /**
  * Parse a MAC address

@@ -61,6 +61,7 @@
 #include "datetimeutil.h"
 #include "xstr.h"
 #include "tvcmd.h"
+#include "tvplog.h"
 
 /* ---------------------------------------------------------------------------
  * XML File processing functions
