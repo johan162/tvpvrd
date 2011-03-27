@@ -418,12 +418,6 @@ read_inifile(void) {
 }
 
 #ifndef HAVE_LIBREADLINE
-void
-add_history(char *buffer) {
-    buffer = buffer; // Avoid GCC warning of unused parameter
-    /* empty */
-}
-
 char *
 readline(char *prompt) {
     if( prompt && *prompt ) {
@@ -433,6 +427,8 @@ readline(char *prompt) {
     }
     size_t const maxlen = 10*1024;
     char *tmpbuff = calloc(maxlen,sizeof(char));
+    if( NULL == tmpbuff )
+        return NULL;
     char *rbuff = fgets(tmpbuff,maxlen,stdin);
     if( NULL == rbuff )
         free(tmpbuff);
@@ -467,7 +463,9 @@ cmd_loop(void) {
                 finished = TRUE;
             } else {
 	      if( buffer && *buffer ) {
+#ifdef HAVE_LIBREADLINE
 		add_history(buffer);
+#endif
 		if( -1 == tvpvrd_command(buffer, reply, maxreplylen, TRUE) ){
 		  finished = TRUE;
 		} else {
