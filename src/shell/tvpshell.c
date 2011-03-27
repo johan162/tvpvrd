@@ -36,7 +36,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <signal.h>
-//#include <getopt.h>
+#include <getopt.h>
 #include <errno.h>
 #include <sys/time.h>
 
@@ -95,13 +95,95 @@ volatile sig_atomic_t received_signal;
 dictionary *dict=NULL;
 
 
+/*
+ * Handling of arguments to the server
+ */
+static const char short_options [] = "hv";
+static const struct option long_options [] = {
+    { "help",    no_argument,           NULL, 'h'},
+    { "version", no_argument,           NULL, 'v'},
+    { 0, 0, 0, 0}
+};
+
+
+/**
+ * Parse all command line options given to the server at startup. The server accepts both
+ * long and short version of command line options.
+ * @param argc
+ * @param argv
+ */
+void
+parsecmdline(int argc, char **argv) {
+
+    // Parse command line options
+    int opt, index;
+    opterr = 0; // Supress error string from getopt_long()
+    if( argc > 2 ) {
+        fprintf(stderr,"Too many arguments. Try '-h'.");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * Loop through all given input strings and check maximum length.
+     * No single argument may be longer than 256 bytes (this could be
+     * an indication of a buffer overflow attack)
+     */
+    for(int i=1; i < argc; i++) {
+        if( strnlen(argv[i],256) >= 256  ) {
+            fprintf(stderr, "Argument %d is too long.",i);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &index)) ) {
+
+        switch (opt) {
+            case 0: /* getopt_long() flag */
+                break;
+
+            case 'h':
+                fprintf(stdout,
+                        "(C) 2009,2010,2011 Johan Persson, (johan162@gmail.com) \n"
+                        "This is free software; see the source for copying conditions.\nThere is NO "
+                        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+                        "Synopsis:\n"
+                        "'%s' - Interactive shell for tvpvrd recording daemon.\n"
+                        "Usage: %s [-h] [-v]\n"
+                        "Options:\n"
+                        " -h,      --help            Print help and exit\n"
+                        " -v,      --version         Print version string and exit\n",
+                       "tvpsh", "tvpsh");
+                exit(EXIT_SUCCESS);
+                break;
+
+            case 'v':
+                fprintf(stdout,"%s %s (build: %lu.%lu)\n%s",
+                        "tvpvsh",server_version,(unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
+                        "Copyright (C) 2009,2010,2011 Johan Persson (johan162@gmail.com)\n"
+                        "This is free software; see the source for copying conditions.\nThere is NO "
+                        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
+                exit(EXIT_SUCCESS);
+                break;
+
+            case '?':
+                fprintf(stderr, "Invalid specification of program option(s). See --help for more information.\n");
+                exit(EXIT_FAILURE);
+                break;
+        }
+    }
+
+    if (argc>1 && optind < argc) {
+        fprintf(stderr, "Options not valid.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+
 /**
  * Global signal handler. We catch SIGHUP, SIGINT and SIGABRT
  * @param signal
  */
-
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic warning "-Wno-unused-result"
 
 void
 sighandler(int signo) {
@@ -113,12 +195,10 @@ sighandler(int signo) {
     }
 }
 
-//#pragma GCC diagnostic pop
-
 
 void
 exithandler(void) {
-
+  /* empty */
 }
 
 /**
@@ -147,7 +227,7 @@ setup_sighandlers(void) {
 
 
 /*
- * Read a reply from a socket with 2s timeout.
+ * Read a reply from a socket with 0.1s timeout.
  * We only read the first chunk of data available.
  * To read all data on the socket see waitreadn()
  */
@@ -200,7 +280,7 @@ waitreadn(int sock, char *buffer, int maxbufflen) {
 }
 
 
-#define TVPVRD_PASSWORD "Password:"
+#define TVPVRD_PASSWORD_LABEL "Password:"
 /**
  * Send a specified command to the tvpvrd server
  * @param cmd
@@ -243,7 +323,7 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
     }
 
     // Check for possible password question
-    if( 0 == strncmp(buffer,TVPVRD_PASSWORD,strlen(TVPVRD_PASSWORD)) ) {
+    if( 0 == strncmp(buffer,TVPVRD_PASSWORD_LABEL,strlen(TVPVRD_PASSWORD_LABEL)) ) {
 
         snprintf(buffer,1023,"%s\r\n",tvpvrd_pwd);
         ssize_t nw = write(sock,buffer,strlen(buffer));
@@ -377,8 +457,7 @@ cmd_loop(void) {
 int
 main(int argc, char **argv) {
 
-    if( argc > 1 )
-      exit(1);
+  parsecmdline(argc,argv);
 
     setup_sighandlers();
     setup_inifile();
