@@ -43,9 +43,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <readline/readline.h>
-#include <readline/history.h>
-
 // Aplication specific libs, parse inifiles
 #ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
@@ -65,6 +62,11 @@
 #include "../xstr.h"
 #include "../config.h"
 #include "../build.h"
+
+#ifdef HAVE_LIBREADLINE
+#include <readline/readline.h>
+#include <readline/history.h>
+#endif
 
 /*
  * Server identification
@@ -414,6 +416,34 @@ read_inifile(void) {
 
     return 0;
 }
+
+#ifndef HAVE_LIBREADLINE
+void
+add_history(char *buffer) {
+    buffer = buffer; // Avoid GCC warning of unused parameter
+    /* empty */
+}
+
+char *
+readline(char *prompt) {
+    if( prompt && *prompt ) {
+        if( write(STDOUT_FILENO,prompt,strlen(prompt)) != (ssize_t)strlen(prompt) ) {
+            return NULL;
+        }
+    }
+    size_t const maxlen = 10*1024;
+    char *tmpbuff = calloc(maxlen,sizeof(char));
+    char *rbuff = fgets(tmpbuff,maxlen,stdin);
+    if( NULL == rbuff )
+        free(tmpbuff);
+    else {
+        if( *tmpbuff && strlen(tmpbuff) > 0 ) {
+            tmpbuff[strlen(tmpbuff)-1] = '\0';
+        }
+    }
+    return rbuff;
+}
+#endif
 
 /*
  * Main command interpretation loop.
