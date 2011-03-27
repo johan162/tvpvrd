@@ -290,7 +290,9 @@ if test "x${have_iniparser_h}" = xno; then
 fi
 if test "x${have_readline_h}" = xno; then
    AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([  - Can NOT build 'tvpsh' shell since no GNU readline library could be found.])
+   AC_MSG_NOTICE([  - 'tvpsh' shell will be built with limited command line editing])
+   AC_MSG_NOTICE([     since GNU readline library COULD NOT BE FOUND. Please install.])
+   AC_MSG_NOTICE([     libreadline to get full history and command line editing support])
 fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    AC_MSG_NOTICE([ ])

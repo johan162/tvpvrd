@@ -9,9 +9,9 @@ bin_PROGRAMS = tvpvrd
 BUILDNBR_FILE=buildnumber.txt
 SUBDIRS = libsmtpmail libiniparser . tvpowerd 
 
-if have_readline
+#if have_readline
 SUBDIRS += shell
-endif
+#endif
 
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c \
 vctrl.c tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c \
