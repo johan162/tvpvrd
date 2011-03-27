@@ -83,7 +83,6 @@ static char tvpvrd_pwd[128]= {'\0'};    // Read from INI-file
 
 #define INIFILE_NAME "tvpvrd.conf"
 #define PORT 9300
-#define PROMPT "tvpvrd> "
 #define SIGINT_INFO "(Type exit to quit)\n"
 
 volatile sig_atomic_t received_signal;
@@ -189,7 +188,6 @@ void
 sighandler(int signo) {
     received_signal = signo;
     ssize_t rc = write(1,SIGINT_INFO,strlen(SIGINT_INFO));
-    rc = write(1,PROMPT,strlen(PROMPT));
     if( rc == rc ) {
       /* empty */ ;
     }
@@ -207,19 +205,21 @@ exithandler(void) {
 void
 setup_sighandlers(void) {
 
-    // Block all signals except SIGINT
+    // Block all signals //except SIGINT
     sigset_t sigset;
     sigfillset(&sigset);
-    sigdelset(&sigset,SIGINT);
+    // sigdelset(&sigset,SIGINT);
     sigprocmask(SIG_SETMASK,&sigset,NULL);
     
     // Setup SIGINT handler
+    /*
     struct sigaction act;
     CLEAR(act);
     act.sa_handler = &sighandler;
     act.sa_flags = SA_RESTART;
 
     sigaction(SIGINT,&act,(struct sigaction *)NULL);
+    */
 
     atexit(exithandler);
 
@@ -425,9 +425,11 @@ cmd_loop(void) {
     char *buffer=(char *)NULL;
     size_t const maxreplylen = 50*1024;
     char *reply = calloc(maxreplylen,sizeof(char));
+    char prompt[64];
 
+    snprintf(prompt,64,"%s-%s> ","tvpvsh",server_version);
     do {
-        if( NULL == (buffer=readline(PROMPT)) ) {
+        if( NULL == (buffer=readline(prompt)) ) {
             finished = TRUE;
         } else {
             xstrtrim(buffer);
@@ -463,10 +465,11 @@ main(int argc, char **argv) {
     setup_inifile();
     read_inifile();
 
+    /*
     printf("%s-%s (build:%lu.%lu)\n",
            basename(argv[0]), server_version,
            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
-
+    */
     cmd_loop();
     
 }
