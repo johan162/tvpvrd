@@ -331,18 +331,15 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 
         } else if ((ret = matchcmd("^GET /" _PR_ANY _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
 
-            // We get here when the client tries to get the CSS file
+            // We get here when the client tries to get the CSS file or issue one
+            // of the named commands
             found = 1;
             matchcmd_free(&field);
-            logmsg(LOG_DEBUG,"Found CATCH ALL");
-            if( access("/tmp/header.txt",R_OK) ) {
-                FILE *fp=fopen("/tmp/header.txt","w");
-                fprintf(fp,"%s",buffer);
-                fclose(fp);
-            }
-                                            
+                                           
         }
-        logmsg(LOG_DEBUG,"FOUND WEBCOMMAND: found=%d",found);
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG,"FOUND WEBCONNECTION: found=%d, buffer=%s",found,buffer);
+#endif
 
         return found;
 
@@ -606,7 +603,8 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
             matchcmd_free(&field);
 
-        } else if ((ret = matchcmd("GET /killrec\\?" _PR_AN "=" _PR_AN _PR_HTTP_VER ,
+        } else if ((ret = matchcmd("GET /killrec\\?" 
+                    _PR_AN "=" _PR_N " " _PR_HTTP_VER ,
                                     buffer, &field)) > 1) {
 
             const int maxvlen = 256;
@@ -625,7 +623,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                 _PR_AN "=" _PR_ANO "&"
                 _PR_AN "=" _PR_ANO "&"
                 _PR_AN "=" _PR_ANO
-                " HTTP/1.1",
+                " " _PR_HTTP_VER,
                 buffer, &field)) > 1) {
 
             const int maxvlen = 256;
@@ -734,7 +732,8 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
         }
 
         if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) {
-            // If it's not a favicon.ico GET command we proceed
+            // If it's not a favicon.ico GET command we proceed to execute the
+            // command we have received
 
             static char logincookie[128];
 

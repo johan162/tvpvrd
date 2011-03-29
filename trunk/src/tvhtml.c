@@ -66,7 +66,9 @@ html_topbanner(int sockd) {
 }
 
 /**
- * Display the result of a command in the command output area
+ * Display the result of a command in the command output area by executing the
+ * command with the normal comman interpretator. It is assumed that the web preprocesing
+ * has converted the web command to a standard command.
  * @param sockd
  * @param wcmd
  */
@@ -460,7 +462,8 @@ html_notmodified(int sockd) {
 
 
 /**
- * The full main page used when we are called from an ordinary browser
+ * The full main page used when we are called from an ordinary browser, This is also
+ * the place where we execute the WEb-command as a side effect to get the web output
  * @param sockd
  * @param wcmd
  * @param cookie_val
