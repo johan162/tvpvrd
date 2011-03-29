@@ -116,10 +116,11 @@
 #define CMD_MAILLIST_HTML 38
 #define CMD_LIST_PROFILES_HTMLLINKS 39
 #define CMD_LISTRECREC 40
-#define CMD_MAILLIST_RECSINGLE_HTML 41
-#define CMD_MAIL_LOG 42
+#define CMD_LISTRECSINGLE 41
+#define CMD_MAILLIST_RECSINGLE_HTML 42
+#define CMD_MAIL_LOG 43
 
-#define CMD_UNDEFINED 43
+#define CMD_UNDEFINED 44
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -178,7 +179,8 @@ _cmd_help(const char *cmd, int sockfd) {
     			"  lh   - list of recordings, human format\n"\
                         "  lm   - send mail with list of all recordings\n"\
                         "  lmr  - send mail with list repeat and single recordings\n"\
-                        "  lr   - list repeating and single recordings\n"\
+                        "  lr   - list repeating recordings\n"\
+                        "  lu   - list single recordings\n"\
                         "  lt   - list recordings, using timestamps good for m2m communications\n"\
                         "  log n -show the last n lines of the logfile\n"\
                         "  ls   - list all stations\n"\
@@ -236,7 +238,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|l|mlg|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|lu|l|mlg|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -1545,6 +1547,39 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
     free(buffer_plain);
 }
 
+static void
+_cmd_listsingle(const char *cmd, int sockfd) {
+    char **field = (void *)NULL;
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "lu             - List single recordings (not part of a recurring sequence).\n"
+                 );
+        return;
+    }
+
+    int ret = matchcmd("^lu" _PR_E, cmd, &field);
+
+    if ( ret != 1 ) {
+
+        _writef(sockfd,"Syntax error.\n",ret);
+        return;
+
+    }
+
+    matchcmd_free(&field);
+
+    size_t const maxlen=(max_video*max_entries)*1024;
+    char *buffer = calloc(maxlen, sizeof(char));
+    if( buffer == NULL ) {
+        _writef(sockfd,"Fatal. Server out of memory.\n");
+        return;
+    }
+
+    listhtmlrecsbuff(buffer, maxlen ,0 ,0, TRUE, FALSE); // Get plain list of single recordings
+    _writef(sockfd,"%s",buffer);
+    free(buffer);
+}
+
 /*
  * List repeating recordings
  */
@@ -1553,7 +1588,7 @@ _cmd_listrep(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "lr             - List repeated and single recordings.\n"
+                "lr             - List repeated recordings.\n"
                  );
         return;
     }
@@ -1570,20 +1605,15 @@ _cmd_listrep(const char *cmd, int sockfd) {
     matchcmd_free(&field);
 
     size_t const maxlen=(max_video*max_entries)*1024;
-    char *buffer_plain = calloc(maxlen, sizeof(char));
     char *buffer = calloc(maxlen, sizeof(char));
-    if( buffer_plain == NULL || buffer == NULL ) {
+    if( buffer == NULL ) {
         _writef(sockfd,"Error. Server out of memory.\n");
         return;
     }
 
-    listrepeatrecsbuff(buffer_plain, maxlen, 0);
-    listhtmlrecsbuff(buffer, maxlen ,0 ,0, TRUE, FALSE); // Get plain list of single recordings
-    strcat(buffer_plain,"\n\n");
-    strncat(buffer_plain,buffer,maxlen);
+    listrepeatrecsbuff(buffer, maxlen, 0);
+    _writef(sockfd,"%s",buffer);
 
-    _writef(sockfd,"%s\n",buffer_plain);
-    free(buffer_plain);
     free(buffer);
 
 }
@@ -2995,6 +3025,7 @@ cmdinit(void) {
     cmdtable[CMD_LISTRECREC]        = _cmd_listrep;
     cmdtable[CMD_MAILLIST_RECSINGLE_HTML] = _cmd_maillist_recsingle;
     cmdtable[CMD_MAIL_LOG]          = _cmd_mail_log;
+    cmdtable[CMD_LISTRECSINGLE]     = _cmd_listsingle;
 }
 
 /**
@@ -3035,6 +3066,7 @@ _getCmdPtr(const char *cmd) {
         {"li", CMD_LIST_VIDEO_INPUTS},
         {"lm", CMD_MAILLIST_HTML},
         {"lr", CMD_LISTRECREC},
+        {"lu", CMD_LISTRECSINGLE},
         {"lmr",CMD_MAILLIST_RECSINGLE_HTML},
         {"lph",CMD_LIST_PROFILES_HTMLLINKS},
         {"lp", CMD_LIST_PROFILES},
@@ -3140,7 +3172,8 @@ cmdinterp(char *cmd, int sockfd) {
         cmd[n] = '\0';
     }
     (_getCmdPtr(cmd))(cmd,sockfd);
-
+    _writef(sockfd,"\r\n"); // Add \r\n as an indication that the output from the command is finished
+    
 }
 
 
