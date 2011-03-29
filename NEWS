@@ -22,14 +22,14 @@ User visible changes:
 
 Bugs fixed:
     - Don't write the prompt after each timeout in the client interface
-    - Added documentation for mlg (mail log) command
+    - Added documentation for "mlg" (mail log) command
+    - Fixed a bug introduced in 3.0.6 whereby a cancelling request for an ongoing recording
+      via the Web interface was not recognized
 
 Internal changes:
-    - Refactored logging to it's own file
+    - Refactored logging routines to it's own source file
     - Each command output now ends with a "\r\n" sequence to indicated end of command output
-    - The detection of end of command output is now robust and doesn't rely on a timeout in the
-      read() system call.
-
+ 
 
 v3.0.6
 ------
