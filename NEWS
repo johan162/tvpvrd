@@ -9,15 +9,16 @@ Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 v3.1.0
 ------
 User visible changes:
-    - Added a real client shell to interact with the daemon. This have features like
-      history. By allowing the shell to be used as an interactive login shell (adding it to
+    - Added a real client shell 'tvpsh' program to interact with the daemon.
+      This have features like full command line editing and  history (using GNU readline).
+      By allowing the shell to be used as an interactive login shell (adding it to
       /etc/shells) it is possible to create a user that will use this shell as the login
       shell. It is then possible to login to the server, for example using ssh, as this
       user to interact with the daemon.
     - Don't give an error on empty command. Just ignore it.
-    - Remove the prompt from the pure TCP/IP command since it casues all kinds
+    - Remove the prompt from the pure TCP/IP command since it causes all kinds
       of issues with the real client added to 3.1.0
-
+    - 'lr' command was split into 'lr' and 'lu' command to make the commands orthogonal
 
 Bugs fixed:
     - Don't write the prompt after each timeout in the client interface
@@ -25,6 +26,9 @@ Bugs fixed:
 
 Internal changes:
     - Refactored logging to it's own file
+    - Each command output now ends with a "\r\n" sequence to indicated end of command output
+    - The detection of end of command output is now robust and doesn't rely on a timeout in the
+      read() system call.
 
 
 v3.0.6
