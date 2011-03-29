@@ -89,7 +89,7 @@ AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR([linux/videodev2.h not availabl
 have_iniparser_h=no
 AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE([iniparser.h not available. Will use built-in version]))
 have_readline_h=no
-AC_CHECK_HEADERS(readline/readline.h,[have_readline_h=yes],AC_MSG_NOTICE([readline/readline.h not available. tvpsh will not be built]))
+AC_CHECK_HEADERS(readline/readline.h,[have_readline_h=yes],AC_MSG_NOTICE([readline/readline.h not available. Please install "readline-devel" to get command line editing in tvpsh]))
 AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR([errno.h not available]))
 AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR([syslog.h not available]))
 AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR([getopt.h not available]))
@@ -119,7 +119,7 @@ AC_CHECK_LIB(xml2, xmlParseFile,,AC_MSG_ERROR([No XML2 library found. Please ins
 AC_CHECK_LIB(m, lroundf,,AC_MSG_ERROR([No math library found. Please install libm-dev (or similar)]))
 
 if test "x${have_readline_h}" = xyes; then
-AC_CHECK_LIB(readline,readline,,AC_MSG_NOTICE([No GNU readline library found. tvpsh will not be built!]))
+   AC_CHECK_LIB(readline,readline,,AC_MSG_NOTICE([No GNU readline library found. tvpsh will not be built!]))
 fi
 
 # ===============================================================================
@@ -290,9 +290,9 @@ if test "x${have_iniparser_h}" = xno; then
 fi
 if test "x${have_readline_h}" = xno; then
    AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([  - 'tvpsh' shell will be built with limited command line editing])
-   AC_MSG_NOTICE([     since GNU readline library COULD NOT BE FOUND. Please install.])
-   AC_MSG_NOTICE([     libreadline to get full history and command line editing support])
+   AC_MSG_NOTICE([  - WARNING: 'tvpsh' shell will be built with limited command line editing])
+   AC_MSG_NOTICE([    since the GNU readline library COULD NOT BE FOUND. Please install.])
+   AC_MSG_NOTICE([    readline-devel to get full history and command line editing support])
 fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    AC_MSG_NOTICE([ ])
