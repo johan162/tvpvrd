@@ -10,9 +10,13 @@ BUILDNBR_FILE=buildnumber.txt
 tvpsh_SOURCES = tvpshell.c
 
 if have_iniparser
-tvpsh_LDADD = ../xstr.o -lreadline ${LIBPCRE}
+tvpsh_LDADD = ../xstr.o ${LIBPCRE}
 else
-tvpsh_LDADD = ../xstr.o -lreadline ../libiniparser/libiniparser.a ${LIBPCRE}
+tvpsh_LDADD = ../xstr.o ../libiniparser/libiniparser.a ${LIBPCRE}
+endif
+
+if have_readline
+tvpsh_LDADD += -lreadline
 endif
 
 tvpsh_LDFLAGS = -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"
