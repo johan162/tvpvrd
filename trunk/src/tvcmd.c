@@ -268,6 +268,15 @@ _cmd_undefined(const char *cmd, int sockfd) {
 }
 
 static void
+_cmd_syntaxerror(const char *cmd, int sockfd) {
+    char msgbuff[1024];
+
+    snprintf(msgbuff, 1024,  "Huh? Check syntax for '%s' command.\n",cmd);
+    _writef(sockfd, msgbuff);
+
+}
+
+static void
 _cmd_setprofile(const char *cmd, int sockfd) {
     char msgbuff[256];
     int err, ret;
@@ -295,7 +304,6 @@ _cmd_setprofile(const char *cmd, int sockfd) {
         _writef(sockfd,msgbuff);
         matchcmd_free(&field);
     } else {
-        _writef(sockfd,"ret=%d\n",ret);
         _cmd_undefined(cmd,sockfd);
     }
 }
@@ -1247,7 +1255,7 @@ _cmd_list(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Syntax error.\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;
 
     }
@@ -1286,7 +1294,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Syntax error.\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;
 
     }
@@ -1369,7 +1377,7 @@ _cmd_maillist_html(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Syntax error.\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;
 
     }
@@ -1505,7 +1513,7 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Syntax error.\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;
 
     }
@@ -1561,7 +1569,7 @@ _cmd_listsingle(const char *cmd, int sockfd) {
 
     if ( ret != 1 ) {
 
-        _writef(sockfd,"Syntax error.\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;
 
     }
@@ -1597,7 +1605,7 @@ _cmd_listrep(const char *cmd, int sockfd) {
 
     if ( ret != 1 ) {
 
-        _writef(sockfd,"Syntax error.\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;
 
     }
@@ -1637,7 +1645,7 @@ _cmd_list_ts(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Syntax error.\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;
 
     }
@@ -1725,7 +1733,7 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
                 helper_list_video_inputs(i, sockfd);
             }
         } else {
-            _cmd_undefined(cmd,sockfd);
+            _cmd_syntaxerror(cmd, sockfd);
         }
     }
     matchcmd_free(&field);
@@ -1767,7 +1775,7 @@ _cmd_list_controls(const char *cmd, int sockfd) {
             _writef(sockfd,"Cannot access video card '%d'.\n",video);
         }
     } else {
-        _cmd_undefined(cmd,sockfd);
+        _cmd_syntaxerror(cmd, sockfd);
     }
 }
 
@@ -2221,8 +2229,7 @@ _cmd_dump_tprofile(const char *cmd, int sockfd) {
         matchcmd_free(&field);
 	_writef(sockfd,msgbuff);
     } else {
-        snprintf(msgbuff,1024,"Syntax error. Please specify '@profile' to display.\n");
-        _writef(sockfd,msgbuff);
+        _cmd_syntaxerror(cmd, sockfd);
     }
 }
 
@@ -2415,7 +2422,7 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
             }
 
         } else {
-            _cmd_undefined(cmd,sockfd);
+            _cmd_syntaxerror(cmd, sockfd);
         }
     }
 
@@ -2459,7 +2466,7 @@ _cmd_abort(const char *cmd, int sockfd) {
         }
     }
     else {
-        _cmd_undefined(cmd,sockfd);
+        _cmd_syntaxerror(cmd, sockfd);
     }
 
     matchcmd_free(&field);
@@ -2532,12 +2539,9 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
                 // q <channel> [@profile ...]
                 ret = matchcmd("^q" _PR_S _PR_CHANNEL _PR_PROFILES _PR_E,
                     cmd, &field);
-                if( ret < 0 ) {
-                    _cmd_undefined(cmd,sockfd);
-                } else {
-                    if( ret > 2 ) {
-                        profile=2;
-                    }
+
+                if( ret > 2 ) {
+                    profile=2;
                 }
             }
             else {
@@ -2580,11 +2584,11 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
             strcat(cmdbuff,field[profile]);
         }
         logmsg(LOG_NOTICE,"Sending command: %s",cmdbuff);
+        matchcmd_free(&field);
         _cmd_add(cmdbuff,sockfd);
     } else {
-        _cmd_undefined(cmd, sockfd);
+        _cmd_syntaxerror(cmd, sockfd);
     }
-    matchcmd_free(&field);
 }
 
 /**
@@ -2638,7 +2642,7 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
                 _writef(sockfd,"killflag=%c\n",dokilltranscodings ? 'y' : 'n' );
 
             } else {
-                _writef(sockfd,"Syntax error.\n");
+                _cmd_syntaxerror(cmd, sockfd);
             }
 
         } else {
@@ -2697,7 +2701,7 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Syntax error.\n");
+        _cmd_syntaxerror(cmd, sockfd);
 
     }
 
@@ -2740,7 +2744,7 @@ _cmd_transcodefilelist(const char *cmd, int sockfd) {
         matchcmd_free(&field);
 
     } else {
-        _writef(sockfd,"Syntax error.\n");
+        _cmd_syntaxerror(cmd, sockfd);
     }
 }
 
@@ -2781,7 +2785,7 @@ _cmd_transcodefilesindirectory(const char *cmd, int sockfd) {
         matchcmd_free(&field);
 
     } else {
-        _writef(sockfd,"Syntax error.\n");
+        _cmd_syntaxerror(cmd, sockfd);
     }
 }
 
@@ -2827,7 +2831,7 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
             matchcmd_free(&field);
 
         } else {
-            _writef(sockfd,"Syntax error.\n");
+            _cmd_syntaxerror(cmd, sockfd);
         }
     }
 }
@@ -2862,7 +2866,7 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
 
     } else {
 
-        _writef(sockfd,"Error. Syntax error (ret=%d).\n",ret);
+        _cmd_syntaxerror(cmd, sockfd);
         return;        
         
     }
