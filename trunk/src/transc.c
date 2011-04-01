@@ -1110,7 +1110,7 @@ _transcode_file(void *arg) {
     struct stat fstat;
     if( 0 == stat(workingdir,&fstat) ) {
         // Directory already exists. We play safe an bail out
-        logmsg(LOG_ERR,"Directory '%s' already exists. Cannot transcode. Please remove directory manually.");
+        logmsg(LOG_ERR,"Directory '%s' already exists. Cannot transcode. Please remove directory manually.",workingdir);
         pthread_mutex_lock(&filetransc_mutex);
         nfiletransc_threads--;
         pthread_mutex_unlock(&filetransc_mutex);
@@ -1124,15 +1124,23 @@ _transcode_file(void *arg) {
 
     // Link the file to transcode into this new working directory
     snprintf(wdirbuff,255,"%s/%s",workingdir,basename(filename));
-    if( -1 == symlink(filename,wdirbuff) ) {
-        logmsg(LOG_ERR,"Cannot symlink file '%s' to transcode into working directory '%s' ( %d : %s )",
-                filename,wdirbuff,errno,strerror(errno));
-        pthread_mutex_lock(&filetransc_mutex);
-        nfiletransc_threads--;
-        pthread_mutex_unlock(&filetransc_mutex);
 
-        pthread_exit(NULL);
-        return (void *) 0;
+    // Try both symlink and link. If we for example have mounted a smb share it will
+    // not allow so we must try (hard) links instead
+
+    if( -1 == symlink(filename,wdirbuff) ) {
+
+        if( -1 == link(filename,wdirbuff) ) {
+            logmsg(LOG_ERR,"Cannot link file '%s' to transcode into working directory '%s' ( %d : %s )",
+                    filename,wdirbuff,errno,strerror(errno));
+            pthread_mutex_lock(&filetransc_mutex);
+            nfiletransc_threads--;
+            pthread_mutex_unlock(&filetransc_mutex);
+
+            pthread_exit(NULL);
+            return (void *) 0;
+        }
+
     }
     logmsg(LOG_INFO,"Linked file '%s' into temporary directory '%s' ",filename,wdirbuff);
 
@@ -1213,12 +1221,12 @@ _transcode_file(void *arg) {
                 // short as well. Ideally the wait4() should have a timeout argument in
                 // which case we would have been notified sooner.
 
-                // Why exactly 6s wait? Well, in case the user terminates the process it
-                // means that on average it will take 3s before the structures are updated
+                // Why exactly 3s wait? Well, in case the user terminates the process it
+                // means that on average it will take 1.5s before the structures are updated
                 // with the removed transcoding which is the longest time a user ever should
                 // have to waut for feedback.
-                sleep(6);
-                runningtime += 6;
+                sleep(3);
+                runningtime += 3;
                 rpid = wait4(pid, &ret, WCONTINUED | WNOHANG | WUNTRACED, &usage);
 
             } while (pid != rpid && runningtime < watchdog);
