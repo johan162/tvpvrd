@@ -438,6 +438,25 @@ Connection will be closed after 30 min of inactivity.
             <para>To disconnect to the server just type '<command>exit</command>'</para>
         </refsect1>
         <refsect1>
+            <title>Using the tvpsh to connect to the daemon</title>
+            <para>Starting with version 3.1.0 the distribution also includes a full command line
+                shell, <command>tvpsh</command>. This allows much better editing (emacs compatible
+                editing) as well as full command line history. This shell can also be used as a
+                system login shel and hereby making it possible to connect to the daemon using
+                    <command>ssh</command> for a more secure communication by creating a unique user
+                with tvpsh as the login shell.</para>
+            <para>How to setup and use the tvpsh command line shell is fully described in <citerefentry>
+                    <refentrytitle>tvpsh</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry></para>
+            <para>In its simplest for (assuming you are on the same sever as the dameon) the shell
+                can be started with</para>
+            <para>
+                <screen>$> tvpsh</screen>
+            </para>
+            <para>Run <command>tvpsh -h </command>for a list of supported options.</para>
+        </refsect1>
+        <refsect1>
             <title>The recording and transcoding process</title>
             <para>The recording process refers to the process of saving the generated MPRG2 video
                 stream from the capture card to a file.</para>
@@ -2417,6 +2436,9 @@ shutdown_script_name          : shutdown.sh
             xml:id="tvpvrd.seealso">
             <title>See also</title>
             <para><citerefentry>
+                    <refentrytitle>tvpsh</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
                     <refentrytitle>tvpowerd</refentrytitle>
                     <manvolnum>1</manvolnum>
                 </citerefentry>, <citerefentry>
