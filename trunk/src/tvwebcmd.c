@@ -191,30 +191,35 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
         return 1;
     }
 
-    if ((ret = matchcmd(_PR_ANY "Cookie: tvpvrd=" _PR_ANP "\\r\\n", buffer, &field)) > 1) {
+    if ((ret = matchcmd_ml("^Cookie:.*tvpvrd=" _PR_ANP, buffer, &field)) > 1) {
 
 #ifdef EXTRA_WEB_DEBUG
         logmsg(LOG_DEBUG, "Cookie found in HTTP Header: %s",buffer);
 #endif
 
-        char *tmpbuff = url_decode(field[2]);
-        logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[2], tmpbuff);
-        int sucess=0;
-        if (validate_cookie(tmpbuff)) {
+        char *tmpbuff = url_decode(field[1]);
+        if( tmpbuff ) {
+            logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[2], tmpbuff);
+            int sucess=0;
+            if (validate_cookie(tmpbuff)) {
 
-            logmsg(LOG_DEBUG, "Received cookie valdidated correctly.");
-            strncpy(cookie, tmpbuff, maxlen);
-            cookie[maxlen - 1] = '\0';
-            sucess = 1;
+                logmsg(LOG_DEBUG, "Received cookie valdidated correctly.");
+                strncpy(cookie, tmpbuff, maxlen);
+                cookie[maxlen - 1] = '\0';
+                sucess = 1;
 
+            } else {
+
+                logmsg(LOG_DEBUG, "Received cookie is not the valid login cookie.");
+
+            }
+            free(tmpbuff);
+            matchcmd_free(&field);
+            return sucess;
         } else {
-
-            logmsg(LOG_DEBUG, "Received cookie is not the valid login cookie.");
-
+            matchcmd_free(&field);
+            return 0;
         }
-        free(tmpbuff);
-        matchcmd_free(&field);
-        return sucess;
 
     } else {
 #ifdef EXTRA_WEB_DEBUG

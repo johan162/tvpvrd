@@ -639,6 +639,9 @@ char *url_encode(char *str) {
  * Note: Calling function is responsible to free returned string
  */
 char *url_decode(char *str) {
+  if( str == NULL ) {
+      return NULL;
+  }
   char *pstr = str, *buf = calloc(1,strlen(str) + 1), *pbuf = buf;
   while (*pstr) {
     if (*pstr == '%') {
@@ -662,6 +665,9 @@ char *url_decode(char *str) {
  * Note: Calling function is responsible to free returned string
  */
 char *html_encode(char *str) {
+    if( str == NULL ) {
+        return NULL;
+    }
     char *pstr=str, *buf = malloc(strlen(str) * 6 + 1), *pbuf = buf;
     while (*pstr) {
         switch( *pstr ) {
@@ -715,6 +721,9 @@ char *html_encode(char *str) {
 int
 get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t listlen) {
     size_t i = 0;
+    if( list == NULL || key == NULL || value == NULL ) {
+        return -1;
+    }
     while( i < listlen ) {
         if( 0 == strcmp(key,list[i]) ) {
             strncpy(value,list[i+1], maxlen);
@@ -737,6 +746,9 @@ int
 dump_string_chars(char *buffer, size_t maxlen, char const *str) {
     char tmpbuff[16];
     size_t len = strlen(str);
+    if( buffer == NULL ) {
+        return -1;
+    }
     snprintf(buffer,maxlen,"%s \n(",str);
     maxlen -= len+3;
     for(size_t i=0; i < len; ++i ) {
