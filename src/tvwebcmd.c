@@ -199,7 +199,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
 
         char *tmpbuff = url_decode(field[1]);
         if( tmpbuff ) {
-            logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[2], tmpbuff);
+            logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[1], tmpbuff);
             int sucess=0;
             if (validate_cookie(tmpbuff)) {
 
