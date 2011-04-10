@@ -77,6 +77,16 @@ _x_dbg_close(int fd) {
 
 }
 
+void * _chk_calloc(size_t num, size_t size) {
+    void *ptr = calloc(num, size);
+    if( ptr == NULL ) {
+        logmsg(LOG_ERR,"FATAL: Cannot allocate memory. Terminating.");
+        exit(1);
+    } else {
+        return ptr;
+    }
+}
+
 /*
  * _writef
  * Utility function
@@ -86,11 +96,8 @@ int
 _writef(int fd, const char *buf, ...) {
     if( fd >= 0 ) {
         const int blen = MAX(8192*2,strlen(buf)+1);
-        char *tmpbuff = calloc(blen,sizeof(char));
-        if( tmpbuff == NULL ) {
-            logmsg(LOG_ERR,"FATAL: Cannot allocate buffer in _writef()");
-            return -1;
-        }
+
+        char *tmpbuff = _chk_calloc(blen,sizeof(char));
         va_list ap;
         va_start(ap, buf);
         vsnprintf(tmpbuff, blen, buf, ap);
@@ -197,6 +204,10 @@ removedir(const char *dir) {
     struct stat statbuf;
     char tmpbuff[512];
 
+    if( dir == NULL ) {
+        return -1;
+    }            
+    
     DIR *dp = opendir(dir);
     if (dp == NULL) {
         return errno;
@@ -244,6 +255,10 @@ mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
     struct stat fstat;
     char buff1[256],short_filename[128],to_directory[256], suffix[8];
 
+    if( newname == NULL ) {
+        return -1;
+    }
+    
     *newname = '\0';
     if( -1 == stat(from,&fstat) ) {
         logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s'. (%d : %s)",from,errno,strerror(errno));
@@ -393,7 +408,9 @@ chkcreatedir(const char *basedir,char *dir) {
     const mode_t mode =  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
     char bdirbuff[512];
     struct stat fstat ;
-
+    if( basedir == NULL ) {
+        return -1;
+    }
     snprintf(bdirbuff,511,"%s/%s",basedir,dir);
     bdirbuff[511] = '\0';
     logmsg(LOG_NOTICE,"Checking directory '%s'",bdirbuff);
@@ -417,6 +434,9 @@ chkcreatedir(const char *basedir,char *dir) {
  */
 int
 strip_filesuffix(char *filename,char *suffix, int slen) {
+    if( filename == NULL || suffix == NULL ) {
+        return -1;
+    }
     int len = strnlen(filename,256);
     if( len >= 256 ) {
         logmsg(LOG_ERR,"FATAL: String too long to strip suffix");
@@ -499,7 +519,7 @@ int
 get_diskspace(char *dir, char *fs, char *size, char *used, char *avail, int *use) {
     int const maxbuff = 512;
     char cmd[maxbuff];
-    snprintf(cmd, 512, "df -hP %s 2>&1", dir);
+    snprintf(cmd, maxbuff, "df -hP %s 2>&1", dir);
     FILE *fp = popen(cmd, "r");
     if (fp) {
         char buffer[maxbuff];
@@ -582,7 +602,11 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen) {
 
 char *
 esc_percentsign(char *str) {
-    char *buff=calloc(1,strlen(str)*3+1), *pbuff=buff;
+    char *buff=_chk_calloc(1,strlen(str)*3+1);
+    char *pbuff=buff;
+    if( str==NULL ) {
+        return NULL;
+    }
     while( *str ) {
         if( *str == '%' )  {
             *pbuff++ = '%';
@@ -614,7 +638,7 @@ char to_hex(const char code) {
  */
 char *url_encode(char *str) {
   char *pstr = str;
-  char *buf = calloc(1,strlen(str) * 3 + 1);
+  char *buf = _chk_calloc(1,strlen(str) * 3 + 1);
   char *pbuf = buf;
   
   while (*pstr) {
@@ -642,7 +666,7 @@ char *url_decode(char *str) {
   if( str == NULL ) {
       return NULL;
   }
-  char *pstr = str, *buf = calloc(1,strlen(str) + 1), *pbuf = buf;
+  char *pstr = str, *buf = _chk_calloc(1,strlen(str) + 1), *pbuf = buf;
   while (*pstr) {
     if (*pstr == '%') {
       if (pstr[1] && pstr[2]) {
@@ -668,7 +692,7 @@ char *html_encode(char *str) {
     if( str == NULL ) {
         return NULL;
     }
-    char *pstr=str, *buf = malloc(strlen(str) * 6 + 1), *pbuf = buf;
+    char *pstr=str, *buf = _chk_calloc(strlen(str) * 6 + 1,sizeof(char)), *pbuf = buf;
     while (*pstr) {
         switch( *pstr ) {
             case '<':
@@ -806,7 +830,7 @@ waitread(int sock, char *buffer, int maxbufflen) {
 int
 waitreadn(int sock, char *buffer, int maxbufflen) {
     const int buffsize = 128*1024;
-    char *pbuff = calloc(buffsize,sizeof(char));
+    char *pbuff = _chk_calloc(buffsize,sizeof(char));
     *buffer = '\0';
     int totlen=0;
     while( totlen < maxbufflen && waitread(sock,pbuff,buffsize) > -1 ) {
