@@ -684,9 +684,9 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                         localtime_r(&mtime,&tm_date);
                         sendback_css_file(my_socket,cssfile,mtime);
                     } else {
-                        char *ret = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
+                        char *retptr = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
                         freelocale(lc);
-                        if( ret == NULL ) {
+                        if( retptr == NULL ) {
                             logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header (%s)",field[1]);
                             // Set the date a month back to force a resend of the CSS header in case the header
                             // can not be parsed.
