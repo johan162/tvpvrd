@@ -454,7 +454,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
 int
 read_transcoding_profiles(void) {
     char dirbuff[256];
-    struct stat fstat;
+    struct stat filestat;
 
     // Search for the profile directory in
     // 1) <CONFDIR>/tvpvrd/profiles
@@ -462,7 +462,7 @@ read_transcoding_profiles(void) {
     snprintf(dirbuff,255,"%s/tvpvrd/profiles",CONFDIR);
     logmsg(LOG_DEBUG,"Profile directory: %s",dirbuff);
 
-    if( -1 == stat(dirbuff,&fstat) ) {
+    if( -1 == stat(dirbuff,&filestat) ) {
         logmsg(LOG_ERR,"Cannot find transcoding profiles in '%s' ( %d : %s )",dirbuff,
                errno,strerror(errno));
         return -1;
@@ -487,9 +487,9 @@ read_transcoding_profiles(void) {
             if( len > 8 && (strncmp(".profile",dirp->d_name+len-8,9) == 0) ) {
 
                 snprintf(tmpbuff, 512, "%s/%s", dirbuff, dirp->d_name);
-                lstat(tmpbuff, &fstat);
+                lstat(tmpbuff, &filestat);
 
-                if (S_ISREG(fstat.st_mode) || S_ISLNK(fstat.st_mode)) {
+                if (S_ISREG(filestat.st_mode) || S_ISLNK(filestat.st_mode)) {
 
                     if( num_transcoding_profiles >= MAX_TRANS_PROFILES ) {
                         logmsg(LOG_ERR,"Maximum number of transcoding profiles (%d) exceeded.",
@@ -1107,8 +1107,8 @@ _transcode_file(void *arg) {
     snprintf(workingdir,255, "%s/%s",datadir,wdirbuff);
     workingdir[255] = '\0';
 
-    struct stat fstat;
-    if( 0 == stat(workingdir,&fstat) ) {
+    struct stat filestat;
+    if( 0 == stat(workingdir,&filestat) ) {
         // Directory already exists. We play safe an bail out
         logmsg(LOG_ERR,"Directory '%s' already exists. Cannot transcode. Please remove directory manually.",workingdir);
         pthread_mutex_lock(&filetransc_mutex);
@@ -1287,7 +1287,7 @@ _transcode_file(void *arg) {
                     tmpbuff[255] = '\0';
                     snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
                     tmpbuff2[255] = '\0';
-                    int ret = mv_and_rename(tmpbuff2, tmpbuff, newname, 256);
+                    ret = mv_and_rename(tmpbuff2, tmpbuff, newname, 256);
                     if (ret) {
                         logmsg(LOG_ERR, "Could not move '%s' to '%s'", tmpbuff2, newname);
                     } else {
@@ -1959,7 +1959,7 @@ transcode_whole_directory(char *dirpath, char *profilename) {
 
 
 int
-transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, char *recurrence_title,
+transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filename, char *recurrence_title,
                         struct transcoding_profile_entry *profile,
                         unsigned *filesize, struct timeall *transcode_time, float *avg_5load) {
 
@@ -2173,9 +2173,9 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
 
             // Move MP4 file
             if( use_profiledirectories ) {
-                snprintf(tmpbuff3, 255, "%s/mp4/%s", datadir, profile->name);
+                snprintf(tmpbuff3, 255, "%s/mp4/%s", basedatadir, profile->name);
             } else {
-                snprintf(tmpbuff3, 255, "%s/mp4", datadir);
+                snprintf(tmpbuff3, 255, "%s/mp4", basedatadir);
             }
 
             strncpy(rectitle,recurrence_title,255);
@@ -2203,11 +2203,11 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                 return -1;
             } else {
                 logmsg(LOG_INFO, "Moved '%s' to '%s'", tmpbuff2, newname);
-                struct stat fstat;
+                struct stat filestat;
                 // Find out the size of the transcoded file
-                if( 0 == stat(newname,&fstat) ) {
+                if( 0 == stat(newname,&filestat) ) {
 
-                    *filesize = (unsigned)fstat.st_size;
+                    *filesize = (unsigned)filestat.st_size;
                     transcode_time->rtime.tv_sec = runningtime ;
                     transcode_time->utime.tv_sec = usage.ru_utime.tv_sec;
                     transcode_time->stime.tv_sec = usage.ru_stime.tv_sec;
@@ -2285,7 +2285,7 @@ transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, c
                     // Add information on disk usage
                     char ds_fs[255],ds_size[128],ds_avail[128],ds_used[128];
                     int ds_use;
-                    if( 0 == get_diskspace(datadir,ds_fs,ds_size,ds_used,ds_avail,&ds_use) ) {
+                    if( 0 == get_diskspace(basedatadir,ds_fs,ds_size,ds_used,ds_avail,&ds_use) ) {
                         add_keypair(keys,maxkeys,"DISK_SIZE",ds_size,&ki);
                         add_keypair(keys,maxkeys,"DISK_USED",ds_used,&ki);
                         snprintf(str_buff,1023,"%d",ds_use);
