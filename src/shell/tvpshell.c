@@ -130,7 +130,7 @@ void
 parsecmdline(int argc, char **argv) {
 
     // Parse command line options
-    int opt, index;
+    int opt, idx;
     opterr = 0; // Supress error string from getopt_long()
     if( argc > 5 ) {
         fprintf(stderr,"Too many arguments. Try '-h'.");
@@ -149,7 +149,7 @@ parsecmdline(int argc, char **argv) {
         }
     }
 
-    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &index)) ) {
+    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &idx)) ) {
 
         switch (opt) {
             case 0: /* getopt_long() flag */
@@ -245,10 +245,10 @@ void
 setup_sighandlers(void) {
 
     // Block all signals //except SIGINT
-    sigset_t sigset;
-    sigfillset(&sigset);
+    sigset_t mysigset;
+    sigfillset(&mysigset);
     // sigdelset(&sigset,SIGINT);
-    sigprocmask(SIG_SETMASK,&sigset,NULL);
+    sigprocmask(SIG_SETMASK,&mysigset,NULL);
     
     // Setup SIGINT handler
     /*
