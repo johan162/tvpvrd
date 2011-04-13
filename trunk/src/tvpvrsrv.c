@@ -271,7 +271,7 @@ static const struct option long_options [] = {
 void
 parsecmdline(int argc, char **argv) {
     // Parse command line options
-    int opt, index;
+    int opt, idx;
     *inifile='\0';
     *xmldbfile='\0';
     *logfile_name='\0';
@@ -279,7 +279,7 @@ parsecmdline(int argc, char **argv) {
     verbose_log = -1;
     tcpip_port = 0;
     is_master_server = -1;
-    opterr = 0; // Supress error string from getopt_long()
+    opterr = 0; // Suppress error string from getopt_long()
     if( argc > 8 ) {
         fprintf(stderr,"Too many arguments. Try '-h'.");
         exit(EXIT_FAILURE);
@@ -297,7 +297,7 @@ parsecmdline(int argc, char **argv) {
         }
     }
 
-    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &index)) ) {
+    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &idx)) ) {
 
         switch (opt) {
             case 0: /* getopt_long() flag */
@@ -933,7 +933,7 @@ startrec(void *arg) {
                 nwrite = 0 ;
 
                 FD_ZERO (&fds);
-                FD_SET (vh, &fds);
+                FD_SET ((unsigned)vh, &fds);
 
                 /* Timeout. */
                 tv.tv_sec = 10;
@@ -1040,7 +1040,7 @@ startrec(void *arg) {
                 snprintf(cmd,255,"%s -f \"%s\" -t %ld > /dev/null 2>&1",
                          postrec_fullname, full_filename,recording->ts_end-recording->ts_start);
                 logmsg(LOG_DEBUG,"Running post recording script '%s'",cmd);
-                int rc = system(cmd);
+                rc = system(cmd);
                 if( rc==-1 || WEXITSTATUS(rc)) {
                     logmsg(LOG_ERR,"Post recording script '%s' ended with exit status %d",postrec_fullname,WEXITSTATUS(rc));
                 } else {
@@ -1309,7 +1309,7 @@ clientsrv(void *arg) {
             _writef(my_socket, "Password: ");
 
             FD_ZERO(&read_fdset);
-            FD_SET(my_socket, &read_fdset);
+            FD_SET((unsigned)my_socket, &read_fdset);
 
             timerclear(&timeout);
             timeout.tv_sec = 120; // 2 min timeout to give a password
@@ -1377,7 +1377,7 @@ clientsrv(void *arg) {
 */
 
         FD_ZERO(&read_fdset);
-        FD_SET(my_socket, &read_fdset);
+        FD_SET((unsigned)my_socket, &read_fdset);
 
         timerclear(&timeout);
         timeout.tv_sec = 60;
@@ -1523,7 +1523,7 @@ webclientsrv(void *arg) {
     // Now wait for activity on this port to execute one command and then
     // terminate.
     FD_ZERO(&read_fdset);
-    FD_SET(my_socket, &read_fdset);
+    FD_SET((unsigned)my_socket, &read_fdset);
     timerclear(&timeout);
     timeout.tv_sec = 2;
     ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
@@ -1600,7 +1600,7 @@ startupsrv(void) {
     memset(&socketaddress, 0, sizeof (socketaddress));
     socketaddress.sin_family = AF_INET;
     socketaddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    socketaddress.sin_port = htons(tcpip_port);
+    socketaddress.sin_port = (short unsigned)htons(tcpip_port);
 
     if (bind(sockd, (struct sockaddr *) & socketaddress, sizeof (socketaddress)) != 0) {
         logmsg(LOG_ERR, "Unable to bind socket to port. Most likely som other application is using this port.");
@@ -1667,10 +1667,10 @@ startupsrv(void) {
 
         // We must reset this each time since select() modifies it
         FD_ZERO(&read_fdset);
-        FD_SET(sockd, &read_fdset);
+        FD_SET((unsigned)sockd, &read_fdset);
 
         if( enable_webinterface ) {
-            FD_SET(websockd, &read_fdset);
+            FD_SET((unsigned)websockd, &read_fdset);
         }
 
         timeout.tv_sec = 1;
@@ -1692,7 +1692,7 @@ startupsrv(void) {
         }
         
         int terminal_connection = 0;
-        if( FD_ISSET(sockd,&read_fdset) ) {
+        if( FD_ISSET((unsigned)sockd,&read_fdset) ) {
 
             logmsg(LOG_DEBUG, "Terminal connection.");
             terminal_connection = 1;
@@ -1704,7 +1704,7 @@ startupsrv(void) {
             }
             dotaddr = inet_ntoa(socketaddress.sin_addr);
 
-        } else if( enable_webinterface && FD_ISSET(websockd,&read_fdset) )  {
+        } else if( enable_webinterface && FD_ISSET((unsigned)websockd,&read_fdset) )  {
 
             logmsg(LOG_DEBUG, "Browser connection.");
             tmpint = sizeof (websocketaddress);
