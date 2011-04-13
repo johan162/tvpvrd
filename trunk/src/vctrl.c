@@ -295,20 +295,20 @@ _vctrl_size(int set, int fd, int *width, int *height) {
  * @return 
  */
 int
-_vctrl_video_input(const int set, const int fd, int *index) {
+_vctrl_video_input(const int set, const int fd, int *idx) {
     // Sanity check
     if( set ) {
-        if( *index < 0 || *index > 31 ) {
+        if( *idx < 0 || *idx > 31 ) {
             logmsg(LOG_ERR, "_vctrl_video_input : Cannot set video input with index > 31");
             return -1;
         }
-        if( -1 == xioctl(fd, VIDIOC_S_INPUT, index) ) {
+        if( -1 == xioctl(fd, VIDIOC_S_INPUT, idx) ) {
             logmsg(LOG_ERR, "(VIDIOC_S_INPUT) Cannot set video input (fd=%d). (%d : %s)",
                    fd, errno, strerror(errno));
             return -1;
         }
     } else {
-        if( -1 == xioctl(fd, VIDIOC_G_INPUT, index) ) {
+        if( -1 == xioctl(fd, VIDIOC_G_INPUT, idx) ) {
             logmsg(LOG_ERR, "(VIDIOC_G_INPUT) Cannot get video input (fd=%d). (%d : %s)",
                    fd, errno, strerror(errno));
             return -1;
@@ -866,8 +866,8 @@ video_get_input_source_list(const int fd, int *nbrinputs, char *buff[]) {
  * @return 0 on success, -1 otherwise
  */
 int
-video_get_input_source(const int fd, int *index) {
-    return _vctrl_video_input(FALSE, fd, index);
+video_get_input_source(const int fd, int *idx) {
+    return _vctrl_video_input(FALSE, fd, idx);
 }
 
 /**
@@ -877,8 +877,8 @@ video_get_input_source(const int fd, int *index) {
  * @return 0 on success, -1 otherwise
  */
 int
-video_set_input_source(const int fd, int index) {
-    return _vctrl_video_input(TRUE, fd, &index);
+video_set_input_source(const int fd, int idx) {
+    return _vctrl_video_input(TRUE, fd, &idx);
 }
 
 
@@ -1064,13 +1064,13 @@ video_set_channel(const int fd, char *ch) {
 
         // First make sure the input is set to the tuner input.
         // We make the assumption here that tuner input have index  0
-        int index;
-        if( -1 == video_get_input_source(fd,&index) ) {
+        int idx;
+        if( -1 == video_get_input_source(fd,&idx) ) {
             logmsg(LOG_ERR,"Can not get input source index for fd=%d ( %d : %s )",fd,errno, strerror(errno));
             return -1;
         }
 
-        if( index != tuner_input_index ) {
+        if( idx != tuner_input_index ) {
             // Not tuner. So switch back to input with index 0, i.e. tuner input
             if( -1 == video_set_input_source(fd,tuner_input_index) ) {
                 logmsg(LOG_ERR,"Can not set input source to index 0 for fd=%d ( %d : %s )",fd,errno, strerror(errno));
