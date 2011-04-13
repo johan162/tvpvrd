@@ -97,7 +97,7 @@ updatelockfilepid(void) {
 
 int
 createlockfile(void) {
-    struct stat fstat;
+    struct stat filestat;
     pid_t pid = getpid();
     char buff[256];
     const mode_t fmode =  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
@@ -105,7 +105,7 @@ createlockfile(void) {
     // First try to create it under "/var/run"
     *buff = '\0';
     snprintf(buff,255,"%s",lockfilename);
-    if( stat(buff,&fstat) == 0 ) {
+    if( stat(buff,&filestat) == 0 ) {
         // File exists
         // Another instance of us are already running
 
@@ -123,7 +123,7 @@ createlockfile(void) {
 	// Now check if the old pid exists under /proc
 	snprintf(pidbuff,31,"/proc/%d",oldpid);
 	_vsyslogf(LOG_NOTICE,"Lockfile %s exists. Checking proc entry for pid=%d",buff,oldpid);
-	if( stat(pidbuff,&fstat) == 0 ) {
+	if( stat(pidbuff,&filestat) == 0 ) {
 	    // File exists so this process really does exist
             _vsyslogf(LOG_NOTICE,"/proc/ entry for %d exists so this is really a running process.",oldpid);
             _vsyslogf(LOG_ERR,"Can't start server, another instance of '%s' is running with pid=%d.\n",
@@ -154,7 +154,7 @@ createlockfile(void) {
             char *ret = getcwd(cwd,256);
             if( ret != NULL ) {
                 snprintf(buff,255,"%s/%s",cwd,basename(lockfilename));
-                if( stat(buff,&fstat) == 0 ) {
+                if( stat(buff,&filestat) == 0 ) {
                     // File exists
                     // Another instance of us could possible be running but to
                     // be sure we check if there is a process entry under /proc
@@ -164,7 +164,7 @@ createlockfile(void) {
 		    // new lockfile.
 
                     // Get the old pid
-                    int fd = open(buff, O_RDONLY);
+                    fd = open(buff, O_RDONLY);
                     char pidbuff[32];
                     int oldpid;
                     if( -1 == read(fd,pidbuff,31) ) {
@@ -177,9 +177,8 @@ createlockfile(void) {
 
                     // Now check if the old pid exists under /proc
 		    snprintf(pidbuff,31,"/proc/%d",oldpid);
-		    if( stat(pidbuff,&fstat) == 0 ) {
+		    if( stat(pidbuff,&filestat) == 0 ) {
 			// File exists so this process really does exist
-			char buff[256];
 			snprintf(buff,255,"Can't start server, another instance of '%s' is running with pid=%d.\n",
 				program_invocation_short_name,oldpid);
                         _vsyslogf(LOG_ERR,buff);
