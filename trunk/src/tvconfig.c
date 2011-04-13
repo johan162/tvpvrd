@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <syslog.h>
 #include <errno.h>
+#include <stdint.h>
 
 #include "tvconfig.h"
 #include "tvpvrd.h"
@@ -65,7 +66,7 @@ int defaultDurationHour, defaultDurationMin;
 int is_master_server;
 
 // TVP/IP Port to listen to
-unsigned short int tcpip_port;
+uint16_t tcpip_port;
 
 // Logfile details
 int verbose_log;
