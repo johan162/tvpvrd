@@ -80,7 +80,7 @@ struct recording_entry **ongoing_recs; //[MAX_VIDEO];
  * Running sequence number for all recordings. This is used to give a unique
  * id for each recording as long as the server is running.
  */
-static int seqnbr = 1;
+static int global_seqnbr = 1;
 
 /*
  * recurrence_id
@@ -485,7 +485,7 @@ insertrec(unsigned video, struct recording_entry * entry) {
                     entry->recurrence_mangling,
                     entry->transcoding_profiles);
 
-            newentry->seqnbr =  seqnbr++;
+            newentry->seqnbr =  global_seqnbr++;
             newentry->recurrence_id = recurrence_id;
             newentry->recurrence_start_number = i + entry->recurrence_start_number;
 
@@ -511,11 +511,11 @@ insertrec(unsigned video, struct recording_entry * entry) {
         recurrence_id++;
         freerec(entry);
     } else {
-        entry->seqnbr = seqnbr++;
+        entry->seqnbr = global_seqnbr++;
         _insertrec(video, entry);
     }
     // Return the last used sequence number
-    return seqnbr-1;
+    return global_seqnbr-1;
 }
 
 /**
