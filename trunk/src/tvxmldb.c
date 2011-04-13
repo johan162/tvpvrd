@@ -149,12 +149,12 @@ static void processRepeatingRecording(xmlNodePtr node, int *rectype, int *recnbr
  * it is set to 0
  */
 int
-parseTime(const char *time, int *h, int *m, int *s) {
+parseTime(const char *atime, int *h, int *m, int *s) {
     int ret;
     char **field;
 
     // Setup regex for parsing of date
-    ret = matchcmd("([0-2][0-9]):([0-5][0-9])(:([0-5][0-9]))?",time,&field);
+    ret = matchcmd("([0-2][0-9]):([0-5][0-9])(:([0-5][0-9]))?",atime,&field);
 
     if (ret == 3 || ret == 5 ) {
         *h = xatoi(field[1]);
@@ -612,8 +612,8 @@ init_tvxmldb(void) {
             exit(EXIT_FAILURE);
         }
         // If the XML DB File doesn't exist we will create an empty one
-        struct stat fstat;
-        if( -1 == stat(xmldbfile,&fstat) ) {
+        struct stat filestat;
+        if( -1 == stat(xmldbfile,&filestat) ) {
             if( -1 == writeXMLFile(xmldbfile) ) {
                 logmsg(LOG_ERR,"Failed to initialize xmldb datafile. (%d : %s)",errno,strerror(errno));
                 exit(EXIT_FAILURE);
