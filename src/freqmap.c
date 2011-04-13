@@ -1005,23 +1005,23 @@ static size_t num_stations = 0 ;
  */
 int
 read_xawtvfile(const char *name) {
-    dictionary *dict;
+    dictionary *rdict;
 
-    dict = iniparser_load(name);
-    if( dict == NULL ) {
+    rdict = iniparser_load(name);
+    if( rdict == NULL ) {
         logmsg(LOG_ERR,"Could not read xawtv channel file '%s' (%d ; %s). ",name,errno,strerror(errno));
         return -1;
     }
 
     // Loop through all sections to find the corresponding channel
-    int nsec = iniparser_getnsec(dict);
+    int nsec = iniparser_getnsec(rdict);
     char buffer[64];
     for(int i=0; i < nsec; i++) {
-        char *sname = iniparser_getsecname(dict, i);
+        char *sname = iniparser_getsecname(rdict, i);
         strncpy(buffer,sname,64-10);
         strncat(buffer,":channel",63);
         buffer[63] = '\0';
-        char *station_name = iniparser_getstring(dict,buffer,NULL);
+        char *station_name = iniparser_getstring(rdict,buffer,NULL);
         if( station_name ) {
             strncpy(station_map[num_stations].name,sname,31);
             station_map[num_stations].name[31] = '\0';
