@@ -83,13 +83,13 @@ set_rtc_alarm(time_t alarmtime) {
 
 int
 get_num_ongoing_recordings(void) {
-    int recs=0;
+    int cnt=0;
     for (unsigned i = 0; i < (unsigned)max_video; i++) {
         if (ongoing_recs[i]) {
-            recs++;
+            cnt++;
         }
     }
-    return recs;
+    return cnt;
 }
 
 int
@@ -212,7 +212,7 @@ check_for_shutdown(void) {
                         size_t ki = 0 ;
                         struct tm tm_start, tm_end;
 
-                        time_t now = time(NULL)+5;
+                        now = time(NULL)+5;
                         ctime_r(&now,timebuff_now);
                         if( timebuff_now[strlen(timebuff_now)-1] == '\n')
                             timebuff_now[strlen(timebuff_now)-1]='\0'; // Remove trailing "\n"
