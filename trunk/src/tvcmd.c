@@ -296,7 +296,7 @@ _cmd_setprofile(const char *cmd, int sockfd) {
     err = ret < 0;
 
     if ( ! err && ret > 2 ) {
-        if( updateprofile(xatoi(field[1]),field[2]) ) {
+        if( updateprofile((unsigned)xatoi(field[1]),field[2]) ) {
             snprintf(msgbuff,255,"Updated profile to '%s' on recording %03d\n",field[2],xatoi(field[1]));
         } else {
             snprintf(msgbuff,255,"Failed to set profile '%s' on recording %03d\n",field[2],xatoi(field[1]));
@@ -319,7 +319,8 @@ _cmd_setprofile(const char *cmd, int sockfd) {
 static void
 _cmd_delete(const char *cmd, int sockfd) {
     char msgbuff[256];
-    int err=0, ret, id;
+    int err=0, ret;
+    unsigned id;
     char **field=(void *)NULL;
 
     if (cmd[0] == 'h') {
@@ -339,7 +340,7 @@ _cmd_delete(const char *cmd, int sockfd) {
 
     if ( ! err ) {
 
-        id = xatoi(field[1]);
+        id = (unsigned)xatoi(field[1]);
         ret = deleterecid(id, cmd[1] == 'r');
 
         if (ret) {
@@ -587,7 +588,7 @@ _cmd_add(const char *cmd, int sockfd) {
             // Field 2 is always hour
 
             // Now determine how many more digits for time are specified
-            int pos=2;
+            size_t pos=2;
             sh = xatoi(field[pos++]);
             if( ret >= 5 && *field[pos++] == ':') {
                 smin = xatoi(field[pos]);
@@ -625,20 +626,20 @@ _cmd_add(const char *cmd, int sockfd) {
 
             strncpy(channel, field[1], 64);
 
-            // Now the boring analysis on wher we can find the title
+            // Now the boring analysis on where we can find the title
             *title = '\0';
             if (ret >= 8) {
-                int pos = 7;
+                pos = 7;
                 if (*field[pos] != '@') {
                     // Ok this is not a profile
                     strncpy(title, field[pos + 1], 128);
                     pos += 3;
                 }
 
-                if (ret > pos) {
+                if (ret > (int)pos) {
                     // We must have a one or more profiles at the end
                     int k=0;
-                    while( pos < ret && !err) {
+                    while( (int)pos < ret && !err) {
                         if (*field[pos] == '@') {
                             if( transcoding_profile_exist(&field[pos][1]) ) {
                                 strncpy(profiles[k], &field[pos][1],15);
@@ -681,7 +682,7 @@ _cmd_add(const char *cmd, int sockfd) {
 
             if (!err) {
 
-                int pos = 2;
+                size_t pos = 2;
 
                 sh = xatoi(field[pos++]);
                 if( *field[pos++] == ':')
@@ -720,10 +721,10 @@ _cmd_add(const char *cmd, int sockfd) {
                         pos += 3;
                     }
 
-                    if (ret > pos) {
+                    if (ret > (int)pos) {
                         // We must have a one or more profiles at the end
                         int k=0;
-                        while( pos < ret && !err) {
+                        while( (int)pos < ret && !err) {
                             if (*field[pos] == '@') {
                                 if( transcoding_profile_exist(&field[pos][1]) ) {
                                     strncpy(profiles[k], &field[pos][1],15);
@@ -838,7 +839,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     }
 
                     if (!err) {
-                        int pos = 7;
+                        size_t pos = 7;
 
                         sh = xatoi(field[pos++]);
                         if( *field[pos++] == ':')
@@ -878,10 +879,10 @@ _cmd_add(const char *cmd, int sockfd) {
                                 pos += 3;
                             }
 
-                            if (ret > pos) {
+                            if (ret > (int)pos) {
                                 // We must have a one or more profiles at the end
                                 int k=0;
-                                while( pos < ret && !err) {
+                                while( (int)pos < ret && !err) {
                                     if (*field[pos] == '@') {
                                         if( transcoding_profile_exist(&field[pos][1]) ) {
                                             strncpy(profiles[k], &field[pos][1],15);
@@ -946,7 +947,7 @@ _cmd_add(const char *cmd, int sockfd) {
                         }
 
                         if (!err) {
-                            int pos = 7;
+                            size_t pos = 7;
 
                             sh = xatoi(field[pos++]);
                             if( *field[pos++] == ':')
@@ -979,10 +980,10 @@ _cmd_add(const char *cmd, int sockfd) {
                                     pos += 3;
                                 }
 
-                                if (ret > pos) {
+                                if (ret > (int)pos) {
                                     // We must have a one or more profiles at the end
                                     int k=0;
-                                    while( pos < ret && !err) {
+                                    while( (int)pos < ret && !err) {
                                         if (*field[pos] == '@') {
                                             if( transcoding_profile_exist(&field[pos][1]) ) {
                                                 strncpy(profiles[k], &field[pos][1],15);
@@ -1033,8 +1034,8 @@ _cmd_add(const char *cmd, int sockfd) {
         // Check if this is a regular channel or a direct specifciation of a
         // video input on the card, i.e. in the form "_inp01"
 
-        const int inp_len = strlen(INPUT_SOURCE_PREFIX);
-        if( (int)strlen(channel) <= inp_len+2 &&
+        const size_t inp_len = strlen(INPUT_SOURCE_PREFIX);
+        if( strlen(channel) <= inp_len+2 &&
             0 == strncmp(INPUT_SOURCE_PREFIX, channel,inp_len) ) {
 
             // Sanity check. Only allow card to be specified as an integer 0-4
@@ -1136,7 +1137,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 freerec(entry);
                 err = 5;
             } else {
-                dumprecordid(ret, 1, 0, msgbuff, 2047);
+                dumprecordid((unsigned)ret, 1, 0, msgbuff, 2047);
             }
         }
     }
@@ -1280,7 +1281,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
     if( ret > 1 ) {
         // User has limited the list
 
-        n = xatoi(field[1]);
+        n = (size_t)xatoi(field[1]);
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
@@ -1363,7 +1364,7 @@ _cmd_maillist_html(const char *cmd, int sockfd) {
     if( ret > 1 ) {
         // User has limited the list
 
-        n = xatoi(field[1]);
+        n = (size_t)xatoi(field[1]);
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
@@ -1499,7 +1500,7 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
     if( ret > 1 ) {
         // User has limited the list
 
-        n = xatoi(field[1]);
+        n = (size_t)xatoi(field[1]);
 
         if( n < 1 || n > 99 ) {
             _writef(sockfd,"Error. Number of lines must be in range [1,99]\n");
@@ -2635,7 +2636,7 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
     } else {
 
         if( cmd[2] == 'f' ) {
-            int ret = matchcmd("^ktf" _PR_S "(y|n)"  _PR_E, cmd, &field);
+            ret = matchcmd("^ktf" _PR_S "(y|n)"  _PR_E, cmd, &field);
 
             if( ret > 0 ) {
                 dokilltranscodings = field[1][0] == 'y' ? 1 : 0 ;
@@ -2819,7 +2820,7 @@ _cmd_list_queued_transcodings(const char *cmd, int sockfd) {
 
     } else {
 
-        int ret = matchcmd("^lq" _PR_E, cmd, &field);
+        ret = matchcmd("^lq" _PR_E, cmd, &field);
         if( ret > 0 ) {
             // Assume that num==1 if no number was specified
             if( -1 == get_queued_transc_filelists_info( 1, buffer ,4095, 1) ) {
