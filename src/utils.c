@@ -252,7 +252,7 @@ removedir(const char *dir) {
  */
 int
 mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
-    struct stat fstat;
+    struct stat filestat;
     char buff1[256],short_filename[128],to_directory[256], suffix[8];
 
     if( newname == NULL ) {
@@ -260,12 +260,12 @@ mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
     }
     
     *newname = '\0';
-    if( -1 == stat(from,&fstat) ) {
+    if( -1 == stat(from,&filestat) ) {
         logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s'. (%d : %s)",from,errno,strerror(errno));
         return -1;
     }
 
-    if( 0 == stat(to,&fstat) ) {
+    if( 0 == stat(to,&filestat) ) {
         // File exists. Try renaming it and see if that works
         strncpy(buff1,to,255);
         strncpy(short_filename, basename(buff1),127);
@@ -295,7 +295,7 @@ mv_and_rename(char *from, char *to, char *newname, size_t maxlen) {
         do {
             i++;
             snprintf(buff1,255,"%s/%s_%03d%s",to_directory,short_filename,i,suffix);
-            ret = stat(buff1,&fstat);
+            ret = stat(buff1,&filestat);
         } while( i < 999 && ret == 0 );
         if( i >= 999 ) {
             logmsg(LOG_ERR,"FATAL: Cannot move and rename file '%s' to '%s'. Too many duplicates.",from,to);
@@ -407,14 +407,14 @@ int
 chkcreatedir(const char *basedir,char *dir) {
     const mode_t mode =  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
     char bdirbuff[512];
-    struct stat fstat ;
+    struct stat filestat ;
     if( basedir == NULL ) {
         return -1;
     }
     snprintf(bdirbuff,511,"%s/%s",basedir,dir);
     bdirbuff[511] = '\0';
     logmsg(LOG_NOTICE,"Checking directory '%s'",bdirbuff);
-    if( -1 == stat(bdirbuff,&fstat) ) {
+    if( -1 == stat(bdirbuff,&filestat) ) {
         if( -1 == mkdir(bdirbuff,mode) ) {
             logmsg(LOG_ERR,"FATAL: Cannot create directory %s (%d : %s).",
                    bdirbuff,errno,strerror(errno));
