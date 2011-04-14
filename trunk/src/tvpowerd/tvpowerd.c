@@ -241,7 +241,7 @@ void
 parsecmdline(int argc, char **argv) {
 
     // Parse command line options
-    int opt, index;
+    int opt, idx;
     *inifile='\0';
     *logfile_name='\0';
     verbose_log = -1;
@@ -263,7 +263,7 @@ parsecmdline(int argc, char **argv) {
         }
     }
 
-    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &index)) ) {
+    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &idx)) ) {
 
         switch (opt) {
             case 0: /* getopt_long() flag */
@@ -1032,7 +1032,7 @@ wakeup_remote_server(void) {
     } else {
         fclose(fp);
         snprintf(buffer,255,"%s > /dev/null 2>&1",scriptfile);
-        int rc= system(buffer);
+        rc = system(buffer);
         if( rc ) {
             logmsg(LOG_ERR,"Error executing post-startup scriptfile");
         } else {
@@ -1077,9 +1077,9 @@ locate_inifile(void) {
  * @param signal
  */
 void
-sighandler(int signal) {
+sighandler(int sig) {
 
-    received_signal = signal;
+    received_signal = sig;
 
 }
 
