@@ -1,0 +1,379 @@
+/*----------------------------------------------------------------------------------------------
+ * File: TVPVRD_MOBILE.CSS
+ * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
+ *       daemon suitable for a mobile phone with smaller screen
+ *       The main differemce compared with the normal CSS is that font sizes
+ *       are much larger and the output area is smaller.
+ * SVN:  $Id$
+ *----------------------------------------------------------------------------------------------
+ */
+
+/* Make it 99% to avoid scroll bars on the main page */
+body {
+    width: 100%;
+    line-height:140%;
+    margin:0;
+    padding:0;
+}
+
+/* The overall main page is contained in this div */
+div.top_page {
+     border: 1px solid gray;
+     background: #e1e6db;
+    width:100%;
+    height:100%;
+    padding-top:0;
+    padding-bottom: 2em;
+    margin:0;
+    border: solid #555 1px;
+}
+
+/* The top banner line with name and version */
+div.top_banner {
+    width:100%;
+    text-align:center;
+    font-weight:bold;
+    font-size:18pt;
+    font-family: Arial, Sans-serif;
+    color: darkred;
+    background: #a7b797;
+    margin:0;
+    padding: 0;
+    padding-bottom: 0.3em;
+    padding-top: 0.3em;
+    border-bottom: solid black 1px;
+}
+
+div.single_side {
+    width:100%;
+    margin-left:0;
+    margin-right:0;
+    padding-bottom:3px;
+}
+
+/* Container around the command input area */
+div.cmd_bottom_container {
+    width:98%;
+    padding-right: 0px;
+    padding: 0px;
+    margin:0;
+}
+
+/*
+ * The following styles refer to the login box/login page 
+*/
+
+/* Container for log-in box */
+div.login_container {
+    border: solid gray 1px;
+    margin-top:60px;
+    margin-bottom:100px;
+    margin-left:auto;
+    margin-right:auto;
+    width:500px;
+    background:#b0c1a3;
+    padding-top:0px;
+    padding-bottom:10px;
+}
+
+div.login_container  div.input_container {
+   float:none;
+    margin-left:10px;
+}
+
+/* Title of login box */
+div.login_title {
+    padding:3px;
+    color:white;
+    background:#546349;
+    font-weight:bold;
+    font-family:Arial, Sans-serif;
+    font-size:24pt;
+    color:white;
+    margin-bottom:10px;
+}
+
+/* Adjustment of password field */
+div.input_container#id_loginpwd {
+    margin-top:10px;
+    clear:left;
+}
+
+div.input_container#id_loginuser div.input_legend,
+div.input_container#id_loginpwd div.input_legend {
+    float:left;
+    margin-top:2px;
+    width: 8em;
+    color:black;
+}
+
+/* Submit button for login */
+input.input_submit#id_submitlogin {
+    width:6em;
+}
+
+div.input_container#id_submitlogin {
+    float:none;
+    margin-top:1em;
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+div#logout_container {
+    float:left;
+    width:99%;
+    height: 10%;
+}
+
+div#logout {
+    border : solid gray 1px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+    width: 70px;
+    height: 1.0em;
+    background: white;
+    font-weight:bold;
+    margin-left:15px;
+    padding-left:20px;
+    padding-right:0px;
+}
+
+div#logout a {
+    text-decoration:none;
+    font-weight:bold;
+    font-family:Arial,Sans-serif;
+    font-size:10pt;
+    color:black;
+}
+
+div#logout a:hover {
+    text-decoration:none;
+    font-weight:bold;
+    font-family:Arial,Sans-serif;
+    font-size:10pt;
+    color:darkred;
+}
+
+
+/*
+ * All select input formats are used in the add/delete fieldset when adding and deleting
+ * records.
+ */
+div.input_select {
+}
+
+select {
+    font-size:34pt;
+    padding: 2px;
+}
+
+/* Delete series y/n selector */
+select.input_select#id_seriesyn {
+   width:5em;
+}
+
+select.input_select#id_length_hour,
+select.input_select#id_length_min,
+select.input_select#id_starthour,
+select.input_select#id_endhour,
+select.input_select#id_startmin,
+select.input_select#id_endmin {
+   width:2em;
+}
+
+/* Repeat count selector */
+select.input_select#id_rptcount {
+   width:4em;
+}
+
+/* Used for all select with a code table */
+select.input_select_code {
+    font-family:Arial, Sans-serif;
+    color:#202020;
+}
+
+/* Format for selector with list of recodings to delete */
+select.input_select_code#id_delselect {
+    width: 14em;
+}
+
+/* Input text */
+input.input_text {
+    color : #202020;
+    font-size: 30pt;
+}
+
+/* This div encloses the command output */
+div.cmd_output {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 3px;
+    padding-left: 3px;
+    margin-left:1%;
+    margin-right:0;
+    margin-top:0.5em;
+    margin-bottom:0px;
+    font-weight:bold;
+    font-size:130%;
+    font-family: Monospace;
+    border:dotted gray 1px;
+    height:12ex;
+    width: 45em;
+    overflow:auto;
+    clear:both;
+    background:black;
+    color: #0f0;
+}
+
+/* The inside of the command output */
+pre {
+    margin:0;
+    padding: 0;
+}
+
+pre a:hover {
+    color:white;
+}
+
+pre a {
+    color:#0ef;
+}
+
+/* Legend for the fieldset */
+legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-variant:small-caps;
+    font-size:350%;
+    color:#a3717d;
+    padding-bottom: 15px;
+    padding-top: 15px;
+}
+
+/* Fieldset for add/del command */
+fieldset {
+    border:dotted #333 2px;
+    layout: block;
+    margin-top:1%;
+    margin-right:0px;
+    margin-left:1%;
+    width:94%;
+}
+
+
+/*
+* Command lines
+*/
+
+/* Container around each input and input text-legend */
+div.input_container {
+    float:left;
+    padding:2px;
+    margin-top:5px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+/* The legend text for each input field */
+div.input_legend {
+    font-family:Arial, Sans-serif;
+    font-weight:bold;
+    font-size:30pt;
+    color:#505050;
+    margin-bottom: 6px;
+}
+
+/* Input submit button in forms*/
+input.input_submit {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    width: 7em;
+    margin-left: 10px;
+    font-size: 250%;
+    color:blue;
+}
+
+
+/* text between to and from time */
+span.be_hyphen {
+    font-weight:bold;
+    font-size:36pt;
+}
+#be_hyphen {
+    padding-bottom:0px;
+    padding-top:30px;
+}
+
+/* The submit button to delete a recording */
+input.input_submit#delrec {
+    color:darkred;
+}
+
+
+/* We want the station, start and title on the "new record" to start on a new row 
+ * and we do this by clearing the left side of the corresponding input containers. */
+#id_title,
+#id_starthour,
+#id_rpttype,
+#id_seriesyn,
+#id_length_hour,
+#id_qtitle,
+#id_profile {
+    clear:left;
+}
+
+/* Submit buttons */
+#id_addrec,
+#delrec,
+#id_qaddrec {
+    clear:left;
+    margin-left:0;
+}
+
+div.input_container#delrec,
+div.input_container#id_qaddrec,
+div.input_container#id_addrec {
+    padding-top:10px;
+}
+
+
+/*
+* For Menu links at the top 
+*/
+
+/* Container around all command groups */
+div.cmd_menu_short {
+    width : 100%;
+    height: 2em;
+    margin:0;
+    padding: 0em;
+    padding-top: 1.0em;
+    padding-bottom: 0.7em;
+    background: #bbb;
+    border-bottom: solid gray 1px;
+}
+
+
+/* Container around all the links in the command group */
+div.cmdgrp_commands_short {
+    float : left;
+    margin-right:2em;
+}
+
+div.cmdgrp_commands_short a {
+    font-size:300%;
+    font-weight: bold;
+    font-family: Arial, Sans-serif;
+}
+
+/* To get rid of anchor underlines in comamnd menu */
+div.cmdgrp_commands_short a {
+    text-decoration:none;
+    color:blue;
+}
+
+/* To highlight the current selected command */
+div.cmdgrp_commands_short a:hover {
+    text-decoration:underline;
+    color:darkred;
+}
