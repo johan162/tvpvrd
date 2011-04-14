@@ -29,7 +29,9 @@ Bugs fixed:
 Internal changes:
     - Refactored logging routines to it's own source file
     - Each command output now ends with a "\r\n" sequence to indicated end of command output
- 
+    - Make code compile clean even with -Wshadow flag added. The code now compiles clean 
+      with gcc flags: 
+        -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wshadow -Wformat=2  
 
 v3.0.6
 ------

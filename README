@@ -40,7 +40,6 @@ the config file is named "tvpvrd.conf".
 
 Some notes on where to store the data
 -------------------------------------
-
 The Linux File Hierarchy standard suggests that variable program data is
 stored under the '/var' directory. However, for this application this might
 not be the optimal choice. The main reason is that this application has the
@@ -195,6 +194,33 @@ Documentation
 -------------
 
 Full documentation is available i the 'docs/' subdirectory.
+
+
+Notes:
+------
+If asked to provide a core dump inthe unlikely event of a crash enable core dumps
+by following these steps. (This is the procedure for OpenSuse GNU/Linux but is 
+similar to other systems as well.)
+
+1. Uncomment line "* soft core unlimited" in file "/etc/security/limits.conf" . This will
+   enable increasing the core size from 0 (disabled) by users. 
+
+2. Make a suitable location for core files. As root type
+   $> mkdir /var/crash
+
+3. Tell system location and naming of core files in "/etc/sysctl.conf" by adding the lines
+   kernel.core_pattern=/var/crash/core.%e.%p.%t
+   kernel.suid_dumpable = 1
+
+   Reload settings by running as root 
+   $> sysctl -p
+
+4. Enable core dumps at boot for all users. To make this permanent edit "/etc/sysconfig/ulimit" and make sure
+   HARDCORELIMIT and SOFTCORELIMIT are set, for example
+     HARDCORELIMIT="unlimited"
+     SOFTCORELIMIT=50000
+   This is the same as typing "ulimit -c 50000" each time after login
+
 
 Author
 ------
