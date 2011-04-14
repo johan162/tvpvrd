@@ -3,7 +3,7 @@
 # Automake build script
 # 
 # ===============================================================================
-AM_CFLAGS = -DCONFDIR="\"$(sysconfdir)\"" -pedantic -Wall -Werror -Wextra -Wpointer-arith -Wstrict-prototypes -D_FORTIFY_SOURCE=2
+AM_CFLAGS = -DCONFDIR="\"$(sysconfdir)\"" -pedantic -Wall -Werror -Wextra -Wpointer-arith -Wstrict-prototypes -Wshadow -D_FORTIFY_SOURCE=2
 noinst_PROGRAMS = tvpowerd 
 BUILDNBR_FILE=buildnumber.txt
 
