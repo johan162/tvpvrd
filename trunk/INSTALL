@@ -83,6 +83,47 @@ The simplest way to compile and install this package is:
      all sorts of other programs in order to regenerate files that came
      with the distribution.
 
+
+Using mod_proxy in apache Web-server to access the Web interface
+================================================================
+
+Normally the Web interface is accessed by connecting to the host where
+the daemon is installed on port 9301 (one more than the port for the
+command interface). For example if the server is installed on the
+localhost the URL
+
+http://localhost:9301/
+
+would connect to the daemon Web-interface (assuming it is eanbled in the 
+config file of tvpvrd)
+
+This can however be a problem if you want to access the daemon on your
+server as a regular web-site. For example to be able to connect from a client
+which only allows plain http (or https) traffic and blocks all other ports.
+
+This can be easily solved by using apache as a proxy. By enabling the module
+mod_proxy you can add, for example, the lines
+
+
+ProxyRequests Off
+
+<Proxy *>
+  Order deny,allow
+  Allow from all
+</Proxy>
+
+ProxyPass /pvr http://localhost:9301
+ProxyPassReverse /pvr http://localhost:9301
+
+
+in the apache config file for the main or virtual host. This makes it possible
+to access the server by giving the URL
+
+http://localhost/pvr/
+
+instead. See Apache mod_proxy for explanation of the specific settings.
+
+
 Some additional notes on configuration file
 ===========================================
 There are quite a few optional settings in the configuration file. Some
