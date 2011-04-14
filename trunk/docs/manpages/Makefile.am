@@ -95,8 +95,8 @@ install-data-local:
 	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpowerd.1.pdf ${DESTDIR}${prefix}/share/doc/packages/tvpvrd/tvpowerd.1.pdf
 	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpowerd.1 ${DESTDIR}${prefix}/share/man/man1/tvpowerd.1
 	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpsh.1 ${DESTDIR}${prefix}/share/man/man1/tvpsh.1
-	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpsh.1.html ${DESTDIR}${prefix}/share/man/man1/tvpsh.1.html
-	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpsh.1.pdf ${DESTDIR}${prefix}/share/man/man1/tvpsh.1.pdf
+	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpsh.1.html ${DESTDIR}${prefix}/share/doc/packages/tvpvrd/tvpsh.1.html
+	install -D -m 644 $(abs_top_srcdir)/docs/manpages/tvpsh.1.pdf ${DESTDIR}${prefix}/share/doc/packages/tvpvrd/tvpsh.1.pdf
 
 
 
