@@ -622,7 +622,7 @@ dumprecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size
     if( ! format_repeat ) {
         if( use_csshtml ) {
             snprintf(buffer, bufflen, "<tr style=\"%s\">"
-                                  "<td style=\"%s\">%03d</td>\n"
+                                  "<td style=\"%s\">%03zu</td>\n"
                                   "<td style=\"%s\">%s</td>\n"
                                   "<td style=\"%s\">%s %s %02d</td>\n"
                                   "<td style=\"%s\">%02d:%02d</td>\n"
@@ -639,7 +639,7 @@ dumprecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size
                                 rs->td_r, profbuff);
         } else {
 
-            snprintf(buffer, bufflen, "%03d "
+            snprintf(buffer, bufflen, "%03zu "
                                   "%-8s"
                                   "%s %s %02d "
                                   "%02d:%02d "
@@ -657,7 +657,7 @@ dumprecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size
     } else {
         if( use_csshtml ) {
             snprintf(buffer, bufflen, "<tr style=\"%s\">"
-                                  "<td style=\"%s\">%03d</td>\n"
+                                  "<td style=\"%s\">%03zu</td>\n"
                                   "<td style=\"%s\">%s</td>\n"
                                   "<td style=\"%s\">%s %s %02d</td>\n"
                                   "<td style=\"%s\">%02d:%02d</td>\n"
@@ -677,7 +677,7 @@ dumprecord_row(struct recording_entry* entry, char *buffer, size_t bufflen, size
                                 rs->td_i, entry->recurrence_title,
                                 rs->td_r, profbuff);
         } else {
-            snprintf(buffer, bufflen,"%03d "
+            snprintf(buffer, bufflen,"%03zu "
                                       "%-8s"
                                       "%s %s %02d "
                                       "%02d:%02d "
