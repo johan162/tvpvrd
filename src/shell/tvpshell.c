@@ -438,7 +438,6 @@ setup_inifile(void) {
     }
 
     if( dict == NULL ) {
-        fprintf(stderr,"Can not find the ini file : '%s'\n",INIFILE_NAME);
         return -1;
     }
 
@@ -450,11 +449,15 @@ setup_inifile(void) {
  */
 int
 read_inifile(void) {
-    if( tcpip_port == -1 )
-        tcpip_port = iniparser_getint(dict, "config:port", PORT);
-    strncpy(tvpvrd_pwd,iniparser_getstring(dict, "config:password", ""),127);
-    tvpvrd_pwd[127] = '\0';
-    return 0;
+    if( dict ) {
+        if( tcpip_port == -1 )
+            tcpip_port = iniparser_getint(dict, "config:port", PORT);
+        strncpy(tvpvrd_pwd,iniparser_getstring(dict, "config:password", ""),127);
+        tvpvrd_pwd[127] = '\0';
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
 #ifndef HAVE_LIBREADLINE
@@ -532,8 +535,9 @@ int
 main(int argc, char **argv) {
     parsecmdline(argc, argv);
     setup_sighandlers();
-    setup_inifile();
-    read_inifile();
+    if( 0 == setup_inifile() ) {
+        read_inifile();
+    }
     cmd_loop();
 
     _exit(EXIT_SUCCESS);
