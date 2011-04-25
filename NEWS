@@ -6,6 +6,19 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+v3.1.1
+------
+User visible changes:
+    None.
+
+Bugs fixed:
+    - Build without warning on amd64 architecture (complaints about "%03d" format when "%03zu" should be used)
+    - Gracefully handle running tvpsh when no tvpvrd.conf can be found
+
+Internal changes:
+    None.
+
+
 v3.1.0
 ------
 User visible changes:
