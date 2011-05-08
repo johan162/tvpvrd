@@ -502,7 +502,7 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
                     snprintf(menu,255,"%-30s %d = %s\n"," ",vctl->menu[i].index,vctl->menu[i].name);
                 }
                 menu[255] = '\0';
-                strncat(buff,menu,size);
+                strncat(buff,menu,size-strlen(buff)-1);
             }
         }
     }

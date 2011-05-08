@@ -587,13 +587,13 @@ tail_logfile(unsigned n, char *buffer, size_t maxlen) {
     char linebuffer[maxbuff];
     *buffer = '\0';
     while( maxlen > 512 && NULL != fgets(linebuffer,maxbuff,fp) ) {
-        strncat(buffer,linebuffer,maxlen);
+        strncat(buffer,linebuffer,maxlen-1-strlen(buffer));
         maxlen -= strlen(linebuffer);
     }
 
     int ret = 0;
     if( maxlen <= maxbuff || maxlen <= 512 ) {
-        strncat(buffer,"\n(..logfile truncated)\n",maxlen);
+        strncat(buffer,"\n(..logfile truncated)\n",maxlen-1-strlen(buffer));
         ret = -1;
     }
     pclose(fp);

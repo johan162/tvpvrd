@@ -1535,13 +1535,13 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
     listrepeatrecsbuff(buffer_plain, maxlen, n); // Get plain list of repeating recordings
     listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, FALSE); // Get plain list of single recordings
     strcat(buffer_plain,"\n\n");
-    strncat(buffer_plain,buffer,maxlen);
+    strncat(buffer_plain,buffer,maxlen-1-strlen(buffer_plain));
 
     listhtmlrepeatrecsbuff(buffer_html, maxlen, n, 0); // Get list of repeating recs i HTML format
     listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, TRUE); // Get list of single recordings in HTML format
     
-    strcat(buffer_html,"\n<p>&nbsp;</p>\n");
-    strncat(buffer_html,buffer,maxlen);
+    strncat(buffer_html,"\n<p>&nbsp;</p>\n",maxlen-1-strlen(buffer_html));
+    strncat(buffer_html,buffer,maxlen-1-strlen(buffer_html));
     free(buffer);
 
     char subject[255];

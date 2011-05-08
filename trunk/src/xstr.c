@@ -69,7 +69,7 @@ xstrlcat(char *dst, const char *src, size_t size) {
     if( strnlen(dst,size-1) == size-1 )
         return size-1;
     if( strlen(src) + strlen(dst) < size ) {
-        strncat(dst,src,size-1);
+        strncat(dst,src,size-1-strlen(dst));
         if( size > 0 )
             dst[size-1] = '\0';
         else

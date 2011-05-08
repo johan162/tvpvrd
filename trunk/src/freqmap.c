@@ -1018,8 +1018,8 @@ read_xawtvfile(const char *name) {
     char buffer[64];
     for(int i=0; i < nsec; i++) {
         char *sname = iniparser_getsecname(rdict, i);
-        strncpy(buffer,sname,64-10);
-        strncat(buffer,":channel",63);
+        strncpy(buffer,sname,sizeof(buffer)-1);
+        strncat(buffer,":channel",sizeof(buffer)-1-strlen(sname));
         buffer[63] = '\0';
         char *station_name = iniparser_getstring(rdict,buffer,NULL);
         if( station_name ) {
