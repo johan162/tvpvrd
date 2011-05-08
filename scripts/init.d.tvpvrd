@@ -5,7 +5,7 @@
 #
 # /etc/init.d/tvpvrd
 #
-#   and symbolic its link
+#   and its symbolic link
 #
 # /usr/sbin/rctvpvrd
 #
@@ -56,12 +56,12 @@ rc_reset
 case "$1" in
     start)
 	echo -n "Starting tvpvrd"
-	startproc $TVPVRD_BIN
+	/sbin/startproc $TVPVRD_BIN
 	rc_status -v
 	;;
     stop)
 	echo -n "Shutting down tvpvrd"
-	killproc -HUP -t10 $TVPVRD_BIN
+	/sbin/killproc -HUP -t10 $TVPVRD_BIN
 	rm -f /var/run/${TVPVRD_BIN}.pid
 	rc_status -v
 	;;
