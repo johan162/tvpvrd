@@ -43,7 +43,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-// Aplication specific libs, parse inifiles
+// Application specific libs, parse inifiles
 #ifdef HAVE_LIBINIPARSER
 #include <iniparser.h>
 #else
@@ -87,13 +87,13 @@ char server_version[] = PACKAGE_VERSION; // This define gets set by the config p
 /*
  * Config variables read from ini file
  */
-static int tcpip_port = -1;             // Read from INI-file
-static char tvpvrd_pwd[128]= {'\0'};    // Read from INI-file
+static int tcpip_port = -1; // Read from INI-file
+static char tvpvrd_pwd[128] = {'\0'}; // Read from INI-file
 
 /*
  * Address to connect to (the ip of the tvpvrd server)
  */
-static char *server_ip = NULL;   // Localhost
+static char *server_ip = NULL; // Localhost
 
 /*
  * Flag set by signal handler
@@ -104,7 +104,7 @@ volatile sig_atomic_t received_signal;
  * dict
  * Holds the read dictionary from the inifile
  */
-dictionary *dict=NULL;
+dictionary *dict = NULL;
 
 
 /*
@@ -112,13 +112,12 @@ dictionary *dict=NULL;
  */
 static const char short_options [] = "hvs:p:";
 static const struct option long_options [] = {
-    { "help",    no_argument,           NULL, 'h'},
-    { "version", no_argument,           NULL, 'v'},
-    { "server",  required_argument,     NULL, 's'},
-    { "port",    required_argument,     NULL, 'p'},
+    { "help", no_argument, NULL, 'h'},
+    { "version", no_argument, NULL, 'v'},
+    { "server", required_argument, NULL, 's'},
+    { "port", required_argument, NULL, 'p'},
     { 0, 0, 0, 0}
 };
-
 
 /**
  * Parse all command line options given to the server at startup. The server accepts both
@@ -132,8 +131,8 @@ parsecmdline(int argc, char **argv) {
     // Parse command line options
     int opt, idx;
     opterr = 0; // Supress error string from getopt_long()
-    if( argc > 5 ) {
-        fprintf(stderr,"Too many arguments. Try '-h'.");
+    if (argc > 5) {
+        fprintf(stderr, "Too many arguments. Try '-h'.");
         exit(EXIT_FAILURE);
     }
 
@@ -142,14 +141,14 @@ parsecmdline(int argc, char **argv) {
      * No single argument may be longer than 256 bytes (this could be
      * an indication of a buffer overflow attack)
      */
-    for(int i=1; i < argc; i++) {
-        if( strnlen(argv[i],256) >= 256  ) {
-            fprintf(stderr, "Argument %d is too long.",i);
+    for (int i = 1; i < argc; i++) {
+        if (strnlen(argv[i], 256) >= 256) {
+            fprintf(stderr, "Argument %d is too long.", i);
             exit(EXIT_FAILURE);
         }
     }
 
-    while (-1 != (opt = getopt_long (argc,argv,short_options, long_options, &idx)) ) {
+    while (-1 != (opt = getopt_long(argc, argv, short_options, long_options, &idx))) {
 
         switch (opt) {
             case 0: /* getopt_long() flag */
@@ -169,13 +168,13 @@ parsecmdline(int argc, char **argv) {
                         " -s,      --server          Specify server to connect to\n"
                         " -p,      --port          Port on server to connect to\n"
                         ,
-                       "tvpsh", "tvpsh");
+                        "tvpsh", "tvpsh");
                 exit(EXIT_SUCCESS);
                 break;
 
             case 'v':
-                fprintf(stdout,"%s %s (build: %lu.%lu)\n%s",
-                        "tvpvsh",server_version,(unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
+                fprintf(stdout, "%s %s (build: %lu.%lu)\n%s",
+                        "tvpvsh", server_version, (unsigned long) &__BUILD_DATE, (unsigned long) &__BUILD_NUMBER,
                         "Copyright (C) 2009,2010,2011 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
@@ -183,14 +182,14 @@ parsecmdline(int argc, char **argv) {
                 break;
 
             case 's':
-                if( optarg != NULL ) {
+                if (optarg != NULL) {
                     server_ip = strdup(optarg);
                 }
                 break;
 
             case 'p':
-                if( optarg != NULL ) {
-                    tcpip_port = (int) strtol(optarg, (char **)NULL, 10);
+                if (optarg != NULL) {
+                    tcpip_port = (int) strtol(optarg, (char **) NULL, 10);
                 }
                 break;
 
@@ -199,7 +198,7 @@ parsecmdline(int argc, char **argv) {
                 fprintf(stderr, "Option `%c' needs an argument.\n", optopt);
                 exit(EXIT_FAILURE);
                 break;
-                
+
             case '?':
                 fprintf(stderr, "Invalid specification of program option(s). See --help for more information.\n");
                 exit(EXIT_FAILURE);
@@ -207,15 +206,17 @@ parsecmdline(int argc, char **argv) {
         }
     }
 
-    if (argc>1 && optind < argc) {
+    if (argc > 1 && optind < argc) {
         fprintf(stderr, "Options not valid.\n");
         exit(EXIT_FAILURE);
     }
 
-    if( tcpip_port == -1 )
+    if (tcpip_port == -1) {
         tcpip_port = PORT;
-    if( server_ip == NULL )
+    }
+    if (server_ip == NULL) {
         server_ip = strdup(SERVER);
+    }
 
 }
 
@@ -227,15 +228,15 @@ parsecmdline(int argc, char **argv) {
 void
 sighandler(int signo) {
     received_signal = signo;
-    ssize_t rc = write(1,SIGINT_INFO,strlen(SIGINT_INFO));
-    if( rc == rc ) {
-      /* empty */ ;
+    ssize_t rc = write(1, SIGINT_INFO, strlen(SIGINT_INFO));
+    if (rc == rc) {
+        /* empty */;
     }
 }
 
 void
 exithandler(void) {
-  /* empty */
+    /* empty */
 }
 
 /**
@@ -248,8 +249,8 @@ setup_sighandlers(void) {
     sigset_t mysigset;
     sigfillset(&mysigset);
     // sigdelset(&sigset,SIGINT);
-    sigprocmask(SIG_SETMASK,&mysigset,NULL);
-    
+    sigprocmask(SIG_SETMASK, &mysigset, NULL);
+
     // Setup SIGINT handler
     /*
     struct sigaction act;
@@ -258,12 +259,11 @@ setup_sighandlers(void) {
     act.sa_flags = SA_RESTART;
 
     sigaction(SIGINT,&act,(struct sigaction *)NULL);
-    */
+     */
 
     atexit(exithandler);
 
 }
-
 
 /*
  * Read a reply from a socket with 0.1s timeout.
@@ -283,7 +283,7 @@ waitread(int sock, char *buffer, int maxbufflen) {
     timeout.tv_usec = 500000;
 
     int ret = select(sock + 1, &read_fdset, NULL, NULL, &timeout);
-    if( 0 == ret ) {
+    if (0 == ret) {
         // Timeout
         return -1;
     } else {
@@ -300,32 +300,32 @@ waitread(int sock, char *buffer, int maxbufflen) {
  */
 int
 waitreadn(int sock, char *buffer, int maxbufflen) {
-    const int buffsize = 512*1024;
-    char *pbuff = calloc(buffsize,sizeof(char));
+    const int buffsize = 512 * 1024;
+    char *pbuff = calloc(buffsize, sizeof (char));
     *buffer = '\0';
-    int totlen=0;
+    int totlen = 0;
 
     int rc;
-    int numtimeouts=0;
-    while( totlen < maxbufflen ) {
-        rc=waitread(sock,pbuff,buffsize);
-        if( rc == 0 ) {
-            strcat(buffer,pbuff);
-            int len=strlen(pbuff);
+    int numtimeouts = 0;
+    while (totlen < maxbufflen) {
+        rc = waitread(sock, pbuff, buffsize);
+        if (rc == 0) {
+            strcat(buffer, pbuff);
+            int len = strlen(pbuff);
             totlen += len;
             buffer[totlen] = '\0';
         } else {
             numtimeouts++;
         }
-        if( numtimeouts > 20 || 
-            (totlen >= 3 && buffer[totlen-1]=='\n'  && buffer[totlen-2]=='\r'  && buffer[totlen-3]=='\n') )  {
+        if (numtimeouts > 20 ||
+                (totlen >= 3 && buffer[totlen - 1] == '\n' && buffer[totlen - 2] == '\r' && buffer[totlen - 3] == '\n')) {
             break;
         }
     }
 
-    buffer[maxbufflen-1] = '\0';
+    buffer[maxbufflen - 1] = '\0';
     free(pbuff);
-    if( *buffer == '\0' || numtimeouts > 20 )
+    if (*buffer == '\0' || numtimeouts > 20)
         return -1;
     else
         return 0;
@@ -333,6 +333,7 @@ waitreadn(int sock, char *buffer, int maxbufflen) {
 
 
 #define TVPVRD_PASSWORD_LABEL "Password:"
+
 /**
  * Send a specified command to the tvpvrd server
  * @param cmd
@@ -351,15 +352,15 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
     CLEAR(hints);
     hints.ai_family = AF_UNSPEC; // don't care IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
-    snprintf(service,32,"%d",tcpip_port);
-    
+    snprintf(service, sizeof(service), "%d", tcpip_port);
+
     int status = getaddrinfo(server_ip, service, &hints, &servinfo);
     if (status) {
         return -1;
     }
 
     int sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
-    if (-1 == sock ) {
+    if (-1 == sock) {
         return -2;
     }
 
@@ -371,20 +372,20 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
 
     freeaddrinfo(servinfo);
 
-    if( -1 == waitread(sock, buffer, 1023) ) {
+    if (-1 == waitread(sock, buffer, sizeof(buffer))) {
         shutdown(sock, SHUT_RDWR);
         close(sock);
         return -4;
     }
-    
+
     // Check for possible password question
-    if( 0 == strncmp(buffer,TVPVRD_PASSWORD_LABEL,strlen(TVPVRD_PASSWORD_LABEL)) ) {
-        snprintf(buffer,1023,"%s\r\n",tvpvrd_pwd);
-        ssize_t nw = write(sock,buffer,strlen(buffer));
-        if( nw != (ssize_t)strlen(buffer) ) {
+    if (0 == strncmp(buffer, TVPVRD_PASSWORD_LABEL, strlen(TVPVRD_PASSWORD_LABEL))) {
+        snprintf(buffer, sizeof(buffer), "%s\r\n", tvpvrd_pwd);
+        ssize_t nw = write(sock, buffer, strlen(buffer));
+        if (nw != (ssize_t) strlen(buffer)) {
             return -5;
         } else {
-            if( waitread(sock, buffer, 1023) ) {
+            if (waitread(sock, buffer, sizeof(buffer))) {
                 shutdown(sock, SHUT_RDWR);
                 close(sock);
                 return -6;
@@ -394,20 +395,21 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
 
     // Send the command
     char tmpbuff[128];
-    snprintf(tmpbuff,127,"%s\r\n",cmd);
+    snprintf(tmpbuff, sizeof(tmpbuff), "%s\r\n", cmd);
 
-    ssize_t nw = write(sock,tmpbuff,strlen(tmpbuff)+1); // Include terminating 0
-    if( nw != (ssize_t)strlen(tmpbuff)+1 ) {
-        return -7;printf("-7\n");
+    ssize_t nw = write(sock, tmpbuff, strlen(tmpbuff) + 1); // Include terminating 0
+    if (nw != (ssize_t) strlen(tmpbuff) + 1) {
+        return -7;
+        printf("-7\n");
     } else {
         int rc;
-        if( multiline ) {
+        if (multiline) {
             rc = waitreadn(sock, reply, maxreplylen);
         } else {
             rc = waitread(sock, reply, maxreplylen);
         }
 
-        if( rc ) {
+        if (rc) {
             shutdown(sock, SHUT_RDWR);
             close(sock);
             return -8;
@@ -425,19 +427,19 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
 int
 setup_inifile(void) {
     char inifile[256];
-    snprintf(inifile,255,"%s/tvpvrd/%s",CONFDIR,INIFILE_NAME);
+    snprintf(inifile, sizeof(inifile), "%s/tvpvrd/%s", CONFDIR, INIFILE_NAME);
     inifile[255] = '\0';
     dict = iniparser_load(inifile);
-    if( !dict ) {
+    if (!dict) {
         // As a last resort check the default /etc directory
-        snprintf(inifile,255,"/etc/tvpvrd/%s",INIFILE_NAME);
+        snprintf(inifile, sizeof(inifile), "/etc/tvpvrd/%s", INIFILE_NAME);
         dict = iniparser_load(inifile);
-        if( dict == NULL ) {
+        if (dict == NULL) {
             *inifile = '\0';
         }
     }
 
-    if( dict == NULL ) {
+    if (dict == NULL) {
         return -1;
     }
 
@@ -449,11 +451,12 @@ setup_inifile(void) {
  */
 int
 read_inifile(void) {
-    if( dict ) {
-        if( tcpip_port == -1 )
+    if (dict) {
+        if (tcpip_port == -1) {
             tcpip_port = iniparser_getint(dict, "config:port", PORT);
-        strncpy(tvpvrd_pwd,iniparser_getstring(dict, "config:password", ""),127);
-        tvpvrd_pwd[127] = '\0';
+        }
+        strncpy(tvpvrd_pwd, iniparser_getstring(dict, "config:password", ""), 127);
+        tvpvrd_pwd[127] = '\0';    
         return 0;
     } else {
         return -1;
@@ -461,6 +464,7 @@ read_inifile(void) {
 }
 
 #ifndef HAVE_LIBREADLINE
+
 char *
 readline(char *prompt) {
     if (prompt && *prompt) {
@@ -476,8 +480,7 @@ readline(char *prompt) {
     char *rbuff = fgets(tmpbuff, maxlen, stdin);
     if (NULL == rbuff) {
         free(tmpbuff);
-    }
-    else {
+    } else {
         if (*tmpbuff && strlen(tmpbuff) > 0) {
             tmpbuff[strlen(tmpbuff) - 1] = '\0';
         }
@@ -498,7 +501,7 @@ cmd_loop(void) {
     char *reply = calloc(maxreplylen, sizeof (char));
     char prompt[64];
 
-    snprintf(prompt, 64, "%s-%s> ", "tvpvsh", server_version);
+    snprintf(prompt, sizeof(prompt), "%s-%s> ", "tvpvsh", server_version);
     do {
         if (NULL == (buffer = readline(prompt))) {
             finished = TRUE;
@@ -511,8 +514,8 @@ cmd_loop(void) {
 #ifdef HAVE_LIBREADLINE
                     add_history(buffer);
 #endif
-                    if ( tvpvrd_command(buffer, reply, maxreplylen, TRUE) < 0 ) {
-                        printf("Cannot talk to server. ( %d : %s )\n",errno, strerror(errno));
+                    if (tvpvrd_command(buffer, reply, maxreplylen, TRUE) < 0) {
+                        printf("Cannot talk to server. ( %d : %s )\n", errno, strerror(errno));
                         finished = TRUE;
                     } else {
                         if (write(1, reply, strlen(reply)) != (ssize_t) strlen(reply)) {
@@ -535,12 +538,19 @@ int
 main(int argc, char **argv) {
     parsecmdline(argc, argv);
     setup_sighandlers();
-    if( 0 == setup_inifile() ) {
+    if (0 == setup_inifile()) {
         read_inifile();
     }
-    cmd_loop();
 
-    _exit(EXIT_SUCCESS);
+    // Check that server is alive by sending time command
+    char reply[128];
+    if (tvpvrd_command("t", reply, sizeof(reply), FALSE) < 0) {
+        printf("Cannot connect to server %s. ( %d : %s )\n", server_ip, errno, strerror(errno));
+        _exit(EXIT_FAILURE);
+    } else {
+        cmd_loop();
+        _exit(EXIT_SUCCESS);
+    }
 }
 
 /* EOF */
