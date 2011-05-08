@@ -6,6 +6,20 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+
+v3.1.2
+------
+User visible changes:
+    - tvpsh now checks that the server is reachable at startup and quits with error if not.
+
+Bugs fixed:
+    None.
+
+Internal changes:
+    - Code security review. Make sure all string concatenation is explicitely limited.
+    - Add full path for killproc/startproc in the SysV init.d scripts 
+
+
 v3.1.1
 ------
 User visible changes:
