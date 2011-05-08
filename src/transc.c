@@ -337,60 +337,60 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     strcpy(sname,"ffmpeg");
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":use_transcoding",bufsize-1);
+    strncat(buffer,":use_transcoding",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->use_transcoding = (unsigned)iniparser_getboolean(profile, buffer, DEFAULT_USE_TRANSCODING);
     
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":video_bitrate",bufsize-1);
+    strncat(buffer,":video_bitrate",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->video_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_bitrate",
                                     iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":video_peak_bitrate",bufsize-1);
+    strncat(buffer,":video_peak_bitrate",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->video_peak_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_peak_bitrate",
                                          iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_PEAK_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":audio_bitrate",bufsize-1);
+    strncat(buffer,":audio_bitrate",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->audio_bitrate = (unsigned)validate(32,320,"ffmpeg_audio_bitrate",
                                     iniparser_getint(profile, buffer,DEFAULT_PROFILE_AUDIO_BITRATE));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":pass",bufsize-1);
+    strncat(buffer,":pass",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->pass = (unsigned)validate(1,2,"ffmpeg_pass",
                            iniparser_getint(profile, buffer,DEFAULT_PROFILE_PASS));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_top",bufsize-1);
+    strncat(buffer,":crop_top",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->crop_top = (unsigned)validate(0,160,"ffmpeg_crop_top",
                                iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_TOP));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_bottom",bufsize-1);
+    strncat(buffer,":crop_bottom",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->crop_bottom = (unsigned)validate(0,160,"ffmpeg_crop_bottom",
                                   iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_BOTTOM));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_left",bufsize-1);
+    strncat(buffer,":crop_left",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->crop_left = (unsigned)validate(0,160,"ffmpeg_crop_left",
                                 iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_LEFT));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_right",bufsize-1);
+    strncat(buffer,":crop_right",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->crop_right = (unsigned)validate(0,160,"ffmpeg_crop_right",
                                  iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_RIGHT));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":video_size",bufsize-1);
+    strncat(buffer,":video_size",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->size,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VIDEO_SIZE),
@@ -398,7 +398,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     entry->size[31] = '\0';
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":vpre",bufsize-1);
+    strncat(buffer,":vpre",bufsize-1-strlen(buffer)-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->vpre,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VPRE),
@@ -406,7 +406,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     entry->size[31] = '\0';
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":acodec",bufsize-1);
+    strncat(buffer,":acodec",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->acodec,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VCODEC),
@@ -414,7 +414,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     entry->acodec[31] = '\0';
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":vcodec",bufsize-1);
+    strncat(buffer,":vcodec",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->vcodec,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VCODEC),
@@ -422,7 +422,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     entry->vcodec[31] = '\0';
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":file_extension",bufsize-1);
+    strncat(buffer,":file_extension",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->file_extension,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_FILE_EXTENSION),
@@ -430,7 +430,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     entry->file_extension[7] = '\0';
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":extra_ffmpeg_options",bufsize-1);
+    strncat(buffer,":extra_ffmpeg_options",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->extra_ffmpeg_options,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_EXTRA_FFMPEG_OPTIONS),
@@ -836,7 +836,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
     }
 
     destfile[l] = '\0';
-    strncat(destfile, profile->file_extension,destsize);
+    strncat(destfile, profile->file_extension,destsize-1);
 
     if (profile->pass == 1) {
         if( strlen(profile->size) > 0 ) {
@@ -1594,20 +1594,20 @@ get_queued_transc_filelists_info(int num,char *buffer,size_t len,int incfiles) {
     buffer[len-1]='\0';
     if( incfiles ) {
        snprintf(tmpbuff,511,"\nProcessed:\n");
-       strncat(buffer,tmpbuff,len-1);
+       strncat(buffer,tmpbuff,len-1-strlen(buffer));
        buffer[len-1]='\0';
        for(int i=0; i < ongoing_filelist_transcodings[idx]->idx; i++ ) {
            snprintf(tmpbuff,511,"  * %s\n",ongoing_filelist_transcodings[idx]->filelist_param->filelist[i]);
-           strncat(buffer,tmpbuff,len-1);
+           strncat(buffer,tmpbuff,len-1-strlen(buffer));
            buffer[len-1]='\0';
        }
 
        snprintf(tmpbuff,511,"\nNot processed:\n");
-       strncat(buffer,tmpbuff,len-1);
+       strncat(buffer,tmpbuff,len-1-strlen(buffer));
        buffer[len-1]='\0';
        for(int i=ongoing_filelist_transcodings[idx]->idx; i < ongoing_filelist_transcodings[idx]->nentries; i++ ) {
            snprintf(tmpbuff,511,"  + %s\n",ongoing_filelist_transcodings[idx]->filelist_param->filelist[i]);
-           strncat(buffer,tmpbuff,len-1);
+           strncat(buffer,tmpbuff,len-1-strlen(buffer));
            buffer[len-1]='\0';
        }
     }
@@ -1649,7 +1649,7 @@ _transcode_filelist(void *arg) {
     }
 
     if( *param->filelist[idx] ) {
-        strncat(buffer,param->filelist[idx++],511);
+        strncat(buffer,param->filelist[idx++],sizeof(buffer)-strlen(buffer)-1);
     } else {
         *buffer = '\0';
     }
@@ -1681,7 +1681,7 @@ _transcode_filelist(void *arg) {
             *buffer = '\0';
         }
         if( *param->filelist[idx] ) {
-            strncat(buffer,param->filelist[idx++],511);
+            strncat(buffer,param->filelist[idx++],sizeof(buffer)-strlen(buffer)-1);
         } else {
             *buffer = '\0';
         }
@@ -1823,8 +1823,8 @@ read_filenamelist(char *filename, char *filenamelist[], int maxlen) {
         }
 
         strncpy(filenamebuffer,dirpath,256);
-        strncat(filenamebuffer,"/",511);
-        strncat(filenamebuffer,linebuffer,511);
+        strncat(filenamebuffer,"/",sizeof(filenamebuffer)-1-strlen(filenamebuffer));
+        strncat(filenamebuffer,linebuffer,sizeof(filenamebuffer)-1-strlen(filenamebuffer));
         ptr = strdup(filenamebuffer);
 
         logmsg(LOG_DEBUG, "Filename '%s' constructed.",ptr);

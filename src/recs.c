@@ -555,20 +555,20 @@ dumprecord_header(int style, char *buffer, size_t bufflen) {
 
     snprintf(tmpbuff, 511, "%s\n", rptchr_r('-', header_length,r));
     
-    strncpy(buffer, tmpbuff, bufflen);
+    strncpy(buffer, tmpbuff, bufflen-1);
     buffer[bufflen-1] = '\0';
 
     if (style == 0) {
         snprintf(tmpbuff, 511, "%-3s| %-17s| %-6s| %-31s\n",
                  "#", "Start", "End", "Title");
-        strncat(buffer, tmpbuff, bufflen);
+        strncat(buffer, tmpbuff, bufflen-1-strlen(buffer));
     } else {
         snprintf(tmpbuff, 511, "List of recordings\n");
-        strncat(buffer, tmpbuff,bufflen);
+        strncat(buffer, tmpbuff,bufflen-1-strlen(buffer));
     }
 
     snprintf(tmpbuff, 511, "%s\n", rptchr_r('-', header_length,r));
-    strncat(buffer, tmpbuff, bufflen);
+    strncat(buffer, tmpbuff, bufflen-1-strlen(buffer));
     buffer[bufflen-1] = '\0';
 }
 
@@ -1322,12 +1322,12 @@ dumprecordid(unsigned seqnbr, int repeats, int style, char *buffer, size_t buffl
                     dumprecord(recs[REC_IDX(video, i)], style, tmpbuff, 512);
                     if( left > strnlen(tmpbuff,511)) {
                         strncat(buffer, tmpbuff, left);
-                        left -= strnlen(tmpbuff,511);
+                        left -= strnlen(tmpbuff,sizeof(tmpbuff));
                     }
                     else {
 
                         if( left > 3 )
-                            strncat( buffer, "...\n", 511);
+                            strncat( buffer, "...\n", bufflen-1-strlen(buffer));
                         return found;
 
                     }

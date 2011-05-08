@@ -112,15 +112,15 @@ create_login_cookie(char *user, char *pwd) {
     strcpy(_cookie_buff, LOGIN_COOKIE_SEED);
 
     char hostname[128];
-    gethostname(hostname, 127);
+    gethostname(hostname, sizeof(hostname));
     hostname[127] = '\0';
 
     char buff[128];
-    strncpy(buff, user, 127);
+    strncpy(buff, user, sizeof(buff)-1);
     buff[127] = '\0';
-    strncat(buff, pwd, 64);
+    strncat(buff, pwd, sizeof(buff)-strlen(buff)-1);
     buff[127] = '\0';
-    strncat(buff, hostname, 64);
+    strncat(buff, hostname, sizeof(buff)-strlen(buff)-1);
     buff[127] = '\0';
 
     int n = MIN(strlen(_cookie_buff), strlen(buff));
@@ -492,7 +492,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
     int ret=0;
     int mobile=FALSE;
 
-    if (webconnection(buffer, wcmd, 1023)) {
+    if (webconnection(buffer, wcmd, sizeof(wcmd)-1)) {
 
         // Reset cmd_delay
         cmd_delay = 0;
@@ -551,23 +551,23 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                 // Build command
 
                 if (0 == strcmp(repeat, "")) {
-                    snprintf(wcmd, 1024, "a %s", channel);
+                    snprintf(wcmd, sizeof(wcmd)-1, "a %s", channel);
                 } else {
                     // Repeatet add
-                    snprintf(wcmd, 1024, "ar %s %s %s ", repeat, repeatcount, channel);
+                    snprintf(wcmd, sizeof(wcmd)-1, "ar %s %s %s ", repeat, repeatcount, channel);
                 }
                 if (*sd != '\0') {
                     snprintf(tmpcmd, 128, " %s ", sd);
-                    strncat(wcmd, tmpcmd, 1023);
+                    strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
                 }
                 snprintf(tmpcmd, 128, " %s:%s ", sh, smin);
-                strncat(wcmd, tmpcmd, 1023);
+                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
 
                 snprintf(tmpcmd, 128, " %s:%s ", eh, emin);
-                strncat(wcmd, tmpcmd, 1023);
+                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
 
                 snprintf(tmpcmd, 128, " %s @%s ", title, profile);
-                strncat(wcmd, tmpcmd, 1023);
+                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
 
             }
 
@@ -598,11 +598,11 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
             if (0 == strcmp(submit, "Start")) {
                 char tmpcmd[128];
                 // Build command
-                snprintf(wcmd, 1024, "q %s", channel);
-                snprintf(tmpcmd, 128, " %s:%s ", length_hour, length_min);
-                strncat(wcmd, tmpcmd, 1023);
-                snprintf(tmpcmd, 128, " %s @%s ", title, profile);
-                strncat(wcmd, tmpcmd, 1023);
+                snprintf(wcmd, sizeof(wcmd)-1, "q %s", channel);
+                snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s:%s ", length_hour, length_min);
+                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
+                snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s @%s ", title, profile);
+                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
                 cmd_delay = 2400000;
             }
 
@@ -616,7 +616,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
             char recid[maxvlen], submit[maxvlen];
             get_assoc_value(recid, maxvlen, "rid", &field[1], ret - 1);
             get_assoc_value(submit, maxvlen, "submit_killrec", &field[1], ret - 1);
-            snprintf(wcmd, 1024, "! %s", recid);
+            snprintf(wcmd, sizeof(wcmd)-1, "! %s", recid);
 
             // Wait half a second to allow the removal to be done and completed so that
             // it will show when the WEB-page is refreshed.
@@ -639,9 +639,9 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
             if (0 == strcmp(submit, "Delete")) {
                 if (0 == strcmp(delserie, "Yes")) {
-                    snprintf(wcmd, 1024, "dr %s", recid);
+                    snprintf(wcmd, sizeof(wcmd)-1, "dr %s", recid);
                 } else {
-                    snprintf(wcmd, 1024, "d %s", recid);
+                    snprintf(wcmd, sizeof(wcmd)-1, "d %s", recid);
                 }
             }
 

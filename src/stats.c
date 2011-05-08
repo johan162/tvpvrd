@@ -279,7 +279,7 @@ dump_profilestats(char *buff, size_t size) {
                     );
             tmpbuff[511] = '\0';
             if( left > strlen(tmpbuff) ) {
-                strncat(buff, tmpbuff, size - 1);
+                strncat(buff, tmpbuff, left);
                 left -= strlen(tmpbuff);
             }
         } else {
