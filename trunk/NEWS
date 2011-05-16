@@ -11,6 +11,11 @@ v3.1.2
 ------
 User visible changes:
     - tvpsh now checks that the server is reachable at startup and quits with error if not.
+    - Added "external_tuner_station" setting in the config file. This will set the tuner
+      input station when external channel switching is used and the input is specified
+      as the tuner input. Used to connect a cable box with a set frequency/channel to the
+      TV-card and changing channels with an IR sender on the cable box instead of the
+      tuner in the TV-card.
 
 Bugs fixed:
     None.
@@ -18,6 +23,7 @@ Bugs fixed:
 Internal changes:
     - Code security review. Make sure all string concatenation is explicitely limited.
     - Add full path for killproc/startproc in the SysV init.d scripts 
+    - Updated OpenSuSE RPM Spec file
 
 
 v3.1.1

@@ -175,6 +175,49 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 
 #ifndef DEBUG_SIMULATE
         video_set_input_source(fdtuner,external_input);
+        
+        // If the external input is the tuner input we must set the tuning
+        // as well which should have been provided in the config file by the
+        // end user.
+        if( external_input == tuner_input_index ) {
+            
+            logmsg(LOG_DEBUG,"setup_video(): Using external tuner input and setting external_tuner_station.");
+            
+            // Check if user actually provided a tuning, error otherwise
+            if( 0 == strnlen(external_tuner_station,15) ) {
+                logmsg(LOG_CRIT,"FATAL: external_tuner_station not specified in config file");
+                video_close(fdtuner);
+                return -1;
+            }
+            
+            // Try to set the correct channel to listen on
+            int ret = video_set_channel(fdtuner, external_tuner_station);
+            int i=2;
+            while( ret == -1 && errno == EBUSY && i > 0 ) {
+                usleep((unsigned)(500*(3-i)));
+                ret = video_set_channel(fdtuner, external_tuner_station);
+                i--;
+            }      
+            
+            if( ret == -1 ) {
+                logmsg(LOG_CRIT,"FATAL: Cannot set tuner to external channel ( %d : %s )",errno,strerror(errno));
+                video_close(fd);
+                if( fdtuner != fd && fdtuner > 0 ) {
+                    video_close(fdtuner);
+                }
+
+                return -1;
+            }            
+
+        } else {
+            
+           if( 0 != strnlen(external_tuner_station,15) ) {
+                logmsg(LOG_WARNING,"Warning: Using external switching with external_tuner_station specified but external input does not correspond to the tuner.");
+           }            
+            
+        }
+        
+        
 #endif
         char csname[128];
         snprintf(csname,128,"%s/tvpvrd/%s",CONFDIR,external_switch_script);

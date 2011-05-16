@@ -148,6 +148,11 @@ int external_input = 0;
 char external_switch_script[255];
 
 /*
+ * The station to be used when the external input is connected to the tuner
+ */
+char external_tuner_station[255];
+
+/*
  * Holds user specified optional encoder_devices and tuner_devices
  */
 char *encoder_devices[16] = {NULL};
@@ -296,9 +301,16 @@ read_inisettings(void) {
 
     strncpy(external_switch_script,
             iniparser_getstring(dict, "config:external_switch_script", DEFAULT_EXTERNAL_SWITCH_SCRIPT),
-            254);
-    external_switch_script[254] = '\0';
+            sizeof(external_switch_script)-1);
+    external_switch_script[sizeof(external_switch_script)-1] = '\0';
+    
+    strncpy(external_tuner_station,
+            iniparser_getstring(dict, "config:external_tuner_station", ""),
+            sizeof(external_tuner_station)-1);
+    external_tuner_station[sizeof(external_tuner_station)-1] = '\0';
+        
 
+    
 
     max_entries         = (unsigned)validate(1,4096,"max_entries",
                                    iniparser_getint(dict, "config:max_entries", MAX_ENTRIES));
