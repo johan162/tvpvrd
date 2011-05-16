@@ -1184,7 +1184,6 @@ smtp_simple_sendmail(char *server, char *user, char *pwd,
                      char *message, unsigned isHTML) {
     struct smtp_handle *handle;
     if ((handle = smtp_setup(server, user, pwd))) {
-        int rc = -1;
         if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_TO, to)) {
             if( cc && *cc ) {
                 if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_CC, cc)) {
@@ -1197,7 +1196,7 @@ smtp_simple_sendmail(char *server, char *user, char *pwd,
             } else {
                 smtp_add_plain(handle, message);
             }
-            rc = smtp_sendmail(handle, from, subject);
+            (void)smtp_sendmail(handle, from, subject);
         }
         smtp_cleanup(&handle);
         return 0;
@@ -1217,7 +1216,6 @@ smtp_simple_sendmail_with_fileattachment(char *server, char *user, char *pwd,
                      char *filename, int contenttype, int encoding) {
     struct smtp_handle *handle;
     if ((handle = smtp_setup(server, user, pwd))) {
-        int rc = -1;
         if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_TO, to)) {
             if( cc && *cc ) {
                 if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_CC, cc)) {
@@ -1237,7 +1235,7 @@ smtp_simple_sendmail_with_fileattachment(char *server, char *user, char *pwd,
                 encoding = SMTP_CONTENT_TRANSFER_ENCODING_QUOTEDPRINT;
 
             if( -1 != smtp_add_attachment_fromfile(handle, filename, contenttype, encoding) ) {
-                rc = smtp_sendmail(handle, from, subject);
+                (void)smtp_sendmail(handle, from, subject);
             } else {
                 smtp_cleanup(&handle);
                 return -1;
