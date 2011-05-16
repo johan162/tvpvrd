@@ -21,6 +21,7 @@ Bugs fixed:
     None.
 
 Internal changes:
+    - Fixed compiler warning about set but not used variable
     - Code security review. Make sure all string concatenation is explicitely limited.
     - Add full path for killproc/startproc in the SysV init.d scripts 
     - Updated OpenSuSE RPM Spec file
