@@ -744,46 +744,114 @@ channel = E8
                 command</para>
             <para><command>li 0</command></para>
             <para>would generate output similar to</para>
-            
-                <screen>Hauppauge WinTV PVR-350
+            <screen>Hauppauge WinTV PVR-350
 00 :*(tuner) Tuner 1
 01 : (camera) S-Video 1
 02 : (camera) Composite 1
 03 : (camera) S-Video 2
 04 : (camera) Composite 2
 05 : (camera) Composite 3</screen>
-            
-            <para>This is a list of  all possible video sources supported by the card. The current
+            <para>This is a list of all possible video sources supported by the card. The current
                 selected source is shown with an asterix just to the left of the type of
                 input.</para>
             <para>In order to use one of these inputs as the source for the recoding instead of the
-                standard tuner a special station name is used "<emphasis
-                    role="italic">_inpXY</emphasis>". The 'X' should be replaced by the video card
-                to be used (starting at 0) and the 'Y' should be replaced by the index for the
-                wanted input source. So for example going back to the previous Hauppauge 350 above a
-                meta station name of "<code>_inp04</code>" would use the composite 2 input source
-                (assuming the card is the first card, i.e. 0).</para>
+                standard tuner a special station name is used "<emphasis role="italic"
+                    >_inpXY</emphasis>". The 'X' should be replaced by the video card to be used
+                (starting at 0) and the 'Y' should be replaced by the index for the wanted input
+                source. So for example going back to the previous Hauppauge 350 above a meta station
+                name of "<code>_inp04</code>" would use the composite 2 input source (assuming the
+                card is the first card, i.e. 0).</para>
             <para>In order for the server to know which input belongs to the tuner this is specified
-                in the config file with the setting <emphasis
-                    role="italic">tuner_input_index</emphasis>, by default this is 0. Since there is
-                only one setting this implies that all cards use the same index for the tuner. This
-                is a limitation of the current implementation. If you have several cards where the
-                tuner is located at different input indexes then the server can only work correctly
-                on one card. This is a very minor limitation since the number of users with multiple
-                cards with tuners on other indexes than 0 can be assumed to be very small.</para>
+                in the config file with the setting <emphasis role="italic"
+                    >tuner_input_index</emphasis>, by default this is 0. Since there is only one
+                setting this implies that all cards use the same index for the tuner. This is a
+                limitation of the current implementation. If you have several cards where the tuner
+                is located at different input indexes then the server can only work correctly on one
+                card. This is a very minor limitation since the number of users with multiple cards
+                with tuners on other indexes than 0 can be assumed to be very small.</para>
             <para>A final example will make this crystal clear. Assume we want to record a CCTV
                 camer that is connected to composite input 1 on our Hauppauge 350 card. To
                 immediately start recording for 30 min using the default profile we could give the
                 command</para>
-            
-                <screen>q _inp02 00:30 cctv_camera_one</screen>
-            
+            <screen>q _inp02 00:30 cctv_camera_one</screen>
             <para>the command above would immediately start a recording using card 0 and input with
                 index 2, i.e.. the "<code>Composite 1</code>" input. The recording will be stored
                 with the name "<code>cctv_camera_one.mp4</code>" (assuming the default profile is
                 setup to do transcoding to MP4 format).</para>
             <para>There is also an option to handle channel switching on a cable box. This is
                 described in the "Adding user "hooks" for special processing" section below.</para>
+        </refsect1>
+        <refsect1>
+            <title>Controlling an external cable box</title>
+            <para>When an external cable box is connected to the TV-card there are some special
+                considerations that must be taken into account since channel switching must be done
+                by the cable box and not the TV-card itself.</para>
+            <para>In order to enable the special processing described below the configuration file
+                setting <code>external_switch</code> must be set to "<code>yes</code>".</para>
+            <para>When a cable box is connected to the TV-card the following facts must be taken
+                into account:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>The cable box is connected to the TV-card either to the tuner on a
+                            specific station or to the S-video or composite input on the card. In
+                            any case this renders the usual channel switching on the tuner obsolete
+                            and wrong. To specify which input to be used for the cable box the
+                            configuration file setting <code>external_input</code> is used. This
+                            should specify the numerical value of the input channel. If the cable
+                            box is connected to the tuner on a fixed station this station must also
+                            be provided. This is specified in the configuration file as the setting
+                                <code>external_tuner_station</code></para>
+                    </listitem>
+                    <listitem>
+                        <para>The actual channel switching must be done on the cable box. To help
+                            with this it is possible to connect an IR-sender to the computer running
+                                <command>tvpvrd</command> and control this IR-sender from the
+                            daemon. To help with this it is possible to have the
+                                <command>tvpvrd</command> daemon call an external script which in
+                            turn will receive the needed channel as argument. The script is then
+                            responsible for issuing the low level commands that control the IR
+                            sender based on the input to the script. In the distribution a template
+                            script for this is provided in the
+                                "<filename>switchchannel.sh.template</filename>" script. In the
+                            configuration script it should also be specified the name of the script
+                            used to do channel switching. </para>
+                        <para>It is unfortunately beyond the scope of this manual to describe how to
+                            setup an infrared sender on a Linux server (see
+                                <uri>http://www.lirc.org/</uri>for more information).</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para><emphasis role="italic">Note:</emphasis> If you are unsure of what numerical value
+                the input source on your card have use the <command>tvpvrd</command> command
+                    "<command>li</command>" (list iputs).</para>
+            <para>Finally we list exactly what happens when a new recording is made with external
+                switching enabled:</para>
+            <para>
+                <orderedlist>
+                    <listitem>
+                        <para>The correct input source according to the <code>external_input</code>
+                            setting is activated.</para>
+                    </listitem>
+                    <listitem>
+                        <para>If the input source is the tuner the tuner is then set to the channel
+                            specified in <code>external_tuner_station</code> setting</para>
+                    </listitem>
+                    <listitem>
+                        <para>The switch channel script is then called with the arguments indicating
+                            on what station (the station name not the channel name!) the recording
+                            should be made on. The name of the script is specified in the
+                            configuration file by the  <code>external_switch_script</code> setting.
+                            This script should now call the low level IR routines to send the
+                            correct IR blast to the cable box to do the actual channel switching.
+                            The recording will start once the script has finished. This indicates
+                            that in order to avoid recording the actual switching of channel a short
+                            delay should be introduced in the script to make sure the cable box has
+                            really had time to switch channel when the recording starts.</para>
+                    </listitem>
+                </orderedlist>
+            </para>
+            <para>The rest of the recording is handled exactly as for a "normal" recording.</para>
         </refsect1>
         <refsect1>
             <title>Managing notifications mails</title>
@@ -894,7 +962,9 @@ channel = E8
                         <para><filename>switchchannel.sh.template</filename>, (<emphasis
                                 role="italic">optional</emphasis>) This script is called when the
                             channel should be changed. This is controlled in the configuration file
-                                (<code>external_switch=yes</code>) </para>
+                                (<code>external_switch=yes</code>) . See section above on "<emphasis
+                                role="italic">Controlling an external cable box</emphasis>" for more
+                            information on this particular script.</para>
                     </listitem>
                 </itemizedlist>
             </para>
@@ -919,17 +989,6 @@ channel = E8
                         <para>In the shutdown script one has then to add calls to each client to
                             unmount the filesystems and in the startup script one can call the
                             clients to re-mount all the necessary filesystems.</para>
-                    </listitem>
-                    <listitem>
-                        <para>If you have an external cable box connected to one of the fixed video
-                            input on the card the card itself cannot change the channels since that
-                            must be done on the cable box. The switchchannel script should be used
-                            for this. By attaching a suitable Infrared transmitter on the server
-                            which can be controlled in the switchchannel script the dameon can
-                            control the channel on the cable box via this script. It is
-                            unfortunately beyond the scope of this manual to describe how to setup
-                            an infrared sender on a Linux server (see
-                                <uri>http://www.lirc.org/</uri>for more information)</para>
                     </listitem>
                     <listitem>
                         <para>Some video cards require some postprocessing on the MP2 video before
