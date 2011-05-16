@@ -16,6 +16,8 @@ User visible changes:
       as the tuner input. Used to connect a cable box with a set frequency/channel to the
       TV-card and changing channels with an IR sender on the cable box instead of the
       tuner in the TV-card.
+    - Improved the manual page on how to handle an external cable box with IR-sender 
+      using the external channel switching.
 
 Bugs fixed:
     None.
