@@ -272,7 +272,7 @@ max_video=0
 # The input to the encoder can also be selected as one of the other sources
 # by using the meta station name "_inpXY" where X is replace by the wanted
 # capture card and Y is replaced by the wanted input source. See the man
-# page for more information on how to choose betewen the possible inputs.
+# page for more information on how to choose between the possible inputs.
 #----------------------------------------------------------------------------
 tuner_input_index=0
 
@@ -403,8 +403,23 @@ external_switch=no
 # EXTERNAL_INPUT integer
 # Determine which input on the TV-card that is connected to the Cable-box.
 # If unsure you can use the daemon command "li" to list the possible inputs.
+# If the external input is the tuner you MUST also define what station the
+# tuner should be tuned to.
 #----------------------------------------------------------------------------
 external_input=1
+
+#----------------------------------------------------------------------------
+# EXTERNAL_TUNER_STATION string
+# When an external cable box is connected to the tuner input on a fixed
+# channel/station this settings specifies which channel to use. It is 
+# important to understand that when the external_switch setting is enabled
+# the tuner will always listen on this specified channel. 
+# The value here is assumed to be the human readable station name (not the
+# technical channel number) so this name must be defined in the xawtvrc file
+# so it corresponds to the proper channel.
+# If this setting is left empty the tuning is undefined.
+#----------------------------------------------------------------------------
+external_tuner_station=
 
 #----------------------------------------------------------------------------
 # EXTERNAL_SWITCH_SCRIPT string

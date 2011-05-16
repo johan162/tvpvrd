@@ -469,6 +469,11 @@ extern int external_input ;
 extern char external_switch_script[];
 
 /*
+ * The station to be used when the external input is connected to the tuner
+ */
+extern char external_tuner_station[];
+
+/*
  * Holds user specified optional encoder_devices and tuner_devices
  */
 extern char *encoder_devices[] ;
