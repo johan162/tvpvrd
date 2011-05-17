@@ -501,7 +501,6 @@ void *
 sighand_thread(void *arg) {
     sigset_t signal_set;
     int sig;
-    arg = NULL;
 
     while (1) {
 
@@ -525,7 +524,10 @@ sighand_thread(void *arg) {
       pthread_mutex_unlock(&sig_mutex);
 
     }
-    return (void*) 0;
+    
+    // Trick to make the compiler shut up on non used parameter
+    arg =(void *)0;
+    return arg;
 }
 // #define SIGSEGV_HANDLER
 
@@ -629,8 +631,12 @@ void startdaemon(void) {
     // Reopen stdin, stdout, stderr so they point harmlessly to /dev/null
     // (Some brain dead library routines might write to, for example, stderr)
     int i = open("/dev/null", O_RDWR);
-    int dummy=dup(i);
-    dummy=dup(i);
+    int ret1 = dup(i);
+    int ret2 = dup(i);
+    if( -1 == ret1 || -1 == ret2 ) {
+        syslog(LOG_ERR, "Cannot start daemon and set descriptors 0,1,2 to /dev/null.");
+        exit(EXIT_FAILURE);    
+    }
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
 }
 
@@ -669,17 +675,33 @@ chkswitchuser(void) {
 
                 logmsg(LOG_NOTICE,"Adjusting permission and owner on file structure (%s).",datadir);
                 snprintf(cmdbuff,63,"chown -R %s %s",username,datadir);
-                int dummyret = system(cmdbuff);
-
+                int ret = system(cmdbuff);
+                if( -1 == ret ) {
+                    logmsg(LOG_ERR,"Cannot execute chown() command for datadir (%d : %s)",errno,strerror(errno));                       
+                    exit(EXIT_FAILURE);    
+                }
+                
                 snprintf(cmdbuff,63,"chgrp -R %d %s",pwe->pw_gid,datadir);
-                dummyret = system(cmdbuff);
-
+                ret = system(cmdbuff);
+                if( -1 == ret ) {
+                    logmsg(LOG_ERR,"Cannot execute chgrp() command (%d : %s)",errno,strerror(errno));                       
+                    exit(EXIT_FAILURE);    
+                }
+     
                 if( strcmp(logfile_name,"syslog") && strcmp(logfile_name,"stdout") ) {
                     snprintf(cmdbuff,63,"chown %s %s",username,logfile_name);
-                    dummyret = system(cmdbuff);
-
+                    ret = system(cmdbuff);
+                    if( -1 == ret ) {
+                        logmsg(LOG_ERR,"Cannot execute chown() command for logfile (%d : %s)",errno,strerror(errno));                       
+                        exit(EXIT_FAILURE);    
+                    }
+     
                     snprintf(cmdbuff,63,"chgrp %d %s",pwe->pw_gid,logfile_name);
-                    dummyret = system(cmdbuff);
+                    ret = system(cmdbuff);
+                    if( -1 == ret ) {
+                        logmsg(LOG_ERR,"Cannot execute chgrp() command for logfile (%d : %s)",errno,strerror(errno));                       
+                        exit(EXIT_FAILURE);    
+                    }                         
                 }
             }
 
@@ -1140,8 +1162,6 @@ chkrec(void *arg) {
     int diff, ret;
     volatile unsigned video;
 
-    arg = NULL;  // Avoid warning on unused variable
-
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
     // the exit status until the thread is joined (or detached) which would mean
@@ -1255,6 +1275,10 @@ chkrec(void *arg) {
         pthread_mutex_unlock(&recs_mutex);
         sleep(time_resolution);
     }
+    
+    // Trick to shut up the compiler warning aboutunused argument
+    arg = (void *)0;
+    return arg;
 }
 
 /*
@@ -1368,13 +1392,7 @@ clientsrv(void *arg) {
 
     // Keep track of client idle time
     unsigned idle_time=0;
-    _Bool wasTimeout=FALSE;
     do  {
-
-/*
-        if( !wasTimeout )
-            _writef(my_socket, "(tvpvrd) ");
-*/
 
         FD_ZERO(&read_fdset);
         FD_SET((unsigned)my_socket, &read_fdset);
@@ -1385,10 +1403,8 @@ clientsrv(void *arg) {
         ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
         if (ret == 0) {
 
-            wasTimeout = TRUE;
             //Timeout
             idle_time += 60;
-            // logmsg(LOG_DEBUG, "Client %d terminal timeout. Idle for a total of %d seconds",i,idle_time);
 
             if (idle_time >= max_idle_time) {
                 numreads = -1; // Force a disconnect
@@ -1399,8 +1415,7 @@ clientsrv(void *arg) {
             
         } else {
 
-            wasTimeout = FALSE;
-            idle_time = 0;
+              idle_time = 0;
             numreads = read(my_socket, buffer, 1023);
 
             if( numreads > 0 ) {

@@ -577,13 +577,18 @@ chkswitchuser(void) {
                 exit(EXIT_FAILURE);
             }
 
-            int dummyret;
             char cmdbuff[64];
             if( strcmp(logfile_name,"syslog") && strcmp(logfile_name,"stdout") ) {
                 snprintf(cmdbuff,63,"chown %s %s",username,logfile_name);
-                dummyret = system(cmdbuff);
+                if( -1 == system(cmdbuff) ) {
+                    logmsg(LOG_ERR,"Cannot call chown() (%d : %s)",errno,strerror(errno));
+                    exit(EXIT_FAILURE);
+                }
                 snprintf(cmdbuff,63,"chgrp %d %s",pwe->pw_gid,logfile_name);
-                dummyret = system(cmdbuff);
+                if( -1 == system(cmdbuff) ) {
+                    logmsg(LOG_ERR,"Cannot call chgrp() (%d : %s)",errno,strerror(errno));
+                    exit(EXIT_FAILURE);
+                }
             }
 
             gid_t groups[1];
@@ -676,8 +681,12 @@ void startdaemon(void) {
     // Reopen stdin, stdout, stderr so they point harmlessly to /dev/null
     // (Some brain dead library routines might write to, for example, stderr)
     int i = open("/dev/null", O_RDWR);
-    int dummy=dup(i);
-    dummy=dup(i);
+    int ret1 = dup(i);
+    int ret2 = dup(i);
+    if( -1 == ret1 || -1 == ret2 ) {
+        syslog(LOG_ERR, "Cannot start daemon and set descriptors 0,1,2 to /dev/null.");
+        exit(EXIT_FAILURE);    
+    }
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
 }
 

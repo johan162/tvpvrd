@@ -206,7 +206,7 @@ parseDate(const char *date, int *y, int *m, int *d) {
  */
 static void
 processRecording(xmlNodePtr node) {
-    char directory[512], bname_buffer[512];
+    char bname_buffer[512];
     char filename[REC_MAX_NFILENAME], title[REC_MAX_NTITLE], channel[REC_MAX_NCHANNEL];
     char recprefix[REC_MAX_NPREFIX], *profiles[REC_MAX_TPROFILES];
     xmlNodePtr childnode;
@@ -225,7 +225,6 @@ processRecording(xmlNodePtr node) {
     int recmangling = 0;
     int startnumber=0;
     recprefix[0] = '\0';
-    directory[0] = '\0';
 
     size_t num_profiles = 0;
     for(size_t i=0; i < REC_MAX_TPROFILES; i++) {
