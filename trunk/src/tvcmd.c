@@ -584,7 +584,6 @@ _cmd_add(const char *cmd, int sockfd) {
         err =  ret < 2 ;
 
         if( ! err ) {
-            int havemin=0, havesec=0;
             // Field 2 is always hour
 
             // Now determine how many more digits for time are specified
@@ -592,7 +591,6 @@ _cmd_add(const char *cmd, int sockfd) {
             sh = xatoi(field[pos++]);
             if( ret >= 5 && *field[pos++] == ':') {
                 smin = xatoi(field[pos]);
-                havemin=1;
             } else {
                 smin = 0;
             }
@@ -600,7 +598,6 @@ _cmd_add(const char *cmd, int sockfd) {
 
             if( ret >= 7 &&  *field[pos++] == ':' ) {
                 ssec = xatoi(field[pos]);
-                havesec=1;
             } else {
                 ssec = 0 ;
             }
@@ -1911,7 +1908,7 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
  */
 static void
 _cmd_status(const char *cmd, int sockfd) {
-    char tmpbuff[512], msgbuff[1024], currtime[32];
+    char msgbuff[1024], currtime[32];
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
@@ -2012,7 +2009,7 @@ _cmd_status(const char *cmd, int sockfd) {
     for (unsigned i = 0, clinbr = 1; i < max_clients; i++) {
         if (cli_threads[i]) {
             snprintf(msgbuff, 511,"%-16s: %s%02d: %s, %s", ctitle, "#",  clinbr, client_ipadr[i], ctime(&client_tsconn[i]));
-            tmpbuff[511] = 0 ;
+            msgbuff[511] = 0 ;
             _writef(sockfd,msgbuff);
             clinbr++;
             *ctitle='\0'; // We only want the title on the first line

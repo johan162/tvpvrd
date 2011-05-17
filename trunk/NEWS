@@ -6,6 +6,16 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+v3.1.3
+------
+User visible changes:
+    - 
+
+Bugs fixed:
+    None.
+
+Internal changes:
+    - Code cleanup to pass cleanly with new gcc 4.6.0 maximum warnings settings
 
 v3.1.2
 ------
