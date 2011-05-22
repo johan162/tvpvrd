@@ -183,8 +183,8 @@ check_for_shutdown(void) {
         // 2) No ongoing transcodings
         // 4) The server load is not too high (indicating other important work)
 
-        logmsg(LOG_DEBUG,"Delta time to next recording %d min (minimum time is %d min)",(nextrec-now)/60,(shutdown_min_time+(time_t)shutdown_pre_startup_time)/60);
-        logmsg(LOG_DEBUG,"(shutdown_min_time=%d sec, shutdown_pre_startup_time=%d sec)",shutdown_min_time,shutdown_pre_startup_time);
+        //logmsg(LOG_DEBUG,"Delta time to next recording %d min (minimum time is %d min)",(nextrec-now)/60,(shutdown_min_time+(time_t)shutdown_pre_startup_time)/60);
+        //logmsg(LOG_DEBUG,"(shutdown_min_time=%d sec, shutdown_pre_startup_time=%d sec)",shutdown_min_time,shutdown_pre_startup_time);
         
         float avg1, avg5, avg15;
         getsysload(&avg1, &avg5, &avg15);
@@ -299,7 +299,9 @@ check_for_shutdown(void) {
             logmsg(LOG_DEBUG,"Aborting automatic shutdown. One or more of the conditions not fullfilled.");
         }
     } else {
-      logmsg(LOG_DEBUG,"Aborting automatic shutdown. Too short off time (%d min)",(nextrec-now)/60);
+        // Comment out this too verbose setting.
+        //logmsg(LOG_DEBUG,"Aborting automatic shutdown. Too short off time (%d min)",(nextrec-now)/60);
+        logmsg(LOG_DEBUG,"Aborting automatic shutdown. Too short off time");
     }
 
 }
