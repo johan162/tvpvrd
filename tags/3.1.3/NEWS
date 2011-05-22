@@ -1,0 +1,414 @@
+=======================================================================================
+NEWS FILE FOR PACKAGE : 'TVPVRD'
+'tvpvrd' = TV Personal Video Recorder Daemon
+$Id$
+
+Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
+=======================================================================================
+
+v3.1.3
+------
+User visible changes:
+    - None. 
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - Code cleanup to pass cleanly with new gcc 4.6.0 maximum warnings settings.
+      gcc 4.6.0 adds a new warning flag -Wunused-but-set-variable that gave some
+      warnings that needed handling.
+
+v3.1.2
+------
+User visible changes:
+    - tvpsh now checks that the server is reachable at startup and quits with error if not.
+    - Added "external_tuner_station" setting in the config file. This will set the tuner
+      input station when external channel switching is used and the input is specified
+      as the tuner input. Used to connect a cable box with a set frequency/channel to the
+      TV-card and changing channels with an IR sender on the cable box instead of the
+      tuner in the TV-card.
+    - Improved the manual page on how to handle an external cable box with IR-sender 
+      using the external channel switching.
+
+Bugs fixed:
+    None.
+
+Internal changes:
+    - Fixed compiler warning about set but not used variable
+    - Code security review. Make sure all string concatenation is explicitely limited.
+    - Add full path for killproc/startproc in the SysV init.d scripts 
+    - Updated OpenSuSE RPM Spec file
+
+
+v3.1.1
+------
+User visible changes:
+    None.
+
+Bugs fixed:
+    - Build without warning on amd64 architecture (complaints about "%03d" format when "%03zu" should be used)
+    - Gracefully handle running tvpsh when no tvpvrd.conf can be found
+
+Internal changes:
+    None.
+
+
+v3.1.0
+------
+User visible changes:
+    - Added a real client shell 'tvpsh' program to interact with the daemon.
+      This have features like full command line editing and  history (using GNU readline).
+      By allowing the shell to be used as an interactive login shell (adding it to
+      /etc/shells) it is possible to create a user that will use this shell as the login
+      shell. It is then possible to login to the server, for example using ssh, as this
+      user to interact with the daemon.
+    - Don't give an error on empty command. Just ignore it.
+    - Remove the prompt from the pure TCP/IP command since it causes all kinds
+      of issues with the real client added to 3.1.0
+    - 'lr' command was split into 'lr' and 'lu' command to make the commands orthogonal
+
+Bugs fixed:
+    - Don't write the prompt after each timeout in the client interface
+    - Added documentation for "mlg" (mail log) command
+    - Fixed a bug introduced in 3.0.6 whereby a cancelling request for an ongoing recording
+      via the Web interface was not recognized
+
+Internal changes:
+    - Refactored logging routines to it's own source file
+    - Each command output now ends with a "\r\n" sequence to indicated end of command output
+    - Make code compile clean even with -Wshadow flag added. The code now compiles clean 
+      with gcc flags: 
+        -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wshadow -Wformat=2  
+
+v3.0.6
+------
+User visible changes:
+    - Added use_mobile flag in the config file to allow user to determine if the modified
+      phone WEB-UI should be used or not when connection from a phone is detected.
+    - Added string "(tvpvrd) " as prompt for the TCP/IP interface
+    - If a transcoding is forced to stop by user then keep the original MP2 file and directory in
+      the vtmp directory.
+    - Add "mlg - mail log file" command which will send the entire logfile in a mail to the predefined
+      system ail address. The logfile is sent as an attachment.
+
+Bugs fixed:
+    - Fixed CSS issue that caused the link in the last two menu items not to be active
+    - Fixed bug where the wrong min shutdown time was read from the config file (copy&paste error)
+
+Internal changes:
+    - Changed command format in URL string
+    - Logger now eliminates repeated messages and just prints how many of the same message
+
+
+
+v3.0.5
+------
+User visible changes:
+    - Optimized Web-GUI minute list to better match start and end times often used
+    - Added 'lm' command. Will mail the list of recordings (in both plain and HTML format) to the
+      email address specified to receive mails.  The format of the HTML mail is controlled by CSS
+      styles and adjustable in the config file in the "format" section
+    - Added hyper-linked transcoding profiles in the Web-interface to allow easy viewing of profile details
+    - Added 'lmr' command - Send repeat and single recordings in HTML format in a mail
+    - Added 'lr' command list repeating and single recordings in text format
+    - Updated menu structure in Web-interface to include the mailing commands 'lm' and 'lmr'
+
+
+Bugs fixed:
+    - Fixed a bug whereby if a recurring recording had the new type Tue-Fri (7) it gave an error
+      when the server was restarted and claimed it was an unrecognized recurring type. This was a 
+      false alarm since the range check had not been updated to reflect this new type.
+
+Internal changes:
+    - None.
+
+
+v3.0.4
+------
+User visible changes:
+    - Minor change in menu for WEB-interface (Added "Disk space")
+    - Some minor tweaks in the layout for mobile phone version of the web interface
+    - Added repeat type: n=Tue-Fri
+
+Internal changes:
+    - Updated file headers.
+
+
+v3.0.3
+------
+User visible changes:
+    - Added 'df' = 'Display used and total disk space' command
+    - Added information on disk usage in transcoding notification mail (updated mail templates)
+
+Internal changes:
+    - None.
+
+
+v3.0.2
+------
+User visible changes:
+    - Fix an issue introduced in the last minute for 3.0.0 which could wrongly find colliding
+      recordings even when multiple video cards where available. Lessons learned: Never ,never
+      do a "simple" change before a release ...
+
+Internal changes:
+    - Added some more verbose debug output with time stamp translation.
+    - Added a sanity check when reading the database to detect errors in time specification.
+
+
+v3.0.1
+------
+User visible changes:
+    - Fix some minor build issues specific to a x86_64 platform
+
+Internal changes:
+    - None.
+
+v3.0.0
+------
+User visible changes:
+    - Update XML DB format.
+        -- Removed the specific "video" field. This is not necessary. Better to assign new
+           video cards when the DB file is read at startup. This will also make it possible
+           to dynamically add and remove video cards while still maintaining an optimal
+           recording schedule (as far as permitted).
+        -- Bumped DB version to "2". Any existing version "1" DBs will be automatically updated.
+
+    - Added new flag for configure "--enable-stacktrace"
+      This will help with remote end user debugging (if ever needed) when they cannot create
+      a core dump.  If enabled a stacktrace will be stored in a file, '/tmp/tvpvrd_stack.crash'
+      (hardcoded name), when the daemon receives a SIGSEGV or SIGBUS signal. Added "-rdynamic"
+      as a compiler switch to force better stack traces. This is not as complete as a full
+      gdb trace (with all threads) but better than nothing if this is ever needed (knock on
+      wood...)
+
+    - Update of the CSS for mobile browsing for better readability
+
+    - Added "af - Add recordings from file" command to make it possible to prepare a list
+      of recordings offline
+
+    - Added configuration option "use_repeat_rec_basedir" to have all repeated
+      recordings for the same show stored under a subdirectory named after the
+      base-name of the recording (i.e. without all the date and repeat information).
+
+    - Don't ship a 'tvpvrd.conf' file directly. Instead ship two template files for the config
+      'tvpvrd.conf.simplified.template' and 'tvpvrd.conf.full.template' which will force the user
+      to at least once check them and rename them to 'tvpvrd.conf'. The two template files
+      corresponds to a simplified config file relying mostly on the default values and one
+      template file with all the settings spelled out. This has been done as a feeble try to
+      simplify the setup.
+
+    - Added template based mail setup for shutdown and transcoding mails
+
+    - Added a basic SMTP mail sending library to allow for more advanced formatting of mails
+
+    - Updated INSTALL file with some information on extra steps needed
+      if building directly from the repository
+
+    - Added --with-libpcre-prefix option to "configure" to allow user to specify
+      alternative locations for PCRE library
+
+    - Added possibility to run a user supplied startup script and added a
+      suitable template for such a script.
+
+    - Added option to send HTML formatted mail notifications. The  templates
+      for the mails are stored in the configuration directory.
+
+    - Added option to use specified SMTP server directly to send mail
+
+    - Updated template for hook scripts
+
+    - Added post transcoding script hook and associated template in config
+
+    - Changed structure of config file so that all mail related settings are in
+      its own section.
+
+    - Fixed a memory leak when CSS file was not modified when using the WEB-interface
+
+Internal changes:
+    - The login cookie used now restricts itself to only use characters from
+      0-9A-Xa-z_ to allow the cookies to pass through some over restricting
+      WebProxys which filters out cookies with character outside this range.
+      In addition the cookie header no longer adds the "Version" attribute
+      since, again, some proxys will filter out the cookie if this attribute
+      is included. (This is most likely user visible as well)
+
+    - Fix a possible buffer overwrite when converting cookies to URL character
+      escaped encoding
+
+    - Some further code refactoring to reduce size of 'tvpvrsrv.c'
+
+    - Improved the usability of the key/val replacement routines
+
+    - Cleaned up header inclusions
+
+    - Some internal code restructuring to reduce the size of the main tpvrsrv.c
+      file by creating vcard.c/vcard.h and some other move of code to more appropriate
+      places.
+
+    - Some include header streamlining
+
+    - Update network code to use the more modern getaddrinfo() system call
+
+    - Reworked he build system so that iniparser is now an archive library
+
+    - Added base64 and quoted-printable functionality since that is needed for mails
+
+    - Added SIGABRT handler to get some notifications when using glibs memory
+      checking routines MALLOC_CHECK
+
+    - Changed configuration so ininparser is built as a proper library. Makes the
+      build scripts slightly cleaner.
+
+    - Refactored all xstr* routines to there own source module
+
+
+v2.3.0 [r377]
+-------------
+User visible changes:
+    - Added automatic shutdown in the server itself by making use of the BIOS
+      real time clock. This will power off the daemon until its time for next
+      recording.
+
+    - Give WEB user the login page instead of not found if he/she is not logged
+      in and gives an invalid command.
+
+    - Slightly increase the quality in the default profiles with increased bitrate.
+      (disk space i cheap)
+
+    - Add some missing information in the list settings command
+
+    - Updated documentation (man pages) to reflect changes
+
+Internal changes:
+    - Internal code restructuring and refactoring in preparation for more advanced
+      mail processing as well as easier maintenance
+    - Increase allowed bps range for video ffmpeg encoding
+    - Reduce complexity of the utils module
+
+
+v2.2.0
+------
+User visible changes:
+  - Added option to specify an optional post recording script that is run
+    after the recording has been done but before the transcoding starts.
+    The script is stored in the configuration directory. The package includes
+    a template file "postrec_processing.sh.template" that can be used as a
+    starting point for such a script. The script is given the full video
+    filename and its length (in seconds) as two arguments.
+
+  - To support cards which use two different device interfaces for tuner and
+    MPEG encoded stream the configuration file now allow a separate setting
+    of both tuner and encoder device through the two options:
+    1) TUNER_DEVICE<n>    (where <n> is the card number)
+    2) ENCODER_DEVICE<n>  (where <n> is the card number)
+    See the configuration file for an even more detailed description
+
+Internal changes:
+  - Internal change so that all v4l API calls regarding controls are now going
+    through the modern extended control interface (both user and mpeg class controls)
+    This will make the daemon more robust to a larger class of video/recorder cards.
+
+
+v2.1.1
+------
+Fixes an oversight in the build process for 2.1.0 when building
+from a fresh directory when no buildnumber.txt file did exist
+in the tvpowerd directory.
+
+v2.1.0
+------
+Mainly internal changes. Added buildnumber handling and some utility build
+scripts. Tweaked the timing for tvpowerd daemon so that it waits a  bit longer
+to really be sure that the ivtv driver ha loaded correctly. The day of the
+ultimum autotools build script setup has finally come!
+
+
+v2.1.0beta3
+-----------
+Added configuration option --enable-webdebug to add extra debugging
+printout in reagrds to low level HTTP handling. This only has effect
+with loglevel 3.
+Refactored tvwebcmd file into two files for ease of maintenance.
+Some further minor tweaks in the build system. One day the project
+will finally have the ultimum autotools and script setup and now we are
+getting close ...
+
+v2.1.0-beta2
+------------
+Added configuration option --enable-simulate to build a version of the daemon
+that runs on a server without TV card
+
+v2.1.0-beta
+-----------
+
+Added new options "external_switch" to the configuration file to allow
+external channel switching on a cable box. Enabling this feature will
+make the card always read the input from the input source "external_input" 
+specified in the configuration file. 
+
+Channel switching is then made by  the daemon by calling the "switchchannel.sh" 
+script in the tvpvrd configuration directory, This script is provided as 
+a template that must be updated to correspond to the actual setup to change 
+channel. The channel switching is normally made by send an IR beam to the 
+cable box. This is done by the LIRC subsystem which must be installed and 
+configured.
+
+It is entirely up to the end user of this to configure and install any and
+all needed LIRC support. This must unfortunately be done by the end user since
+it is impossible to in advance know what channel switching commands to send
+that corresponds to a certain station name
+
+The channel switching script then calls "irsend" with appropriate commands
+depending on which channel should be used. It is up to th end user to adjust
+the included "switchchannel.sh.template" file and rename it to "switchchannel.sh"
+
+Since I don't have access to a cable box this will remain in beta until I 
+have received user confirmation that this works as intended.
+
+v2.0.1
+------
+
+Add option to unload the ivtv driver when the recording server is shutdown
+by the tvpowerd daemon. This is needed if the shutdown method is suspend
+to RAM or hibernate since the ivtv driver is not power management aware.
+
+This option is controlled by the boolean configuration file variables
+unload_ivtv_driver
+
+In addition there were some minor documentation update. For detailed
+changes please refer to the ChangeLog.
+
+
+v2.0.0
+------
+
+This release has a completely reworked build and configuration script setup.
+The configuration is now a first class citizen of the autotools country.
+
+This means that it will build and install itself in many more distributions.
+
+The packages is known to work out of the box on
+
+- OpenSuSE 11.1 and 11.3 (not tested on 11.2)
+ -Ubuntu 10.10
+- Fedora 13
+- Debian Lenny as well as Debian Sid
+
+In addition this release includes an optional companion daemon 'tvpowerd'. This daeomon
+is supposed to run on a different server than the recording server. When enabled it will
+manage the power of the recording daemon and turn it off and on according to the scheduled
+recordings. This will avoid the recording server running when no recording (or transcoding
+is taking place). In order for this to work the recording server must support Wake-On-Lan
+fot the managing server to be able to turn the power on.
+
+The power daemon can be found under 'src/tvpowerd'. Since it is supposed to be installed
+on a different server than the recording daemon it will not be installed with the
+make install command. Instead copy the distribution package to the server where you want to
+run the power daemon, configure and compile and the run the 'install.sh' script as root.
+(The install.sh is found in the tvpowerd directory)
+
+For more details see ChangeLog
+    
+

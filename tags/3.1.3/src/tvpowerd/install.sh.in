@@ -1,0 +1,115 @@
+#!/bin/sh
+# Install script template for tvpowerd
+# $Id$
+# Don't edit this file manually !!
+# @configure_input@
+
+#--------------------------------------------------------------
+# The output variables will be processed by the configure
+# script so that the shell variables will be set according to
+# the users specifications.
+#--------------------------------------------------------------
+PACKAGE_TARNAME=tvpowerd
+sysconfdir=@sysconfdir@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+mandir=@mandir@
+docdir=@docdir@
+pdfdir=@pdfdir@
+htmldir=@htmldir@
+top_srcdir=@top_srcdir@
+manpages=${top_srcdir}/docs/manpages/
+datarootdir=@datarootdir@
+
+#--------------------------------------------------------------
+# First a sanity check so that the user doesn't try to install
+# tvpowerd on the same server where he/she is running tvpvrd
+#--------------------------------------------------------------
+if test -f ${bindir}/tvpvrd; then
+    echo "The tvpowerd daemon is supposed to be installed on a different server than tvpvrd."
+    echo "Installation aborted."
+    exit 1
+fi
+
+if test ! -w ${sysconfdir}; then
+    echo "Must have permission to install files"
+    echo "Installation aborted."
+    exit 1;
+fi
+
+#--------------------------------------------------------------
+# Install configuration scripts. But check so we don't overwrite
+# any existing scripts.
+#--------------------------------------------------------------
+if test -f ${sysconfdir}/tvpowerd/tvpowerd.conf; then
+	echo "Will not overwrite existing tvpowerd.conf file !";
+else
+    install -D -m 644 tvpowerd.conf ${sysconfdir}/tvpowerd/tvpowerd.conf > /dev/null 2>&1
+    if test ! $? = 0; then
+        echo "Failed to install tvpowerd.conf configuration script"
+        exit 1
+    fi
+fi
+
+if test -f ${sysconfdir}/tvpowerd/pre-shutdown.sh; then
+	echo "Will not overwrite existing pre-shutdown.sh file !";
+else
+    install -D -m 755 pre-shutdown.sh ${sysconfdir}/tvpowerd/pre-shutdown.sh > /dev/null 2>&1
+    if test ! $? = 0; then
+        echo "Failed to install pre-shutdown.sh configuration script"
+        exit 1
+    fi
+fi
+
+if test -f ${sysconfdir}/tvpowerd/post-startup.sh; then
+	echo "Will not overwrite existing post-startup.sh file !";
+else
+    install -D -m 755 post-startup.sh ${sysconfdir}/tvpowerd/post-startup.sh > /dev/null 2>&1
+    if test ! $? = 0; then
+        echo "Failed to install post-startup.sh configuration script"
+        exit 1
+    fi
+fi
+
+#--------------------------------------------------------------
+# Install service starting scripts
+#--------------------------------------------------------------
+if test -f /etc/rc.status; then
+   install -m 755 init.d.tvpowerd ${sysconfdir}/init.d/tvpowerd > /dev/null 2>&1 
+else
+   install -m 755 deb.init.d.tvpowerd ${sysconfdir}/init.d/tvpowerd > /dev/null 2>&1 
+fi
+if test ! $? = 0; then
+    echo "Failed to install service scripts"
+    exit 1
+fi
+#--------------------------------------------------------------
+# Install the binary
+#--------------------------------------------------------------
+if test -f ${sysconfdir}/init.d/tvpowerd; then
+    ${sysconfdir}/init.d/tvpowerd stop;
+fi
+install -m 755 tvpowerd ${bindir}/tvpowerd > /dev/null 2>&1 
+if test ! $? = 0; then
+    echo "Failed to install daemon binary file"
+    exit 1
+fi
+
+#--------------------------------------------------------------
+# Install man pages
+#--------------------------------------------------------------
+install -D -m 644 ${manpages}/tvpowerd.1 ${mandir}/man1/tvpowerd.1 > /dev/null 2>&1 && \
+install -D -m 644 ${manpages}/tvpowerd.1.pdf ${docdir}/tvpowerd.1.pdf > /dev/null 2>&1 && \
+install -D -m 644 ${manpages}/tvpowerd.1.html ${docdir}/tvpowerd.1.html > /dev/null 2>&1 
+if test ! $? = 0; then
+    echo "Failed to install documentation"
+    exit 1
+fi
+
+echo "-------------------------------------------------------------------------"
+echo "Congratulation. Installation was successful."
+echo "Remember to adjust the configuration file ${sysconfdir}/tvpowerd/tvpowerd.conf"
+echo "Start daemon by typing ${sysconfdir}/init.d/tvpowerd start"
+echo "-------------------------------------------------------------------------"
+
