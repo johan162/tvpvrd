@@ -6,6 +6,21 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+v3.1.4
+------
+User visible changes:
+    - Added history keeping for last N recordings with commands to view
+      and optionally reset. The history is available from both command line
+      and in the Web interface. Through the Web interface there is also a
+      direct link to the actual file to make it easy to locate a recent recording.
+
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - None.
+
 v3.1.3
 ------
 User visible changes:
