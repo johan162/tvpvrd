@@ -109,6 +109,7 @@
 #include "xstr.h"
 #include "vcard.h"
 #include "tvplog.h"
+#include "tvhistory.h"
 
 /*
  * This structure mirrors the one found in /usr/include/asm/ucontext.h and is
@@ -2022,9 +2023,11 @@ main(int argc, char *argv[]) {
     }
 #endif
 
-
     // Run the optional startup script supplied by the user
     chk_startupscript();
+    
+    // Initialize history from file (of previous recordings)
+    hist_init();
 
     //*********************************************************************************
     //*********************************************************************************
