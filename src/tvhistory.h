@@ -1,5 +1,5 @@
 /* =========================================================================
- * File:        TRANSC.C
+ * File:        TVHISTORY.H
  * Description: Module to handle history recording of made recordings
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
