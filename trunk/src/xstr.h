@@ -74,6 +74,13 @@ xstrlcat(char *dst, const char *src, size_t size);
 int
 xatoi(char * const str);
 
+/**
+ * A safer version of atol using strtol with error checking
+ * @param str
+ * @return
+ */
+long
+xatol(char * const str);
 
 /**
  * Cases insensitive string comparison

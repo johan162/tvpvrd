@@ -128,6 +128,26 @@ xatoi(char * const str) {
     return (int)val;
 }
 
+/**
+ * A safer version of atol using strtol with error checking
+ * @param str
+ * @return
+ */
+long
+xatol(char * const str) {
+    char *endptr;
+    errno = 0;
+    long val = strtol(str, &endptr, 10);
+    if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0)) {
+       val = 0 ;
+    }
+
+    if (endptr == str) {
+       val = 0 ;
+    }
+    
+    return val;
+}
 
 /*
  * Utility function. Convert string of maximum 4095 characters to lower case
