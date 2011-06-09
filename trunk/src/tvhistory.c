@@ -64,6 +64,7 @@ struct histrec {
     char *filepath;
     time_t ts_start;
     time_t ts_end;
+    char *profile;
 };
 static struct histrec history[HISTORY_LENGTH];
 static size_t nrecs = 0;
@@ -93,15 +94,17 @@ static const xmlChar *xmldb_nameTitle = (xmlChar *) "title";
 static const xmlChar *xmldb_nameStart = (xmlChar *) "start_ts";
 static const xmlChar *xmldb_nameEnd = (xmlChar *) "end_ts";
 static const xmlChar *xmldb_nameFilepath = (xmlChar *) "filepath";
+static const xmlChar *xmldb_nameProfile = (xmlChar *) "profile";
 
 static void
 processRecord(xmlNodePtr node) {
     xmlNodePtr childnode;
-    nrecs = 0;
 
-    while (node != NULL && nrecs < HISTORY_LENGTH) {
+    node = node->xmlChildrenNode;
+    
+    while (node != NULL ) {
         // Ignore text in between proper child tags
-        if (xmlStrcmp(node->name, xmldb_nameText)) {
+        if ( xmlStrcmp(node->name, xmldb_nameText) ) {
             childnode = node->xmlChildrenNode;
             if (xmlStrcmp(node->name, xmldb_nameStart) == 0) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
@@ -119,10 +122,13 @@ processRecord(xmlNodePtr node) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
                     history[nrecs].filepath = strdup((char *) childnode->content);
                 }
+            } else if (xmlStrcmp(node->name, xmldb_nameProfile) == 0) {
+                if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
+                    history[nrecs].profile = strdup((char *) childnode->content);
+                }                
             } else {
-                logmsg(LOG_ERR, "Unknown XML node name in history DB: %s", node->name);
+                logmsg(LOG_NOTICE, "Unknown XML node name in history DB: %s", node->name);
             }
-            ++nrecs;
         }
         node = node->next;
     }
@@ -153,7 +159,7 @@ tvhist_read(void) {
     // Parse the XML file
     doc = xmlParseFile(xmlhistfile);
     if (doc == NULL) {
-        logmsg(LOG_ERR, "Unable to open XML history file: '%s' ( %d : %s )", xmlhistfile, errno, strerror(errno));
+        logmsg(LOG_NOTICE, "Unable to read XML history file: '%s' ( %d : %s )", xmlhistfile, errno, strerror(errno));
         return -1;
     }
 
@@ -177,15 +183,19 @@ tvhist_read(void) {
         }
     }
     xmlFree(xmlver);
-
+    
+    nrecs=0;
     node = node->xmlChildrenNode;
     while (node != NULL) {
         if (xmlStrcmp(node->name, xmldb_nameRecording) == 0) {
             processRecord(node);
+            ++nrecs;
+            logmsg(LOG_DEBUG,"Read history title: %s",history[nrecs-1].title);
         }
         node = node->next;
     }
-
+       
+    
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
@@ -220,14 +230,15 @@ tvhist_write(void) {
         return -1;
     }
     _writef(fd, "<!-- Created: %s -->\n", ctime(&now));
-    _writef(fd, "<%s %s=\"%s\">\n", xmldb_root, xmldb_nameVersion, HISTORYDB_FILENAME);
+    _writef(fd, "<%s %s=\"%s\">\n", xmldb_root, xmldb_nameVersion, xmldb_version);
 
     for (size_t i = 0; i < nrecs; ++i) {
         _writef(fd, "  <%s>\n", xmldb_nameRecording);
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameTitle, history[i].title, xmldb_nameTitle);
-        _writef(fd, "    <%s>%l</%s>\n", xmldb_nameStart, history[i].ts_start, xmldb_nameStart);
-        _writef(fd, "    <%s>%l</%s>\n", xmldb_nameEnd, history[i].ts_end, xmldb_nameEnd);
+        _writef(fd, "    <%s>%lld</%s>\n", xmldb_nameStart, (long long int)history[i].ts_start, xmldb_nameStart);
+        _writef(fd, "    <%s>%lld</%s>\n", xmldb_nameEnd, (long long int)history[i].ts_end, xmldb_nameEnd);
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameFilepath, history[i].filepath, xmldb_nameFilepath);
+        _writef(fd, "    <%s>%s</%s>\n", xmldb_nameProfile, history[i].profile, xmldb_nameProfile);
         _writef(fd, "  </%s>\n", xmldb_nameRecording);
     }
     _writef(fd, "</%s>\n", xmldb_root);
@@ -247,6 +258,10 @@ tvhist_free(void) {
             free(history[idx].title);
             history[idx].title = (char *) NULL;
         }
+        if (history[idx].profile) {
+            free(history[idx].profile);
+            history[idx].profile = (char *) NULL;
+        }        
     }
     nrecs = 0;
 }
@@ -255,14 +270,19 @@ void
 hist_init(void) {
     tvhist_free();
     if (tvhist_read()) {
-        logmsg(LOG_ERR, "Failed to read old history file. Will create an empty new history file.");
+        logmsg(LOG_NOTICE, "Failed to read old history file. Will create an empty new history file.");
         tvhist_write();
+    } else {
+        logmsg(LOG_DEBUG, "Read history XML file.");
     }
 }
 
 int
-hist_update(char *title, const time_t ts_start, const time_t ts_end,char *fullPathFilename) {
+hist_update(char *title, const time_t ts_start, const time_t ts_end,
+            char *fullPathFilename, char *profile) {
 
+    logmsg(LOG_DEBUG,"Adding history for: title=%s",title);
+    
     // Shift all records down one slot and loose the last record
     if (nrecs == HISTORY_LENGTH) {
         if (history[HISTORY_LENGTH - 1].filepath) {
@@ -276,10 +296,11 @@ hist_update(char *title, const time_t ts_start, const time_t ts_end,char *fullPa
 
     }
     for (size_t i = HISTORY_LENGTH - 1; i > 1; i--) {
-        memcpy(&history[i - 1], &history[i], sizeof (struct histrec));
+        memcpy(&history[i], &history[i - 1], sizeof (struct histrec));
     }
 
     history[0].title = strdup(title);
+    history[0].profile = strdup(profile);
     history[0].filepath = strdup(fullPathFilename);
     history[0].ts_start = ts_start;
     history[0].ts_end = ts_end;
@@ -287,8 +308,72 @@ hist_update(char *title, const time_t ts_start, const time_t ts_end,char *fullPa
     if( nrecs < HISTORY_LENGTH )
         nrecs++;
     
-    tvhist_write();
+    if( 0 == tvhist_write() ) {
+        logmsg(LOG_DEBUG, "Successfully updated history XML file.");
+    } else {
+        logmsg(LOG_ERR, "Could NOT update history XML file. Permission problems?");
+    }
     
     return 0;
 
 }
+
+/**
+ * Put a formatted version of the history list in the supplied buffer
+ * @param buff Buffer to store history list in
+ * @param maxlen Maximum length of buffer
+ * @return 0 on success, -1 on failure
+ */
+int
+hist_listbuff(char *buff, size_t maxlen) {
+    char line[256];
+    *buff = '\0';
+    
+    if( 0 == nrecs ) {
+        snprintf(buff,maxlen,"(no history)\n");
+        return 0;
+    }
+
+    for (size_t i = 0; i < nrecs && maxlen > 0 ; ++i) {
+        
+        snprintf(line,sizeof(line),
+         "%02d "
+         "%-20s"
+         "%-11ld"
+         "%-11ld"
+         "%-55s"
+         "%-10s\n",  
+         i,
+         history[i].title,
+         history[i].ts_start,
+         history[i].ts_end,
+         history[i].filepath,
+         history[i].profile);
+        if( strnlen(line,256) > maxlen ) {
+            return -1;
+        }
+        strncat(buff,line,maxlen);
+        maxlen -= strnlen(line,256);
+        *line='\0';
+    }    
+    if( maxlen > 0 )
+        return 0;
+    else
+        return -1;
+}
+
+int
+hist_list(int fd) {
+    char *buff = calloc(HISTORY_LENGTH, 1024);
+    if( NULL == buff ) {
+        return -1;
+    }
+    if( -1 == hist_listbuff(buff, HISTORY_LENGTH*1024) ) {
+        return -1;
+    }
+    _writef(fd, buff);
+    free(buff);
+    return 0;
+}
+
+/* EOF */
