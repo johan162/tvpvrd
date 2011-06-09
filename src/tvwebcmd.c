@@ -1110,7 +1110,7 @@ static struct cmd_entry cmdfunc_master_status[] = {
 static struct cmd_entry cmdfunc_master_view[] = {
     {"z", "Settings"},
     {"ls", "Station list"},
-    {"log%20100", "Recent log"}
+    {"rh", "History"}
 };
 
 static struct cmd_entry cmdfunc_master_driver[] = {
@@ -1137,7 +1137,7 @@ static struct cmd_entry cmdfunc_slave_status[] = {
 
 static struct cmd_entry cmdfunc_slave_view[] = {
     {"z", "Settings"},
-    {"log%2050", "Recent log"}
+    {"rh", "History"}
 };
 
 //------------------------------------------------------------------
