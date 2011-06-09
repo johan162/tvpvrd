@@ -55,6 +55,7 @@
 #include "utils.h"
 #include "xstr.h"
 #include "tvplog.h"
+#include "datetimeutil.h"
 
 /**
  * Record for array of history records
@@ -88,11 +89,11 @@ Example history file
 static const xmlChar *xmldb_version = (xmlChar *) XMLHISTDB_VERSIONNUM;
 static const xmlChar *xmldb_nameText = (xmlChar *) "text";
 static const xmlChar *xmldb_nameVersion = (xmlChar *) "version";
-static const xmlChar *xmldb_root = (xmlChar *) "tvrechistory";
+static const xmlChar *xmldb_root = (xmlChar *) "tvpvrdhistory";
 static const xmlChar *xmldb_nameRecording = (xmlChar *) "recording";
 static const xmlChar *xmldb_nameTitle = (xmlChar *) "title";
-static const xmlChar *xmldb_nameStart = (xmlChar *) "start_ts";
-static const xmlChar *xmldb_nameEnd = (xmlChar *) "end_ts";
+static const xmlChar *xmldb_nameStart = (xmlChar *) "timestampstart";
+static const xmlChar *xmldb_nameEnd = (xmlChar *) "timestampend";
 static const xmlChar *xmldb_nameFilepath = (xmlChar *) "filepath";
 static const xmlChar *xmldb_nameProfile = (xmlChar *) "profile";
 
@@ -268,6 +269,7 @@ tvhist_free(void) {
 
 void
 hist_init(void) {
+    logmsg(LOG_DEBUG,"Calling hist_init()");
     tvhist_free();
     if (tvhist_read()) {
         logmsg(LOG_NOTICE, "Failed to read old history file. Will create an empty new history file.");
@@ -283,7 +285,7 @@ hist_update(char *title, const time_t ts_start, const time_t ts_end,
 
     logmsg(LOG_DEBUG,"Adding history for: title=%s",title);
     
-    // Shift all records down one slot and loose the last record
+    // Shift all records down one slot and free the last record
     if (nrecs == HISTORY_LENGTH) {
         if (history[HISTORY_LENGTH - 1].filepath) {
             free(history[HISTORY_LENGTH - 1].filepath);
@@ -293,9 +295,14 @@ hist_update(char *title, const time_t ts_start, const time_t ts_end,
             free(history[HISTORY_LENGTH - 1].title);
             history[HISTORY_LENGTH - 1].title = (char *) NULL;
         }
+        if (history[HISTORY_LENGTH - 1].profile) {
+            free(history[HISTORY_LENGTH - 1].profile);
+            history[HISTORY_LENGTH - 1].profile = (char *) NULL;
+        }        
 
     }
-    for (size_t i = HISTORY_LENGTH - 1; i > 1; i--) {
+        
+    for (size_t i = HISTORY_LENGTH - 1; i > 0; i--) {
         memcpy(&history[i], &history[i - 1], sizeof (struct histrec));
     }
 
@@ -326,6 +333,17 @@ hist_update(char *title, const time_t ts_start, const time_t ts_end,
  */
 int
 hist_listbuff(char *buff, size_t maxlen) {
+    struct tm result;
+    int sy, sm, sd, sh, smi, ss;
+    int ey, em, ed, eh, emi, es;    
+    static char wday_name[7][4] = {
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
+    static char month_name[12][4] = {
+        "Jan","Feb","Mar","Apr","May","Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+    
     char line[256];
     *buff = '\0';
     
@@ -335,18 +353,18 @@ hist_listbuff(char *buff, size_t maxlen) {
     }
 
     for (size_t i = 0; i < nrecs && maxlen > 0 ; ++i) {
+        fromtimestamp(history[i].ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
+        fromtimestamp(history[i].ts_end, &ey, &em, &ed, &eh, &emi, &es);        
+        (void)localtime_r(&history[i].ts_start, &result);        
         
         snprintf(line,sizeof(line),
-         "%02d "
+         "%s %s %02d %02d:%02d-%02d:%02d "
          "%-20s"
-         "%-11ld"
-         "%-11ld"
-         "%-55s"
+         "%-50s"
          "%-10s\n",  
-         i,
+         wday_name[result.tm_wday], month_name[sm-1], sd,
+         sh, smi, eh, emi,
          history[i].title,
-         history[i].ts_start,
-         history[i].ts_end,
          history[i].filepath,
          history[i].profile);
         if( strnlen(line,256) > maxlen ) {

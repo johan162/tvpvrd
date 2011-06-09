@@ -10,10 +10,11 @@ v3.1.4
 ------
 User visible changes:
     - Added history keeping for last N recordings with commands to view
-      and optionally reset. The history is available from both command line
-      and in the Web interface. Through the Web interface there is also a
-      direct link to the actual file to make it easy to locate a recent recording.
-
+      and optionally reset. Command 'rh' (record history) The history is 
+      available from both command line and in the Web interface. 
+      Through the Web interface there is also a direct link to the actual 
+      file to make it easy to locate a recent recording.
+      
 
 Bugs fixed:
     - None.
