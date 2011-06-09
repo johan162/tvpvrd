@@ -9,18 +9,14 @@ Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 v3.1.4
 ------
 User visible changes:
-    - Added history keeping for last N recordings with commands to view
-      and optionally reset. Command 'rh' (record history) The history is 
-      available from both command line and in the Web interface. 
-      Through the Web interface there is also a direct link to the actual 
-      file to make it easy to locate a recent recording.
-      
+    - Added history keeping for last N recordings with commands to view. 
+      Command 'rh' (recorded history)  
 
 Bugs fixed:
-    - None.
+    - A harmless but un-necessary '/' in filepaths was removed
 
 Internal changes:
-    - None.
+    - Some minor code cleanup
 
 v3.1.3
 ------
