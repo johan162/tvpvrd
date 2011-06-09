@@ -1126,9 +1126,12 @@ channel = E8
                                 role="bold">ot</emphasis> - list the ongoing transcoding(s)</para>
                     </listitem>
                     <listitem>
-                        <para><emphasis
-                                role="bold">q</emphasis> - quick recording, start the recording
-                            immediately and continue the specified time</para>
+                        <para><emphasis role="bold">q</emphasis> - quick recording, start the
+                            recording immediately and continue the specified time</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis role="bold">rh</emphasis> - record history (list last N made
+                            recordings)</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1894,9 +1897,25 @@ tv1_20091120_1626.mp4 > /dev/null 2>&amp;1)</screen>
                                 using the 'high' profile. </para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term>'<command>rh</command>' - <emphasis role="bold">Record history. Show a
+                            list of previous made recordings</emphasis></term>
+                    <listitem>
+                        <para>List previously made recodings/transcodings with some basci
+                            information. There is a hard limit so that a maximum of 20 past
+                            recordings are shown in the list. This is a compile time setting. (The
+                            ini-file already have too many settings...)</para>
+                        <para>Output example:</para>
+                        <para>The columns in the listing are <emphasis role="italic">&lt;startdate>
+                                &lt;start time> &lt;title> &lt;filepath>
+                            &lt;profile></emphasis></para>
+                        <screen>Thu Jun 09 21:55 Screen at two   /mnt/omega/mm/pvr/mp4/screen_at_two.mp4       tnormal   
+Tue Jun 07 19:30 Departed mems   /mnt/omega/mm/pvr/mp4/departed_mems.mp4       tnormal   
+Wed Jun 01 00:50 Once more       /mnt/omega/mm/pvr/mp4/once_more.mp4           tnormal</screen>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
-                        <term>'<command>rst</command>' - <emphasis
-                                role="bold">Reset statistics command</emphasis></term>
+                        <term>'<command>rst</command>' - <emphasis role="bold">Reset statistics command</emphasis></term>
                         <listitem>
                             <para>Reset all statistics, i.e. set all statistics to 0.</para>
                         </listitem>
@@ -2361,7 +2380,8 @@ shutdown_script_name          : shutdown.sh
                 <varlistentry>
                     <term>&lt;data-directory>/xmldb</term>
                     <listitem>
-                        <para>The database file are stored under this directory. </para>
+                        <para>The database files are stored under this directory (future recordings
+                            and history). The format is structured XML.</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
