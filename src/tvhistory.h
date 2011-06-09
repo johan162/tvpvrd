@@ -41,13 +41,30 @@ extern "C" {
  */
 
 int
-hist_update(char *title, const time_t ts_start, const time_t ts_end, char *fullPathFilename);
+hist_update(char *title, const time_t ts_start, const time_t ts_end, char *fullPathFilename, char *profile);
 
 /**
  * Initialize history from file
  */
 void
 hist_init(void);
+
+/**
+ * Put a formatted version to the specified stream
+ * @param fd
+ * @return 0 on success, -1 on failure
+ */
+int
+hist_list(int fd);
+
+/**
+ * Put a formatted version of the history list in the supplied buffer
+ * @param buff
+ * @param maxlen
+ * @return 0 on success, -1 on failure
+ */
+int
+hist_listbuff(char *buff, size_t maxlen);
 
 
 #ifdef	__cplusplus

@@ -489,12 +489,13 @@ list_waiting_transcodings(char *buffer, size_t maxlen);
  * @param filesize
  * @param transcode_time
  * @param avg_5load
+ * @param updatedfilename
  * @return
  */
 int
 transcode_and_move_file(char *datadir, char *workingdir, char *short_filename, char *recurrence_title,
                         struct transcoding_profile_entry *profile,
-                        unsigned *filesize, struct timeall *transcode_time, float *avg_5load);
+                        unsigned *filesize, struct timeall *transcode_time, float *avg_5load, char *updatedfilename);
 
 #ifdef	__cplusplus
 }

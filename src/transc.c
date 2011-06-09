@@ -1961,12 +1961,15 @@ transcode_whole_directory(char *dirpath, char *profilename) {
 int
 transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filename, char *recurrence_title,
                         struct transcoding_profile_entry *profile,
-                        unsigned *filesize, struct timeall *transcode_time, float *avg_5load) {
+                        unsigned *filesize, struct timeall *transcode_time, float *avg_5load, char *updatedfilename) {
 
     struct rusage usage;
     CLEAR(*transcode_time);
     int rh, rm, rs;
 
+    // Keep track of the possible new filename we created in case of collision   
+    *updatedfilename = '\0';
+    
     // We do not start transcoding if the recording was aborted
     // If the bitrate is set to < 10kbps then this indicates that no
     // transcoding should be done. We just move the MP2 file to the mp2 directory
@@ -2169,19 +2172,19 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
         // If transcoding was successfull then move the transcoded file to the correct subdirectory
         if (transcoding_done) {
-            char newname[256], tmpbuff[256], tmpbuff2[256], tmpbuff3[256], rectitle[256];
+            char tmpbuff[256], tmpbuff2[256], tmpbuff3[256], rectitle[256];
 
             // Move MP4 file
             if( use_profiledirectories ) {
                 snprintf(tmpbuff3, 255, "%s/mp4/%s", basedatadir, profile->name);
             } else {
                 snprintf(tmpbuff3, 255, "%s/mp4", basedatadir);
-            }
+            }                        
 
             strncpy(rectitle,recurrence_title,255);
             rectitle[255] = '\0';
             xstrtolower(rectitle);
-            if( use_repeat_rec_basedir ) {
+            if( use_repeat_rec_basedir && *rectitle) {
                 logmsg(LOG_DEBUG,"Using basedir '%s' for recurring recording",rectitle);
                 if( 0 == chkcreatedir(tmpbuff3,rectitle) ) {
                     snprintf(tmpbuff2,255,"%s/%s",tmpbuff3,rectitle);
@@ -2191,21 +2194,22 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     logmsg(LOG_ERR,"Failed to create recurring recording");
                 }
             }
-
+            
             snprintf(tmpbuff,255,"%s/%s",tmpbuff3, destfile);
 
             tmpbuff[255] = '\0';
             snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
+            
             tmpbuff2[255] = '\0';
-            int ret = mv_and_rename(tmpbuff2, tmpbuff, newname, 256);
+            int ret = mv_and_rename(tmpbuff2, tmpbuff, updatedfilename, 256);
             if (ret) {
-                logmsg(LOG_ERR, "Could not move '%s' to '%s'", tmpbuff2, newname);
+                logmsg(LOG_ERR, "Could not move '%s' to '%s'", tmpbuff2, updatedfilename);
                 return -1;
             } else {
-                logmsg(LOG_INFO, "Moved '%s' to '%s'", tmpbuff2, newname);
+                logmsg(LOG_INFO, "Moved '%s' to '%s'", tmpbuff2, updatedfilename);
                 struct stat filestat;
                 // Find out the size of the transcoded file
-                if( 0 == stat(newname,&filestat) ) {
+                if( 0 == stat(updatedfilename,&filestat) ) {
 
                     *filesize = (unsigned)filestat.st_size;
                     transcode_time->rtime.tv_sec = runningtime ;
@@ -2214,7 +2218,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
                 } else {
                     logmsg(LOG_ERR,"Can not determine size of transcoded file '%s'. ( %d : %s) ",
-                           newname,errno,strerror(errno));
+                           updatedfilename,errno,strerror(errno));
                 }
 
                 if (use_posttransc_processing) {
@@ -2227,7 +2231,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                                 posttransc_fullname, errno, strerror(errno));
                     } else {
                         char cmd[255];
-                        snprintf(cmd, 255, "%s -f \"%s\" -l %u > /dev/null 2>&1", posttransc_fullname, newname, *filesize);
+                        snprintf(cmd, 255, "%s -f \"%s\" -l %u > /dev/null 2>&1", posttransc_fullname, updatedfilename, *filesize);
                         logmsg(LOG_DEBUG, "Running post transcoding script '%s'", cmd);
                         int rc = system(cmd);
                         if (rc == -1 || WEXITSTATUS(rc)) {
@@ -2237,7 +2241,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                         }
                     }
                 }
-
+               
 
                 // The complete transcoding and file relocation has been successful. Now check
                 // if we should send a mail with this happy news!

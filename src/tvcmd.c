@@ -71,6 +71,7 @@
 #include "libsmtpmail/mailclientlib.h"
 #include "mailutil.h"
 #include "tvplog.h"
+#include "tvhistory.h"
 
 /*
  * Indexes into the command table
@@ -119,8 +120,10 @@
 #define CMD_LISTRECSINGLE 41
 #define CMD_MAILLIST_RECSINGLE_HTML 42
 #define CMD_MAIL_LOG 43
+#define CMD_VIEWHIST 44
 
-#define CMD_UNDEFINED 44
+
+#define CMD_UNDEFINED 45
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -170,6 +173,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  dp   - display all settings for specified profile\n"\
 			"  dr   - delete all repeated recording\n"\
 			"  h    - help\n"\
+                        "  hi   - view history of previous transcodings\n"\
 			"  i    - print detailed information on recording\n"\
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
@@ -214,6 +218,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "Commands:\n"\
                         "  dp   - display all settings for specified profile\n"\
 			"  h    - help\n"\
+                        "  hi   - view history of previous transcodings\n"\
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
                         "  log n -show the last n lines of the logfile\n"\
@@ -238,10 +243,10 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|lu|l|mlg|n|ot|o|q|rst|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|lu|l|mlg|n|ot|o|q|rst|rh|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
-        ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rh|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
     }
     if( ret > 0 ) {
         (_getCmdPtr(field[1]))(cmd,sockfd);        
@@ -2968,6 +2973,18 @@ _cmd_list_waiting_transcodings(const char *cmd, int sockfd) {
     _writef(sockfd,buff);
 }
 
+static void
+_cmd_view_history(const char *cmd, int sockfd) {
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Return a list of previous N transcodings\n"
+                );
+        return;
+    }   
+    hist_list(sockfd);
+}
+
+
 /**
  * Reserved for future use
  */
@@ -3028,6 +3045,7 @@ cmdinit(void) {
     cmdtable[CMD_MAILLIST_RECSINGLE_HTML] = _cmd_maillist_recsingle;
     cmdtable[CMD_MAIL_LOG]          = _cmd_mail_log;
     cmdtable[CMD_LISTRECSINGLE]     = _cmd_listsingle;
+    cmdtable[CMD_VIEWHIST]          = _cmd_view_history;
 }
 
 /**
@@ -3081,6 +3099,7 @@ _getCmdPtr(const char *cmd) {
         {"o",  CMD_ONGOINGREC},
         {"q",  CMD_QUICKRECORDING},
         {"rst",CMD_RESETSTATS},
+        {"rh", CMD_VIEWHIST},        
         {"rp", CMD_REFRESHPROFILE},
         {"sp", CMD_SETPROFILE},
         {"st", CMD_STATISTICS},
@@ -3109,6 +3128,7 @@ _getCmdPtr(const char *cmd) {
         {"otl",CMD_ONGOINGTRANS},
         {"ot", CMD_ONGOINGTRANS},
         {"rst",CMD_RESETSTATS},
+        {"rh", CMD_VIEWHIST},
         {"st", CMD_STATISTICS},
         {"s",  CMD_STATUS},
         {"tf", CMD_TRANSCODEFILE},

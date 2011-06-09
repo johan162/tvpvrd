@@ -1092,12 +1092,12 @@ startrec(void *arg) {
                 // If any of the profiles used requries the mp2 file to be kept explicietely or
                 // that no transcoding will be done we keep the mp2 file.
                 keep_mp2_file |= profile->encoder_keep_mp2file | !profile->use_transcoding;
-
+                char updatedfilename[256];
                 logmsg(LOG_NOTICE,"Transcoding using profile: %s",profile->name);
                 int ret = transcode_and_move_file(datadir, workingdir, short_filename, 
                                                   recording->recurrence_title,
                                                   profile,
-                                                  &mp4size, &transcode_time, &avg_5load);
+                                                  &mp4size, &transcode_time, &avg_5load, updatedfilename);
                 transcoding_problem |= ret;
                 if( 0 == ret ) {
                     stats_update(recording->transcoding_profiles[i],
@@ -1105,6 +1105,11 @@ startrec(void *arg) {
                                  (unsigned)(recording->ts_end - recording->ts_start),
                                  mp4size,
                                  &transcode_time, avg_5load);
+                    
+                
+                    // Updated history file with this successful transcoding
+                    hist_update(recording->title, recording->ts_start, recording->ts_end, updatedfilename, profile->name);
+                    
                 }
             }
         }
