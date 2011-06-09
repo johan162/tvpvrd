@@ -173,7 +173,6 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  dp   - display all settings for specified profile\n"\
 			"  dr   - delete all repeated recording\n"\
 			"  h    - help\n"\
-                        "  hi   - view history of previous transcodings\n"\
 			"  i    - print detailed information on recording\n"\
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
@@ -197,6 +196,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  ot   - list the ongoing transcoding(s)\n"\
 			"  q    - quick recording\n"\
                         "  rst  - reset all statistics\n"\
+                        "  rh   - view history of previous transcodings\n"\
                         "  rp   - refresh transcoding profiles from file\n"\
                         "  s    - print server status\n"\
                         "  sp   - set transcoding profile for specified recording\n"\
@@ -218,7 +218,6 @@ _cmd_help(const char *cmd, int sockfd) {
                         "Commands:\n"\
                         "  dp   - display all settings for specified profile\n"\
 			"  h    - help\n"\
-                        "  hi   - view history of previous transcodings\n"\
                         "  kt   - kill all ongoing transcoding(s)\n"\
                         "  ktf  - set/unset kill transcoding flag at shutdown\n"\
                         "  log n -show the last n lines of the logfile\n"\
@@ -226,6 +225,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  lq n - list queued transcodings\n"\
                         "  ot   - list the ongoing transcoding(s)\n"\
                         "  rst  - reset all statistics\n"\
+                        "  rh   - view history of previous transcodings\n"\
                         "  rp   - refresh transcoding profiles from file\n"\
                         "  s    - print server status\n"\
 			"  t    - print server time\n"\
