@@ -2170,7 +2170,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
             return -1;
         }
 
-        // If transcoding was successfull then move the transcoded file to the correct subdirectory
+        // If transcoding was successful then move the transcoded file to the correct subdirectory
         if (transcoding_done) {
             char tmpbuff[256], tmpbuff2[256], tmpbuff3[256], rectitle[256];
 
