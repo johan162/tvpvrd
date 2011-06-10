@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id: tvpvrd.1.xml 257 2010-11-05 22:38:11Z johan162 $ -->
+<?oxygen RNGSchema="http://www.oasis-open.org/docbook/xml/5.0/rng/docbook.rng" type="xml"?>
+<article
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    version="5.0">
+    <title>tvpowerd</title>
+    <refentry
+        xml:id="tvpowerd">
+        <info>
+            <author>
+                <personname>
+                    <firstname>Johan</firstname>
+                    <surname>Persson</surname>
+                </personname>
+                <email>johan162@gmail.com</email>
+                <contrib>Main author and maintainer</contrib>
+            </author>
+        </info>
+        <refmeta>
+            <refentrytitle>tvpowerd</refentrytitle>
+            <manvolnum>1</manvolnum>
+            <refmiscinfo
+                class="version">@VERSION@</refmiscinfo>
+            <refmiscinfo
+                class="source">http://sourceforge.net/projects/tvpvrd/</refmiscinfo>
+            <refmiscinfo
+                class="manual">http://sourceforge.net/projects/tvpvrd/docs/</refmiscinfo>
+        </refmeta>
+        <refnamediv>
+            <refname>tvpowerd</refname>
+            <refpurpose>Companion power management daemon for tvpvrd</refpurpose>
+        </refnamediv>
+        <refsynopsisdiv
+            xml:id="tvpowerd.synopsis">
+            <title>Synopsis</title>
+            <cmdsynopsis>
+                <command>tvpowerd</command>
+                <arg
+                    choice="opt">options...</arg>
+            </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1
+            xml:id="tvpowerd.description">
+            <title>Description</title>
+            <para><citerefentry>
+                    <refentrytitle>tvpowerd</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry> is a companion daemon that is meant to be used in conjunction with
+                the <citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry> TV-recording daemon, However, it is vital and <emphasis
+                    role="italic">absolutely necessary</emphasis> that this daemon is run on a
+                completely different physical server. The reason is that this daemon monitors the
+                server doing the TV-recording and turns the power to the recording server on and off
+                according to the recording schedule. This will allow the tv-recording server to act
+                as a faithful imitation of a real VCR (or Digital PVR). This is good solution if you
+                normally have one server that is constantly running (such as you mail- or file
+                server) where this daemon can run (it takes virtually no extra CPU and a very small
+                memory footprint). The media server doing the recording is often located somewhere
+                else , perhaps in the TV-room, and it is desirable to both have it quiet when it is
+                not recording as well as saving on the planets energy.</para>
+            <para>In order for this to work there are a few, but vital, pre-conditions that must be
+                fulfilled.</para>
+            <para>
+                <orderedlist>
+                    <listitem>
+                        <para>Both server must have network connections and have <citerefentry>
+                                <refentrytitle>ssh</refentrytitle>
+                                <manvolnum>1</manvolnum>
+                            </citerefentry> installed (this is true for basically all Linux
+                            distributions)</para>
+                    </listitem>
+                    <listitem>
+                        <para>The server running the recording daemon must allow the server running
+                            the power daemon to login via SSH certificate without password. This is
+                            easy done by copying the power servers public SSH key into the file
+                            "authorized_keys" on the TV-recording server. This is described in
+                            details further down.</para>
+                    </listitem>
+                    <listitem>
+                        <para>The server running the TV recording must support Wake-On-Lan, i.e. it
+                            must be possible to turn the power on by sending a special data package
+                            to the network card. Virtually all network cards support Wake-On-Lan as
+                            well as most motherboards and BIOS. However, it is usually necessary to
+                            enable this feature in BIOS (it is often called something similar to
+                            "Wake-Up-On-PCI event". </para>
+                    </listitem>
+                </orderedlist>
+            </para>
+            <para>The rest of the man page will go through the detailed step in setting this
+                up.</para>
+        </refsect1>
+        <refsect1
+            xml:id="tvpowerd.options">
+            <title>Arguments</title>
+            <para>The following arguments are supported</para>
+            <variablelist>
+                <varlistentry>
+                    <term><option>-d</option>, <option>--daemon</option>
+                            [<emphasis>y</emphasis>|<emphasis>n</emphasis>]</term>
+                    <listitem>
+                        <para>Determine whether the server should be disconnected from the
+                            controlling terminal (a.k.a. running as a daemon). If the server is run
+                            as a daemon the logfile cannot be '<emphasis>stdout</emphasis>'. This
+                            command line option will override the '<emphasis>daemon</emphasis>'
+                            setting in the ini-file. The default setting is to run as a
+                            daemon.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-h</option>, <option>--help</option></term>
+                    <listitem>
+                        <para>Print a short help and exit.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-i</option>, <option>--inifile</option>
+                        <filename>filename</filename></term>
+                    <listitem>
+                        <para>Use the specified file as configuration file. This will override the
+                            location specified at compile time. The default location is
+                                '<filename>/etc/tvpvrd/tvpvrd.conf</filename>'</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-l</option>, <option>--logfile</option>
+                        <filename>filename</filename></term>
+                    <listitem>
+                        <para>Define what logfile to use. Two special names can be used
+                                <filename>stdout</filename> which will cause the log to be written
+                            to the <emphasis>stdout</emphasis> and <filename>syslog</filename> which
+                            will cause the logs to be written using the default system log. This
+                            command line option will override the '<emphasis>logfile</emphasis>'
+                            setting in the ini-file. The default location is
+                                '<filename>/tmp/tvpvrd.log</filename>'</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-V</option>, <option>--verbose</option>
+                            [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>|<emphasis>3</emphasis>]</term>
+                    <listitem>
+                        <para>Log verbosity level. 0 will only log error messages, 1 will log error
+                            and info messages, 2 will log errors, info and additional notices
+                            finally 3 will also log high volume debug messages.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-v</option>, <option>--version</option></term>
+                    <listitem>
+                        <para>Print program version information and exit.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>The default arguments corresponds to starting the server with</para>
+            <para>
+                <programlisting>tvpvrd -d y -i /etc/tvpowerd/tvpowerd.conf -V 1 -l /tmp/tvpowerd.log</programlisting>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Starting and stopping the power daemon</title>
+            <para>While strictly speaking not necessary the server should normally be started by the
+                root user. As soon as the server doesn't need root privileges it will switch to run
+                as the user specified in the ini-file, by default this is the user
+                    <emphasis>tvpowerd</emphasis>. This user should for security reasons not be the
+                'root' user. This user should be a system user without login shell. Such a user can
+                normally be created by running the command '<emphasis>useradd</emphasis>'. (If the
+                server is installed via the RPM package this user will be automatically
+                created)</para>            
+                <screen>$> useradd -r tvpowerd</screen>            
+            <para>To start the server as root the simplest way is to just call</para>
+                <screen>$root> tvpowerd</screen>            
+            <para>In order to stop the server and allow it to do a clean shutdown the
+                    <code>SIGHUP</code> (or <code>SIGSTOP</code>) signal should be sent to the
+                process running the server (assuming tvpvrd has been started as a daemon). The
+                distribution includes two support scripts to help with this. </para>
+            <para>The first script will be automatically installed in
+                    "<filename>/etc/init.d/tvpvrd</filename>" and follows the normal guidelines for
+                a "<filename>init.d</filename>" service start/stopping script according to LSB
+                (Linux Standard Base). Using this script to start the server the command</para>
+                <screen>/etc/init.d/tvpowerd start</screen>            
+            <para>is given and to stop the server the command</para>
+                <screen>/etc/init.d/tvpowerd stop</screen>           
+            <para>should be given. The startup script also supports the "restart" and "status"
+                options. </para>            
+            <para>Finally if for some reason you don't want to use any of these scripts it is
+                possible to manually kill the daemon process by sending the SIGHUP signal via the
+                    '<emphasis>kill</emphasis>'command as</para>            
+                <screen>$> kill -SIGHUP &lt;pid></screen>            
+            <para>where &lt;pid> is the process id of the <emphasis>tvpowerd</emphasis> daemon. Use
+                'ps xa' to find the pid or if the server was started as root look in the file
+                    '<filename>/var/run/tvpowerd.pid</filename>' </para>
+            <para>If the server gives the error message : "<emphasis>Server can not be started. See
+                    system log</emphasis>" then more information about the details of the problem
+                can be found in the system log, normally <filename>/var/log/messages</filename>. One
+                common issue might be a stale lock file (in
+                    <filename>/var/run/tvpowerd.pid</filename>) in case the server is not started
+                from the root user. The reason is that in order to write these lock files the server
+                must run as a root. Since normally the server only runs as a root at the startup
+                phase (and then switches over to the selected user) the lock/pid file cannot be
+                removed. This is not a problem if the server is again started as root but if the
+                server is started from the command line as a non-root user it will complain that the
+                lock file already exists. The solution in this case is to manually remove the
+                lockfile (as root).</para>
+        </refsect1>
+        <refsect1>
+            <title>How to shutdown the remote server</title>
+            <para>The specific way to shutdown the remote recording server can be specified in the
+                configuration file. By default the server will be shutdown via a standard call to
+                    <command>shutdonw</command>
+                <emphasis
+                    role="italic">-h &lt;time></emphasis> command. </para>
+            <para>A variant of this is to put the recording server in suspend or hibernation mode.
+                Most reasonable modern computers will support this way of energy saving.
+                Unfortunately the ivtv driver (that controls the TV-card) is not aware of power
+                management which means that it will not survive a suspend-wakeup cycle. In order for
+                the driver to work it must firs be unloaded before the server is shut down and then
+                reloaded when the server is started up. The driver load/unload will be handled
+                automatically if the unload_driver variable is set as</para>
+            <para>
+                <screen>unload_driver=yes</screen>
+            </para>
+            <para>in the configuration file.</para>
+            <para>Note 1: If you decide to use suspend/resume it is probably best to try the
+                commands manually first to make sure it works as expected.</para>
+            <para>Note 2: The suspend/hibernate shutdown method should still be regarded as
+                experimental since experience shows that depending on hardware and system
+                configuration this is not always 100% reliable. On some hardware/system
+                configurations it has been reported that after a suspend a driver unload/load cycle
+                is still no sufficient to make the driver work again. On yet other HW it has been
+                reported that the daemon does no longer respond after a suspend/wakeup cycle. If
+                yoiu experince these problems please use the default shutdown method.</para>
+        </refsect1>
+        <refsect1>
+            <title>When will the daemon shutdown the remote server?</title>
+            <para>The daemon follows a number of strict rules when it will and when it wont shutdown
+                the remote server. The daemon will only shutdown the recording server it the
+                following conditions are satisfied:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>There are no users logged into the recording server.</para>
+                    </listitem>
+                    <listitem>
+                        <para>The 5 min avg load on the server is less than
+                                <code>max_shutdown_5load</code> as specified in the configuration
+                            file (default is 0.5). This helps prevent shutdown if the user has
+                            manually started some jobs on the server.</para>
+                    </listitem>
+                    <listitem>
+                        <para>There are no ongoing transcodings or recordings.</para>
+                    </listitem>
+                    <listitem>
+                        <para>It is at least <code>min_poweroff_time</code> minutes until the next
+                            recording as specified in the configuration file (default is
+                            45min).</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>Tip: In order to manually force a wakeup the daemon will look for a an (empty)
+                file named <filename>/tmp/start_tvp</filename> so giving the command</para>
+            <para>
+                <screen>$>touch /tmp/start_tvp</screen>
+            </para>
+            <para>will force a restart of the recording server. The daemon will remove the file
+                after it has been seen to avoid endless wake-up events.</para>
+        </refsect1>
+        
+        <refsect1>
+            <title>Configuring ssh</title>
+            <para>In order for the daemon to be able to turn the power off on the remote machine it
+                must be given root permission. Since we want to avoid to store plain passwords
+                (especially the root password) in configuration file the best way to solve this is
+                to allow the managing server (the one running the daemon) to log into the recording
+                server via ssh certificates.</para>
+            <para>This is done by adding the public ssh certificate from the user running the
+                tvpowerd to the list of authorized users that can log into the root account on the
+                recording daemon.</para>
+            <para>Assuming the power daemon is running as user '<code>tvpower</code>' (we assume
+                that the user exists and has been created). The following steps will create and
+                install the public key on the recording server.</para>
+            <para>
+                <orderedlist>
+                    <listitem>
+                        <para>On the managing server. Switch to the 'tvpower' user and give the
+                            following command</para>
+                        <para>
+                            <screen>$tvpower>ssh-keygen</screen>
+                        </para>
+                        <para>When asked for a password just type return (twice) to create a
+                            certificate without password. The public certificate will be stored in
+                            the file '<filename>~tvpower/.ssh/id_rsa.pub</filename>' </para>
+                    </listitem>
+                    <listitem>
+                        <para>The next step is to add the content of the
+                                '<filename>~tvpower/.ssh/id_rsa.pub</filename>' file to the end of
+                            the root users '<filename>.ssh/authorized_keys</filename>' file on the
+                            recording server. </para>
+                    </listitem>
+                    <listitem>
+                        <para>After this is done it should be possible for the <code>tvpower</code>
+                            user to login to the recording server as root without giving a password
+                            using <command>ssh</command>.  Make sure that it is possible to execute
+                            a remote command on the recording server as root user without giving a
+                            password. For example the following command (replace the "fake" IP <emphasis
+                                role="bold">192.168.0.100</emphasis> with the IP address of your
+                            recording server).</para>
+                        <para>
+                            <screen>$tvpower>ssh root@<emphasis role="bold">192.168.0.100</emphasis> uptime
+ 14:22pm  up   1:13,  2 users,  load average: 0.00, 0.00, 0.00
+$tvpower> _</screen>
+                        </para>
+                        <para>If this does not work go back and check that no extra blanks or line
+                            breaks where inserted by mistake when the public key was copied. Also
+                            check that it was really  the public key from the <code>tvpower</code>
+                            user on the managing server that was added to the <code>root</code> user
+                            on the recording server.</para>
+                    </listitem>
+                </orderedlist>
+            </para>
+            <para>It is absolutely critical that the ssh login works before moving on. Without this
+                functionality the daemon will no be able to function as intended.</para>
+        </refsect1>
+        
+        <refsect1
+            xml:id="tvpowerd.files">
+            <title>Files</title>
+            <para>Note: The system configuration directory to be used is a compile time settings and
+                specified with the '<emphasis>configuration</emphasis>' argument '--sysconfdir'. </para>
+            <variablelist>
+                <varlistentry>
+                    <term>&lt;log-directory>/tvpowerd.log</term>
+                    <listitem>
+                        <para>The logfile. The log-directory is specified in the ini-file. It can
+                            also be specified as a command line argument (<option>-l,
+                                --logfile</option>) which will then override the ini-file setting.
+                            By default the log file will be stored under
+                                <filename>/tmp/tvpvrd.log</filename> .(The reason not to use
+                                <filename>/var/log/tvpowerd.log</filename> is the fact that the
+                            server will not normally run as root and hence will not have write
+                            access to this directory.)</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>/var/run/tvpowerd.pid</term>
+                    <listitem>
+                        <para>The pid of the started 'tvpvrd' server. This is used to easily find
+                            the pid in order to shutdown the server. This is used by the
+                                <emphasis>stop-tvpvrd</emphasis> script. Note that in order to use
+                            this directory the daemon has to be started by the root user. </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>/etc/tvpowerd/tvpowerd.conf</term>
+                    <listitem>
+                        <para>Default configuration file</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>Limitations</title>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>The <filename>/var/run/tvpowerd.pid</filename> file is not removed
+                            after the program has shut down if the effective user is any other than
+                            'root', (by default the server will switch to the 'tvpvrd' user) since
+                            only root has access to <filename>/var/run</filename></para>
+                    </listitem>
+                    <listitem>
+                        <para>All information and error messages are hard coded in English and
+                            cannot be easily localized.</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Notes</title>
+            <para>Any errors that are discovered in the startup phase before a logfile has been
+                established will be written to the default system log (normally
+                    <filename>/var/log/messages</filename>) </para>
+        </refsect1>
+        <refsect1>
+            <title>Resources</title>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>SourceForge: &lt;http://sourceforge.net/projects/tvpvrd/></para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Author</title>
+            <para>Written and maintained by Johan Persson &lt;johan162@gmail.com></para>
+        </refsect1>
+        <refsect1>
+            <title>Copyright</title>
+            <para>Free use of this software is granted under the terms of the GNU General Public
+                License (GPL v3)., see the file COPYING included in the distribution archive for
+                details.</para>
+        </refsect1>
+        <refsect1
+            xml:id="tvpowerd.seealso">
+            <title>See also</title>
+            <para><citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>5</manvolnum>
+                </citerefentry></para>
+        </refsect1>
+    </refentry>
+</article>
