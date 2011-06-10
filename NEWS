@@ -6,7 +6,19 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-v3.1.4
+v3.2.1
+------
+User visible changes:
+    - None  
+
+Bugs fixed:
+    - None
+
+Internal changes:
+    - None
+
+
+v3.2.0
 ------
 User visible changes:
     - Added history keeping for last N recordings with commands to view. 

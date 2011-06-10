@@ -66,6 +66,11 @@ hist_list(int fd);
 int
 hist_listbuff(char *buff, size_t maxlen);
 
+/**
+ * Mail the history
+ */
+int
+hist_mail(void);
 
 #ifdef	__cplusplus
 }

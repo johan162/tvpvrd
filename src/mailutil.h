@@ -45,6 +45,9 @@ int
 send_mail_template(char * subject, char * from, char *to,
                    char *templatename, struct keypairs keys[], size_t nkeys);
 
+int
+sendmail_helper(char *subject,char *buffer_plain,char *buffer_html);
+
 #ifdef	__cplusplus
 }
 #endif
