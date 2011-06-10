@@ -55,6 +55,9 @@
 #include <pcre.h>
 
 // Local headers
+#include "libsmtpmail/mailclientlib.h"
+#include "mailutil.h"
+
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "utils.h"
@@ -846,5 +849,6 @@ waitreadn(int sock, char *buffer, int maxbufflen) {
     else
         return 0;
 }
+
 
 /* utils.c */

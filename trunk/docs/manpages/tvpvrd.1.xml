@@ -1914,6 +1914,14 @@ Tue Jun 07 19:30 Departed mems   /mnt/omega/mm/pvr/mp4/departed_mems.mp4       t
 Wed Jun 01 00:50 Once more       /mnt/omega/mm/pvr/mp4/once_more.mp4           tnormal</screen>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term>'<command>rhm</command>' - <emphasis role="bold">Mail the history list of
+                            recordings</emphasis></term>
+                    <listitem>
+                        <para>The history list (sam as from command '<command>rh</command>') is
+                            mailed to the predefined system address in the configuration file</para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>rst</command>' - <emphasis role="bold">Reset statistics command</emphasis></term>
                         <listitem>

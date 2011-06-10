@@ -54,6 +54,8 @@
 #include <pcre.h>
 
 // Application specific includes
+#include "libsmtpmail/mailclientlib.h"
+
 #include "tvcmd.h"
 #include "tvpvrd.h"
 #include "tvconfig.h"
@@ -68,10 +70,9 @@
 #include "build.h"
 #include "datetimeutil.h"
 #include "xstr.h"
-#include "libsmtpmail/mailclientlib.h"
-#include "mailutil.h"
 #include "tvplog.h"
 #include "tvhistory.h"
+#include "mailutil.h"
 
 /*
  * Indexes into the command table
@@ -121,9 +122,10 @@
 #define CMD_MAILLIST_RECSINGLE_HTML 42
 #define CMD_MAIL_LOG 43
 #define CMD_VIEWHIST 44
+#define CMD_MAILHIST 45
 
 
-#define CMD_UNDEFINED 45
+#define CMD_UNDEFINED 46
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -197,6 +199,7 @@ _cmd_help(const char *cmd, int sockfd) {
 			"  q    - quick recording\n"\
                         "  rst  - reset all statistics\n"\
                         "  rh   - view history of previous transcodings\n"\
+                        "  rhm  - mail history of previous transcodings\n"\
                         "  rp   - refresh transcoding profiles from file\n"\
                         "  s    - print server status\n"\
                         "  sp   - set transcoding profile for specified recording\n"\
@@ -226,6 +229,7 @@ _cmd_help(const char *cmd, int sockfd) {
                         "  ot   - list the ongoing transcoding(s)\n"\
                         "  rst  - reset all statistics\n"\
                         "  rh   - view history of previous transcodings\n"\
+                        "  rhm  - mail history of previous transcodings\n"\
                         "  rp   - refresh transcoding profiles from file\n"\
                         "  s    - print server status\n"\
 			"  t    - print server time\n"\
@@ -1307,48 +1311,6 @@ _cmd_list_human(const char *cmd, int sockfd) {
 }
 
 /*
- * Sedn mail with both HTML and alternative plain text format. The to and from
- * adress are taken from the config file
- */
-int
-_sendmail_helper(char *subject,char *buffer_plain,char *buffer_html) {
-    int rc;
-    if( !smtp_use || !use_html_mail) {
-
-        logmsg(LOG_DEBUG,"Sending list of transcodings via mail system command.");
-        rc = send_mail(subject, daemon_email_from, send_mailaddress, buffer_plain);
-
-    } else {
-
-        struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
-        if( handle == NULL ) {
-            logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
-            return -1;
-        }
-
-        if( -1 == smtp_add_html(handle, buffer_html, buffer_plain) ) {
-            logmsg(LOG_ERR,"Could NOT add content in mail");
-            smtp_cleanup(&handle);
-            return -1;
-        }
-
-        if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, send_mailaddress) ) {
-            logmsg(LOG_ERR,"Could NOT add recepient to mail");
-            smtp_cleanup(&handle);
-            return -1 ;
-        }
-
-        rc = smtp_sendmail(handle, daemon_email_from, subject);
-        if( -1 == rc ) {
-            logmsg(LOG_ERR,"could not SEND mail via SMTP.");
-        }
-        smtp_cleanup(&handle);
-    }
-    
-    return rc;
-}
-
-/*
  */
 static void
 _cmd_maillist_html(const char *cmd, int sockfd) {
@@ -1408,7 +1370,7 @@ _cmd_maillist_html(const char *cmd, int sockfd) {
     char subject[255];
     snprintf(subject,255,"List of upcoming recordings");
 
-    if( -1 == _sendmail_helper(subject, buffer_plain, buffer_html) ) {
+    if( -1 == sendmail_helper(subject, buffer_plain, buffer_html) ) {
         _writef(sockfd,"Failed to create and send mail.\n");
     } else {
         _writef(sockfd,"List of recordings sent to '%s'\n",send_mailaddress);
@@ -1549,7 +1511,7 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
     char subject[255];
     snprintf(subject,255,"List of upcoming repeating recordings");
 
-    if( -1 == _sendmail_helper(subject, buffer_plain, buffer_html) ) {
+    if( -1 == sendmail_helper(subject, buffer_plain, buffer_html) ) {
         _writef(sockfd,"Failed to create and send mail.\n");
     } else {
         _writef(sockfd,"List of recordings sent to '%s'\n",send_mailaddress);
@@ -2984,6 +2946,20 @@ _cmd_view_history(const char *cmd, int sockfd) {
     hist_list(sockfd);
 }
 
+static void
+_cmd_mail_history(const char *cmd, int sockfd) {
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Mail a list of previous N transcodings\n"
+                );
+        return;
+    }   
+    if( -1 == hist_mail() ) {
+        _writef(sockfd,"Could NOT send mail. Unknown error.");
+    } else {
+        _writef(sockfd,"History mail sent.");
+    }
+}
 
 /**
  * Reserved for future use
@@ -3046,6 +3022,7 @@ cmdinit(void) {
     cmdtable[CMD_MAIL_LOG]          = _cmd_mail_log;
     cmdtable[CMD_LISTRECSINGLE]     = _cmd_listsingle;
     cmdtable[CMD_VIEWHIST]          = _cmd_view_history;
+    cmdtable[CMD_MAILHIST]          = _cmd_mail_history;
 }
 
 /**
@@ -3099,6 +3076,7 @@ _getCmdPtr(const char *cmd) {
         {"o",  CMD_ONGOINGREC},
         {"q",  CMD_QUICKRECORDING},
         {"rst",CMD_RESETSTATS},
+        {"rhm",CMD_MAILHIST},
         {"rh", CMD_VIEWHIST},        
         {"rp", CMD_REFRESHPROFILE},
         {"sp", CMD_SETPROFILE},
@@ -3128,6 +3106,7 @@ _getCmdPtr(const char *cmd) {
         {"otl",CMD_ONGOINGTRANS},
         {"ot", CMD_ONGOINGTRANS},
         {"rst",CMD_RESETSTATS},
+        {"rhm", CMD_MAILHIST},
         {"rh", CMD_VIEWHIST},
         {"st", CMD_STATISTICS},
         {"s",  CMD_STATUS},

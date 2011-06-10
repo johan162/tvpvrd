@@ -56,6 +56,7 @@
 #include "xstr.h"
 #include "tvplog.h"
 #include "datetimeutil.h"
+#include "mailutil.h"
 
 /**
  * Record for array of history records
@@ -360,7 +361,7 @@ hist_listbuff(char *buff, size_t maxlen) {
         snprintf(line,sizeof(line),
          "%s %s %02d %02d:%02d "
          "%-20s"
-         "%-50s"
+         "%-55s"
          "%-10s\n",  
          wday_name[result.tm_wday], month_name[sm-1], sd,
          sh, smi,
@@ -382,16 +383,53 @@ hist_listbuff(char *buff, size_t maxlen) {
 
 int
 hist_list(int fd) {
-    char *buff = calloc(HISTORY_LENGTH, 1024);
+    size_t const maxlen=HISTORY_LENGTH*1024;
+    
+    char *buff = calloc(maxlen, sizeof(char));
     if( NULL == buff ) {
         return -1;
     }
-    if( -1 == hist_listbuff(buff, HISTORY_LENGTH*1024) ) {
+    if( -1 == hist_listbuff(buff, maxlen) ) {
         return -1;
     }
     _writef(fd, buff);
     free(buff);
     return 0;
+}
+
+int
+hist_mail(void) {    
+
+    size_t const maxlen=HISTORY_LENGTH*1024;
+
+    char *buffer_plain = calloc(maxlen, sizeof(char));
+    char *buffer_html = calloc(maxlen, sizeof(char));
+
+    if( buffer_plain == NULL || buffer_html == NULL ) {
+        logmsg(LOG_ERR,"Out of memory when trying to allocate buffer! CRITICAL!");
+        exit(1);
+    }
+
+    if( -1 == hist_listbuff(buffer_plain, maxlen-3) ) {
+        free(buffer_plain);
+        free(buffer_html);
+        return -1;
+    }
+
+    strcat(buffer_plain,"\n\n");
+ 
+    snprintf(buffer_html,maxlen-1,"<div>Previous recordings:</div><pre>%s</pre>\n\n",buffer_plain);
+
+    char subject[255];
+    snprintf(subject,255,"List of previous made recordings");
+
+    int ret = sendmail_helper(subject, buffer_plain, buffer_html);
+
+    free(buffer_html);
+    free(buffer_plain);    
+
+    return ret;
+    
 }
 
 /* EOF */

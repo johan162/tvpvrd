@@ -236,3 +236,46 @@ send_mail_template(char * subject, char * from, char *to,
 
     return rc;
 }
+
+
+/*
+ * Send mail with both HTML and alternative plain text format. The to and from
+ * address are taken from the config file
+ */
+int
+sendmail_helper(char *subject,char *buffer_plain,char *buffer_html) {
+    int rc;
+    if( !smtp_use || !use_html_mail) {
+
+        logmsg(LOG_DEBUG,"Sending list of transcodings via mail system command.");
+        rc = send_mail(subject, daemon_email_from, send_mailaddress, buffer_plain);
+
+    } else {
+
+        struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
+        if( handle == NULL ) {
+            logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
+            return -1;
+        }
+
+        if( -1 == smtp_add_html(handle, buffer_html, buffer_plain) ) {
+            logmsg(LOG_ERR,"Could NOT add content in mail");
+            smtp_cleanup(&handle);
+            return -1;
+        }
+
+        if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, send_mailaddress) ) {
+            logmsg(LOG_ERR,"Could NOT add recepient to mail");
+            smtp_cleanup(&handle);
+            return -1 ;
+        }
+
+        rc = smtp_sendmail(handle, daemon_email_from, subject);
+        if( -1 == rc ) {
+            logmsg(LOG_ERR,"could not SEND mail via SMTP.");
+        }
+        smtp_cleanup(&handle);
+    }
+    
+    return rc;
+}
