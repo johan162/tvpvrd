@@ -157,24 +157,46 @@ check_for_shutdown(void) {
         return;
     }
 
-    // Now we need to find the next closest recording amoung all video cards
+    // Now we need to find the next closest recording among all video cards
     // to know when to wake up
-    pthread_mutex_lock(&recs_mutex);
-    time_t nextrec = recs[REC_IDX(0, 0)]->ts_start;
+    time_t nextrec = (time_t)0;
     int nextrec_video=0;
-    int nextrec_idx=0;
-    for (unsigned video = 1; video < max_video; ++video) {
-        if( recs[REC_IDX(video, 0)]->ts_start < nextrec  ) {
-            nextrec = recs[REC_IDX(video, 0)]->ts_start;
-            nextrec_video = video;
-            nextrec_idx = 0;
+    int const nextrec_idx=0;
+    
+    pthread_mutex_lock(&recs_mutex);
+    
+    // Find the first video card with a scheduled recording
+    while ( num_entries[nextrec_video]==0  && nextrec_video < (int)max_video)
+        ++nextrec_video;
+    
+    if (nextrec_video < (int)max_video) {
+        nextrec = recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_start;
+        for (unsigned video = nextrec_video + 1; video < max_video; ++video) {
+            // We must check for empty slot in case there are no future recordings for this card
+            if (num_entries[video] > 0) {
+                if (recs[REC_IDX(video, nextrec_idx)]->ts_start < nextrec) {
+                    nextrec = recs[REC_IDX(video, nextrec_idx)]->ts_start;
+                    nextrec_video = video;
+                }
+            }
         }
     }
-    pthread_mutex_unlock(&recs_mutex);
    
+    pthread_mutex_unlock(&recs_mutex);
+    
     // We need the current time to compare against
     time_t now = time(NULL);
 
+    // After this loop 'nextrec' holds the timestamp for the next recording assuming 
+    // nextrec_video > -1. If nextrec_video==-1 then there are no future recordings
+    // scheduled at all.
+    // This is an abnormal case since we would then go to sleep forever and never
+    // wake up again. To handle this we set the next recording arbitrarily to 1 year
+    // in the future from the current time
+    if( nextrec == (time_t)0 ) {
+        nextrec = now + 365*24*3600;
+    }
+   
     // Before shutting down we need to also check that shutting us down will allow
     // us to be turned off for at least as long as the minimum shutdown time
     if( nextrec - now > shutdown_min_time+(time_t)shutdown_pre_startup_time ) {
