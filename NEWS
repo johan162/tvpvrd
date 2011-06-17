@@ -9,10 +9,10 @@ Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 v3.2.1
 ------
 User visible changes:
-    - None  
+    - None 
 
 Bugs fixed:
-    - None
+    - Fixed critical segfault crash in shutdown check when the recording queue happened to be empty.
 
 Internal changes:
     - None
@@ -60,7 +60,7 @@ Bugs fixed:
 
 Internal changes:
     - Fixed compiler warning about set but not used variable
-    - Code security review. Make sure all string concatenation is explicitely limited.
+    - Code security review. Make sure all string concatenation are explicitely limited.
     - Add full path for killproc/startproc in the SysV init.d scripts 
     - Updated OpenSuSE RPM Spec file
 
