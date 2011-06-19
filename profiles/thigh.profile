@@ -148,14 +148,6 @@ use_transcoding=yes
 video_bitrate=1900
 
 #----------------------------------------------------------------------------
-# VIDEO_PEAK_BITRATE integer [200,1800]
-# The tolerance for deviation in bits from the set average bitrate when
-# doing one pass encoding. For two pass encoding this parameter has no
-# meaning.
-#----------------------------------------------------------------------------
-video_peak_bitrate=2400
-
-#----------------------------------------------------------------------------
 # VCODEC string
 # The video codec to be used
 #----------------------------------------------------------------------------
@@ -164,8 +156,12 @@ vcodec=libx264
 #----------------------------------------------------------------------------
 # VPRE string
 # The preset used with the vcodec. Corresponds to the ffmpeg -vpre option
+# Note: Different versions of ffmpeg have different presets. The preset you
+# choose must exist in your installation. The chosen preset can make a huge
+# difference in encoding time. If this is left empty no preset will be added
+# in the command line. This implies that the built in default will be used.
 #----------------------------------------------------------------------------
-vpre=medium
+vpre=""
 
 #----------------------------------------------------------------------------
 # PASS integer [1,2]
@@ -186,7 +182,7 @@ pass=2
 # file. Note on this note: Windows mediaplyer have problem decoding a copied
 # stream by ffmpeg. 
 #----------------------------------------------------------------------------
-acodec=libfaac
+acodec=libmp3lame
 
 #----------------------------------------------------------------------------
 # AUDIO_BITRATE integer [32,320]

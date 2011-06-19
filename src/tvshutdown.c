@@ -104,11 +104,14 @@ get_num_users(void) {
         return -1;
     } else {
         // Only read first line in the command output
-        int nr;
         const int len = 1048;
         char *reply = calloc(1,len);
-
-        nr = fread(reply, sizeof(char), len, fp);
+        if( NULL == reply ) {
+            logmsg(LOG_ERR, "get_num_users() : Cannot allocate memory.");
+            return -1;            
+        }
+        
+        int nr = fread(reply, sizeof(char), len, fp);
         if( nr > 0 ) {
             // Get rid of final '\n'
             if( reply[nr-1] == '\n' )
