@@ -55,9 +55,10 @@ extern "C" {
 
 /*
  * DEFAULT_VPRE string
- * Default preset for the -vpre setting for ffmpeg
+ * Default preset for the -vpre setting for ffmpeg. Use mepty string and let ffmpeg
+ * decide.
  */
-#define DEFAULT_PROFILE_VPRE "normal"
+#define DEFAULT_PROFILE_VPRE ""
 
 /*
  * DEFAULT_PROFILE_VIDEO_BITRATE integre
@@ -202,7 +203,6 @@ struct transcoding_profile_entry {
     /* ffmpeg entries */
     unsigned use_transcoding;
     unsigned video_bitrate;
-    unsigned video_peak_bitrate;
     unsigned pass;
     unsigned audio_bitrate;
     char size[32];

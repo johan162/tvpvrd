@@ -4,7 +4,7 @@
 # Use autoreconf to rebuild the build environment
 # ===============================================================================
 AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[3.2.1],[johan162@gmail.com])
+AC_INIT([tvpvrd],[3.3.0],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2011])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 silent-rules])
@@ -191,44 +191,10 @@ AC_SUBST(DOCBOOK_XSL)
 
 # ===============================================================================
 # MACRO AC_CHECK_FFMPEG
-# The following macro checks for a working version of the ffmpeg program. It will also determine if the system
-# have an old version installed that uses the old style ffmpeg profile files by checking the name of a common
-# profile. Not 100% but 99.9% which is good enough.
+# The following macro checks for a working version of the ffmpeg program. 
 # ===============================================================================
 AC_DEFUN([AC_CHECK_FFMPEG],[
-AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
-MEDIUM_EXISTS=no
-NORMAL_EXISTS=no
-AC_MSG_CHECKING([If ffmpeg works])
-for i in /usr/share/ffmpeg/libx264-medium.ffpreset /usr/local/share/ffmpeg/libx264-medium.ffpreset
-do
-        if test -f "$i"; then
-                MEDIUM_EXISTS=yes
-        fi
-done
-if test "$MEDIUM_EXISTS" = "yes"; then
-        AC_MSG_RESULT([yes])
-        AM_CONDITIONAL(have_old_ffmpeg, test 0 = 1)
-else
-        MEDIUM_EXISTS=no
-        NORMAL_EXISTS=no
-        for i in /usr/share/ffmpeg/libx264-normal.ffpreset /usr/local/share/ffmpeg/libx264-normal.ffpreset
-        do
-                if test -f "$i"; then
-                        NORMAL_EXISTS=yes
-                fi
-        done
-
-        if test "$NORMAL_EXISTS" = "yes"; then
-                AC_MSG_RESULT([yes])
-                AC_MSG_NOTICE([Your version of ffmpeg is rather old. Please consider upgrading it])
-                AC_DEFINE(HAVE_OLD_FFMPEG,1,[Whether we are restricted to old style syntax when invoking ffmpeg])
-                AM_CONDITIONAL(have_old_ffmpeg, test 1 = 1)
-        else
-                AC_MSG_RESULT([no.])
-                AM_CONDITIONAL(have_old_ffmpeg, test 0 = 1)
-        fi
-fi
+  AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
 ])
 
 # ===============================================================================
@@ -297,15 +263,16 @@ fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([No ffmpeg executable was found. While strictly speaking not] necessary)
-    AC_MSG_NOTICE([to build the daemon it will be required to do transcoding. The daemon will])
-    AC_MSG_NOTICE([assume that when ffmpeg is used it is reasonable new and supports new style arguments.])
+   AC_MSG_NOTICE([to build the daemon it will be required to do transcoding. The daemon will])
+   AC_MSG_NOTICE([assume that when ffmpeg is used it is reasonable new and supports new style arguments.])
+else
+   AC_MSG_NOTICE([ ])
+   AC_MSG_NOTICE([Even though you have ffmpeg there might be still problem using it depending if you have])
+   AC_MSG_NOTICE([the x264 (mpeg4) encoder properly installed. Please check the full tvpvrd log to see the])
+   AC_MSG_NOTICE([exact command line used to invoke ffmpeg. Try that manually and resolve any missing])
+   AC_MSG_NOTICE([dependencies until you can manually run the ffmpeg command])
 fi
         
-if test "$NORMAL_EXISTS" = "yes"; then
-    AC_MSG_NOTICE([ ])
-    AC_MSG_NOTICE([(BTW. Your version of ffmpeg is rather old. Please consider upgrading it)])
-fi
-
 AC_MSG_NOTICE([ ])
 
 if  test "$XSLTPROC_WORKS" = "yes"; then
@@ -320,14 +287,9 @@ if  test "$XSLTPROC_WORKS" = "yes"; then
         AC_MSG_NOTICE([In addition the man pages can be rebuilt in both html, Unix man format, and])
         AC_MSG_NOTICE([most likely in PDF format.])
         AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([However, if you haven't used the fop processor to generate PDF files before])
-        AC_MSG_NOTICE([it is highly likely that you will get an error message saying something like])
-        AC_MSG_NOTICE([   "SEVERE: Couldn't find hyphenation pattern en" ])
-        AC_MSG_NOTICE([Due to licensing issues most distributions does not include the necessary hyphenation])
-        AC_MSG_NOTICE([so you would have to do this manually if you want to rebuild the PDF files yourself.])
-        AC_MSG_NOTICE([Please see: http://offo.sourceforge.net/hyphenation/binary/installation.html ])
+        AC_MSG_NOTICE([In case you get any complains when building PDF files about missing hyphenation])
+        AC_MSG_NOTICE([please see: http://offo.sourceforge.net/hyphenation/binary/installation.html ]) 
         AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([(Usually it is enough to copy the fop-hyph.jar file into "/usr/share/fop-0.95/lib")])
     fi
 else
     AC_MSG_NOTICE([However, man pages can not be rebuilt with current system configuration.])

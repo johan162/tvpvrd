@@ -347,12 +347,14 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     entry->video_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_bitrate",
                                     iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_BITRATE));
 
+    /*
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_peak_bitrate",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     entry->video_peak_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_peak_bitrate",
                                          iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_PEAK_BITRATE));
-
+        */
+    
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":audio_bitrate",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
@@ -549,7 +551,6 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "FFMPEG:\n"
     "%-22s: %d\n"
     "%-22s: %d\n"
-    "%-22s: %d\n"
     "%-22s: %s\n"
     "%-22s: %s\n"
     "%-22s: %d\n"
@@ -571,7 +572,6 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     /* FFMPEG Settings */
     "use_transcoding", profile->use_transcoding,
     "video_bitrate", profile->video_bitrate,
-    "video_peak_bitrate", profile->video_peak_bitrate,
     "vcodec",profile->vcodec,
     "vpre",profile->vpre,
     "pass",profile->pass,
@@ -837,153 +837,82 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 
     destfile[l] = '\0';
     strncat(destfile, profile->file_extension,destsize-1);
+    
+    // Setup string for default x264 ffmpeg preset. Since the preset seems to change with each release
+    // of ffmpeg the default preset has changed to the empty string. When it is the empty string no -vpre
+    // option should be included on the command line. 
+    char vpre_buffer[128];
+    if( 0 == strlen(profile->vpre) ) {
+        vpre_buffer[0] = '\0';
+    } else {
+        snprintf(vpre_buffer,sizeof(vpre_buffer)-1,"-vpre %s",profile->vpre);
+    }
 
+    // For single pass encoding we only need to run ffmpeg once. For two pass encoding we call ffmpeg twice    
     if (profile->pass == 1) {
         if( strlen(profile->size) > 0 ) {
-#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
-                    " -acodec %s -ab %dk "
+                    "%s -v 0 -i %s -threads 0 -vcodec %s %s -b %dk -acodec %s -ab %dk "
                     " -s %s"
                     " -y %s %s > /dev/null 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->crop_top, profile->crop_bottom, profile->crop_left, profile->crop_right,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->size,
-                    profile->extra_ffmpeg_options, 
-                    destfile);
-#else
-            snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    " -acodec %s -ab %dk "
-                    " -s %s"
-                    " -y %s %s > /dev/null 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->size,
                     profile->extra_ffmpeg_options,
                     destfile);
 
-#endif
         } else {
-#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
-                    " -acodec %s -ab %dk "
+                    "%s -v 0 -i %s -threads 0 -vcodec %s %s -b %dk -acodec %s -ab %dk "
                     " -y %s %s > /dev/null 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->crop_top, profile->crop_bottom, profile->crop_left, profile->crop_right,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->extra_ffmpeg_options, 
-                    destfile);
-#else
-            snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    " -acodec %s -ab %dk "
-                    " -y %s %s > /dev/null 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
+                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->extra_ffmpeg_options,
                     destfile);
-#endif
         }
         
     } else {
+        // Two pass encoding
         if( strlen(profile->size) > 0 ) {
-#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
-                    " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -b %dk "
                     " -an "
                     " -s %s "
                     " -f rawvideo -y %s "
                     "/dev/null > /dev/null 2>&1; "
-                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
+                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s %s -b %dk "
                     "-acodec %s -ab %dk "
                     " -s %s "
                     " -y %s %s > /dev/null 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->crop_top, profile->crop_bottom, profile->crop_left, profile->crop_right,
+                    profile->vcodec, profile->video_bitrate, 
                     profile->size,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->crop_top, profile->crop_bottom, profile->crop_left, profile->crop_right,
+                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->size,
                     profile->extra_ffmpeg_options,
                     destfile);
-#else
-            snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fast_firstpass -b %dk -bt %dk "
-                    " -an "
-                    " -s %s "
-                    " -f rawvideo -y %s "
-                    "/dev/null > /dev/null 2>&1; "
-                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    "-acodec %s -ab %dk "
-                    " -s %s "
-                    " -y %s %s > /dev/null 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->size,
-                    profile->extra_ffmpeg_options,
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->size,
-                    profile->extra_ffmpeg_options,
-                    destfile);
-#endif
         } else {
-#ifdef OLDER_FFMPEG
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fastfirstpass -b %dk -bt %dk "
-                    " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fast_firstpass -b %dk "
                     " -an "
                     " -f rawvideo -y %s "
                     "/dev/null > /dev/null 2>&1; "
-                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    " -croptop %d -cropbottom %d -cropleft %d -cropright %d "
+                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk "
                     "-acodec %s -ab %dk "
                     " -y %s %s > /dev/null 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->crop_top, profile->crop_bottom, profile->crop_left, profile->crop_right,
+                    profile->vcodec, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->crop_top, profile->crop_bottom, profile->crop_left, profile->crop_right,
+                    profile->vcodec, profile->vpre, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->extra_ffmpeg_options,
-                    destfile);
-#else
-            snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fast_firstpass -b %dk -bt %dk "
-                    " -an "
-                    " -f rawvideo -y %s "
-                    "/dev/null > /dev/null 2>&1; "
-                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk -bt %dk "
-                    "-acodec %s -ab %dk "
-                    " -y %s %s > /dev/null 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->extra_ffmpeg_options,
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, profile->video_peak_bitrate,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->extra_ffmpeg_options,
-                    destfile);
-#endif
-            
+                    destfile);           
         }
     }
 #ifdef OLDER_FFMPEG
