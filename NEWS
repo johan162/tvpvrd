@@ -6,17 +6,24 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-v3.2.2
+v3.3.0
 ------
 User visible changes:
-    - None 
+    - Added "today" as option in dropdown instead of blank
+    - Improved history formatting
+    - To finish the command line both "quit" and "exit" can be used
+    - Web interface empty weekday (meaning today) changed to "today"
+    - Upgraded handling of ffmpeg to a newer version. This means changes
+      in the profile handling of max video rate as well as the h264 naming
+      of the preset files. By default to make it more compatible with various
+      ffmpeg versions the default preset is now empty.
 
 Bugs fixed:
     - None 
 
 Internal changes:
-    - None
-
+    - Added additional error check to catch the case when a remote file server
+      where we store recordings and database is not responding properly
 
 
 v3.2.1

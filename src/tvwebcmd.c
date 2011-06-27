@@ -963,7 +963,7 @@ web_cmd_qadd(int sockd) {
 void
 web_cmd_add_del(int sockd) {
     static const char *day_list[] = {
-        " ", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+        "Today", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
     };
     const size_t n_day = 8;
     static const struct skeysval_t rpt_list[] = {
