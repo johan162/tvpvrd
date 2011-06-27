@@ -90,10 +90,11 @@ fromtimestamp(const time_t timestamp, int* year, int* month, int* day,
 }
 
 /**
- * Get a realtive day specified by a weekday name. This will return a date
+ * Get a relative day specified by a weekday name. This will return a date
  * within the following seven days. If the weekdat name is the same as the
  * current day this will then refer to the next such day within the next
- * seven days.
+ * seven days. If the special value "today" is given the relative day will
+ * be the (obvious) today.
  * @param wdayname
  * @param y
  * @param m

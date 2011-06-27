@@ -359,10 +359,12 @@ hist_listbuff(char *buff, size_t maxlen) {
         (void)localtime_r(&history[i].ts_start, &result);        
         
         snprintf(line,sizeof(line),
+         "%02d "
          "%s %s %02d %02d:%02d "
-         "%-20s"
-         "%-55s"
-         "%-10s\n",  
+         "%-28s"
+         "%-75s"
+         "%-10s\n",
+         i+1,
          wday_name[result.tm_wday], month_name[sm-1], sd,
          sh, smi,
          history[i].title,

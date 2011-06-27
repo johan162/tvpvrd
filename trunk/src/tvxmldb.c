@@ -390,7 +390,7 @@ readXMLFile(const char *filename) {
 
     // Parse the XML file
     doc = xmlParseFile(filename);
-    if (doc == NULL) {
+    if (NULL == doc) {
         logmsg(LOG_ERR, "Unable to open XML Database file: '%s' ( %d : %s )", filename,errno,strerror(errno));
         return -1;
     }
@@ -409,7 +409,7 @@ readXMLFile(const char *filename) {
     if (xmlStrcmp(xmlver, xmldb_version)) {
         logmsg(LOG_NOTICE, "Expected XML DB version '%s' but found version '%s'.",xmldb_version,xmlver);
         if( xatoi((char *)xmlver) > xatoi((char *)xmldb_version) ) {
-            logmsg(LOG_NOTICE, "Can not handle a newer database version. Please upgrade daaemon.");
+            logmsg(LOG_NOTICE, "Can not handle a newer database version. Please upgrade daemon.");
             xmlFreeDoc(doc);
             return -1;
         } else {
@@ -421,11 +421,17 @@ readXMLFile(const char *filename) {
 
 
     node = node->xmlChildrenNode;
-    while (node != NULL) {
+    size_t nodeCnt=0;
+    while (NULL != node) {
         if (xmlStrcmp(node->name, xmldb_nameRecording) == 0) {
+            ++nodeCnt;
             processRecording(node);
         }
         node = node->next;
+    }
+    
+    if( 0 == nodeCnt ) {
+        logmsg(LOG_NOTICE, "XML DB is empty. Contains no records.");    
     }
 
     xmlFreeDoc(doc);

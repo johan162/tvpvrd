@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 #define HISTORYDB_FILENAME "history.xml"
-#define HISTORY_LENGTH 20
+#define HISTORY_LENGTH 30
 
 /**
  * Update history file with name and full path. The actual name

@@ -13,9 +13,9 @@
  * 3.  Start the thread to monitor the recordings
  * 3.1 If it is time to start a recording create a new thread to handle
  *     the recording, reading the file stream from the video device
- *     and storing it on the fileserver.
+ *     and storing it on the file server.
  * 4.  Start the main thread to listen for incoming clients connections
- * 4.1 For each incoming client connection create a new threa to handle
+ * 4.1 For each incoming client connection create a new thread to handle
  *     that client.
  *
  * Each created client thread listens to commands from the client and
@@ -191,7 +191,7 @@ static pthread_t chkrec_thread;
 
 /*
  * cli_ipadr
- * Keep track of IP address for all currrent connected clients.
+ * Keep track of IP address for all current connected clients.
  * Points to a dynamically allocated string buffer to hold the
  * human readable version of the address, e.g. 192.168.0.1
  */
@@ -205,7 +205,7 @@ time_t *client_tsconn;
 
 /*
  * Mutexes to protect
- * 1) The data structure when mutliple clients are connected
+ * 1) The data structure when multiple clients are connected
  * 2) The creation and killing of thread and thread counts
  */
 pthread_mutex_t recs_mutex          = PTHREAD_MUTEX_INITIALIZER;
@@ -809,7 +809,7 @@ chkdirstructure(void) {
  * Start a recording on the specified video stream immediately using the information in the
  * current recording record.
  * This function is only run in its own thread that is created in chkrec() when it decides a
- * new recording should be started. After the recording have been sucessfully finished
+ * new recording should be started. After the recording have been successfully finished
  * the transcoding is initiated.
  */
 void *
@@ -1025,7 +1025,7 @@ startrec(void *arg) {
             } else {
                 _writef(fh, "Simulated writing ended normally after %d seconds at ts=%u\n", used_time, (unsigned)time(NULL));
             }
-            nread = nwrite = 1; // Some dummmy alues to indicate that the fake recording was successfull.
+            nread = nwrite = 1; // Some dummmy values to indicate that the fake recording was successful.
 
 #endif
 
@@ -1089,7 +1089,7 @@ startrec(void *arg) {
             for(int i=0; i < REC_MAX_TPROFILES && strlen(recording->transcoding_profiles[i]) > 0; i++) {
                 get_transcoding_profile(recording->transcoding_profiles[i],&profile);
 
-                // If any of the profiles used requries the mp2 file to be kept explicietely or
+                // If any of the profiles used requires the mp2 file to be kept explicitely or
                 // that no transcoding will be done we keep the mp2 file.
                 keep_mp2_file |= profile->encoder_keep_mp2file | !profile->use_transcoding;
                 char updatedfilename[256];
@@ -1431,7 +1431,7 @@ clientsrv(void *arg) {
                 buffer[1023] = '\0';
                 buffer[numreads] = 0;
 
-                if ( 0 == strcmp("exit\r\n", buffer) ) {
+                if ( 0 == strcmp("exit\r\n", buffer) || 0 == strcmp("quit\r\n", buffer) ) {
                     // Exit command. Exit the loop and close the socket
                     _writef(my_socket,"Goodbye.\n");
                     numreads = -1;
@@ -1549,7 +1549,7 @@ webclientsrv(void *arg) {
     timeout.tv_sec = 2;
     ret = select(my_socket + 1, &read_fdset, NULL, NULL, &timeout);
     if (ret == 0) {
-        logmsg(LOG_ERR, "WEB Browser disconnected due to timeout.");
+        logmsg(LOG_NOTICE, "WEB Browser disconnected due to timeout.");
     } else {
 
         // We have activity so read from the socket and try to interpret the
@@ -1609,7 +1609,7 @@ startupsrv(void) {
 
     // To allow the server to be restarted quickly we set the SO_REUSEADDR flag
     // Otherwise the server would give a "Port in use" error if the server were restarted
-    // within approx. 30s after it was shutdown. This is due to the extra safey wait
+    // within approx. 30s after it was shutdown. This is due to the extra safety wait
     // that Unix does after a socket has been shut down just to be really, really make sure
     // that there is no more data coming.
     int so_flagval = 1;
