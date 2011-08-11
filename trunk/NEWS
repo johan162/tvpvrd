@@ -6,6 +6,18 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+v3.3.1-beta1
+------
+User visible changes:
+    - None 
+
+Bugs fixed:
+    - AMD64 build issue with warning in printf() format string
+
+Internal changes:
+    - None 
+
+
 v3.3.0
 ------
 User visible changes:
