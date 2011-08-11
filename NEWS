@@ -17,6 +17,8 @@ User visible changes:
       in the profile handling of max video rate as well as the h264 naming
       of the preset files. By default to make it more compatible with various
       ffmpeg versions the default preset is now empty.
+      This also removes support for older versions of ffmpeg. Stick with
+      v3.2.1 if you are using older versions of ffmpeg.
 
 Bugs fixed:
     - None 
