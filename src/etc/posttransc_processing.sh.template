@@ -29,13 +29,13 @@ do  case "$o" in
             ;;
     l)      size="$OPTARG"
             ;;
-    [?])    print >&2 "Usage; $0 -f file -l size"
+    [?])    printf >&2 "Usage; $0 -f file -l size\n"
             exit 1
             ;;
     esac
 done
 
-if test -z mpeg4file; then
+if test -z "$mpeg4file"; then
     exit 1
 fi
 

@@ -17,13 +17,13 @@ while getopts s: o
 do  case "$o" in
     s)      station="$OPTARG"
             ;;
-    [?])    print >&2 "Usage; $0 -s station"
+    [?])    printf >&2 "Usage; $0 -s station\n"
             exit 1
             ;;
     esac
 done
 
-if test -z station; then
+if test -z "$station"; then
     exit 1
 fi
 
