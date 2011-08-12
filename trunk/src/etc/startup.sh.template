@@ -36,7 +36,7 @@ do  case "$o" in
             ;;
     a)      autoshutdown="$OPTARG"
             ;;
-    [?])    print >&2 "Usage; $0 -d <base directory> -c <config dir> -a <shutdownflag>"
+    [?])    printf >&2 "Usage; $0 -d <base directory> -c <config dir> -a <shutdownflag>\n"
             exit 1
             ;;
     esac

@@ -26,13 +26,13 @@ while getopts t: o
 do  case "$o" in
     t)      time="$OPTARG"
             ;;
-    [?])    print >&2 "Usage; $0 -t time"
+    [?])    printf >&2 "Usage; $0 -t time\n"
             exit 1
             ;;
     esac
 done
 
-if test -z time; then
+if test -z "$time"; then
     exit 1
 fi
 
