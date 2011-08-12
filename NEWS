@@ -6,7 +6,7 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-v3.3.1-beta1
+v3.3.1
 ------
 User visible changes:
     - None 
@@ -15,7 +15,8 @@ Bugs fixed:
     - AMD64 build issue with warning in printf() format string
 
 Internal changes:
-    - None 
+    - Added "svntag" utility script to tag releases in build process
+      to avoid typing the long repository name every time
 
 
 v3.3.0
