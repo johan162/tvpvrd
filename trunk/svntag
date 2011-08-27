@@ -22,6 +22,6 @@ if test -z "$tag"; then
 fi
 
 
-svn cp -m \""Tagged "$tag\" https://xxtvpvrd.svn.sourceforge.net/svnroot/tvpvrd/trunk https://xxtvpvrd.svn.sourceforge.net/svnroot/tvpvrd/tags/$tag
+svn cp -m \""Tagged "$tag\" https://tvpvrd.svn.sourceforge.net/svnroot/tvpvrd/trunk https://tvpvrd.svn.sourceforge.net/svnroot/tvpvrd/tags/$tag
 
 exit 0
