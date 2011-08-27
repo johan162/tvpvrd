@@ -142,10 +142,10 @@ video_aspect=1
 use_transcoding=yes
 
 #----------------------------------------------------------------------------
-# VIDEO_BITRATE integer [100,1500]
+# VIDEO_BITRATE integer [100,2500]
 # Average video bitrate in kbps
 #----------------------------------------------------------------------------
-video_bitrate=1900
+video_bitrate=1500
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -162,6 +162,21 @@ vcodec=libx264
 # in the command line. This implies that the built in default will be used.
 #----------------------------------------------------------------------------
 vpre=""
+
+#----------------------------------------------------------------------------
+# VPRE1 string
+# The preset used with the vcodec for the first pass in a two pass transcoding. 
+# Corresponds to the ffmpeg -vpre option
+# Note: Different versions of ffmpeg have different presets. The preset you
+# choose must exist in your installation. If this is left empty no preset will 
+# be added in the command line. This implies that the built in default will be used.
+#
+# Some versions of ffmpeg includes a profile called "fast_firstpass" which can 
+# be used since the firstpass is only used to gather statistics and a lot of
+# overhead work is not needed. However make sure that your installation includes
+# this preset. Presets are usually store in /usr/share/ffmpeg/
+#----------------------------------------------------------------------------
+# vpre1="fast_firstpass"
 
 #----------------------------------------------------------------------------
 # PASS integer [1,2]

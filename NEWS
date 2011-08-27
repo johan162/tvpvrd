@@ -6,6 +6,22 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+v3.3.2
+------
+User visible changes:
+    - Added vpre1 setting in profile to control the preset used in the first pass
+      of a two pass encoding.
+    - Changed drop down in Web-GUI for specifying day from "Today" to "Auto" which 
+      better reflects how it actually works. 
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - None.
+
+
+
 v3.3.1
 ------
 User visible changes:

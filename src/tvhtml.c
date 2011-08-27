@@ -286,7 +286,7 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
 }
 
 /**
- * Output a HTML <select> entitie where the key and the display value are different
+ * Output a HTML <select> entity where the key and the display value are different
  * and populate it with the supplied list.
  * @param sockd
  * @param legend
