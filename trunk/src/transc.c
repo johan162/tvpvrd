@@ -405,8 +405,16 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     strncpy(entry->vpre,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VPRE),
             31);
-    entry->size[31] = '\0';
+    entry->vpre[31] = '\0';
 
+    strncpy(buffer,sname,bufsize-1);
+    strncat(buffer,":vpre1",bufsize-1-strlen(buffer)-strlen(buffer));
+    buffer[bufsize-1] = '\0';
+    strncpy(entry->vpre1,
+            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VPRE1),
+            31);
+    entry->vpre1[31] = '\0';    
+    
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":acodec",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
@@ -875,9 +883,17 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
         
     } else {
         // Two pass encoding
-        if( strlen(profile->size) > 0 ) {
+        
+        char vpre1_buffer[128];
+        if( 0 == strlen(profile->vpre1) ) {
+            vpre1_buffer[0] = '\0';
+        } else {
+            snprintf(vpre1_buffer,sizeof(vpre1_buffer)-1,"-vpre %s",profile->vpre1);
+        }                
+
+     if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -b %dk "
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
                     " -an "
                     " -s %s "
                     " -f rawvideo -y %s "
@@ -887,7 +903,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     " -s %s "
                     " -y %s %s > /dev/null 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate, 
+                    profile->vcodec, vpre1_buffer, profile->video_bitrate, 
                     profile->size,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
@@ -898,23 +914,24 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     destfile);
         } else {
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s -vpre fast_firstpass -b %dk "
+                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
                     " -an "
                     " -f rawvideo -y %s "
                     "/dev/null > /dev/null 2>&1; "
-                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s -vpre %s -b %dk "
+                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s %s -b %dk "
                     "-acodec %s -ab %dk "
                     " -y %s %s > /dev/null 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate,
+                    profile->vcodec, vpre1_buffer, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->vpre, profile->video_bitrate, 
+                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->extra_ffmpeg_options,
                     destfile);           
         }
     }
+    
 #ifdef OLDER_FFMPEG
     logmsg(LOG_NOTICE, "[Using old style] ffpmeg command: %s", cmd);
 #else
@@ -926,7 +943,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 }
 
 /**
- * Kille ongoing transcoding with index idx
+ * Kill ongoing transcoding with index idx
  * @param idx
  */
 int
