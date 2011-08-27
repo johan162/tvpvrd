@@ -164,6 +164,21 @@ vcodec=libx264
 vpre=""
 
 #----------------------------------------------------------------------------
+# VPRE1 string
+# The preset used with the vcodec for the first pass in a two pass transcoding. 
+# Corresponds to the ffmpeg -vpre option
+# Note: Different versions of ffmpeg have different presets. The preset you
+# choose must exist in your installation. If this is left empty no preset will 
+# be added in the command line. This implies that the built in default will be used.
+#
+# Some versions of ffmpeg includes a profile called "fast_firstpass" which can 
+# be used since the firstpass is only used to gather statistics and a lot of
+# overhead work is not needed. However make sure that your installation includes
+# this preset. Presets are usually store in /usr/share/ffmpeg/
+#----------------------------------------------------------------------------
+# vpre1="fast_firstpass"
+
+#----------------------------------------------------------------------------
 # PASS integer [1,2]
 # Number of encoding pass. Must be 1 or 2
 #----------------------------------------------------------------------------
