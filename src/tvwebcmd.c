@@ -962,9 +962,17 @@ web_cmd_qadd(int sockd) {
  */
 void
 web_cmd_add_del(int sockd) {
-    static const char *day_list[] = {
-        "Today", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+    static const struct skeysval_t  day_list[] = {
+        {"","Auto"},
+        {"Mon","Mon"},
+        {"Tue","Tue"},
+        {"Wed","Wed"},
+        {"Thu","Thu"},
+        {"Fri","Fri"},
+        {"Sat","Sat"},
+        {"Sun","Sun"} 
     };
+
     const size_t n_day = 8;
     static const struct skeysval_t rpt_list[] = {
         {.key = "", .val = "(none)"},
@@ -1010,7 +1018,9 @@ web_cmd_add_del(int sockd) {
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_station");
     html_element_select_code(sockd, "Repeat:", "repeat", NULL, rpt_list, n_rpt,"id_rpttype");
     html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
-    html_element_select(sockd, "Day:", "start_day", NULL, day_list, n_day, "id_start");
+    
+    html_element_select_code(sockd, "Day:", "start_day", NULL, day_list, n_day, "id_start");
+    
     html_element_select(sockd, "Start:", "start_hour", "18", hour_list, n_hour, "id_starthour");
     html_element_select(sockd, "&nbsp;", "start_min", NULL, min_list_start, n_min_start, NULL);
     _writef(sockd, "<div class=\"input_container\" id=\"be_hyphen\"><span class=\"be_hyphen\"> &rarr; </span></div>");
