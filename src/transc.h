@@ -61,6 +61,13 @@ extern "C" {
 #define DEFAULT_PROFILE_VPRE ""
 
 /*
+ * DEFAULT_VPRE string
+ * Default preset for the -vpre setting for ffmpeg. Use mepty string and let ffmpeg
+ * decide.
+ */
+#define DEFAULT_PROFILE_VPRE1 ""
+
+/*
  * DEFAULT_PROFILE_VIDEO_BITRATE integre
  * Default video bitrate in kbps
  */
@@ -207,6 +214,7 @@ struct transcoding_profile_entry {
     unsigned audio_bitrate;
     char size[32];
     char vpre[32];
+    char vpre1[32];
     char vcodec[32];
     char acodec[32];
     char file_extension[16];
