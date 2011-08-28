@@ -892,54 +892,61 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int 
 
     // The loop below gets a bit "overly" complicated due to the fact that when we want to
     // format the last row with another CSS style compared with the inner row. This means
-    // that we must klnow when we are on the last row. If we could just loop through all the
-    // entries thatwould be trivial. However, when we only want to print non-recurring
+    // that we must know when we are on the last row. If we could just loop through all the
+    // entries that would be trivial. However, when we only want to print non-recurring
     // recordings we have no way of knowing in advance which entry is the last one. So to handle
     // this we keep a running recording of the last seen entry which gest printed outside the
     // loop with the special last row CSS. 
-    int nbr=0;
-    struct recording_entry *last=entries[0];
-    size_t i=1;
-    while( i < k && max > 0 ) {
-        if( !only_nonrepeat || ( !last->recurrence && only_nonrepeat) ) {
-            if( nbr % 2 )
-                dumprecord_row(last, tmpbuffer, n_tmpbuff, nbr+1, &ts.odd_row, FALSE, use_csshtml);
-            else
-                dumprecord_row(last, tmpbuffer, n_tmpbuff, nbr+1, &ts.even_row, FALSE, use_csshtml);
 
-            if( strlen(tmpbuffer) >= (size_t)max ) {
-                max = -1;
-                logmsg(LOG_ERR,"Internal error. Not enough memory allocated for recording list");
-            } else {
-                strncat(buffer,tmpbuffer,max-1);
-                max -= strlen(tmpbuffer);
-            }
-            ++nbr;
-        }
-        last=entries[i++];
-        if( only_nonrepeat ) {
-            while( i < k && last->recurrence ) {
-                last=entries[i++];
-            }
-            while( i < k && entries[i]->recurrence ) i++;
-        }
+
+    // we need to identify the special case where we have only one row. In that case if must
+    // be treated as the last row directly. To find this out we have to do the loop once first
+    // just to count how many records we should print and then we print them. 
+
+    struct recording_entry **recs_to_dump = calloc(k, sizeof (struct recording_entry *));
+    size_t nbr_recs=0;
+    struct recording_entry *entry;
+    for( size_t i=0; i < k; ++i ) {
+      entry = entries[i];
+      if( !only_nonrepeat || (only_nonrepeat && ! entry->recurrence)) {
+	  recs_to_dump[nbr_recs] = entry;
+	  ++nbr_recs;
+      }
     }
 
+    
+    for(size_t i=0; nbr_recs > 0 &&  i < nbr_recs-1 && max > 0; i++ ) {
+      if( i % 2 )
+	dumprecord_row(recs_to_dump[i], tmpbuffer, n_tmpbuff, i+1, &ts.odd_row, FALSE, use_csshtml);
+      else
+	dumprecord_row(recs_to_dump[i], tmpbuffer, n_tmpbuff, i+1, &ts.even_row, FALSE, use_csshtml);
 
-    if( (!only_nonrepeat && 0==nbr) || (last->recurrence && only_nonrepeat) ) {
+      if( strlen(tmpbuffer) >= (size_t)max ) {
+	max = -1;
+	logmsg(LOG_ERR,"Internal error. Not enough memory allocated for recording list");
+      } else {
+	strncat(buffer,tmpbuffer,max-1);
+	max -= strlen(tmpbuffer);
+      }
+    }
+
+    // Now print the last row. This can either be a normal row with the formatting
+    // for a last row or it could be the string "(No recordings)" to indicate an empty list
+
+    if( 0==nbr_recs ) {
         if( use_csshtml ) {
             snprintf(tmpbuffer, n_tmpbuff,
                 "<tr><td style=\"%s\">&nbsp;</td><td style=\"%s font-style:italic;text-align:center;\" colspan=5>(No recordings)</td><td style=\"%s\">&nbsp;</td></tr>",
                 ts.last_even_row.td_l,ts.last_even_row.td_i,ts.last_even_row.td_r);
         } else {
             snprintf(tmpbuffer, n_tmpbuff,"                        (No recordings)\n\n");
-        }
+        }      
     } else {
-        // Print the last row with the "special" last row
-        if( nbr % 2 )
-            dumprecord_row(last, tmpbuffer, n_tmpbuff, nbr+1, &ts.last_odd_row, FALSE, use_csshtml);
-        else
-            dumprecord_row(last, tmpbuffer, n_tmpbuff, nbr+1, &ts.last_even_row, FALSE, use_csshtml);
+      if( nbr_recs % 2 )
+	dumprecord_row(recs_to_dump[nbr_recs-1], tmpbuffer, n_tmpbuff, nbr_recs, &ts.last_odd_row, FALSE, use_csshtml);
+      else
+	dumprecord_row(recs_to_dump[nbr_recs-1], tmpbuffer, n_tmpbuff, nbr_recs, &ts.last_even_row, FALSE, use_csshtml);
+      
     }
 
     if( strlen(tmpbuffer) >= (size_t)max ) {
@@ -949,6 +956,7 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int 
         strncat(buffer,tmpbuffer,max-1);
         max -= strlen(tmpbuffer);
     }
+   
 
     if( max > 0 && use_csshtml ) {
         snprintf(tmpbuffer,n_tmpbuff,"</table>\n");
