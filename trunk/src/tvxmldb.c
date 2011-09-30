@@ -391,8 +391,13 @@ readXMLFile(const char *filename) {
     // Parse the XML file
     doc = xmlParseFile(filename);
     if (NULL == doc) {
-        logmsg(LOG_ERR, "Unable to open XML Database file: '%s' ( %d : %s )", filename,errno,strerror(errno));
-        return -1;
+        logmsg(LOG_NOTICE, "Unable to open XML Database file. Will try again in 5s: '%s' ( %d : %s )", filename,errno,strerror(errno));
+        sleep(5);
+        doc = xmlParseFile(filename);
+        if (NULL == doc) {
+            logmsg(LOG_ERR, "Unable to open XML Database file. Will try again in 5s: '%s' ( %d : %s )", filename,errno,strerror(errno));
+            return -1;   
+        }
     }
 
     node = xmlDocGetRootElement(doc);
