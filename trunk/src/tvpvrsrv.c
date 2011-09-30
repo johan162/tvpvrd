@@ -1882,8 +1882,8 @@ main(int argc, char *argv[]) {
     setenv("LC_ALL",locale_name,1);
     logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
 
-    // Hold the virtual breath if the dameon is started the same time as the server
-    // is powerd on to allow for the ntpd time daemon to correct a potential wrong
+    // Hold the virtual breath if the daemon is started the same time as the server
+    // is powered on to allow for the ntpd time daemon to correct a potential wrong
     // system time.
     int uptime=0, idletime=0;
     getuptime(&uptime,&idletime);
@@ -1960,6 +1960,9 @@ main(int argc, char *argv[]) {
 
     // Initialize all the data structures that stores our recording
     init_globs();
+    
+    // Run the optional startup script supplied by the user
+    chk_startupscript();    
 
     // Read the initial recording DB from the specified file on either the
     // command line or from the ini-file. The command line always override
@@ -1979,9 +1982,9 @@ main(int argc, char *argv[]) {
     // block all signals in all other threads
 
     // We want to block all signals apart from the OS system signals
-    // that indicates a serious error inthe program (like a segmentation
+    // that indicates a serious error in the program (like a segmentation
     // violation or a /very unlikely bus error). We also allow SIGQUIT
-    // as a mean to foce a coredump in a different way.
+    // as a mean to force a coredump in a different way.
     sigfillset( &signal_set );
     sigdelset( &signal_set , SIGSEGV);
     sigdelset( &signal_set , SIGQUIT);
@@ -1990,7 +1993,7 @@ main(int argc, char *argv[]) {
         sigdelset( &signal_set , SIGINT);
     }
 
-    // The signla thread will set a volatile global flag that is checked
+    // The signal thread will set a volatile global flag that is checked
     // in the recording thread to detect a shutdown and handle that gracefully.
     pthread_sigmask( SIG_BLOCK, &signal_set, NULL );
     pthread_create( &signal_thread, NULL, sighand_thread, NULL );
@@ -2028,8 +2031,6 @@ main(int argc, char *argv[]) {
     }
 #endif
 
-    // Run the optional startup script supplied by the user
-    chk_startupscript();
     
     // Initialize history from file (of previous recordings)
     hist_init();
@@ -2046,7 +2047,13 @@ main(int argc, char *argv[]) {
         logmsg(LOG_ERR,"Unable to start '%s' server.",program_invocation_short_name);
         exit(EXIT_FAILURE);
     }
-        
+
+    //*********************************************************************************
+    //*********************************************************************************
+    //**     This is the shutdown point of the program                               **
+    //*********************************************************************************
+    //*********************************************************************************    
+    
     logmsg(LOG_INFO,"Received signal %d. Shutting down ...",received_signal);
     
     pthread_mutex_lock(&recs_mutex);
