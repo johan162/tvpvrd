@@ -4,7 +4,7 @@
 # Use autoreconf to rebuild the build environment
 # ===============================================================================
 AC_PREREQ([2.65])
-AC_INIT([tvpvrd],[3.3.2],[johan162@gmail.com])
+AC_INIT([tvpvrd],[3.3.3],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2011])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 silent-rules])

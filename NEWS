@@ -6,6 +6,20 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+v3.3.3
+------
+User visible changes:
+    - Accept both "exit" and "quit" to quit from shell
+    - Added list header for 'lh' command
+
+Bugs fixed:
+    - Fixed a wrong "No recordings" text at end of listing of single recordings in
+      one circumstance (when only one recording exists) 
+
+Internal changes:
+    - Read startup script before XML database is read
+
+
 v3.3.2
 ------
 User visible changes:
