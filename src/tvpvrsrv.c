@@ -150,7 +150,7 @@ char server_program_name[32] = {0};
 // this delay only kicks in if the daemon is started within 3 minutes of the
 // machine power on. This can also be adjusted as an argument when starting
 // the daemon (-t)
-int tdelay=15;
+int tdelay=30;
 
 // The video buffer (used when reading the video stream from the capture card)
 // One buffer for each video card. We support up to 4 simultaneous cards
@@ -1841,7 +1841,7 @@ main(int argc, char *argv[]) {
     strncpy(prognamebuffer,argv[0],256);
     strncpy(server_program_name,basename(prognamebuffer),31);
     server_program_name[31] = '\0';
-
+    
     // Parse and set cmd line options
     parsecmdline(argc,argv);
 
@@ -1871,31 +1871,6 @@ main(int argc, char *argv[]) {
     // Setup name for inifile and initialize dictionary
     setup_inifile();
 
-    /* In case we are started as a daemon from a boot script we most likely
-     * have a faulty locale. If the locale is set in the INI file we will use
-     * that one instead.
-     */
-    strncpy(locale_name,
-            iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
-            255);
-    logfile_name[255] = '\0';
-    setenv("LC_ALL",locale_name,1);
-    logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
-
-    // Hold the virtual breath if the daemon is started the same time as the server
-    // is powered on to allow for the ntpd time daemon to correct a potential wrong
-    // system time.
-    int uptime=0, idletime=0;
-    getuptime(&uptime,&idletime);
-    if( uptime < 180 ) {
-        syslog(LOG_DEBUG,"Sleeping an extra %d seconds before we go to work",tdelay);
-        sleep((unsigned)tdelay);
-    }
-
-    // Remember when the server was started
-    tzset();
-    ts_serverstart = time(NULL);
-
     if( -1 == verbose_log ) {
         verbose_log = iniparser_getint(dict, "config:verbose_log", VERBOSE_LOG);
     }
@@ -1911,6 +1886,34 @@ main(int argc, char *argv[]) {
            server_version,
            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
     logmsg(LOG_INFO,"Using ini-file '%s'",inifile);          
+
+
+    /* In case we are started as a daemon from a boot script we most likely
+     * have a faulty locale. If the locale is set in the INI file we will use
+     * that one instead.
+     */
+    strncpy(locale_name,
+            iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
+            255);
+    logfile_name[255] = '\0';
+    setenv("LC_ALL",locale_name,1);
+    logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
+
+    // Remember when the server was started
+    tzset();
+    ts_serverstart = time(NULL);
+
+    // Hold the virtual breath if the daemon is started the same time as the server
+    // is powered on. This will allow two things:
+    // 1) the ntpd time daemon to correct a potential wrong system time before we start and
+    // 2) any remote fs mounts that needs to finish
+    int uptime=0, idletime=0;
+    getuptime(&uptime,&idletime);
+    logmsg(LOG_DEBUG,"Server uptime when daemon starts is: %d",uptime);
+    if( uptime < 180 ) {
+        logmsg(LOG_DEBUG,"Sleeping an extra %d seconds before we go to work",tdelay);
+        sleep((unsigned)tdelay);
+    }
     
     if( -1 == daemonize ) {
         daemonize = iniparser_getboolean(dict, "config:daemonize", DEFAULT_DAEMONIZE);
