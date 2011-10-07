@@ -145,7 +145,7 @@ use_transcoding=yes
 # VIDEO_BITRATE integer [100,2500]
 # Average video bitrate in kbps
 #----------------------------------------------------------------------------
-video_bitrate=1500
+video_bitrate=1400
 
 #----------------------------------------------------------------------------
 # VCODEC string
