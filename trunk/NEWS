@@ -9,18 +9,21 @@ Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 v3.3.3
 ------
 User visible changes:
-    - Accept both "exit" and "quit" to quit from shell
-    - Added list header for 'lh' command, improved list layout
-    - Adjusted profile settings for tnormal and thigh profiles
+    - Accept both "exit" and "quit" to quit from shell.
+    - Added list header for 'lh' command, improved list layout.
+    - Adjusted profile settings for tnormal and thigh profiles.
 
 Bugs fixed:
     - Fixed a wrong "No recordings" text at end of listing of single recordings in
-      one circumstance (when only one recording exists) 
+      one circumstance (when only one recording exists). 
 
 Internal changes:
-    - Read startup script before XML database is read
+    - Read startup script before XML database is read.
     - Adjusted some modules startup order to be able to get log printout even earlier
       in startup phase.
+    - Add a longer delay (sleep) in startup if the daemon detect it is started at the 
+      same time as the server is powered on to allow all fs remote mounts to finish safely
+      before the daemon tries to access the file system.
 
 
 v3.3.2
