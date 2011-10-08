@@ -507,7 +507,7 @@ cmd_loop(void) {
             finished = TRUE;
         } else {
             xstrtrim(buffer);
-            if (0 == strncmp(buffer, "exit", 4)) {
+            if ( (0 == strncmp(buffer, "exit", 4)) || (0 == strncmp(buffer, "quit", 4))) {
                 finished = TRUE;
             } else {
                 if (buffer && *buffer) {
