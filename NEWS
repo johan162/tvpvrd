@@ -10,7 +10,8 @@ v3.3.3
 ------
 User visible changes:
     - Accept both "exit" and "quit" to quit from shell
-    - Added list header for 'lh' command
+    - Added list header for 'lh' command, improved list layout
+    - Adjusted profile settings for tnormal and thigh profiles
 
 Bugs fixed:
     - Fixed a wrong "No recordings" text at end of listing of single recordings in
@@ -18,6 +19,8 @@ Bugs fixed:
 
 Internal changes:
     - Read startup script before XML database is read
+    - Adjusted some modules startup order to be able to get log printout even earlier
+      in startup phase.
 
 
 v3.3.2
