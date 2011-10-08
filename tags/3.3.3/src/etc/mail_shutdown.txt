@@ -1,0 +1,6 @@
+Server [SERVER] powered off at [TIME]
+
+Wakeup time: [WAKEUPTIME]
+Next recording: [NEXTREC]
+
+[RTC_STATUS]
