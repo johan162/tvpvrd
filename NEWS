@@ -11,8 +11,10 @@ v3.3.4
 ------
 User visible changes:
     - Added check at startup that all specified channels in the station/channel alias
-     file (e.g. xawtv) really exists in the frequency map used. Give a fatal error in
-     case of error.
+      file (e.g. xawtv) really exists in the frequency map used. Give a fatal error in
+      case of error.
+    - "List all" now uses the same format for the listing as as "List single" and 
+      "List repeat" commands. (This has bother my esthetic side for a long time!)
 
 Bugs fixed:
     - None.
