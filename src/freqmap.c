@@ -1009,9 +1009,10 @@ read_xawtvfile(const char *name) {
 
     rdict = iniparser_load(name);
     if( rdict == NULL ) {
-        logmsg(LOG_ERR,"Could not read xawtv channel file '%s' (%d ; %s). ",name,errno,strerror(errno));
+        logmsg(LOG_ERR,"Could not read channel/station alias file '%s' (%d ; %s). ",name,errno,strerror(errno));
         return -1;
     }
+    logmsg(LOG_DEBUG,"Reading channel/station alias file '%s'",name);
 
     // Loop through all sections to find the corresponding channel
     int nsec = iniparser_getnsec(rdict);
@@ -1021,16 +1022,27 @@ read_xawtvfile(const char *name) {
         strncpy(buffer,sname,sizeof(buffer)-1);
         strncat(buffer,":channel",sizeof(buffer)-1-strlen(sname));
         buffer[63] = '\0';
-        char *station_name = iniparser_getstring(rdict,buffer,NULL);
-        if( station_name ) {
+        char *channel_name = iniparser_getstring(rdict,buffer,NULL);
+        if( channel_name ) {
             strncpy(station_map[num_stations].name,sname,31);
             station_map[num_stations].name[31] = '\0';
-            strncpy(station_map[num_stations].channel,station_name,31);
+            strncpy(station_map[num_stations].channel,channel_name,31);
             station_map[num_stations].channel[31] = '\0';
+            
+            // Check that the channel really exists in the frequency map specified.
+            // This means that set_current_freqmap() has to be called prior to
+            // this function
+            unsigned int freq;
+            logmsg(LOG_DEBUG,"Checking that channel \"%s\" (for station \"%s\") exists in freq. map",channel_name,sname);
+            if( -1 == getfreqfromch(&freq, channel_name) ) {
+                logmsg(LOG_ERR,"Channel \"%s\" set for station name \"%s\" in '%s' does not exist in current frequency map.",channel_name,sname,name);
+                return -1;                
+            }
+                                   
             num_stations++;
         }
-    }
-    logmsg(LOG_NOTICE,"Read xawtv channel file '%s'. Found %d stations.",name,num_stations);
+    }    
+    logmsg(LOG_NOTICE,"Successfully read station/channel alias file '%s'. Found %d stations.",name,num_stations);
     return 0;
 }
 
