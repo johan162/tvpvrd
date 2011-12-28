@@ -252,7 +252,7 @@ dumprecord_header(int style, char *buffer, size_t bufflen);
  * @param buffer
  * @param bufflen
  */
-void dumprecord(struct recording_entry* entry, int style, char *buffer, size_t bufflen);
+void dumprecord(struct recording_entry* entry, int style, size_t idx, char *buffer, size_t bufflen);
 
 /**
  * Dump a string representation of the record with the specified id to the stated buffer
@@ -264,7 +264,7 @@ void dumprecord(struct recording_entry* entry, int style, char *buffer, size_t b
  * @return
  */
 int
-dumprecordid(unsigned seqnbr, int repeats, int style, char *buffer, size_t bufflen);
+dumprecordid(unsigned seqnbr, int repeats, int style, size_t idx, char *buffer, size_t bufflen);
 
 /**
  * Dump a list of all future recordings to the given file descriptor

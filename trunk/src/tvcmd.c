@@ -1143,7 +1143,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 freerec(entry);
                 err = 5;
             } else {
-                dumprecordid((unsigned)ret, 1, 0, msgbuff, 2047);
+                dumprecordid((unsigned)ret, 1, 0, 0, msgbuff, 2047);
             }
         }
     }
@@ -1856,7 +1856,7 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
     *msgbuff = '\0';
     for (i = 0; i < (unsigned)max_video; i++) {
         if (ongoing_recs[i]) {
-            dumprecord(ongoing_recs[i], 0, tmpbuff, 511);
+            dumprecord(ongoing_recs[i], 0, 0, tmpbuff, 511);
             strncat(msgbuff, tmpbuff, left);
             left -= strlen(tmpbuff);
         }
@@ -2263,7 +2263,7 @@ _cmd_nextrec(const char *cmd, int sockfd) {
             int minutes = (until - hours*3600)/60;
             _writef(sockfd,"(%02d:%02d) : ",hours,minutes);
             */
-            dumprecord(recs[REC_IDX(video, 0)], cmd[1] == 'l' ? 2 : 0,  tmpbuff, 512);
+            dumprecord(recs[REC_IDX(video, 0)], cmd[1] == 'l' ? 2 : 0, 0,  tmpbuff, 512);
             _writef(sockfd,tmpbuff);
         }
     }
