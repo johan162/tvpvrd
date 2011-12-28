@@ -1,8 +1,8 @@
 #!/bin/sh
 #-----------------------------------------------------------
-# Utility script to tage releases
+# Utility script to tag releases
 # $Id$
-# -tag <tag>   Tag to use
+# Usage: svntag -t <tag>   Tag to use
 #-----------------------------------------------------------
 
 tag=
