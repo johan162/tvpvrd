@@ -6,6 +6,20 @@ $Id$
 Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+
+v3.3.4
+------
+User visible changes:
+    - Added check at startup that all specified channels in the station/channel alias
+     file (e.g. xawtv) really exists in the frequency map used. Give a fatal error in
+     case of error.
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - None.
+
 v3.3.3
 ------
 User visible changes:

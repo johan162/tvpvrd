@@ -365,12 +365,6 @@ read_inisettings(void) {
     }
 
     if( is_master_server ) {
-        if( -1 == read_xawtvfile(xawtv_channel_file) ) {
-            logmsg(LOG_ERR,
-                    "FATAL error. "
-                    "Could not read specified xawtv station file '%s'",xawtv_channel_file);
-            exit(EXIT_FAILURE);
-        }
         strncpy(frequencymap_name,
                 iniparser_getstring(dict, "config:frequency_map", DEFAULT_FREQUENCY_MAP),
                 MAX_FMAPNAME_LENGTH-1);
@@ -381,6 +375,12 @@ read_inisettings(void) {
                     "Invalid frequency map specified (%s).\n",frequencymap_name);
             exit(EXIT_FAILURE);
         }
+        if( -1 == read_xawtvfile(xawtv_channel_file) ) {
+            logmsg(LOG_ERR,
+                    "FATAL error. "
+                    "Could not correctly parse station/channel alias file '%s'. Please check that all channel name exists in the specified frequency map.",xawtv_channel_file);
+            exit(EXIT_FAILURE);
+        }        
     }
 
     strncpy(datadir,
