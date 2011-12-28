@@ -494,7 +494,7 @@ init_globs(void) {
 }
 
 /*
- * This is the signal receiveing thread. In order to gurantee that we don't get any
+ * This is the signal receiving thread. In order to guarantee that we don't get any
  * deadlocks all signals is masked in all other threads and only this thread can receive
  * signals. The function then sets the global variable handled_signal
  */
@@ -1184,7 +1184,7 @@ chkrec(void *arg) {
         // If auto shutdown has been enabled the the server will be
         // shutdown if there is no ongoing recording/transcoding and the
         // next recording is at least MIN_SHUTDOWN_TIME away.
-        // If the function detrmines that it is time to shutdown it will
+        // If the function determines that it is time to shutdown it will
         // call an external script that will do the actual shutdown. In that
         // case this function will never return.
         check_for_shutdown();
@@ -1210,7 +1210,7 @@ chkrec(void *arg) {
                 diff = now - recs[REC_IDX(video, 0)]->ts_start;
 
                 // If the recording is more than 10 min off then we consider this a missed
-                // oppportunity. We remove this recording to be able to try the next one in
+                // opportunity. We remove this recording to be able to try the next one in
                 // sequence.
 
                 // Flag to keep track if we should update the XML DB file or not
@@ -1845,6 +1845,8 @@ main(int argc, char *argv[]) {
     // Parse and set cmd line options
     parsecmdline(argc,argv);
 
+    // Setup process lockfile that indicates that we are running to avoid
+    // that the daemon can be started twice
     setup_lockfile();
 
     // Setup MALLOC to dump in case of memory corruption, i.e. double free
@@ -1856,8 +1858,8 @@ main(int argc, char *argv[]) {
 
     // Keep track ourself of PCRE memory so we use our own
     // memory routines. This is a necessary safety due to the way
-    // the PCRE library is implemeented. It is very easy to get a
-    // memory leak in the usage fo these routines unless one is
+    // the PCRE library is implemented. It is very easy to get a
+    // memory leak in the usage for these routines unless one is
     // very careful and never makes a single mistake ...
     pcre_malloc = tvp_malloc;
     pcre_free = tvp_free;
@@ -1871,6 +1873,7 @@ main(int argc, char *argv[]) {
     // Setup name for inifile and initialize dictionary
     setup_inifile();
 
+    // Setup logfile name
     if( -1 == verbose_log ) {
         verbose_log = iniparser_getint(dict, "config:verbose_log", VERBOSE_LOG);
     }
