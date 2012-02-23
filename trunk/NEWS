@@ -7,6 +7,23 @@ Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
 
+v3.3.5
+------
+User visible changes:
+    - The history XML DB now includes human readable version of the start and end
+      times. This makes it easier to use a XSL stylesheets to display the DB directly
+      in browser. Otherwise a timestamp conversion must be carried out in XSL which
+      requires EXSL to be within reason. Unfortunately very few browsers implement
+      EXSL directly so the timestamp would force conversion to HTML via for example
+      'xsltproc' first.
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - None.
+
+
 v3.3.4
 ------
 User visible changes:
