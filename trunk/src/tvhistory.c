@@ -85,7 +85,7 @@ Example history file
  
  */
 
-#define XMLHISTDB_VERSIONNUM "1"
+#define XMLHISTDB_VERSIONNUM "2"
 
 static const xmlChar *xmldb_version = (xmlChar *) XMLHISTDB_VERSIONNUM;
 static const xmlChar *xmldb_nameText = (xmlChar *) "text";
@@ -95,6 +95,10 @@ static const xmlChar *xmldb_nameRecording = (xmlChar *) "recording";
 static const xmlChar *xmldb_nameTitle = (xmlChar *) "title";
 static const xmlChar *xmldb_nameStart = (xmlChar *) "timestampstart";
 static const xmlChar *xmldb_nameEnd = (xmlChar *) "timestampend";
+static const xmlChar *xmldb_nameStartDate = (xmlChar *) "datestart";
+static const xmlChar *xmldb_nameEndDate = (xmlChar *) "dateend";
+static const xmlChar *xmldb_nameStartTime = (xmlChar *) "timestart";
+static const xmlChar *xmldb_nameEndTime = (xmlChar *) "timeend";
 static const xmlChar *xmldb_nameFilepath = (xmlChar *) "filepath";
 static const xmlChar *xmldb_nameProfile = (xmlChar *) "profile";
 
@@ -104,6 +108,9 @@ processRecord(xmlNodePtr node) {
 
     node = node->xmlChildrenNode;
     
+    /* Note: We only read the timestamp for the start and end since the
+     * human readable form can be inferred from the timestamps
+     */
     while (node != NULL ) {
         // Ignore text in between proper child tags
         if ( xmlStrcmp(node->name, xmldb_nameText) ) {
@@ -177,7 +184,7 @@ tvhist_read(void) {
     // Check that the version of the file is the expected
     xmlver = xmlGetProp(node, xmldb_nameVersion);
     if (xmlStrcmp(xmlver, xmldb_version)) {
-        logmsg(LOG_NOTICE, "Expected XML history DB version '%s' but found version '%s'.", xmldb_version, xmlver);
+        logmsg(LOG_NOTICE, "Expected XML history DB version '%s' but found version '%s'. Will be converted to new version on save.", xmldb_version, xmlver);
         if (xatoi((char *) xmlver) > xatoi((char *) xmldb_version)) {
             logmsg(LOG_NOTICE, "Can not handle a newer history DB version. Please upgrade daaemon.");
             xmlFreeDoc(doc);
@@ -233,12 +240,24 @@ tvhist_write(void) {
     }
     _writef(fd, "<!-- Created: %s -->\n", ctime(&now));
     _writef(fd, "<%s %s=\"%s\">\n", xmldb_root, xmldb_nameVersion, xmldb_version);
+    
+    // Convert timestamps to more human readable form
+    int syear, smonth, sday, shour, smin, ssec,
+        eyear, emonth, eday, ehour, emin, esec;
+    
+
 
     for (size_t i = 0; i < nrecs; ++i) {
+        fromtimestamp(history[i].ts_start, &syear, &smonth, &sday, &shour, &smin, &ssec);
+        fromtimestamp(history[i].ts_end, &eyear, &emonth, &eday, &ehour, &emin, &esec);
         _writef(fd, "  <%s>\n", xmldb_nameRecording);
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameTitle, history[i].title, xmldb_nameTitle);
         _writef(fd, "    <%s>%lld</%s>\n", xmldb_nameStart, (long long int)history[i].ts_start, xmldb_nameStart);
         _writef(fd, "    <%s>%lld</%s>\n", xmldb_nameEnd, (long long int)history[i].ts_end, xmldb_nameEnd);
+        _writef(fd, "    <%s>%04d-%02d-%02d</%s>\n", xmldb_nameStartDate, syear, smonth, sday);
+        _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameStartTime, shour, smin, ssec);
+        _writef(fd, "    <%s>%04d-%02d-%02d</%s>\n", xmldb_nameEndDate, eyear, emonth, eday);
+        _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameEndTime, ehour, emin, esec);        
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameFilepath, history[i].filepath, xmldb_nameFilepath);
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameProfile, history[i].profile, xmldb_nameProfile);
         _writef(fd, "  </%s>\n", xmldb_nameRecording);
