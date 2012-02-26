@@ -254,10 +254,10 @@ tvhist_write(void) {
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameTitle, history[i].title, xmldb_nameTitle);
         _writef(fd, "    <%s>%lld</%s>\n", xmldb_nameStart, (long long int)history[i].ts_start, xmldb_nameStart);
         _writef(fd, "    <%s>%lld</%s>\n", xmldb_nameEnd, (long long int)history[i].ts_end, xmldb_nameEnd);
-        _writef(fd, "    <%s>%04d-%02d-%02d</%s>\n", xmldb_nameStartDate, syear, smonth, sday);
-        _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameStartTime, shour, smin, ssec);
-        _writef(fd, "    <%s>%04d-%02d-%02d</%s>\n", xmldb_nameEndDate, eyear, emonth, eday);
-        _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameEndTime, ehour, emin, esec);        
+        _writef(fd, "    <%s>%04d-%02d-%02d</%s>\n", xmldb_nameStartDate, syear, smonth, sday, xmldb_nameStartDate);
+        _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameStartTime, shour, smin, xmldb_nameStartTime);
+        _writef(fd, "    <%s>%04d-%02d-%02d</%s>\n", xmldb_nameEndDate, eyear, emonth, eday, xmldb_nameEndDate);
+        _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameEndTime, ehour, emin, xmldb_nameEndTime);        
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameFilepath, history[i].filepath, xmldb_nameFilepath);
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameProfile, history[i].profile, xmldb_nameProfile);
         _writef(fd, "  </%s>\n", xmldb_nameRecording);
