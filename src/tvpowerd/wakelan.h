@@ -8,7 +8,7 @@
  *
  * Note:        Portions of this code taken from newsgroups.
  * 
- * Copyright (C) 2009,2010,2011 Johan Persson
+ * Copyright (C) 2009,2010,2011,2012 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

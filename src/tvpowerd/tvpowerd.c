@@ -14,7 +14,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011 Johan Persson
+ * Copyright (C) 2009,2010,2011,2012 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -271,7 +271,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'h':
                 fprintf(stdout,
-                        "(C) 2009,2010,2011 Johan Persson, (johan162@gmail.com) \n"
+                        "(C) 2009,2010,2011,2012 Johan Persson, (johan162@gmail.com) \n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
                         "Usage: %s [options]\n"
@@ -291,7 +291,7 @@ parsecmdline(int argc, char **argv) {
             case 'v':
                 fprintf(stdout,"%s %s (build: %lu.%lu)\n%s",
                         server_program_name,server_version,(unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER,
-                        "Copyright (C) 2009,2010,2011 Johan Persson (johan162@gmail.com)\n"
+                        "Copyright (C) 2009,2010,2011,2012 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
                 exit(EXIT_SUCCESS);

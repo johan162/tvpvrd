@@ -22,7 +22,7 @@
  * giving the command to the command interpretator for parsing and
  * execution.
  *
- * Copyright (C) 2009,2010,2011 Johan Persson
+ * Copyright (C) 2009,2010,2011,2012 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -306,7 +306,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'h':
                 fprintf(stdout,
-                        "'%s' (C) 2009,2010,2011 Johan Persson, (johan162@gmail.com) \n"
+                        "'%s' (C) 2009,2010,2011,2012 Johan Persson, (johan162@gmail.com) \n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 #ifdef DEBUG_SIMULATE
@@ -339,7 +339,7 @@ parsecmdline(int argc, char **argv) {
 #ifdef DEBUG_SIMULATE
                         " *** DEBUG BUILD. WILL NOT RECORD REAL VIDEO STREAMS *** \n"
 #endif
-                        "Copyright (C) 2009,2010,2011 Johan Persson (johan162@gmail.com)\n"
+                        "Copyright (C) 2009,2010,2011,2012 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
                 exit(EXIT_SUCCESS);
