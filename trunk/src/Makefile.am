@@ -15,10 +15,10 @@ SUBDIRS += shell
 
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c \
 vctrl.c tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c \
-datetimeutil.c xstr.c rkey.c vcard.c tvplog.c tvhistory.c \
+datetimeutil.c xstr.c rkey.c vcard.c tvplog.c tvhistory.c listhtml.c  \
 datetimeutil.h pcretvmalloc.h freqmap.h  recs.h  stats.h  transc.h  tvcmd.h rkey.h \
 tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
-mailutil.h xstr.h vcard.h tvplog.h tvhistory.h 
+mailutil.h xstr.h vcard.h tvplog.h tvhistory.h listhtml.h
 
 tvpvrd_LDFLAGS =  `xml2-config --libs`
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"
@@ -54,6 +54,7 @@ install-data-local:
 	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.html ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.html
 	install -D -m 644 $(abs_srcdir)/etc/mail_shutdown.html ${DESTDIR}${sysconfdir}/tvpvrd/mail_shutdown.html
 	install -D -m 644 $(abs_srcdir)/etc/mail_shutdown.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_shutdown.txt
+	install -D -m 644 $(abs_srcdir)/etc/history.xsl ${DESTDIR}${sysconfdir}/tvpvrd/history.xsl
 
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)

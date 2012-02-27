@@ -2950,14 +2950,14 @@ static void
 _cmd_mail_history(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "Mail a list of previous N transcodings\n"
+                "Mail a list of history\n"
                 );
         return;
     }   
     if( -1 == hist_mail() ) {
-        _writef(sockfd,"Could NOT send mail. Unknown error.");
+        _writef(sockfd,"Could NOT send mail. Unknown error.\n");
     } else {
-        _writef(sockfd,"History mail sent.");
+        _writef(sockfd,"History mail sent.\n");
     }
 }
 

@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #define HISTORYDB_FILENAME "history.xml"
+#define HISTORY_XSL_FILENAME "history.xsl"
 #define HISTORY_LENGTH 50
 
 /**
