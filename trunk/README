@@ -3,7 +3,7 @@ README FILE FOR PACKAGE : 'TVPVRD'
 'tvpvrd' = TV Personal Video Recorder Daemon
 $Id$
 
-Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
+Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 This package contains two installable daemons, tvpvrd and tvpowerd.
 
