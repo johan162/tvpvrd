@@ -43,6 +43,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <libgen.h> // Needed for dirname()
 
 // XML2 lib headers
 #include <libxml2/libxml/parser.h>
@@ -90,6 +91,7 @@ Example history file
 static const xmlChar *xmldb_version = (xmlChar *) XMLHISTDB_VERSIONNUM;
 static const xmlChar *xmldb_nameText = (xmlChar *) "text";
 static const xmlChar *xmldb_nameVersion = (xmlChar *) "version";
+static const xmlChar *xmldb_nameDir = (xmlChar *) "dir";
 static const xmlChar *xmldb_root = (xmlChar *) "tvpvrdhistory";
 static const xmlChar *xmldb_nameRecording = (xmlChar *) "recording";
 static const xmlChar *xmldb_nameTitle = (xmlChar *) "title";
@@ -105,8 +107,9 @@ static const xmlChar *xmldb_nameProfile = (xmlChar *) "profile";
 static void
 processRecord(xmlNodePtr node) {
     xmlNodePtr childnode;
-
+    xmlChar *xmldir;
     node = node->xmlChildrenNode;
+    char fnamebuff[255];
     
     /* Note: We only read the timestamp for the start and end since the
      * human readable form can be inferred from the timestamps
@@ -118,25 +121,53 @@ processRecord(xmlNodePtr node) {
             if (xmlStrcmp(node->name, xmldb_nameStart) == 0) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
                     history[nrecs].ts_start = xatol((char *) childnode->content);
+                } else {
+                    logmsg(LOG_NOTICE, "Corrupted history file at node: %s", node->name);
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameEnd) == 0) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
                     history[nrecs].ts_end = xatol((char *) childnode->content);
+                } else {
+                    logmsg(LOG_NOTICE, "Corrupted history file at node: %s", node->name);
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameTitle) == 0) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
                     history[nrecs].title = strdup((char *) childnode->content);
+                } else {
+                    logmsg(LOG_NOTICE, "Corrupted history file at node: %s", node->name);
                 }
+            } else if (xmlStrcmp(node->name, xmldb_nameStartDate) == 0 ||
+                       xmlStrcmp(node->name, xmldb_nameEndDate) == 0 ||
+                       xmlStrcmp(node->name, xmldb_nameStartTime) == 0 ||
+                       xmlStrcmp(node->name, xmldb_nameEndTime) == 0 ) {
+                
+                // Do nothing, we only read the timestamp
+                
             } else if (xmlStrcmp(node->name, xmldb_nameFilepath) == 0) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    history[nrecs].filepath = strdup((char *) childnode->content);
+                    *fnamebuff = '\0';
+                    xmldir = xmlGetProp(node, xmldb_nameDir);
+                    if( xmldir ) {
+                        strncpy(fnamebuff,(char*)xmldir,sizeof(fnamebuff));
+                        strncat(fnamebuff,"/",sizeof(fnamebuff)-strnlen(fnamebuff,sizeof(fnamebuff)));
+                        strncat(fnamebuff,(char *)childnode->content,sizeof(fnamebuff)-strnlen(fnamebuff,sizeof(fnamebuff)));                    
+                        xmlFree(xmldir);
+                    } else {
+                        // version=1 old history style file
+                        strncpy(fnamebuff,(char *)childnode->content,sizeof(fnamebuff));
+                    }
+                    history[nrecs].filepath = strdup(fnamebuff);
+                } else {
+                    logmsg(LOG_NOTICE, "Corrupted history file at node: %s", node->name);
                 }
             } else if (xmlStrcmp(node->name, xmldb_nameProfile) == 0) {
                 if (childnode && xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
                     history[nrecs].profile = strdup((char *) childnode->content);
+                } else {
+                    logmsg(LOG_NOTICE, "Corrupted history file at node: %s", node->name);
                 }                
             } else {
-                logmsg(LOG_NOTICE, "Unknown XML node name in history DB: %s", node->name);
+                logmsg(LOG_NOTICE, "Unknown XML node name in history file: %s", node->name);
             }
         }
         node = node->next;
@@ -186,7 +217,7 @@ tvhist_read(void) {
     if (xmlStrcmp(xmlver, xmldb_version)) {
         logmsg(LOG_NOTICE, "Expected XML history DB version '%s' but found version '%s'. Will be converted to new version on save.", xmldb_version, xmlver);
         if (xatoi((char *) xmlver) > xatoi((char *) xmldb_version)) {
-            logmsg(LOG_NOTICE, "Can not handle a newer history DB version. Please upgrade daaemon.");
+            logmsg(LOG_NOTICE, "Can not handle a newer history DB version. Please upgrade daemon.");
             xmlFreeDoc(doc);
             return -1;
         }
@@ -246,7 +277,7 @@ tvhist_write(void) {
         eyear, emonth, eday, ehour, emin, esec;
     
 
-
+    char dirbuff[255];
     for (size_t i = 0; i < nrecs; ++i) {
         fromtimestamp(history[i].ts_start, &syear, &smonth, &sday, &shour, &smin, &ssec);
         fromtimestamp(history[i].ts_end, &eyear, &emonth, &eday, &ehour, &emin, &esec);
@@ -258,7 +289,11 @@ tvhist_write(void) {
         _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameStartTime, shour, smin, xmldb_nameStartTime);
         _writef(fd, "    <%s>%04d-%02d-%02d</%s>\n", xmldb_nameEndDate, eyear, emonth, eday, xmldb_nameEndDate);
         _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameEndTime, ehour, emin, xmldb_nameEndTime);        
-        _writef(fd, "    <%s>%s</%s>\n", xmldb_nameFilepath, history[i].filepath, xmldb_nameFilepath);
+        
+        // We must make a copy since we are not safe in assuming dirname() will not modify the buffer
+        strncpy(dirbuff,history[i].filepath,sizeof(dirbuff));
+        _writef(fd, "    <%s dir=\"%s\">%s</%s>\n", xmldb_nameFilepath, dirname(dirbuff), basename(history[i].filepath), xmldb_nameFilepath);
+        
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameProfile, history[i].profile, xmldb_nameProfile);
         _writef(fd, "  </%s>\n", xmldb_nameRecording);
     }
