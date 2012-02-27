@@ -247,34 +247,41 @@ sendmail_helper(char *subject,char *buffer_plain,char *buffer_html) {
     int rc;
     if( !smtp_use || !use_html_mail) {
 
-        logmsg(LOG_DEBUG,"Sending list of transcodings via mail system command.");
+        logmsg(LOG_DEBUG,"Sendmail_helper via mail system command.");
         rc = send_mail(subject, daemon_email_from, send_mailaddress, buffer_plain);
 
     } else {
-
+        
+        logmsg(LOG_DEBUG,"Sendmail_helper via SMTP system command.");
         struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
         if( handle == NULL ) {
             logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
             return -1;
         }
-
+        logmsg(LOG_DEBUG,"Sendmail_helper: Connected to SMTP server '%s'",smtp_server);
+        
         if( -1 == smtp_add_html(handle, buffer_html, buffer_plain) ) {
             logmsg(LOG_ERR,"Could NOT add content in mail");
             smtp_cleanup(&handle);
             return -1;
         }
+        logmsg(LOG_DEBUG,"Sendmail_helper: Added plain and HTML content");
 
         if( -1 == smtp_add_rcpt(handle, SMTP_RCPT_TO, send_mailaddress) ) {
             logmsg(LOG_ERR,"Could NOT add recepient to mail");
             smtp_cleanup(&handle);
             return -1 ;
         }
-
+        logmsg(LOG_DEBUG,"Sendmail_helper: Added recipient '%s'",send_mailaddress);
+        
         rc = smtp_sendmail(handle, daemon_email_from, subject);
         if( -1 == rc ) {
             logmsg(LOG_ERR,"could not SEND mail via SMTP.");
         }
+        logmsg(LOG_DEBUG,"Sendmail_helper: Sent mail successfully.");
+        
         smtp_cleanup(&handle);
+        logmsg(LOG_DEBUG,"Sendmail_helper: Cleaned up successfully.");
     }
     
     return rc;

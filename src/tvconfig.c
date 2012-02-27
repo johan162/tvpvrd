@@ -45,6 +45,7 @@
 #include "transc.h"
 #include "recs.h"
 #include "tvplog.h"
+#include "listhtml.h"
 
 /*
  * The value of the following variables are read from the ini-file.

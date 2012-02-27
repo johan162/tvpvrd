@@ -681,7 +681,7 @@ tblcss_fontfamily         = "monospace"
 
 # The following two formats specify the full CSS style. This means that they
 # must have an ending ';' character.
-tblcss_table              = "width:600px;"
+tblcss_table              = "width:700px;"
 tblcss_date               = "font-size:small;font-style:italic;margin-bottom:1px;color:#404040;"
 
 # EOF - End of ini file

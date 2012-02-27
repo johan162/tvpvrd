@@ -569,7 +569,7 @@ read_inisettings(void);
 
 // The following two settings specifies the full CSS style property for the table and
 // the date
-#define TBLCSS_TABLE "width:600px;"
+#define TBLCSS_TABLE "width:700px;"
 #define TBLCSS_DATE "font-size:small;font-style:italic;margin-bottom:1px;color:#404040;"
 /*
  * Formats for HTML recording table in mail ('lm' command)

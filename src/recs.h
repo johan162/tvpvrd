@@ -123,32 +123,6 @@ struct skeysval_t {
     char *val;
 };
 
-/*
- * Holds the CSS style to be used when generating a list of recordings in HTML
- * format for one row.
- */
-#define MAX_TBLCSS_SIZE 255
-struct css_record_style {
-    char tr[MAX_TBLCSS_SIZE];
-    char td_l[MAX_TBLCSS_SIZE];
-    char td_i[MAX_TBLCSS_SIZE];
-    char td_r[MAX_TBLCSS_SIZE];
-};
-
-/*
- * Holds the CSS style to be used when generating a list of recordings in HTML
- * format for the entire table.
- */
-struct css_table_style {
-    struct css_record_style header_row;
-    struct css_record_style even_row;
-    struct css_record_style odd_row;
-    struct css_record_style first_row;
-    struct css_record_style last_odd_row;
-    struct css_record_style last_even_row;
-    char table[MAX_TBLCSS_SIZE];
-    char date[MAX_TBLCSS_SIZE];
-};
 
 /**
  * The list with all planned recordings

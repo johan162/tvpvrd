@@ -52,6 +52,7 @@
 #include "datetimeutil.h"
 #include "tvplog.h"
 #include "tvplog.h"
+#include "listhtml.h"
 
 /*
  * recs
@@ -820,47 +821,6 @@ dumprepeatrecord_header(char *buffer, size_t bufflen, struct css_record_style *r
 
     }
     buffer[bufflen - 1] = '\0';
-}
-
-int
-set_listhtmlcss(struct css_table_style *ts, size_t style) {
-    
-    if( style > 0 ) {
-        logmsg(LOG_DEBUG,"Unknown style (%u) specified in set_listhtmlcss()",style);
-        style=0;
-    }
-
-    bzero(ts,sizeof(struct css_table_style));
-
-    snprintf(ts->even_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_interior, tblcss_hborder_interior);
-    snprintf(ts->even_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_outer, tblcss_hborder_interior);
-    snprintf(ts->even_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_even_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_interior);
-    snprintf(ts->even_row.tr,MAX_TBLCSS_SIZE,"font-family:%s;",tblcss_fontfamily);
-
-    snprintf(ts->odd_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_interior, tblcss_hborder_interior);
-    snprintf(ts->odd_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_outer, tblcss_hborder_interior);
-    snprintf(ts->odd_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_odd_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_interior);
-    snprintf(ts->odd_row.tr,MAX_TBLCSS_SIZE,"font-family:%s;",tblcss_fontfamily);
-
-    snprintf(ts->header_row.td_i,MAX_TBLCSS_SIZE,"color:%s;background:%s;border-left:%s;border-bottom:%s;border-top:%s;",tblcss_header_textcolor, tblcss_header_background, tblcss_vborder_interior, tblcss_hborder_interior, tblcss_hborder_outer);
-    snprintf(ts->header_row.td_l,MAX_TBLCSS_SIZE,"color:%s;background:%s;border-left:%s;border-bottom:%s;border-top:%s;",tblcss_header_textcolor, tblcss_header_background, tblcss_vborder_outer, tblcss_hborder_interior, tblcss_hborder_outer);
-    snprintf(ts->header_row.td_r,MAX_TBLCSS_SIZE,"color:%s;background:%s;border-left:%s;border-right:%s;border-bottom:%s;border-top:%s;",tblcss_header_textcolor, tblcss_header_background , tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_interior, tblcss_hborder_outer);
-    snprintf(ts->header_row.tr,MAX_TBLCSS_SIZE,"font-family:%s;",tblcss_header_fontfamily);
-
-    snprintf(ts->last_even_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_interior, tblcss_hborder_outer);
-    snprintf(ts->last_even_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_even_row_background,tblcss_vborder_outer, tblcss_hborder_outer);
-    snprintf(ts->last_even_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_even_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_outer);
-    snprintf(ts->last_even_row.tr,MAX_TBLCSS_SIZE,"font-family:%s;",tblcss_fontfamily);
-
-    snprintf(ts->last_odd_row.td_i,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_interior, tblcss_hborder_outer);
-    snprintf(ts->last_odd_row.td_l,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-bottom:%s;",tblcss_odd_row_background,tblcss_vborder_outer, tblcss_hborder_outer);
-    snprintf(ts->last_odd_row.td_r,MAX_TBLCSS_SIZE,"background:%s;border-left:%s;border-right:%s;border-bottom:%s;",tblcss_odd_row_background, tblcss_vborder_interior, tblcss_vborder_outer, tblcss_hborder_outer);
-    snprintf(ts->last_odd_row.tr,MAX_TBLCSS_SIZE,"font-family:%s;",tblcss_fontfamily);
-
-    snprintf(ts->table,MAX_TBLCSS_SIZE,"%s",tblcss_table);
-    snprintf(ts->date,MAX_TBLCSS_SIZE,"%s",tblcss_date);
-
-    return 0;
 }
 
 int
