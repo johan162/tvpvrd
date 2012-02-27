@@ -3,7 +3,7 @@ NEWS FILE FOR PACKAGE : 'TVPVRD'
 'tvpvrd' = TV Personal Video Recorder Daemon
 $Id$
 
-Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
+Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
 
@@ -16,12 +16,15 @@ User visible changes:
       requires EXSL to be within reason. Unfortunately very few browsers implement
       EXSL directly so the timestamp would force conversion to HTML via for example
       'xsltproc' first.
+    - Added XSL stylesheet to view history directly in editor
+    - Added nice HTML formatting when sending history in mail
 
 Bugs fixed:
-    - None.
+    - Problem with timeout in the 'rhm' (Mail history command) command due to missing 
+      newline.
 
 Internal changes:
-    - None.
+    - Refactored CSS handling of tables to its own module (listhtml.c/.h)
 
 
 v3.3.4
