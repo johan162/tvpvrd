@@ -1351,10 +1351,6 @@ void
 listrecs(size_t maxrecs, int style, int fd) {
     struct recording_entry **entries;
     char buffer[2048];
-    struct css_table_style ts;
-
-    bzero(&ts, sizeof(struct css_table_style));
-    set_listhtmlcss(&ts, style);    
 
     entries = calloc((size_t)(max_video*max_entries), sizeof (struct recording_entry *));
     if( entries == NULL ) {
