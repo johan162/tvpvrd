@@ -36,7 +36,7 @@ EXTRA_DIST = etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template \
 etc/tvpvrd.css etc/tvpvrd_mobile.css etc/switchchannel.sh.template \
 etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template \
 etc/mail_transcend.txt etc/mail_transcend.html etc/mail_shutdown.html etc/mail_shutdown.txt \
-etc/startup.sh.template
+etc/startup.sh.template etc/history.xsl
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 
