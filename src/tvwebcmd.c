@@ -1120,14 +1120,19 @@ static struct cmd_entry cmdfunc_master_status[] = {
 static struct cmd_entry cmdfunc_master_view[] = {
     {"z", "Settings"},
     {"ls", "Station list"},
-    {"rh", "History"}
+    {"rh", "History"},
+    {"rhm", "Mail history"}
 };
 
 static struct cmd_entry cmdfunc_master_driver[] = {
-    {"vc", "Driver"},
-    {"li", "Inputs"},
+    {"vc", "Installed"},
+    {"li", "Inputs"}
+    /*
+     * Settings is low priority so we remove them in order to get space
+     * for mailing history command
     {"lc%200", "Settings #0"},
     {"lc%201", "Settings #1"}
+     */ 
 };
 
 //------------------------------------------------------------------

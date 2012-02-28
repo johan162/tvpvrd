@@ -31,18 +31,18 @@ extern "C" {
 
 #define HISTORYDB_FILENAME "history.xml"
 #define HISTORY_XSL_FILENAME "history.xsl"
-#define HISTORY_LENGTH 50
+#define HISTORY_LENGTH 99
 
 /**
- * Update history file with name and full path. The actual name
- * of the history DB file is hardcoded to HISTORYDBFILENAME defined
+ * Update history file with a new recording. The actual name
+ * of the history DB file is hardcoded to HISTORYDB_FILENAME defined
  * above. The history file is stored in the same directory as the
  * DB file for recordings.
  * @return 0 on success, -1 on failure
  */
 
 int
-hist_update(char *title, const time_t ts_start, const time_t ts_end, char *fullPathFilename, char *profile);
+hist_addrec(char *title, const time_t ts_start, const time_t ts_end, char *fullPathFilename, char *profile);
 
 /**
  * Initialize history from file

@@ -47,6 +47,13 @@
 #include "listhtml.h"
 #include "tvplog.h"
 
+/**
+ * Store a set of CSS styles in the style structure. The 'style' argument will control
+ * which style is used.
+ * @param ts
+ * @param style
+ * @return 0 (always)
+ */
 int
 set_listhtmlcss(struct css_table_style *ts, size_t style) {
     
