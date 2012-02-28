@@ -531,9 +531,9 @@ hist_listhtmlbuff(char *buffer, size_t maxlen, size_t style) {
                 ts.last_even_row.td_l, ts.last_even_row.td_i, ts.last_even_row.td_r);
     } else {
         if (nrecs % 2) {
-            _html_row(tmpbuffer, max, &ts.last_odd_row, &history[nrecs - 1], nrecs);
-        } else {
             _html_row(tmpbuffer, max, &ts.last_even_row, &history[nrecs - 1], nrecs);
+        } else {
+            _html_row(tmpbuffer, max, &ts.last_odd_row, &history[nrecs - 1], nrecs);
         }
     }
     
