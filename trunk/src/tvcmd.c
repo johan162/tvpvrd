@@ -1925,7 +1925,7 @@ _cmd_status(const char *cmd, int sockfd) {
 
     struct mallinfo minfo = mallinfo();
 
-    if( verbose_log == 3 ) {
+    if( verbose_log >= 3 ) {
 
         snprintf(msgbuff,511,
                 "%-16s: %s"
@@ -1983,7 +1983,7 @@ _cmd_status(const char *cmd, int sockfd) {
         }
     }
 
-    if( verbose_log == 3 ) {
+    if( verbose_log >= 3 ) {
         tvp_mem_list(sockfd);
     }
 }

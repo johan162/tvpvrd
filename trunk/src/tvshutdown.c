@@ -260,7 +260,7 @@ check_for_shutdown(void) {
                         add_keypair(keys,maxkeys,"NEXTRECTIME_END",timebuff_rec_en,&ki);
                         add_keypair(keys,maxkeys,"NEXTREC_CHANNEL",recs[REC_IDX(nextrec_video, nextrec_idx)]->channel,&ki);
 
-                        if( verbose_log == 3 ) {
+                        if( verbose_log >= 4 ) {
                             int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
                             if( -1 == read(stfd,rtc_status,2048) ) {
                                 logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",errno,strerror(errno));

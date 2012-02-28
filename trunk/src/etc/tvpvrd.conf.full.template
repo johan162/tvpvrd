@@ -175,6 +175,7 @@ logfile_name=/tmp/tvpvrd.log
 # Setting verbose to 1 will also show info messages
 # Setting verbose to 2 will also show info messages + notices
 # Setting verbose to 3 will also show info messages + notices + debug messages
+# Setting verbose to 4 will also add RTC debug info in shutdown mail
 #----------------------------------------------------------------------------
 verbose_log=1
 

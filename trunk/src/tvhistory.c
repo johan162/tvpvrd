@@ -177,7 +177,7 @@ processRecord(xmlNodePtr node) {
 
 /**
  * Read old history file from file
- * @return 
+ * @return 0 on success , -1 on failure
  */
 static int
 tvhist_read(void) {
@@ -244,8 +244,8 @@ tvhist_read(void) {
 }
 
 /**
- * Dump data structure to file
- * @return 
+ * Write history list to file
+ * @return 0 on success , -1 on failure
  */
 static int
 tvhist_write(void) {
@@ -306,6 +306,9 @@ tvhist_write(void) {
 
 }
 
+/**
+ * Free entire history vector
+ */
 static void
 tvhist_free(void) {
     for (size_t idx = 0; idx < nrecs; ++idx) {
@@ -325,6 +328,9 @@ tvhist_free(void) {
     nrecs = 0;
 }
 
+/**
+ * Initialize history handling. The history is simply stored in a vector of history entries
+ */
 void
 hist_init(void) {
     logmsg(LOG_DEBUG,"Calling hist_init()");
@@ -337,9 +343,17 @@ hist_init(void) {
     }
 }
 
+/**
+ * Add a recording to the history list
+ * @param title
+ * @param ts_start
+ * @param ts_end
+ * @param fullPathFilename
+ * @param profile
+ * @return 
+ */
 int
-hist_update(char *title, const time_t ts_start, const time_t ts_end,
-            char *fullPathFilename, char *profile) {
+hist_addrec(char *title, const time_t ts_start, const time_t ts_end, char *fullPathFilename, char *profile) {
 
     logmsg(LOG_DEBUG,"Adding history for: title=%s",title);
     
@@ -374,9 +388,9 @@ hist_update(char *title, const time_t ts_start, const time_t ts_end,
         nrecs++;
     
     if( 0 == tvhist_write() ) {
-        logmsg(LOG_DEBUG, "Successfully updated history XML file.");
+        logmsg(LOG_DEBUG, "Successfully updated history XML file. Size after update nrecs=%d",nrecs);
     } else {
-        logmsg(LOG_ERR, "Could NOT update history XML file. Permission problems?");
+        logmsg(LOG_ERR, "Could NOT write history XML file. Permission problems?");
     }
     
     return 0;

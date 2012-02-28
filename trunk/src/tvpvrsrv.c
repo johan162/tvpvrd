@@ -1108,7 +1108,7 @@ startrec(void *arg) {
                     
                 
                     // Updated history file with this successful transcoding
-                    hist_update(recording->title, recording->ts_start, recording->ts_end, updatedfilename, profile->name);
+                    hist_addrec(recording->title, recording->ts_start, recording->ts_end, updatedfilename, profile->name);
                     
                 }
             }

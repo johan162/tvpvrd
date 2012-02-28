@@ -7,6 +7,21 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
 
+v3.3.6
+------
+User visible changes:
+    - Added Web-menu entry for mailing history.
+    - Increased history default length to 99
+    - Removed Web-menu for detailed driver settings (this is an advanced
+      function that doesn't really make sense in the simplified Web-interface)
+    - Added VERBOSE_LOG level 4 which also give RTC debug information in shutdown mail
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - None.
+
 v3.3.5
 ------
 User visible changes:
