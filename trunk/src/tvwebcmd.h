@@ -38,7 +38,10 @@ void
 web_cmdinterp(const int my_socket, char *buffer);
 
 void
-web_cmd_add_del(int sockd);
+web_cmd_add(int sockd);
+
+void
+web_cmd_del(int sockd);
 
 void
 web_cmd_qadd(int sockd);
