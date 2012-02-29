@@ -400,7 +400,7 @@ html_element_submit(int sockd, char *name, char *value, char *id) {
     }
     snprintf(buffer, maxlen,
             "<div class=\"input_container\" id=\"%s\">"
-            "<input type=\"submit\" name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s\"></div>\n",
+            "<input type=\"submit\" name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s_submit\"></div>\n",
             id, name, value, id);
     _writef(sockd, buffer);
 

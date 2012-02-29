@@ -240,6 +240,16 @@ input.input_submit {
     box-shadow: 3px  3px  4px  #999;    
 }
 
+input.input_submit:hover {
+    /*background:#444;
+    color:white;*/
+    -moz-box-shadow: 0px  0px  0px  #999; 
+    box-shadow: 0px  0px  0px  #999;    
+    margin-left:13px;
+    margin-top:6px;
+    margin-bottom:-2px;
+}
+
 /* Adjustment for submit buttons */
 div.input_container#delrec,
 div.input_container#id_addrec,
@@ -259,7 +269,7 @@ span.be_hyphen {
 }
 
 /* The submit button to delete a recording */
-input.input_submit#delrec {
+input.input_submit#delrec_submit {
     color:darkred;
 }
 
@@ -443,12 +453,20 @@ div#logout a {
     color:darkred;
 }
 
-div#logout a:hover {
+div#logout:hover {
     text-decoration:none;
     font-weight:bold;
     font-family:Arial,Sans-serif;
     font-size:10pt;
-    color:red;
+    margin-top:9px;
+    margin-left:19px;    
+    -moz-box-shadow: 0px  0px  0px  #999; 
+    box-shadow: 0px  0px  0px  #999;
+    
+}
+
+div#logout a:hover {
+    color:black;
 }
 
 /* EOF CSS Style for tvpvrd */
