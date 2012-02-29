@@ -1153,24 +1153,35 @@ dumprecord(struct recording_entry* entry, int style, size_t idx,char *buffer, si
                 sh, smi, eh, emi, entry->title,profbuff);
 
     } else if ( style == 3 ) {
-           
- 
+       
         snprintf(buffer, bufflen, 
                 "%03d "
                 "%-8s" 
                 "%s %s %02d "
                 "%02d:%02d "
                 "%02d:%02d "
-                "%-40s"
-                "%-10s\n",
+                "%-40s\n",
                 idx,
                 entry->channel,
                 wday_name[result.tm_wday], month_name[sm-1], sd,
                 sh, smi,
                 eh, emi,
-                entry->title,
-                profbuff);
-                
+                entry->title);
+
+    } else if ( style == 10 ) {
+       
+        // Alternative version of style 3 to be used in HTML select statement. 
+        // No idx number, end time or profile is added to keep the dump as short as possible
+        snprintf(buffer, bufflen, 
+                "%-8s" 
+                "%s %s %02d "
+                "%02d:%02d "
+                "&nbsp; \"%s\"\n",
+                entry->channel,
+                wday_name[result.tm_wday], month_name[sm-1], sd,
+                sh, smi,
+                entry->title);
+        
 
     } else if ( style == 4 ) {
         // Fancy format
@@ -1438,7 +1449,7 @@ listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style) {
 
 /*
  * Dump a list of all recordings in an array suitable for a HTML SELECT
- * statment, i.e. the value in pos i and the record id in pos i+1
+ * statement, i.e. the value in pos i and the record id in pos i+1
  * It is the calling routines responsibility to free the memory
  * allocated to the list argument.
  */

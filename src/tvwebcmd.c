@@ -961,7 +961,7 @@ web_cmd_qadd(int sockd) {
  * @param sockd
  */
 void
-web_cmd_add_del(int sockd) {
+web_cmd_add(int sockd) {
     static const struct skeysval_t  day_list[] = {
         {"","Auto"},
         {"Mon","Mon"},
@@ -992,10 +992,6 @@ web_cmd_add_del(int sockd) {
         "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50"
     };
     const size_t n_rptcount = 39;
-    static const char *yn_list[] = {
-        "Yes", "No"
-    };
-    const size_t n_ynlist = 2;
     const char *station_list[128];
     const size_t n_stations = get_stations(station_list, 128);
 
@@ -1006,7 +1002,7 @@ web_cmd_add_del(int sockd) {
     const size_t n_min_start = sizeof (min_list_start) / sizeof (char *);
     const size_t n_min_end = sizeof (min_list_end) / sizeof (char *);
 
-    _writef(sockd, "<div class=\"cmd_add_del_container\">");
+    _writef(sockd, "<div class=\"cmd_add_container\">");
 
     /*
      * Add recordings
@@ -1033,16 +1029,33 @@ web_cmd_add_del(int sockd) {
 
     _writef(sockd, "</form>\n");
 
+    // Close container
+    _writef(sockd, "</div> <!-- add_container -->");
+}
 
+
+/**
+ * Display the add and delete recording area
+ * @param sockd
+ */
+void
+web_cmd_del(int sockd) {
+    static const char *yn_list[] = {
+        "Yes", "No"
+    };
+    const size_t n_ynlist = 2;
+    
     /*
      * Delete recordings
      */
+    _writef(sockd, "<div class=\"cmd_del_container\">");
+    
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"delrec\"  onsubmit=\"return confirm('Really delete?')\">\n", "deleterecording");
 
     _writef(sockd, "<fieldset>\n<legend>Delete recording</legend>\n");
 
     struct skeysval_t *listrec;
-    size_t num = listrecskeyval(&listrec, 3);
+    size_t num = listrecskeyval(&listrec, 10); // style==10, simple format with no idx and no profile
     html_element_select_code(sockd, "Title:", "recid", NULL, listrec, num, "id_delselect");
     for (size_t i = 0; i < num; ++i) {
         free(listrec[i].key);
@@ -1057,8 +1070,9 @@ web_cmd_add_del(int sockd) {
     _writef(sockd, "</form>\n");
 
     // Close container
-    _writef(sockd, "</div> <!-- add_del_container -->");
+    _writef(sockd, "</div> <!-- del_container -->");
 }
+
 
 
 /**
@@ -1101,45 +1115,45 @@ static struct cmd_entry cmdfunc_master_recs[] = {
     {"lh", "List all"},
     {"lr", "List rep."},
     {"lu", "List single"},
-    {"lm",  "Mail all"},
-    {"lmr", "Mail separated"}
+    {"lm", "Mail all"},
+    {"lmr","Mail separated"},
+    {"rh", "History"},
+    {"rhm","Mail history"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
     {"wt", "Queue"},
-    {"st", "Statistics"},
-    {"lph", "Profiles"}
+    {"st", "Statistics"}
 };
 
 static struct cmd_entry cmdfunc_master_status[] = {
     {"s", "Status"},
     {"t", "Time"},
-    {"df", "Disk space"}
+    {"df","Disk space"}
 };
 
 static struct cmd_entry cmdfunc_master_view[] = {
-    {"z", "Settings"},
+    {"z",  "Settings"},
     {"ls", "Station list"},
-    {"rh", "History"},
-    {"rhm", "Mail history"}
+    {"vc", "Cards"},
+    {"li", "Card inputs"},
+    {"lph","Profiles"}    
 };
 
+/*
 static struct cmd_entry cmdfunc_master_driver[] = {
-    {"vc", "Installed"},
-    {"li", "Inputs"}
-    /*
-     * Settings is low priority so we remove them in order to get space
-     * for mailing history command
+    {"vc", "Cards"},
+    {"li", "List inputs"}
     {"lc%200", "Settings #0"},
     {"lc%201", "Settings #1"}
-     */ 
 };
+*/
 
 //------------------------------------------------------------------
 // SLAVE personality
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_slave_transcoding[] = {
-    {"ot", "Ongoing transcoding"},
+    {"ot", "Ongoing transcodings"},
     {"wt", "Waiting transcodings"},
     {"st", "Statistics"},
     {"lph", "Profiles"}
@@ -1164,12 +1178,19 @@ static struct cmd_entry cmdfunc_master_menu_short[] = {
     {"o", "Ongoing"}
 };
 
+
+//------------------------------------------------------------------
+// Command groups for normal, slave and phone (short version)
+//------------------------------------------------------------------
+
 static struct cmd_grp cmd_grp_master[] = {
     {"Server", "Server information", sizeof (cmdfunc_master_status) / sizeof (struct cmd_entry), cmdfunc_master_status},
     {"Recordings", "Stored recordings", sizeof (cmdfunc_master_recs) / sizeof (struct cmd_entry), cmdfunc_master_recs},
-    {"Transcoding", "Transcoding info", sizeof (cmdfunc_master_transcoding) / sizeof (struct cmd_entry), cmdfunc_master_transcoding},
     {"View", "View", sizeof (cmdfunc_master_view) / sizeof (struct cmd_entry), cmdfunc_master_view},
-    {"Capture card", "Card information", sizeof (cmdfunc_master_driver) / sizeof (struct cmd_entry), cmdfunc_master_driver}
+    {"Transcoding", "Transcoding info", sizeof (cmdfunc_master_transcoding) / sizeof (struct cmd_entry), cmdfunc_master_transcoding}    
+    /*
+    {"Capture cards", "Card information", sizeof (cmdfunc_master_driver) / sizeof (struct cmd_entry), cmdfunc_master_driver}
+     */
 };
 
 static struct cmd_grp cmd_grp_slave[] = {

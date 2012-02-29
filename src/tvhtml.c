@@ -496,8 +496,9 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     web_cmd_next(sockd);
     web_cmd_ongoing(sockd);
     web_cmd_ongoingtransc(sockd);
+    web_cmd_add(sockd);    
     web_cmd_qadd(sockd);
-    web_cmd_add_del(sockd);
+    web_cmd_del(sockd);
 
     _writef(sockd, "</div>");
 
@@ -523,7 +524,8 @@ html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     web_commandlist_short(sockd);
     web_cmd_output(sockd, wcmd);
     // web_cmd_qadd(sockd);
-    web_cmd_add_del(sockd);
+    web_cmd_add(sockd);
+    web_cmd_del(sockd);
     _writef(sockd, "\n</div> <!-- single_side -->");
 
     html_endpage(sockd);

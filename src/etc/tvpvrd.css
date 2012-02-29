@@ -95,7 +95,8 @@ div.cmd_output {
 }
 
 /* Container around the command input area */
-div.cmd_add_del_container {
+div.cmd_add_container
+div.cmd_del_container {
     width:100%;
     padding-right: 0px;
     padding-left: 0px;
@@ -160,7 +161,7 @@ fieldset {
    margin-left:0px;
    padding:0;
    padding-left:3px;
-   padding-bottom:2px;
+   padding-bottom:6px;
 }
 
 /* Container around each input and input text-legend */
@@ -219,13 +220,13 @@ select.input_select_code {
 
 /* Format for selector with list of recodings to delete */
 select.input_select_code#id_delselect {
-    width : 320px;
+    width : 340px;
 }
 
 /* Input text */
 input.input_text {
     color : #202020;
-    width : 140px;
+    width : 150px;
 }
 
 /* Input submit button in forms*/
@@ -235,6 +236,8 @@ input.input_submit {
     font-size:10pt;
     width:60px;
     margin-left: 10px;
+    -moz-box-shadow: 3px  3px  4px  #999; 
+    box-shadow: 3px  3px  4px  #999;    
 }
 
 /* Adjustment for submit buttons */
@@ -422,12 +425,14 @@ div#logout {
     padding-top: 2px;
     width: 70px;
     height: 1.0em;
-    background: lightgray;
+    background: #eee;
     font-weight:bold;
     margin-top:5px;
     margin-left:15px;
     padding-left:25px;
     padding-right:0px;
+    -moz-box-shadow: 3px  3px  4px  #999; 
+    box-shadow: 3px  3px  4px  #999;       
 }
 
 div#logout a {

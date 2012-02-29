@@ -15,6 +15,7 @@ User visible changes:
     - Removed Web-menu for detailed driver settings (this is an advanced
       function that doesn't really make sense in the simplified Web-interface)
     - Added VERBOSE_LOG level 4 which also give RTC debug information in shutdown mail
+    - Some minor layout changes in the Web-interface to emphasis recording and some CSS tweaks
 
 Bugs fixed:
     - None.
