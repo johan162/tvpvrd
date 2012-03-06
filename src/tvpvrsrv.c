@@ -1222,7 +1222,7 @@ chkrec(void *arg) {
                     fromtimestamp(recs[REC_IDX(video, 0)]->ts_start,&sy,&sm,&sd,&sh,&smin,&ssec);
                     logmsg(LOG_ERR, "Time for recording of ('%s' %d-%02d-%02d %02d:%02d) on video %d is too far in the past. Recording cancelled.",
                            recs[REC_IDX(video, 0)]->title, sy,sm,sd,sh,smin,video);
-                    deletetoprec(video);
+                    delete_toprec(video);
                     update_xmldb = 1; // We removed a entry so update DB file
                 } else {
                     // Start the initiation at least (TIME_RESOLUTION-1) s before the exact start
@@ -1251,7 +1251,7 @@ chkrec(void *arg) {
                             ongoing_recs[video] = recs[REC_IDX(video, 0)];
 
                             // Remove it from the list of pending recordings
-                            removetoprec(video);
+                            remove_toprec(video);
 
                             update_xmldb = 1; // We removed a entry so update DB file
 
@@ -1506,7 +1506,7 @@ webclientsrv(void *arg) {
     // To avoid reserving ~8MB after the thread terminates we
     // detach it. Without doing this the pthreads library would keep
     // the exit status until the thread is joined (or detached) which would mean
-    // loosing 8MB for exah created thread
+    // loosing 8MB for each created thread
     pthread_detach(pthread_self());
 
     // First we need to find out what the index the socket that we will used

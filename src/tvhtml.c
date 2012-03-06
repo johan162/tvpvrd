@@ -52,17 +52,35 @@
  */
 void
 html_topbanner(int sockd) {
-    _writef(sockd, "<div class=\"top_banner\">");
+    _writef(sockd, "<div class=\"top_banner\">\n");
+    
+    _writef(sockd, "<div class=\"top_banner_info_container\">\n");
     _writef(sockd,
-            "%s %s [%s] (build: %lu.%lu )"
+            "<span class=\"title-ver\">%s %s</span> <span class=\"run-mode\">[%s]"
 #ifdef DEBUG_SIMULATE
-            "\n *** DEBUG BUILD *** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY A DEBUG BUILD.\n"
+            " *** DEBUG BUILD ***"
 #endif
-
-            "\n", server_program_name, server_version,
-            is_master_server ? "master" : "client",
-            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
+            "</span>\n",
+            server_program_name, server_version,
+            is_master_server ? "master" : "client");
+    _writef(sockd, "</div> <!-- info_container -->\n");
+    
+    _writef(sockd, "<div class=\"logout-corner\">");
+    _writef(sockd,"<a href=\"logout\"><img src=\"logout-button.jpg\" /></a>");
+    _writef(sockd, "</div> <!-- logout_container -->\n");
+    
     _writef(sockd, "</div> <!-- top_banner -->\n");
+}
+
+void
+html_buildnumber(int sockd) {
+    _writef(sockd,
+            "<div class=\"buildnbr_container\"><div class=\"build\">Build: %lu.%lu"
+#ifdef DEBUG_SIMULATE
+            " *** DEBUG BUILD ***"
+#endif
+            "</div></div>\n",
+            (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
 }
 
 /**
@@ -229,7 +247,7 @@ html_newpage(int sockd, char *cookie_val, int mobile) {
     snprintf(title, 254, "tvpvrd %s", server_version);
 
     http_header(sockd, cookie_val);
-    _writef(sockd, preamble, title, mobile ? "tvpvrd_mobile" : "tvpvrd" );
+    _writef(sockd, preamble, title, mobile ? "tvpvrd_mobile" : "tvpvrd_metall" );
 
 }
 
@@ -266,7 +284,7 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
     _writef(sockd, buffer);
 
     if (id && *id) {
-        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\" id=\"%s\">\n", name, "input_select", id);
+        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\" id=\"%s_select\">\n", name, "input_select", id);
     } else {
         snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\">\n", name, "input_select");
     }
@@ -280,7 +298,7 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
         }
         _writef(sockd, buffer);
     }
-    snprintf(buffer, maxlen, "</select></div>\n");
+    snprintf(buffer, maxlen, "</select></div><!-- input_container (%s) -->\n",legend);
     _writef(sockd, buffer);
     free(buffer);
 }
@@ -318,7 +336,7 @@ html_element_select_code(int sockd, char *legend, char *name, char *selected, co
     _writef(sockd, buffer);
 
     if (id && *id) {
-        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\" id=\"%s\">\n", name, "input_select_code", id);
+        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\" id=\"%s_select\">\n", name, "input_select_code", id);
     } else {
         snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\">\n", name, "input_select_code");
     }
@@ -333,7 +351,7 @@ html_element_select_code(int sockd, char *legend, char *name, char *selected, co
         _writef(sockd, buffer);
         ++i;
     }
-    snprintf(buffer, maxlen, "</select></div>\n");
+    snprintf(buffer, maxlen, "</select></div><!-- input_container (%s)-->\n",legend);
     _writef(sockd, buffer);
     free(buffer);
 }
@@ -366,7 +384,7 @@ _html_element_input_text(int sockd, char *legend, char *name, char *id, int pass
     }
     _writef(sockd, buffer);
 
-    snprintf(buffer, maxlen, "<input type=\"%s\" name=\"%s\" class=\"input_text\"></input></div>\n", passwd ? "password" : "text" , name);
+    snprintf(buffer, maxlen, "<input type=\"%s\" name=\"%s\" class=\"input_text\"></input></div><!-- input_container (%s) -->\n", passwd ? "password" : "text" , name, legend);
     _writef(sockd, buffer);
     free(buffer);
 }
@@ -400,7 +418,7 @@ html_element_submit(int sockd, char *name, char *value, char *id) {
     }
     snprintf(buffer, maxlen,
             "<div class=\"input_container\" id=\"%s\">"
-            "<input type=\"submit\" name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s_submit\"></div>\n",
+            "<input type=\"submit\" name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s_submit\"></input></div>\n",
             id, name, value, id);
     _writef(sockd, buffer);
 
@@ -426,7 +444,7 @@ html_element_submit_disabled(int sockd, char *name, char *value, char *id) {
     }
     snprintf(buffer, maxlen,
             "<div class=\"input_container\" id=\"%s\">"
-            "<input type=\"submit\" disabled name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s\"></div>\n",
+            "<input type=\"submit\" disabled name=\"%s\" value=\"%s\" class=\"input_submit\" id=\"%s_submit\"></input></div>\n",
             id, name, value, id);
     _writef(sockd, buffer);
 
@@ -485,9 +503,11 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     _writef(sockd, "<div class=\"left_side\">");
     web_commandlist(sockd);
 
-    _writef(sockd,"<div id=\"logout_container\"><div id=\"logout\"><a href=\"logout\">Logout</a></div></div>");
+/*
+    _writef(sockd,"\n<div id=\"logout_container\"><div id=\"logout\"><a href=\"logout\">Logout</a></div></div>\n");
+*/
 
-    _writef(sockd, "</div>"); // class="LEFT_side"
+    _writef(sockd, "\n</div> <!-- left_side -->\n"); // class="LEFT_side"
 
     // Right side : Output and recording management
     _writef(sockd, "<div class=\"right_side\">");
@@ -499,8 +519,9 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     web_cmd_add(sockd);    
     web_cmd_qadd(sockd);
     web_cmd_del(sockd);
-
-    _writef(sockd, "</div>");
+    html_buildnumber(sockd);
+    
+    _writef(sockd, "\n</div> <!-- right_side -->\n");
 
     html_endpage(sockd);
 
@@ -526,7 +547,7 @@ html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     // web_cmd_qadd(sockd);
     web_cmd_add(sockd);
     web_cmd_del(sockd);
-    _writef(sockd, "\n</div> <!-- single_side -->");
+    _writef(sockd, "\n</div> <!-- single_side -->\n");
 
     html_endpage(sockd);
 
