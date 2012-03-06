@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <sys/param.h>
 #include <time.h>
+#include <inttypes.h>
 
 #include "config.h"
 #include <pcre.h>
@@ -363,7 +364,7 @@ int
 read_webroot_file(char *file_buffer, size_t maxlen, size_t *actualfilelen, char *filename, time_t modifiedSince) {
     char full_filename[255];
 
-    snprintf(full_filename, 255, "%s/tvpvrd/%s", CONFDIR, filename);
+    snprintf(full_filename, sizeof(full_filename)-1, "%s/tvpvrd/%s", CONFDIR, filename);
     logmsg(LOG_DEBUG,"Reading web-root file '%s'",full_filename);
 
     full_filename[sizeof(full_filename)-1] = '\0';
@@ -387,8 +388,7 @@ read_webroot_file(char *file_buffer, size_t maxlen, size_t *actualfilelen, char 
         time_t t1 = mktime(&t_tm1);
         time_t t2 = mktime(&t_tm2);
 #ifdef EXTRA_WEB_DEBUG
-        //logmsg(LOG_DEBUG,"Comparing file time=%d (%s) with modifiedSince=%d (%s)",t1,f1time,t2,f2time);
-        logmsg(LOG_DEBUG,"Comparing file time=d (%s) with modifiedSince=d (%s)",f1time,f2time);
+        logmsg(LOG_DEBUG,"Comparing file time '%s' with modifiedSince '%s'",f1time,f2time);
 #endif
 
         if( t1 < t2 ) {

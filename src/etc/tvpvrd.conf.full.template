@@ -93,9 +93,11 @@ weblogin_timout=0
 #----------------------------------------------------------------------------
 # MAX_CLIENTS integer
 # The maximum number of simultaneous clients that are allowed to connect
-# to this server.
+# to this server. When enabling the web-interface thuis should be at least
+# four times the unmber of expected clients since web-browsers setup several
+# parallell connections when fetching images and stylesheets.
 #----------------------------------------------------------------------------
-max_clients=2
+max_clients=10
 
 #----------------------------------------------------------------------------
 # DATADIR string
