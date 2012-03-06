@@ -305,7 +305,7 @@ _cmd_setprofile(const char *cmd, int sockfd) {
     err = ret < 0;
 
     if ( ! err && ret > 2 ) {
-        if( updateprofile((unsigned)xatoi(field[1]),field[2]) ) {
+        if( update_profile((unsigned)xatoi(field[1]),field[2]) ) {
             snprintf(msgbuff,255,"Updated profile to '%s' on recording %03d\n",field[2],xatoi(field[1]));
         } else {
             snprintf(msgbuff,255,"Failed to set profile '%s' on recording %03d\n",field[2],xatoi(field[1]));
@@ -350,7 +350,7 @@ _cmd_delete(const char *cmd, int sockfd) {
     if ( ! err ) {
 
         id = (unsigned)xatoi(field[1]);
-        ret = deleterecid(id, cmd[1] == 'r');
+        ret = delete_recid(id, cmd[1] == 'r');
 
         if (ret) {
             snprintf(msgbuff, 256, "Deleted %s #%02d",
@@ -1143,7 +1143,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 freerec(entry);
                 err = 5;
             } else {
-                dumprecordid((unsigned)ret, 1, 0, 0, msgbuff, 2047);
+                dump_recordid((unsigned)ret, 1, 0, 0, msgbuff, 2047);
             }
         }
     }
@@ -1268,7 +1268,7 @@ _cmd_list(const char *cmd, int sockfd) {
     }
     
     matchcmd_free(&field);
-    listrecs((size_t)n, 0, sockfd);
+    list_recs((size_t)n, 0, sockfd);
 }
 
 static void
@@ -1307,7 +1307,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
     }
 
     matchcmd_free(&field);
-    listrecs(n, 3, sockfd);
+    list_recs(n, 3, sockfd);
 }
 
 /*
@@ -1364,8 +1364,8 @@ _cmd_maillist_html(const char *cmd, int sockfd) {
              server_program_name,server_version,ctime(&ts_tmp));
 
     size_t len = strlen(buffer_plain);
-    listrecsbuff(buffer_plain+len, maxlen-len, n, 3);
-    listhtmlrecsbuff(buffer_html, maxlen, n, 0, FALSE, TRUE);
+    list_recsbuff(buffer_plain+len, maxlen-len, n, 3);
+    listhtml_recsbuff(buffer_html, maxlen, n, 0, FALSE, TRUE);
 
     char subject[255];
     snprintf(subject,255,"List of upcoming recordings");
@@ -1496,13 +1496,13 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
         exit(1);
     }
 // listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int only_nonrepeat, int use_csshtml)
-    listrepeatrecsbuff(buffer_plain, maxlen, n); // Get plain list of repeating recordings
-    listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, FALSE); // Get plain list of single recordings
+    list_repeatrecsbuff(buffer_plain, maxlen, n); // Get plain list of repeating recordings
+    listhtml_recsbuff(buffer, maxlen ,n ,0, TRUE, FALSE); // Get plain list of single recordings
     strcat(buffer_plain,"\n\n");
     strncat(buffer_plain,buffer,maxlen-1-strlen(buffer_plain));
 
-    listhtmlrepeatrecsbuff(buffer_html, maxlen, n, 0); // Get list of repeating recs i HTML format
-    listhtmlrecsbuff(buffer, maxlen ,n ,0, TRUE, TRUE); // Get list of single recordings in HTML format
+    listhtml_repeatrecsbuff(buffer_html, maxlen, n, 0); // Get list of repeating recs i HTML format
+    listhtml_recsbuff(buffer, maxlen ,n ,0, TRUE, TRUE); // Get list of single recordings in HTML format
     
     strncat(buffer_html,"\n<p>&nbsp;</p>\n",maxlen-1-strlen(buffer_html));
     strncat(buffer_html,buffer,maxlen-1-strlen(buffer_html));
@@ -1548,7 +1548,7 @@ _cmd_listsingle(const char *cmd, int sockfd) {
         return;
     }
 
-    listhtmlrecsbuff(buffer, maxlen ,0 ,0, TRUE, FALSE); // Get plain list of single recordings
+    listhtml_recsbuff(buffer, maxlen ,0 ,0, TRUE, FALSE); // Get plain list of single recordings
     _writef(sockfd,"%s",buffer);
     free(buffer);
 }
@@ -1584,7 +1584,7 @@ _cmd_listrep(const char *cmd, int sockfd) {
         return;
     }
 
-    listrepeatrecsbuff(buffer, maxlen, 0);
+    list_repeatrecsbuff(buffer, maxlen, 0);
     _writef(sockfd,"%s",buffer);
 
     free(buffer);
@@ -1615,7 +1615,7 @@ _cmd_list_ts(const char *cmd, int sockfd) {
 
     }
 
-    listrecs((size_t)n, 9, sockfd);
+    list_recs((size_t)n, 9, sockfd);
 }
 
 
@@ -1856,7 +1856,7 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
     *msgbuff = '\0';
     for (i = 0; i < (unsigned)max_video; i++) {
         if (ongoing_recs[i]) {
-            dumprecord(ongoing_recs[i], 0, 0, tmpbuff, 511);
+            dump_record(ongoing_recs[i], 0, 0, tmpbuff, 511);
             strncat(msgbuff, tmpbuff, left);
             left -= strlen(tmpbuff);
         }
@@ -2263,7 +2263,7 @@ _cmd_nextrec(const char *cmd, int sockfd) {
             int minutes = (until - hours*3600)/60;
             _writef(sockfd,"(%02d:%02d) : ",hours,minutes);
             */
-            dumprecord(recs[REC_IDX(video, 0)], cmd[1] == 'l' ? 2 : 0, 0,  tmpbuff, 512);
+            dump_record(recs[REC_IDX(video, 0)], cmd[1] == 'l' ? 2 : 0, 0,  tmpbuff, 512);
             _writef(sockfd,tmpbuff);
         }
     }

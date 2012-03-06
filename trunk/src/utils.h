@@ -311,8 +311,14 @@ waitreadn(int sock, char *buffer, int maxbufflen);
 // Optional alphanumeric sequence
 #define _PR_ANSO "([\\p{L}\\p{N}\\_ ]*)"
 
+// Required alpha sequence
+#define _PR_A "([\\p{L}\\_]+)"
+
 // Required numeric sequence
 #define _PR_N "([\\p{N}]+)"
+
+// Required file name
+#define _PR_FNAME "([\\p{L}\\p{N}\\_\\-]+\\.[\\p{L}]{3,4})"
 
 //  HTTP/1\\.(1|0)
 #define _PR_HTTP_VER "(HTTP/1.[0-1])"
@@ -321,14 +327,14 @@ waitreadn(int sock, char *buffer, int maxbufflen);
 #define _PR_FILEPATH "([\\p{L}\\p{N}\\/\\.\\_\\-]+)"
 
 // Required alphanumeric and punctuation sequence
-#define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]+)"
+#define _PR_ANP "([\\p{L}\\p{N}\\p{P}\\.\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]+)"
 
-#define _PR_ANPO "([\\p{L}\\p{N}\\p{P}\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]*)"
+#define _PR_ANPO "([\\p{L}\\p{N}\\p{P}\\.\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]*)"
 
 // Required alphanumeric, punctuation and space sequence
-#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]+)"
+#define _PR_ANPS "([\\p{L}\\p{N}\\p{P} \\.\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]+)"
 
-#define _PR_ANPSO "([\\p{L}\\p{N}\\p{P} \\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]*)"
+#define _PR_ANPSO "([\\p{L}\\p{N}\\p{P} \\.\\>\\<\\+\\;\\:\\$\\,\\'\\`\\'\\-\\&\\#\\=]*)"
 
 // Any sequence of symbols
 #define _PR_ANY "(\\X+)"

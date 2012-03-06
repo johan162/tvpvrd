@@ -2243,7 +2243,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     }
 
                     // Finally list the three next recordings
-                    listrecsbuff(str_buff,n_str_buff-1,3,4);
+                    list_recsbuff(str_buff,n_str_buff-1,3,4);
                     str_buff[n_str_buff-1] = '\0';
                     add_keypair(keys,maxkeys,"NEXTRECS",str_buff,&ki);
                     add_keypair(keys,maxkeys,"TITLE",short_filename,&ki);

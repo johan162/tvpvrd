@@ -160,7 +160,7 @@ freerecs(void);
  * @see removetoprec
  */
 void
-deletetoprec(const unsigned video);
+delete_toprec(const unsigned video);
 
 
 /**
@@ -170,7 +170,7 @@ deletetoprec(const unsigned video);
  * @see deletetoprec
  */
 void
-removetoprec(const unsigned video);
+remove_toprec(const unsigned video);
 
 /**
  * Create a new recording post
@@ -209,15 +209,6 @@ void freerec(struct recording_entry *entry); //,char *caller);
 int
 insertrec(unsigned video, struct recording_entry * entry);
 
-/**
- * Dumpa  string that can serve as the title headline for a table of
- * recordings
- * @param style
- * @param buffer
- * @param bufflen
- */
-void
-dumprecord_header(int style, char *buffer, size_t bufflen);
 
 /**
  * Dump a string representation of the given recording to the stated buffer
@@ -226,7 +217,7 @@ dumprecord_header(int style, char *buffer, size_t bufflen);
  * @param buffer
  * @param bufflen
  */
-void dumprecord(struct recording_entry* entry, int style, size_t idx, char *buffer, size_t bufflen);
+void dump_record(struct recording_entry* entry, int style, size_t idx, char *buffer, size_t bufflen);
 
 /**
  * Dump a string representation of the record with the specified id to the stated buffer
@@ -238,7 +229,7 @@ void dumprecord(struct recording_entry* entry, int style, size_t idx, char *buff
  * @return
  */
 int
-dumprecordid(unsigned seqnbr, int repeats, int style, size_t idx, char *buffer, size_t bufflen);
+dump_recordid(unsigned seqnbr, int repeats, int style, size_t idx, char *buffer, size_t bufflen);
 
 /**
  * Dump a list of all future recordings to the given file descriptor
@@ -246,7 +237,7 @@ dumprecordid(unsigned seqnbr, int repeats, int style, size_t idx, char *buffer, 
  * @param fd
  */
 void
-listrecs(size_t maxrecs, int style, int fd);
+list_recs(size_t maxrecs, int style, int fd);
 
 /**
  * Dump a list of all future recordings in the specified buffer
@@ -257,7 +248,7 @@ listrecs(size_t maxrecs, int style, int fd);
  * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
  */
 int
-listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style);
+list_recsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style);
 
 /**
  * Dump a list of all future recordings in the specified buffer using HTML output format
@@ -270,7 +261,7 @@ listrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, int style);
  * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
  */
 int
-listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int only_nonrepeat, int use_csshtml);
+listhtml_recsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int only_nonrepeat, int use_csshtml);
 
 /**
  * Dump a list of all future repeating recordings in the specified buffer using HTML output format
@@ -280,7 +271,7 @@ listhtmlrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int 
  * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
  */
 int
-listrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs);
+list_repeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs);
 
 /**
  * Dump a list of all future repeating recordings in the specified buffer using HTML output format
@@ -291,7 +282,7 @@ listrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs);
  * @return 0 on success, -1 on failure (most likely the buffer was to small to fit all records)
  */
 int
-listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style);
+listhtml_repeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style);
 
 /**
  * Create a list of all currnet recordings
@@ -300,7 +291,7 @@ listhtmlrepeatrecsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style
  * @return Number of records returned in list
  */
 int
-listrecskeyval(struct skeysval_t **list, int style);
+list_recskeyval(struct skeysval_t **list, int style);
 
 /**
  * Delete the record with the specified id
@@ -309,7 +300,7 @@ listrecskeyval(struct skeysval_t **list, int style);
  * @return Boolean. 0 if failed, 1 otherwise
  */
 int
-deleterecid(unsigned seqnbr, int allrecurrences);
+delete_recid(unsigned seqnbr, int allrecurrences);
 
 /**
  * Update the current profile settings for the recording with the specified seqnbr
@@ -318,7 +309,7 @@ deleterecid(unsigned seqnbr, int allrecurrences);
  * @return Boolean. 0 if failed, 1 otherwise
  */
 int
-updateprofile(unsigned seqnbr, char *profile);
+update_profile(unsigned seqnbr, char *profile);
 
 #ifdef	__cplusplus
 }

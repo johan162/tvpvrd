@@ -47,7 +47,7 @@ void
 web_cmd_qadd(int sockd);
 
 int
-read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince);
+read_cssfile(char *buff, int maxlen, char *css_filename, time_t modifiedSince);
 
 void
 web_cmd_ongoingtransc(int sockd);

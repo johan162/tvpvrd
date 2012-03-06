@@ -203,7 +203,7 @@ user_loggedin(char *buffer, char *cookie, int maxlen) {
             int sucess=0;
             if (validate_cookie(tmpbuff)) {
 
-                logmsg(LOG_DEBUG, "Received cookie valdidated correctly.");
+                logmsg(LOG_DEBUG, "Received cookie validated correctly.");
                 strncpy(cookie, tmpbuff, maxlen);
                 cookie[maxlen - 1] = '\0';
                 sucess = 1;
@@ -271,10 +271,10 @@ is_mobile_connection(char *buffer) {
 
 
 /**
- * This test function is called when the server receives a new conection and
+ * This test function is called when the server receives a new connection and
  * determines if the first command is a GET string. This is then an indication
  * that this is a WEB-browser calling us. The command given is stored in the
- * buffer posinted to by the second argument.
+ * buffer pointed to by the second argument.
  * @param buffer
  * @param cmd
  * @param maxlen
@@ -333,7 +333,7 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
             found = 1;
             matchcmd_free(&field);
             logmsg(LOG_DEBUG,"Found empty GET directory. Assuming command 't'");
-
+            
         } else if ((ret = matchcmd("^GET /" _PR_ANY _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
 
             // We get here when the client tries to get the CSS file or issue one
@@ -354,30 +354,24 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 }
 
 /**
- * Read a suitable CSS file depending on the client. An identified mobile browser
- * will have a different CSS file compared with a stationary client.
- * @param buff Buffer where the CSS file is stored
- * @param maxlen MAximum length of buffer
- * @param mobile Flag to indicate a mobile browser
- * @return 0 on success, -1 on failure
+ * Read a file from our "WEB-root" directory 
+ * @param buff Buffer where the file is read into
+ * @param maxlen Maximum length of file buffer
+ * @return 0 on not modified, 1 if modified , -1 on failure, 
  */
 int
-read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
-    char cssfile[255];
+read_webroot_file(char *file_buffer, size_t maxlen, size_t *actualfilelen, char *filename, time_t modifiedSince) {
+    char full_filename[255];
 
-    if (mobile) {
-        snprintf(cssfile, 255, "%s/tvpvrd/%s_mobile.css", CONFDIR, CSSFILE_BASENAME);
-    } else {
-        snprintf(cssfile, 255, "%s/tvpvrd/%s.css", CONFDIR, CSSFILE_BASENAME);
-    }
+    snprintf(full_filename, 255, "%s/tvpvrd/%s", CONFDIR, filename);
+    logmsg(LOG_DEBUG,"Reading web-root file '%s'",full_filename);
 
-    cssfile[254] = '\0';
-    char linebuff[1024];
+    full_filename[sizeof(full_filename)-1] = '\0';
     struct stat mstatbuf;
     
-    if( -1 == stat(cssfile,&mstatbuf) ) {
-        logmsg(LOG_ERR,"Cannot stat CSS file '%s' ( %d : %s )",cssfile,errno,strerror(errno));
-        return FALSE;
+    if( -1 == stat(full_filename, &mstatbuf) ) {
+        logmsg(LOG_ERR,"read_webroot_file: Cannot stat file '%s' ( %d : %s )",full_filename,errno,strerror(errno));
+        return -1;
 
     } else {
 
@@ -393,92 +387,160 @@ read_cssfile(char *buff, int maxlen, int mobile, time_t modifiedSince) {
         time_t t1 = mktime(&t_tm1);
         time_t t2 = mktime(&t_tm2);
 #ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG,"Comparing file time=%d (%s) with modifiedSince=%d (%s)",
-               t1,f1time,t2,f2time);
+        //logmsg(LOG_DEBUG,"Comparing file time=%d (%s) with modifiedSince=%d (%s)",t1,f1time,t2,f2time);
+        logmsg(LOG_DEBUG,"Comparing file time=d (%s) with modifiedSince=d (%s)",f1time,f2time);
 #endif
 
         if( t1 < t2 ) {
-            logmsg(LOG_DEBUG,"CSS File not modified");
-            return FALSE; // Not modified
+            logmsg(LOG_DEBUG,"File '%s' not modified",full_filename);
+            return 0; // Not modified
         }
-        logmsg(LOG_DEBUG,"CSS File IS modified");
+        logmsg(LOG_DEBUG,"File '%s' is modified");
     }
 
-    *buff = '\0';
-    FILE *fp = fopen(cssfile, "r");
+    *file_buffer = '\0';
+    FILE *fp = fopen(full_filename, "r");
     if (fp == NULL) {
-        logmsg(LOG_ERR, "Cannot read CSS file '&s'", cssfile);
-        return FALSE;
+        logmsg(LOG_ERR, "Cannot read file '%s'", full_filename);
+        return -1;
+    } else {
+        logmsg(LOG_DEBUG, "Opened file '%s'", full_filename);
     }
 
-    while (maxlen > 0 && fgets(linebuff, 1023, fp)) {
-        linebuff[1023] = '\0';
-        strncat(buff, linebuff, maxlen);
-        maxlen -= strlen(linebuff);
+    *actualfilelen=fread(file_buffer,sizeof(char),maxlen-1,fp);
+    if( ferror(fp) ) {
+        logmsg(LOG_ERR, "Error reading file '%s' ( %d : %s )", full_filename,errno,strerror(errno));
+        return -1;
+        fclose(fp);
+    } else {
+        if( feof(fp) ) {
+            fclose(fp);
+            return 1;       
+        } else if( *actualfilelen==maxlen-1 ){
+            logmsg(LOG_ERR, "Error reading file '%s' . File buffer too small to read entire file", full_filename);
+            return -1;
+            fclose(fp);            
+        } else {
+            logmsg(LOG_ERR, "Unknown error reading file '%s' .", full_filename);
+            return -1;
+            fclose(fp);                        
+        }
     }
-
-    fclose(fp);
-    return 1;
 }
 
 /**
- * Upong receiveng the request to send back the CSS file this function reads
- * the correct CSS file and writes it back to the client using the supplied socket.
- * TODO : Add handling of "304 Not Modified" to save a bit of bandwidth
+ * Sendback a specified file with a 200 status (indicating file was found and everything
+ * is OK)
  * @param sockd
- * @param name
+ * @param file_buffer
+ * @param buffer_len
+ * @param mime_type
  */
 void
-sendback_css_file(int sockd, char *name, time_t modifiedSince) {
-    size_t const maxfilesize = 16000;
+sendback_http200_file(int sockd, char *file_buffer, size_t buffer_len, char *mime_type) {
 
-    char *tmpbuff = calloc(1,maxfilesize);
-    const int ismobile = strcmp(name,"tvpvrd_mobile")==0;
-    
-    if( read_cssfile(tmpbuff,maxfilesize,ismobile,modifiedSince) ) {
-        // Initialize a new page
-        char server_id[255];
-        snprintf(server_id, 254, "tvpvrd %s", server_version);
-        // Send back a proper HTTP header
+    // Initialize a new page
+    char server_id[255];
+    snprintf(server_id, 254, "tvpvrd %s", server_version);
+    // Send back a proper HTTP header
 
-        time_t t = time(NULL);
-        struct tm t_tm;
-        char ftime[128];
+    time_t t = time(NULL);
+    struct tm t_tm;
+    char ftime[128];
 
-        (void) gmtime_r(&t, &t_tm);
-        strftime(ftime, 128, TIME_RFC822_FORMAT, &t_tm);
-        _writef(sockd,
-                    "HTTP/1.1 200 OK\r\n"
-                    "Date: %s\r\n"
-                    "Last-Modified: %s\r\n"
-                    "Server: %s\r\n"
-                    "Connection: close\r\n"
-                    "Content-Type: text/css\r\n\r\n", ftime, ftime, server_id);
+    (void) gmtime_r(&t, &t_tm);
+    strftime(ftime, 128, TIME_RFC822_FORMAT, &t_tm);
+    _writef(sockd,
+            "HTTP/1.1 200 OK\r\n"
+            "Date: %s\r\n"
+            "Last-Modified: %s\r\n"
+            "Server: %s\r\n"
+            "Connection: close\r\n"
+            "Content-Length: %zu\r\n"
+            "Content-Type: %s\r\n\r\n", ftime, ftime, server_id, buffer_len,mime_type);
 
-        _writef(sockd,tmpbuff);
-#ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG,"HTTP Header sent back (printed without \\r: "
-                    "HTTP/1.1 200 OK\n"
-                    "Date: %s\n"
-                    "Last-Modified: %s\n"
-                    "Server: %s\n"
-                    "Connection: close\n"
-                    "Content-Type: text/css\n\n", ftime, ftime, server_id);
-#endif
-        logmsg(LOG_DEBUG,"Sent back CSS sheet %s",name);
-
-    } else {
-
-        html_notmodified(sockd);
+    size_t num=write(sockd, file_buffer, buffer_len);
+    if( num != buffer_len ) {
+        logmsg(LOG_ERR, "Could not send file back to browser. Unknown error in write operation.");
     }
-
-    free(tmpbuff);
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG, "HTTP Header sent back (printed without \\r: "
+            "HTTP/1.1 200 OK\n"
+            "Date: %s\n"
+            "Last-Modified: %s\n"
+            "Server: %s\n"
+            "Connection: close\n"
+            "Content-Length: %zu\n"
+            "Content-Type: %s\n\n", ftime, ftime, server_id, buffer_len, mime_type);
+#endif    
 }
+
+int
+get_filemimetype(char *filename, char *mimetype, size_t maxlen) {
+    size_t n = strnlen(filename,255)-1;
+    *mimetype='\0';
+    while( n > 0 && filename[n] != '.') {
+        --n;
+    }
+    if( n <= 0 ) {
+        logmsg(LOG_ERR,"Cannot determine mime type based on file extension for '%s'",filename);    
+        return -1;
+    } else if( strnlen(&filename[n+1],5) > 4 ) {
+        logmsg(LOG_ERR,"Unknown file extension '%s'",filename);    
+        return -1;
+    } else {
+        if( 0==strncmp(&filename[n+1],"png",4) ) {
+            strncpy(mimetype,"image/png",maxlen);
+        } else if( 0==strncmp(&filename[n+1],"jpg",4) || 0==strncmp(&filename[n+1],"jpeg",5)) {
+            strncpy(mimetype,"image/jpeg",maxlen);
+        } else if( 0==strncmp(&filename[n+1],"gif",4) ) {
+            strncpy(mimetype,"image/gif",maxlen);
+        } else if( 0==strncmp(&filename[n+1],"css",4) ) {
+            strncpy(mimetype,"text/css",maxlen);
+        } else if( 0==strncmp(&filename[n+1],"txt",4) ) {
+            strncpy(mimetype,"text/plain",maxlen);            
+        } else {
+            logmsg(LOG_ERR,"Unknown file extension '%s'",filename);    
+            return -1;
+        }    
+        return 0;
+    }
+}
+
+void
+sendback_file(int sockd, char *filename, time_t modifiedSince) {
+    char mimetype[24];
+    if( -1==get_filemimetype(filename, mimetype, sizeof(mimetype)) ) {
+        html_notfound(sockd);            
+    } else {
+        size_t const maxfilesize = 50000;
+        char *filebuffer = calloc(maxfilesize,sizeof(char));    
+        if( NULL==filebuffer ) {
+            logmsg(LOG_CRIT,"Out of memory when sending back file!! '%s'",filename);    
+            html_notfound(sockd);        
+        } else {
+            size_t actualsize=0;
+            int ret=read_webroot_file(filebuffer,maxfilesize,&actualsize,filename,modifiedSince);
+            if( 1==ret ) {
+                sendback_http200_file(sockd, filebuffer, actualsize, mimetype);
+                logmsg(LOG_DEBUG,"Sent back file '%s' as mime type '%s'",filename,mimetype);
+            } else if( 0==ret) {
+                html_notmodified(sockd);
+            } else {
+                html_notfound(sockd);
+            }
+            free(filebuffer);        
+        }
+    }
+}
+
+
+
 
 /**
  * This is the main routine that gets called from the connection handler
  * when a new browser connection has been detected and the command from
- * the browser have been received. Tis function is totally responsible to
+ * the browser have been received. This function is totally responsible to
  * execute the command and prepare the WEB-page to be sent back.
  *
  * @param my_socket
@@ -497,7 +559,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
         // Reset cmd_delay
         cmd_delay = 0;
 
-        // Try to determiine if the connection originated from a
+        // Try to determine if the connection originated from a
         // mobile phone.
         mobile = is_mobile_connection(buffer);
 
@@ -553,7 +615,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                 if (0 == strcmp(repeat, "")) {
                     snprintf(wcmd, sizeof(wcmd)-1, "a %s", channel);
                 } else {
-                    // Repeatet add
+                    // Repeat add
                     snprintf(wcmd, sizeof(wcmd)-1, "ar %s %s %s ", repeat, repeatcount, channel);
                 }
                 if (*sd != '\0') {
@@ -647,16 +709,25 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
             matchcmd_free(&field);
 
-        } else if ( (ret = matchcmd("^GET /" _PR_ANP ".css " _PR_HTTP_VER , buffer, &field)) > 1) {
+        } else if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) >= 1) {
+            
+            matchcmd_free(&field);
+            free(buffer);
+            logmsg(LOG_DEBUG,"Ignoring 'GET /favicon.ico'");
+            html_notfound(my_socket);
+            return;
+                        
+        } else if ( (ret = matchcmd("^GET /" _PR_FNAME " " _PR_HTTP_VER , buffer, &field)) >= 1) {
                        
-            // Check if this is a call for one of the CSS files that we recognize
-            if( strcmp(field[1],"tvpvrd")==0 ||  strcmp(field[1],"tvpvrd_mobile")==0 ) {
+            logmsg(LOG_DEBUG,"Found generic GET file command.");
+                       
+            // Send back the requested file
 
                 // Check if we have received the "If-Modified-Since:" header
                 // In that case we send beck the "Not Modified 304" reply
                 // HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
                 // RFC 1123 format
-                char *cssfile = strdup(field[1]);
+                char *filename = strdup(field[1]);
                 matchcmd_free(&field);
 
                 time_t mtime = 0;
@@ -668,7 +739,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                     // Convert time to a timestamp to compare with file modified time
                     // Match HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
 
-                    // Try first to use en_US locale since the header is in english.
+                    // Try first to use en_US locale since the header is in English.
                     // If this doesn't work then we use the "C" locale but this might not
                     // work to interpret the header.
                     locale_t lc =  newlocale(LC_ALL_MASK,"en_US",NULL);
@@ -682,7 +753,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                         localtime_r(&mtime,&tm_date);
                         mtime += tm_date.tm_gmtoff;
                         localtime_r(&mtime,&tm_date);
-                        sendback_css_file(my_socket,cssfile,mtime);
+                        sendback_file(my_socket,filename,mtime);
                     } else {
                         char *retptr = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
                         freelocale(lc);
@@ -690,7 +761,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                             logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header (%s)",field[1]);
                             // Set the date a month back to force a resend of the CSS header in case the header
                             // can not be parsed.
-                            sendback_css_file(my_socket,cssfile,time(NULL)-3600*24*30);
+                            sendback_file(my_socket,filename,time(NULL)-3600*24*30);
                         } else {
 
 #ifdef EXTRA_WEB_DEBUG
@@ -700,7 +771,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                             localtime_r(&mtime,&tm_date);
 
 #ifdef EXTRA_WEB_DEBUG
-                            logmsg(LOG_DEBUG,"LOG_DEBUG,Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
+                            logmsg(LOG_DEBUG,"Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
 #endif
 
                             // Since the original time is given in GMT and we want it expressed
@@ -714,25 +785,22 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 #endif
 
 
-                            sendback_css_file(my_socket,cssfile,mtime);
+                            sendback_file(my_socket,filename,mtime);
                         }
                         matchcmd_free(&field);
                     }
                     
                 } else {
 #ifdef EXTRA_WEB_DEBUG
-                    logmsg(LOG_DEBUG,"NOT Found If-Modified-Since:");
+                    logmsg(LOG_DEBUG,"No 'If-Modified-Since:' field. Sending back file.");
 #endif
-                    sendback_css_file(my_socket,cssfile,mtime);
+                    sendback_file(my_socket,filename,mtime);
                 }
-                free(cssfile);
+                free(filename);
                 free(buffer);
                 
                 return;
 
-            } else {
-                matchcmd_free(&field);
-            }
 
         }
 
@@ -776,9 +844,9 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
                         } else {
 #ifdef EXTRA_WEB_DEBUG
-                        logmsg(LOG_DEBUG,"WEB login successfull. Sending back main page with cookie",user,pwd);
+                        logmsg(LOG_DEBUG,"WEB login successful. Sending back main page with cookie",user,pwd);
 #endif
-                            // Login successfull. Show the main page and used the "version" command
+                            // Login successful. Show the main page and used the "version" command
                             // as the default command to show in the output area.
                             html_main_page(my_socket, "v", create_login_cookie(user, pwd), mobile);
                         }
@@ -837,9 +905,9 @@ void
 web_cmd_next(int sockd) {
     _writef(sockd, "<fieldset><legend>Next recording</legend>\n");
     _writef(sockd, "<div class=\"next_rec_container\">\n");
-    listrecs(1,4,sockd); // Use style==4 , fancy
-    _writef(sockd, "</div>\n");
-    _writef(sockd, "</fieldset>\n");
+    list_recs(1,4,sockd); // Use style==4 , fancy
+    _writef(sockd, "</div> <!-- next_rec_container -->\n");
+    _writef(sockd, "</fieldset> <!-- Next recording -->\n");
 }
 
 /**
@@ -870,12 +938,12 @@ web_cmd_ongoingtransc(int sockd) {
                 _writef(sockd, "<div class=\"ongoing_transc_title\">(%02d:%02d) %s</div>",rh,rmin,ongoing_transcodings[i]->filename);
                 _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?c=kt%%20%d\">Stop</a></div>",i);
 
-                _writef(sockd, "</div>\n");
+                _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
             }
         }
     }
 
-    _writef(sockd, "</fieldset>\n");
+    _writef(sockd, "</fieldset> <!-- Ongoing transcodings -->\n");
 }
 
 /**
@@ -908,12 +976,12 @@ web_cmd_ongoing(int sockd) {
                 _writef(sockd, "<div class=\"ongoing_rec_title\">%s %02d:%02d-%02d:%02d, %s</div>",ongoing_recs[i]->channel,sh,smi,eh,emi,ongoing_recs[i]->title);
                 _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">Stop</a></div>",i);
 
-                _writef(sockd, "</div>\n");
+                _writef(sockd, "</div> <!-- ongoing_rec_entry -->\n");
             }
         }
     }
 
-    _writef(sockd, "</fieldset>\n");
+    _writef(sockd, "</fieldset> <!-- Ongoing recordings -->\n");
 
 }
 
@@ -952,7 +1020,7 @@ web_cmd_qadd(int sockd) {
 
     _writef(sockd, "</form>\n");
 
-    _writef(sockd, "</div> <!-- qadd_container -->");
+    _writef(sockd, "</div> <!-- qadd_container -->\n");
 
 }
 
@@ -1030,7 +1098,7 @@ web_cmd_add(int sockd) {
     _writef(sockd, "</form>\n");
 
     // Close container
-    _writef(sockd, "</div> <!-- add_container -->");
+    _writef(sockd, "</div> <!-- add_container -->\n");
 }
 
 
@@ -1055,7 +1123,7 @@ web_cmd_del(int sockd) {
     _writef(sockd, "<fieldset>\n<legend>Delete recording</legend>\n");
 
     struct skeysval_t *listrec;
-    size_t num = listrecskeyval(&listrec, 10); // style==10, simple format with no idx and no profile
+    size_t num = list_recskeyval(&listrec, 10); // style==10, simple format with no idx and no profile
     html_element_select_code(sockd, "Title:", "recid", NULL, listrec, num, "id_delselect");
     for (size_t i = 0; i < num; ++i) {
         free(listrec[i].key);
@@ -1070,7 +1138,7 @@ web_cmd_del(int sockd) {
     _writef(sockd, "</form>\n");
 
     // Close container
-    _writef(sockd, "</div> <!-- del_container -->");
+    _writef(sockd, "</div> <!-- del_container -->\n");
 }
 
 

@@ -7,9 +7,11 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
 
-v3.3.6
+v3.4.0
 ------
 User visible changes:
+    - Revamped the Web-UI with new metall/LCD themed look.The layout is now clean
+      div+css which makes it easy to create new themes.
     - Added Web-menu entry for mailing history.
     - Increased history default length to 99
     - Removed Web-menu for detailed driver settings (this is an advanced
@@ -21,7 +23,9 @@ Bugs fixed:
     - None.
 
 Internal changes:
-    - None.
+    - The micro web server now behaves more like a real webserver in serving
+      static files. The server is now more general but still targeted to tvpvrd
+      due to the handling of commands.
 
 v3.3.5
 ------
