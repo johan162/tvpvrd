@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "utils.h"
 #include "pcretvmalloc.h"
@@ -38,28 +39,39 @@
 
 /*
  * The following memory routines are just used to double check that
- * all the calls to PCRE regep routines are matched with respect to
+ * all the calls to PCRE regexp routines are matched with respect to
  * memory allocation.
  */
 
-int pcre_mem_count=0;
+// struct tvp_mem_entry *pcre_mem_list = (void *) NULL;
 
-
-struct tvp_mem_entry *pcre_mem_list = (void *)NULL;
-int tvp_call_count=0;
+int tvp_call_count = 0;
+static pthread_mutex_t tvpmalloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *
 tvp_malloc(size_t size) {
-    struct tvp_mem_entry *ent = calloc(1,sizeof(struct tvp_mem_entry));
-    ent->size=size;
-    ent->ptr=malloc(size);
+    
+    pthread_mutex_lock(&tvpmalloc_mutex);
+    tvp_call_count++;
+    pthread_mutex_unlock(&tvpmalloc_mutex);
+    return malloc(size);
+
+    /*
+     * We currently just keep a reference count above and skip tracking each
+     * allocated unit.
+     */
+    
+    /*
+    struct tvp_mem_entry *ent = calloc(1, sizeof (struct tvp_mem_entry));
+    ent->size = size;
+    ent->ptr = malloc(size);
 
     struct tvp_mem_entry *walk = pcre_mem_list;
 
-    if( walk == NULL ) {
+    if (walk == NULL) {
         pcre_mem_list = ent;
     } else {
-        while( walk->next ) {
+        while (walk->next) {
             walk = walk->next;
         }
         walk->next = ent;
@@ -67,21 +79,30 @@ tvp_malloc(size_t size) {
     tvp_call_count++;
     //logmsg(LOG_DEBUG,"PCRE MALLOC: %06d bytes",size);
     return ent->ptr;
+    */
 }
 
 void
 tvp_free(void *ptr) {
+
+    pthread_mutex_lock(&tvpmalloc_mutex);
+    tvp_call_count--;
+    pthread_mutex_unlock(&tvpmalloc_mutex);
+    free(ptr);
+    return;
+    
+    /*
     struct tvp_mem_entry *walk = pcre_mem_list;
     struct tvp_mem_entry *prev = NULL;
 
-    while( walk && walk->ptr != ptr ) {
+    while (walk && walk->ptr != ptr) {
         prev = walk;
         walk = walk->next;
     }
-    if( walk == NULL ) {
-        logmsg(LOG_CRIT,"FATAL: Trying to deallocat PCRE without previous allocation !");
+    if (walk == NULL) {
+        logmsg(LOG_CRIT, "FATAL: Trying to deallocat PCRE without previous allocation !");
     } else {
-        if( prev == NULL ) {
+        if (prev == NULL) {
             // First entry in list
             pcre_mem_list = walk->next;
             //logmsg(LOG_DEBUG,"PCRE FREE: %06d bytes",walk->size);
@@ -95,17 +116,21 @@ tvp_free(void *ptr) {
         }
     }
     tvp_call_count--;
+     */
 }
 
 void
 tvp_mem_list(int sockd) {
-    struct tvp_mem_entry *walk = pcre_mem_list;
-    int n=0;
-    _writef(sockd,"PCRE MALLOC List: %02d\n",tvp_call_count);
-    while( walk ) {
+    
+    _writef(sockd, "PCRE Lib allocation count: %02d\n", tvp_call_count);
+    /*
+   struct tvp_mem_entry *walk = pcre_mem_list;
+   int n = 0;
+    while (walk) {
         ++n;
-        _writef(sockd,"  #%0002d: size = %06d bytes\n",n,walk->size);
+        _writef(sockd, "  #%0002d: size = %06d bytes\n", n, walk->size);
         walk = walk->next;
     }
+    */
 }
 

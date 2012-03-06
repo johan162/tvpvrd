@@ -571,7 +571,7 @@ html_login_page(int sockd, int mobile) {
     html_topbanner(sockd);
 
     _writef(sockd, "<div class=\"%s\">", "login_container");
-    _writef(sockd, "<div class=\"%s\">Welcome to tvpvrd</div>", "login_title");
+    _writef(sockd, "<div class=\"%s\">Please login</div>", "login_title");
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"login\">\n", "tvlogin");
     html_element_input_text(sockd, "User:", "user", "id_loginuser");
     html_element_input_password(sockd, "Password:", "pwd", "id_loginpwd");
