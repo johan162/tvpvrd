@@ -308,26 +308,6 @@ use_html=no
 ffmpeg_bin=/usr/bin/ffmpeg
 
 #----------------------------------------------------------------------------
-# MAX_LOAD_FOR_TRANSCODING float
-# The maximum load on the server allowed in order to start a transcoding
-# Must be a value in range [1,10].
-# The maximum setting for this should <= 2*<number of CPU cores> in server.
-# There is really no point in setting this too high since transcoding
-# is *very* CPU intensive and there is negative impact of multitasking too
-# many transcoding jobs at once. 
-#----------------------------------------------------------------------------
-max_load_for_transcoding=5
-
-#----------------------------------------------------------------------------
-# MAX_WAITING_TIME_TO_TRANSCODE integer
-# The maximum time in seconds we will be waiting for the server load to fall
-# below max_load_for_transcoding. Default is 12h = 12*3600 = 43200.
-# If the maximum time is exceeded no transcoding will take place.
-# If the time is specified as 0 then the daemon will wait forever
-#----------------------------------------------------------------------------
-max_waiting_time_to_transcode=43200
-
-#----------------------------------------------------------------------------
 # DEFAULT_TRANSCODING_PROFIL string
 # The profile that all new recodings will use as primary profile
 #----------------------------------------------------------------------------

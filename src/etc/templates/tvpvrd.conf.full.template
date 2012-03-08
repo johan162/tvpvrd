@@ -663,6 +663,12 @@ script_name=shutdown.sh
 ############################################################################
 
 [format]
+#----------------------------------------------------------------------------
+# WEB_THEME string
+# Theme to use for Web-interface. Two themes are included by default
+# "plain" and "metal"
+#----------------------------------------------------------------------------
+web_theme=metal
 
 #----------------------------------------------------------------------------
 # CSS Style for table with recordings included in the mail sent by the 'lm'
