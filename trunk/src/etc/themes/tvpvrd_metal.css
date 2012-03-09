@@ -41,6 +41,8 @@ div.top_banner {
 
     font-family:arial, helvetica, sans-serif;
     font-size:12pt;
+
+    height:20px;
 }
 
 div.top_banner_info_container {
@@ -70,10 +72,11 @@ div.buildnbr_container div.build {
     text-align:right;
 }
 
-div.logout-corner {    
+div.logout_container {    
     color:red;
-    margin-left:655px;
-    margin-top: 5px;
+    float:right;
+    margin-top: 3px;
+    margin-right:4px;
 }
 
 /* Left side with all commands */
@@ -227,6 +230,12 @@ div.input_legend {
     margin:0;
     text-shadow: 1px 1px  1px #888, -1px -1px 1px #eee;
 
+}
+
+#id_loginuser div.input_legend ,
+#id_loginpwd div.input_legend 
+{
+    text-shadow: 1px 1px  1px #555 ;
 }
 
 /*
@@ -524,68 +533,15 @@ input.input_submit:hover#id_submitlogin_submit {
      padding-bottom:10px;
     -moz-box-shadow: 0px  0px  6px  #e88; 
     box-shadow: 0px  0px  6px  #e88;    
-border:solid black 1px;
+   border:solid black 1px;
    font-size:10pt;
 }
 
 div.input_container#id_submitlogin {
-    float:none;
     margin-top:1em;
-    margin-left: 5em;
+    text-align:center;
 }
 
-
-div#logout_container {
-    float:left;
-    width:99%;
-    height: 20px;
-}
-
-div#logout {
-    border : solid gray 1px;
-    padding-bottom: 3px;
-    padding-top: 2px;
-    width: 70px;
-    height: 1.0em;
-    background: #eee;
-    font-weight:bold;
-    margin-top:5px;
-    margin-left:15px;
-    padding-left:25px;
-    padding-right:0px;
-    -moz-box-shadow: 3px  3px  5px  #777; 
-    box-shadow: 3px  3px  5px  #777;       
-    
-    background-image: -moz-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);
-    background-image: -webkit-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);    
-}
-
-div#logout a {
-    text-decoration:none;
-    font-weight:bold;
-    font-family:Arial,Sans-serif;
-    font-size:10pt;
-    color:#ddd;
-}
-
-/*
-div#logout img:hover {
-    text-decoration:none;
-    font-weight:bold;
-    font-family:Arial,Sans-serif;
-    font-size:10pt;
-    margin-top:9px;
-    margin-left:19px; 
-    padding-bottom:6px;
-   -moz-box-shadow: 0px  0px  40px  #b88; 
-    box-shadow: 0px  0px  40px  #b88;
-   
-    
-}
-*/
-
-/*div#logout a:hover {
-    color:black;
-}*/
 
 /* EOF CSS Style for tvpvrd */
+
