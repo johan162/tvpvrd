@@ -17,7 +17,7 @@ body {
 /* The overall main page is contained in this div */
 div.top_page {
     border: 1px solid gray;
-    background-image:url("img/bg.jpg");
+    background-image:url("img/bg_metal.jpg");
     background-size:cover;
     height:645px;
     width:99%;
@@ -349,7 +349,8 @@ span.be_hyphen {
 
 /* The submit button to delete a recording */
 input.input_submit#delrec_submit {
-   color:red; 
+   color:white; 
+   text-shadow:0 0 2px red;
 }
 
 /* Which input fields shoud start on a new line */

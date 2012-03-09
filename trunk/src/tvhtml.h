@@ -29,6 +29,8 @@ extern "C" {
 
 #define TIME_RFC822_FORMAT "%a, %d %b %Y %T GMT"
 
+#define LOGOUT_BUTTON_IMG "img/logout_button.jpg"
+
 void
 html_topbanner(int sockd);
 

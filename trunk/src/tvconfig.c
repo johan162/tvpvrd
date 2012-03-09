@@ -181,6 +181,7 @@ char web_password[32];
 char web_user[32];
 int require_web_password;
 int weblogin_timeout;
+char web_theme[32];
 
 /*
  * Determine if we should use subdirectories for each profile or just
@@ -560,6 +561,10 @@ read_inisettings(void) {
      *--------------------------------------------------------------------------
      */
 
+    strncpy(web_theme,
+            iniparser_getstring(dict, "format:web_theme", DEFAULT_WEB_THEME),
+            sizeof(web_theme)-1);
+    
     strncpy(tblcss_vborder_interior,
             iniparser_getstring(dict, "format:tblcss_vborder_interior", TBLCSS_VBORDER_INTERIOR),
             MAX_TBLCSS_SIZE-1);

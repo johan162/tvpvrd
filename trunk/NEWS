@@ -10,8 +10,10 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 v3.4.0
 ------
 User visible changes:
-    - Revamped the Web-UI with new metall/LCD themed look.The layout is now clean
-      div+css which makes it easy to create new themes.
+    - The 'o' (query ongoing recording) command now takes an optional card number as 
+      argument.
+    - Added theme setting in config file
+    - Added new default theme "metall"
     - Added Web-menu entry for mailing history.
     - Increased history default length to 99
     - Removed Web-menu for detailed driver settings (this is an advanced

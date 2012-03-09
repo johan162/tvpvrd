@@ -424,22 +424,25 @@ hist_listbuff(char *buff, size_t maxlen) {
         return 0;
     }
 
+    char filename[255];
     for (size_t i = 0; i < nrecs && maxlen > 0 ; ++i) {
         fromtimestamp(history[i].ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
         fromtimestamp(history[i].ts_end, &ey, &em, &ed, &eh, &emi, &es);        
         (void)localtime_r(&history[i].ts_start, &result);        
-        
+
+        strncpy(filename,history[i].filepath,sizeof(filename));
+        filename[sizeof(filename)-1]='\0';
         snprintf(line,sizeof(line),
          "%02u "
          "%s %s %02d %02d:%02d "
-         "%-28s"
-         "%-75s"
+         "%-43s"
+         "%-40s"
          "%-10s\n",
          (int)(i+1),
          wday_name[result.tm_wday], month_name[sm-1], sd,
          sh, smi,
          history[i].title,
-         history[i].filepath,
+         basename(filename),
          history[i].profile);
         if( strnlen(line,256) > maxlen ) {
             return -1;

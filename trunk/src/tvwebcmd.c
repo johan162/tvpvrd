@@ -364,7 +364,7 @@ int
 read_webroot_file(char *file_buffer, size_t maxlen, size_t *actualfilelen, char *filename, time_t modifiedSince) {
     char full_filename[255];
 
-    snprintf(full_filename, sizeof(full_filename)-1, "%s/tvpvrd/%s", CONFDIR, filename);
+    snprintf(full_filename, sizeof(full_filename)-1, "%s/tvpvrd/www/%s", CONFDIR, filename);
     logmsg(LOG_DEBUG,"Reading web-root file '%s'",full_filename);
 
     full_filename[sizeof(full_filename)-1] = '\0';
@@ -394,8 +394,9 @@ read_webroot_file(char *file_buffer, size_t maxlen, size_t *actualfilelen, char 
         if( t1 < t2 ) {
             logmsg(LOG_DEBUG,"File '%s' not modified",full_filename);
             return 0; // Not modified
+        } else {
+            logmsg(LOG_DEBUG,"File '%s' is modified",full_filename);
         }
-        logmsg(LOG_DEBUG,"File '%s' is modified");
     }
 
     *file_buffer = '\0';
