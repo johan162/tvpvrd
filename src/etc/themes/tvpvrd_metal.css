@@ -128,7 +128,7 @@ div.cmd_output {
     margin-top: 0;
     font-weight:bold;
     border:solid gray 1px;
-    background-image:url("bgcmd.jpg");
+    background-image:url("img/bgcmd_metal.jpg");
     background-size:cover;
     color:#ddd;
     height:25%;
@@ -157,7 +157,8 @@ div.cmd_menu a {
 div.cmd_menu a:hover {
     color:darkred;
      color: #fff;
-     text-shadow: 0 0 3px #fff, 0 0 6px #4a4, 0 0 10px #4a4 ;
+     text-shadow: 0 0 2px #fff, 0 0 4px #faef50, 0 0 6px #eacf50;
+
     
 }
 
@@ -193,9 +194,8 @@ legend {
     font-size:13pt;
     padding-left:2px;
     padding-right:4px;
-/*    background: #e1e6db;
-    color:#333;*/    
     color:#633;
+    text-shadow: 1px 1px 1px #999, -1px -1px  1px #eee;
 }
 
 /* Fieldset for add/del command */
@@ -223,8 +223,10 @@ div.input_legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-size:9pt;
-    color:#505050;
+    color:#404040;
     margin:0;
+    text-shadow: 1px 1px  1px #888, -1px -1px 1px #eee;
+
 }
 
 /*
@@ -239,7 +241,6 @@ select  {
     background:#C4CCC8;
     font-family:Arial, Sans-serif;
     font-weight:bold;
-/*    color:#8a4106;*/
     color:#0D572F;
 }
 
@@ -348,9 +349,7 @@ span.be_hyphen {
 
 /* The submit button to delete a recording */
 input.input_submit#delrec_submit {
-   /* color:darkred;*/
-   /*color:#F5F527;*/
-   color:orange;
+   color:red; 
 }
 
 /* Which input fields shoud start on a new line */
@@ -397,9 +396,17 @@ div.ongoing_transc_stop {
     margin-left: 10pt;
     margin-right: 10pt;
     border: solid black 1px;
-    background: orange;
+    width:50px;
+/*    background: orange;*/
+    background-image: -moz-linear-gradient(bottom, rgb(108,90,45) 1%, rgb(225,204,81) 60%);
+    background-image: -webkit-linear-gradient(bottom, rgb(108,90,45) 1%, rgb(225,204,81) 60%);    
+    -moz-box-shadow: 3px  3px  3px  #999; 
+    box-shadow: 3px  3px  3px  #999;  
     padding-left: 10px;
     padding-right: 10px;
+    padding-bottom: 4px;
+    text-align:center;
+    color: white;
 }
 
 div.ongoing_rec_stop_disabled,
@@ -413,7 +420,7 @@ div.ongoing_transc_stop_disabled {
 div.ongoing_rec_stop a,
 div.ongoing_transc_stop a  {
     text-decoration: none;
-    color:black;
+    color:white;
 }
 
 div.ongoing_rec_stop a:hover,
@@ -433,12 +440,7 @@ div.next_rec_container {
     margin-left: 2pt;
     font-weight:bold;
     font-family:monospace;
-/*    background: black;
-    color: #f7ef61;    
-*/
-    background-image:url("lg02.jpg");
-    /*background-image:url("gl.png");*/
-    /*color:#EDE84A;*/
+    background-image:url("img/bgcmd_metal.jpg");
     color:#eee;
     border: solid 1px gray;
     background-size:cover;
