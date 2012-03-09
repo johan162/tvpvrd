@@ -1845,26 +1845,54 @@ _cmd_refresh_profiles(const char *cmd, int sockfd) {
 static void
 _cmd_ongoingrec(const char *cmd, int sockfd) {
     char tmpbuff[512], msgbuff[2048];
-    unsigned i, left=2047;
+    unsigned left=sizeof(msgbuff)-1;
 
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "List ongoing recording for each video.\n"
+                "List ongoing recording for all or specified video card.\n"
+		"h [card]\n"
                 );
         return;
     }
+
     *msgbuff = '\0';
-    for (i = 0; i < (unsigned)max_video; i++) {
-        if (ongoing_recs[i]) {
-            dump_record(ongoing_recs[i], 0, 0, tmpbuff, 511);
+
+    char **field=(void *)NULL;
+    int ret = matchcmd("^o" _PR_S _PR_VIDEO _PR_E, cmd, &field);
+    
+    if( 2 == ret ) {
+        unsigned video = (unsigned)xatoi(field[1]);
+        if( video < max_video ) {
+          if (ongoing_recs[video]) {
+            dump_record(ongoing_recs[video], 0, 0, tmpbuff, sizeof(tmpbuff)-1);
             strncat(msgbuff, tmpbuff, left);
             left -= strlen(tmpbuff);
-        }
+          } else {
+            strncpy(msgbuff,"Free.\n",sizeof(msgbuff)-1);	  
+	  }
+	} else {
+	  snprintf(msgbuff,sizeof(msgbuff),"Video card number outside range [0,%d]\n",max_video-1);
+		
+	}
+    } else {
+
+
+       for (unsigned i = 0; i < (unsigned)max_video; i++) {
+          if (ongoing_recs[i]) {
+              dump_record(ongoing_recs[i], 0, 0, tmpbuff, sizeof(tmpbuff)-1);
+              strncat(msgbuff, tmpbuff, left);
+              left -= strlen(tmpbuff);
+          }
+       }
+       if( *msgbuff == '\0' )
+           strncpy(msgbuff,"All free.\n",sizeof(msgbuff)-1);
+       msgbuff[sizeof(msgbuff)-1] = '\0';
+
     }
-    if( *msgbuff == '\0' )
-        strncpy(msgbuff,"None.\n",2047);
-    msgbuff[2047] = '\0';
+
+    matchcmd_free(&field);
     _writef(sockfd, msgbuff);
+    
 }
 
 /**

@@ -317,8 +317,8 @@ waitreadn(int sock, char *buffer, int maxbufflen);
 // Required numeric sequence
 #define _PR_N "([\\p{N}]+)"
 
-// Required file name
-#define _PR_FNAME "([\\p{L}\\p{N}\\_\\-]+\\.[\\p{L}]{3,4})"
+// Required file name (including path)
+#define _PR_FNAME "([\\p{L}\\p{N}\\_\\-\\/]+\\.[\\p{L}]{3,4})"
 
 //  HTTP/1\\.(1|0)
 #define _PR_HTTP_VER "(HTTP/1.[0-1])"

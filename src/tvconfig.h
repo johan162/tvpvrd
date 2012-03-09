@@ -111,6 +111,12 @@ extern "C" {
 #define WEBLOGIN_TIMEOUT 0
 
 /*
+ * DEFAULT_WEB_THEME string
+ * Theme for the Web-interface
+ */
+#define DEFAULT_WEB_THEME "metal"
+
+/*
  * Note: All the defines for general settings are read from an inifile
  * If the ini file is missing some values then the defines below will be used
  * as the default value.
@@ -231,9 +237,9 @@ extern "C" {
 
 /*
  * MAX_LOAD_FOR_TRANSCODING integer
- * Maximum server load allowd to start a transcoding
+ * Maximum server load allowed to start a transcoding
  */
-#define MAX_LOAD_FOR_TRANSCODING 4
+#define MAX_LOAD_FOR_TRANSCODING 5
 
 /**
  * Maximum length of frequency map name string
@@ -273,9 +279,9 @@ extern "C" {
  * Note: In the default conf file this is set to 0 which means
  * we can wait indefinitely. The value here just indicates the
  * maximum deterministic time that can be set.
- * (Default value is 7 days)
+ * (Default value is 1 days)
  */
-#define MAX_WAITING_TIME_TO_TRANSCODE 7*24*60*60
+#define MAX_WAITING_TIME_TO_TRANSCODE 1*24*60*60
 
 /*
  * FFMPEG_BIN string
@@ -348,6 +354,11 @@ extern int require_web_password;
 extern char web_password[];
 extern char web_user[];
 extern int weblogin_timeout;
+
+/*
+ * Theme to use in Web-interface
+ */
+extern char web_theme[];
 
 // Are we running as master or slave
 extern int is_master_server;

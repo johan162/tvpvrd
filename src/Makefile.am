@@ -32,29 +32,34 @@ tvpvrd_LDADD = libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a ${LIBPCRE}
 tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
 endif
 
-EXTRA_DIST = etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template \
-etc/tvpvrd.css etc/tvpvrd_mobile.css etc/tvpvrd_metall.css etc/tvpvrd_plain.css \
-etc/switchchannel.sh.template \
-etc/postrec_processing.sh.template etc/posttransc_processing.sh.template etc/shutdown.sh.template \
-etc/mail_transcend.txt etc/mail_transcend.html etc/mail_shutdown.html etc/mail_shutdown.txt \
-etc/startup.sh.template etc/history.xsl
+EXTRA_DIST = etc/README etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template \
+etc/themes/tvpvrd.css etc/themes/tvpvrd_mobile.css etc/themes/tvpvrd_plain.css etc/themes/tvpvrd_metal.css \
+etc/img/bg_metal.jpg etc/img/bgcmd_metal.jpg  etc/img/logout_button.jpg \
+etc/templates/postrec_processing.sh.template \
+etc/templates/posttransc_processing.sh.template \
+etc/templates/shutdown.sh.template \
+etc/templates/startup.sh.template \
+etc/templates/switchchannel.sh.template  \
+etc/mail_templates/mail_shutdown.html etc/mail_templates/mail_shutdown.txt \
+etc/mail_templates/mail_transcend.html etc/mail_templates/mail_transcend.txt \
+etc/xsl/history.xsl
 
 DISTCLEANFILES = config.h $(BUILDNBR_FILE)
 
 CLEANFILES = *~
 
 install-data-local:
-	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.conf.full.template ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf.full.template;
-	install -D -m 644 $(abs_srcdir)/etc/tvpvrd.conf.simplified.template ${DESTDIR}${sysconfdir}/tvpvrd/tvpvrd.conf.simplified.template;
-	install -D -m 755 $(abs_srcdir)/etc/switchchannel.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/switchchannel.sh.template; 
-	install -D -m 755 $(abs_srcdir)/etc/postrec_processing.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/postrec_processing.sh.template; 
-	install -D -m 755 $(abs_srcdir)/etc/shutdown.sh.template ${DESTDIR}${sysconfdir}/tvpvrd/shutdown.sh.template; 
-	install -D -m 644 $(abs_srcdir)/etc/*.css ${DESTDIR}${sysconfdir}/tvpvrd/
-	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.txt
-	install -D -m 644 $(abs_srcdir)/etc/mail_transcend.html ${DESTDIR}${sysconfdir}/tvpvrd/mail_transcend.html
-	install -D -m 644 $(abs_srcdir)/etc/mail_shutdown.html ${DESTDIR}${sysconfdir}/tvpvrd/mail_shutdown.html
-	install -D -m 644 $(abs_srcdir)/etc/mail_shutdown.txt ${DESTDIR}${sysconfdir}/tvpvrd/mail_shutdown.txt
-	install -D -m 644 $(abs_srcdir)/etc/history.xsl ${DESTDIR}${sysconfdir}/tvpvrd/history.xsl
+	install -D -m 644 $(abs_srcdir)/etc/*.template ${DESTDIR}${sysconfdir}/tvpvrd/
+	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/templates
+	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/www
+	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/www/img
+	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates
+	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/xsl
+	install -D -m 755 $(abs_srcdir)/etc/templates/* ${DESTDIR}${sysconfdir}/tvpvrd/templates/
+	install -D -m 644 $(abs_srcdir)/etc/themes/* ${DESTDIR}${sysconfdir}/tvpvrd/www/
+	install -D -m 644 $(abs_srcdir)/etc/img/* ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
+	install -D -m 644 $(abs_srcdir)/etc/mail_templates/* ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates/
+	install -D -m 644 $(abs_srcdir)/etc/xsl/* ${DESTDIR}${sysconfdir}/tvpvrd/xsl/
 
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)

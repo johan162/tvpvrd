@@ -66,7 +66,7 @@ html_topbanner(int sockd) {
     _writef(sockd, "</div> <!-- info_container -->\n");
     
     _writef(sockd, "<div class=\"logout-corner\">");
-    _writef(sockd,"<a href=\"logout\"><img src=\"logout-button.jpg\" /></a>");
+    _writef(sockd,"<a href=\"logout\"><img src=\"%s\" /></a>",LOGOUT_BUTTON_IMG);
     _writef(sockd, "</div> <!-- logout_container -->\n");
     
     _writef(sockd, "</div> <!-- top_banner -->\n");
@@ -239,7 +239,7 @@ html_newpage(int sockd, char *cookie_val, int mobile) {
             "<title>"
             "%s"
             "</title>\n"
-            "<link rel=\"stylesheet\" type=\"text/css\" href=\"%s.css\">"
+            "<link rel=\"stylesheet\" type=\"text/css\" href=\"tvpvrd_%s.css\">"
             "</head>"
             "<body>\n"
             "<div class=\"top_page\">\n";
@@ -247,7 +247,7 @@ html_newpage(int sockd, char *cookie_val, int mobile) {
     snprintf(title, 254, "tvpvrd %s", server_version);
 
     http_header(sockd, cookie_val);
-    _writef(sockd, preamble, title, mobile ? "tvpvrd_mobile" : "tvpvrd_metall" );
+    _writef(sockd, preamble, title, mobile ? "mobile" : web_theme );
 
 }
 
