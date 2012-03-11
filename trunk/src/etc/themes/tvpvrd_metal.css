@@ -9,7 +9,7 @@
 /* Make it 99% to avoid scroll bars on the main page */
 body {
     height:99%;
-    width: 740px;
+    width: 720px;
     margin-left:auto;
     margin-right:auto;
 }
@@ -136,7 +136,12 @@ div.cmd_output {
     color:#ddd;
     height:25%;
     width:98%;
-    overflow:scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    text-shadow:1px 1px 1px #222;
+        border-radius: 6em;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;    
 }
 
 /* Container around the command input area */
@@ -158,9 +163,9 @@ div.cmd_menu a {
 
 /* To highlight the current selected command */
 div.cmd_menu a:hover {
-    color:darkred;
-     color: #fff;
-     text-shadow: 0 0 2px #fff, 0 0 4px #faef50, 0 0 6px #eacf50;
+    color: #fff;
+    font-weight:bold;
+    /* text-shadow: 0 0 2px #fff, 0 0 4px #faef50, 0 0 6px #eacf50;*/
 
     
 }
@@ -306,18 +311,17 @@ input.input_submit {
     box-shadow: 3px  3px  6px  #555;   
    
     border: solid 1px #333;
-    
+    text-shadow:0 0 5px black;    
+    color:#ddd;
     height:25px;
     width:80px;
 }
 
 input.input_submit:hover {
-/*    -moz-box-shadow: 0px  0px  0px  #999; 
-    box-shadow: 0px  0px  0px  #999;    
-    border: solid 1px #ddd;
-    font-size:9pt;*/
     cursor:pointer;
-     cursor:hand;
+    ursor:hand;
+    text-shadow:0 0 0 #000;    
+    color:#fff;
 }
 
 input.input_submit:active {
@@ -329,7 +333,6 @@ input.input_submit:active {
      cursor:hand;
 }
 
-
 /* Adjustment for submit buttons */
 div.input_container#delrec,
 div.input_container#id_addrec,
@@ -340,36 +343,18 @@ div.input_container#id_qaddrec
     margin-right:10px;
 }
 
-
-/*
-div.input_container#id_qaddrec {
-    float:right;
-}
-*/
-/* text between to and from time */
-span.be_hyphen {
+/* Text between begin and end time */
+div#be_hyphen {
     font-weight:bold;
     font-size:14pt;
-}
-#be_hyphen {
     padding-bottom:0px;
     padding-top:14px;
-}
-
-/* The submit button to delete a recording */
-input.input_submit#delrec_submit {
-   color:white; 
-   text-shadow:0 0 2px red;
+    text-shadow: 1px 1px 1px #777, -1px -1px 1px #fff;
 }
 
 /* Which input fields shoud start on a new line */
-div.input_container#id_start 
-{
+div.input_container#id_start {
     clear:left;
-}
-
-div.cmd_killrec {
-
 }
 
 div.ongoing_rec_entry,
@@ -407,7 +392,6 @@ div.ongoing_transc_stop {
     margin-right: 10pt;
     border: solid black 1px;
     width:50px;
-/*    background: orange;*/
     background-image: -moz-linear-gradient(bottom, rgb(108,90,45) 1%, rgb(225,204,81) 60%);
     background-image: -webkit-linear-gradient(bottom, rgb(108,90,45) 1%, rgb(225,204,81) 60%);    
     -moz-box-shadow: 3px  3px  3px  #999; 
