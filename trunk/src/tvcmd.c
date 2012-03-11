@@ -2368,7 +2368,6 @@ _cmd_resetstatistics(const char *cmd, int sockfd) {
  * Command: _cmd_cardinfo
  * Return basic information on capture card
  * Syntax:
- * v
  */
 static void
 _cmd_cardinfo(const char *cmd, int sockfd) {
@@ -2385,15 +2384,10 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
     
     if( ret == 2 ) {
         unsigned video = (unsigned)xatoi(field[1]);
-
-        int fd = video_open(video,TRUE);
-        if( fd >= 0 ) {
-            char *driver, *card, *version;
-            unsigned int capflags;
-            if( 0 == _vctrl_get_cardinfo(fd, &driver, &card, &version, &capflags) ) {
-                video_close(fd);
-                _writef(sockfd, "%s, driver=%s v%s\n",card,driver,version);
-            }
+        char buffer[255];
+        
+        if( 0==video_get_cardinfo(video, TRUE, buffer, sizeof(buffer)) ) {
+            _writef(sockfd, "%s\n",buffer);
         } else {
             _writef(sockfd,"Cannot access video card '%d'.\n",video);
         }
@@ -2402,15 +2396,12 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
         ret = matchcmd("^vc" _PR_SO _PR_E, cmd, &field);
         if( ret >= 1 ) {
             // Print info for all available cards
-            for(unsigned video=0; video < (unsigned)max_video; video++) {
-                int fd = video_open(video,TRUE);
-                if( fd >= 0 ) {
-                    char *driver, *card, *version;
-                    unsigned int capflags;
-                    if( 0 == _vctrl_get_cardinfo(fd, &driver, &card, &version, &capflags) ) {
-                        video_close(fd);
-                        _writef(sockfd, "%d: %s, driver=%s v%s\n",video,card,driver,version);
-                    }
+            char buffer[255];
+            for (unsigned video = 0; video < (unsigned) max_video; video++) {
+                if (0 == video_get_cardinfo(video, TRUE, buffer, sizeof (buffer))) {
+                    _writef(sockfd, "%s\n", buffer);
+                } else {
+                    _writef(sockfd, "Cannot access video card '%d'.\n", video);
                 }
             }
 

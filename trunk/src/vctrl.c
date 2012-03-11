@@ -1152,5 +1152,32 @@ video_get_wh_fromname(int *width, int *height, char *name) {
     *height = named_size[i].height;
     return 0;
 }
+/**
+ * Get information about specified video card
+ * @param video
+ * @param drvflag  Include driver name and version in output
+ * @param buffer
+ * @param maxlen
+ * @return 
+ */
+int
+video_get_cardinfo(unsigned video, _Bool drvflag, char *buffer, size_t maxlen) {
+    int fd = video_open(video, TRUE);
+    if (fd >= 0) {
+        char *driver, *card, *version;
+        unsigned int capflags;
+        if (0 == _vctrl_get_cardinfo(fd, &driver, &card, &version, &capflags)) {
+            video_close(fd);
+            if (drvflag) {
+                snprintf(buffer, maxlen, "%d: %s, %s v%s", video, card, driver, version);
+            } else {
+                snprintf(buffer, maxlen, "%d: %s", video, card);
+            }
+            return 0;
+        }
+    }
+    return -1;
+}
+
 
 /* vctrl.c */
