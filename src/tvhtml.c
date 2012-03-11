@@ -51,35 +51,35 @@
  * @param sockd
  */
 void
-html_topbanner(int sockd) {
-    _writef(sockd, "<div class=\"top_banner\">\n");
+html_windtitlebar(int sockd) {
+    _writef(sockd, "<div id=\"windowtitlebar\">\n");
     
-    _writef(sockd, "<div class=\"top_banner_info_container\">\n");
+    _writef(sockd, "<div id=\"windowtitlebar_cont\">\n");
     _writef(sockd,
-            "<span class=\"title-ver\">%s %s</span> <span class=\"run-mode\">[%s]"
+            "<span id=\"title-ver\">%s %s</span> <span id=\"run-mode\">[%s]"
 #ifdef DEBUG_SIMULATE
             " *** DEBUG BUILD ***"
 #endif
             "</span>\n",
             server_program_name, server_version,
             is_master_server ? "master" : "client");
-    _writef(sockd, "</div> <!-- info_container -->\n");
+    _writef(sockd, "</div> <!-- windowtitlebar_cont -->\n");
     
-    _writef(sockd, "<div class=\"logout-corner\">");
+    _writef(sockd, "<div id=\"logout_container\">");
     _writef(sockd,"<a href=\"logout\"><img src=\"%s\" /></a>",LOGOUT_BUTTON_IMG);
     _writef(sockd, "</div> <!-- logout_container -->\n");
     
-    _writef(sockd, "</div> <!-- top_banner -->\n");
+    _writef(sockd, "</div> <!-- windowtitlebar -->\n");
 }
 
 void
-html_buildnumber(int sockd) {
+html_statusbar(int sockd) {
     _writef(sockd,
-            "<div class=\"buildnbr_container\"><div class=\"build\">Build: %lu.%lu"
+            "<div id=\"statusbar\"><div id=\"buildnbr\">Build: %lu.%lu"
 #ifdef DEBUG_SIMULATE
             " *** DEBUG BUILD ***"
 #endif
-            "</div></div>\n",
+            "</div></div> <!-- statusbar -->\n",
             (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
 }
 
@@ -93,7 +93,7 @@ html_buildnumber(int sockd) {
 void
 web_cmd_output(int sockd, char *wcmd) {
 
-    _writef(sockd, "<div class=\"cmd_output\">\n<pre>");
+    _writef(sockd, "<div class=\"displayasled\" id=\"cmdoutput\">\n<pre>");
 
     // We must wait for the semphore since since commands
     // might alter data structures and we can only have one
@@ -121,9 +121,9 @@ web_cmd_output(int sockd, char *wcmd) {
 void
 html_endpage(int sockd) {
     const char postamble[] =
-            "</div> <!-- top_page -->"
-            "</body>"
-            "</html>\r\n";
+            "\n</div> <!-- topwindow -->\n"
+            "</body>\n"
+            "</html>\n";
     _writef(sockd, postamble);
 }
 
@@ -233,16 +233,16 @@ void
 html_newpage(int sockd, char *cookie_val, int mobile) {
     const char preamble[] =
             "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">\n"
-            "<html>"
-            "<head>"
+            "<html xmlns=\"http://www.w3.org/1999/xhtml\" >\n"
+            "<head>\n"
             "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n"
             "<title>"
             "%s"
             "</title>\n"
-            "<link rel=\"stylesheet\" type=\"text/css\" href=\"tvpvrd_%s.css\">"
+            "<link rel=\"stylesheet\" type=\"text/css\" href=\"tvpvrd_%s.css\">\n"
             "</head>"
             "<body>\n"
-            "<div class=\"top_page\">\n";
+            "<div id=\"topwindow\">\n";
     char title[255];
     snprintf(title, 254, "tvpvrd %s", server_version);
 
@@ -497,32 +497,30 @@ html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     }
 
     html_newpage(sockd, cookie_val, FALSE);
-    html_topbanner(sockd);
+    html_windtitlebar(sockd);
 
     // Left side : Command table
-    _writef(sockd, "<div class=\"left_side\">");
+    _writef(sockd, "<div id=\"windowmenu\">");
     web_commandlist(sockd);
 
 /*
     _writef(sockd,"\n<div id=\"logout_container\"><div id=\"logout\"><a href=\"logout\">Logout</a></div></div>\n");
 */
 
-    _writef(sockd, "\n</div> <!-- left_side -->\n"); // class="LEFT_side"
+    _writef(sockd, "\n</div> <!-- windowmenu -->\n"); 
 
     // Right side : Output and recording management
-    _writef(sockd, "<div class=\"right_side\">");
+    _writef(sockd, "<div id=\"windowcontent\">\n");
     web_cmd_output(sockd, wcmd);
     usleep(cmd_delay); // Give some time for the command to execute
     web_cmd_next(sockd);
     web_cmd_ongoing(sockd);
-    web_cmd_ongoingtransc(sockd);
     web_cmd_add(sockd);    
     web_cmd_qadd(sockd);
     web_cmd_del(sockd);
-    html_buildnumber(sockd);
-    
-    _writef(sockd, "\n</div> <!-- right_side -->\n");
-
+    web_cmd_ongoingtransc(sockd);   
+    _writef(sockd, "\n</div> <!-- windowcontent -->\n");
+    html_statusbar(sockd);
     html_endpage(sockd);
 
 }
@@ -539,7 +537,7 @@ html_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     // Initialize a new page
 
     html_newpage(sockd, cookie_val, TRUE);
-    html_topbanner(sockd);
+    html_windtitlebar(sockd);
 
     _writef(sockd, "<div class=\"single_side\">");
     web_commandlist_short(sockd);
@@ -568,10 +566,10 @@ html_login_page(int sockd, int mobile) {
     // header which replace the old cookie and sets it expire time
     // in the past so it is removed from the browser
     html_newpage(sockd, "logout", mobile);
-    html_topbanner(sockd);
+    html_windtitlebar(sockd);
 
-    _writef(sockd, "<div class=\"%s\">", "login_container");
-    _writef(sockd, "<div class=\"%s\">Please login</div>", "login_title");
+    _writef(sockd, "<div id=\"login_window\">");
+    _writef(sockd, "<div id=\"login_title\">Please login</div>");
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"login\">\n", "tvlogin");
     html_element_input_text(sockd, "User:", "user", "id_loginuser");
     html_element_input_password(sockd, "Password:", "pwd", "id_loginpwd");

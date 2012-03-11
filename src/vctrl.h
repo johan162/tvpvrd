@@ -314,6 +314,18 @@ int
 video_set_input_source(const int fd, int index);
 
 /**
+ * Get name and version of driver for specified video card
+ * @param video
+ * @param drvflag  Include driver name and version in output
+ * @param buffer
+ * @param maxlen
+ * @return 
+ */
+int
+video_get_cardinfo(unsigned video, _Bool drvflag, char *buffer, size_t maxlen);
+
+
+/**
  * Video Device Control: _vctrl_vidcontrol_tostr
  * Internal helper function. Implements a "toStr" method for a specific control and puts
  * a string representation of the control in the supplied buffr "buff" with maximum

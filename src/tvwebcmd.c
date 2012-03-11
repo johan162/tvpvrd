@@ -54,6 +54,7 @@
 #include "tvhtml.h"
 #include "datetimeutil.h"
 #include "tvplog.h"
+#include "vctrl.h"
 
 
 // Get the name of the CSS file from the basename of the package, i.e. "tvpvrd"
@@ -879,8 +880,6 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
     free(buffer);
 }
 
-
-
 static const char *min_list_start[] = {
     "00", "05", "10", "15", "20", "25", "30",
     "35", "40", "45", "50", "55"
@@ -898,17 +897,29 @@ static const char *hourlength_list[] = {
     "0", "1", "2", "3"
 };
 
+void
+_web_cmd_module_start(int sockd,char *legend) {
+    _writef(sockd, "<div class=\"cmdmodule\">\n");
+    _writef(sockd, "<fieldset><legend>%s</legend>\n",legend);
+}
+
+void
+_web_cmd_module_end(int sockd) {
+    _writef(sockd, "</fieldset>\n");    
+    _writef(sockd, "</div> <!-- cmdmodule -->\n");
+}
+
 /**
  * Display the next recording area
  * @param sockd
  */
 void
 web_cmd_next(int sockd) {
-    _writef(sockd, "<fieldset><legend>Next recording</legend>\n");
-    _writef(sockd, "<div class=\"next_rec_container\">\n");
+    _web_cmd_module_start(sockd,"Next recording");
+    _writef(sockd, "<div class=\"displayasled fullw\">\n");
     list_recs(1,4,sockd); // Use style==4 , fancy
-    _writef(sockd, "</div> <!-- next_rec_container -->\n");
-    _writef(sockd, "</fieldset> <!-- Next recording -->\n");
+    _writef(sockd, "</div> <!-- displayasled -->\n");
+    _web_cmd_module_end(sockd);
 }
 
 /**
@@ -918,11 +929,12 @@ web_cmd_next(int sockd) {
 void
 web_cmd_ongoingtransc(int sockd) {
 
-    _writef(sockd, "<fieldset><legend>Ongoing transcodings</legend>\n");
+    _web_cmd_module_start(sockd,"Ongoing transcoding");
     size_t num=get_num_ongoing_transcodings();
+/*
 
     if( num == 0 ) {
-        _writef(sockd, "<div class=\"ongoing_transc_title_disabled\">None.</div>");
+        _writef(sockd, "<div class=\"displayasled fullw\"><pre>None.</pre></div>");
     } else {
 
         for (size_t i = 0; i < max_ongoing_transcoding; i++) {
@@ -936,15 +948,50 @@ web_cmd_ongoingtransc(int sockd) {
                 int rh = rtime/3600;
                 int rmin = (rtime - rh*3600)/60;
 
-                _writef(sockd, "<div class=\"ongoing_transc_title\">(%02d:%02d) %s</div>",rh,rmin,ongoing_transcodings[i]->filename);
+                _writef(sockd, "<div class=\"displayasled fullw\">(%02d:%02d) %s</div>",rh,rmin,ongoing_transcodings[i]->filename);
                 _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?c=kt%%20%d\">Stop</a></div>",i);
 
                 _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
             }
         }
     }
+    
+*/
 
-    _writef(sockd, "</fieldset> <!-- Ongoing transcodings -->\n");
+    if( 0==num ) {
+        _writef(sockd, "<div class=\"ongoing_transc_entry fullw\">\n");
+        _writef(sockd, "<div class=\"displayasled\"><pre> - - -</pre></div>\n");
+/*
+        _writef(sockd, "<div class=\"caption\">Transcoding 1</div>\n");
+*/
+        _writef(sockd, "<div class=\"ongoing_transc_stop_disabled\">Stop</div>\n");
+        _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
+    } else {
+        for (size_t i = 0; i < max_ongoing_transcoding; i++) {
+            if (0 == i % 2) {
+                _writef(sockd, "<div class=\"ongoing_transc_entry%s\">\n", num > 1 ? " halfw" : " fullw");
+            } else {
+                _writef(sockd, "<div class=\"ongoing_transc_entry%s margleft\">\n", num > 1 ? " halfw" : " fullw");
+            }
+
+            if (ongoing_transcodings[i]) {
+                time_t now = time(NULL);
+                int rtime = now-ongoing_transcodings[i]->start_ts;
+                int rh = rtime/3600;
+                int rmin = (rtime - rh*3600)/60;
+
+                _writef(sockd, "<div class=\"displayasled\"><pre>(%02d:%02d)\n%s</pre></div>\n",rh,rmin,ongoing_transcodings[i]->filename);
+                _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?c=kt%%20%d\">Stop</a></div>\n",i);
+
+            }
+            
+            _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
+        }
+    }
+    
+    
+
+    _web_cmd_module_end(sockd);
 }
 
 /**
@@ -954,35 +1001,43 @@ web_cmd_ongoingtransc(int sockd) {
 void
 web_cmd_ongoing(int sockd) {
 
-    _writef(sockd, "<fieldset><legend>Ongoing recordings</legend>\n");
-
-    size_t num=0;
-    for (unsigned i = 0; i < max_video; i++) {
-        num += ongoing_recs[i] ? 1 : 0 ;
-    }
-    if( num == 0 ) {
-        _writef(sockd, "<div class=\"ongoing_transc_title_disabled\">None.</div>");
-    } else {
-
-        for (size_t i = 0; i < max_video; i++) {
-
-            if (ongoing_recs[i]) {
-
-                _writef(sockd, "<div class=\"ongoing_rec_entry\">\n");
-
-                int ey, em, ed, eh, emi, es;
-                fromtimestamp(ongoing_recs[i]->ts_end, &ey, &em, &ed, &eh, &emi, &es);
-                int sy, sm, sd, sh, smi, ss;
-                fromtimestamp(ongoing_recs[i]->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
-                _writef(sockd, "<div class=\"ongoing_rec_title\">%s %02d:%02d-%02d:%02d, %s</div>",ongoing_recs[i]->channel,sh,smi,eh,emi,ongoing_recs[i]->title);
-                _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">Stop</a></div>",i);
-
-                _writef(sockd, "</div> <!-- ongoing_rec_entry -->\n");
-            }
+    _web_cmd_module_start(sockd,"Ongoing recordings");
+    
+    char buffer[255],caption_buffer[255];
+    for (size_t i = 0; i < max_video; i++) {
+        if (-1 == video_get_cardinfo(i, FALSE, buffer, sizeof (buffer))) {
+            snprintf(caption_buffer, sizeof (caption_buffer), "Card %d", i + 1);
+        } else {
+            snprintf(caption_buffer, sizeof (caption_buffer), "%s.", buffer);
         }
+        if (0 == i % 2) {
+            _writef(sockd, "<div class=\"ongoing_rec_entry%s\">\n", max_video > 1 ? " halfw" : " fullw");
+        } else {
+            _writef(sockd, "<div class=\"ongoing_rec_entry%s margleft\">\n", max_video > 1 ? " halfw" : " fullw");
+        }
+        if (ongoing_recs[i]) {
+            int ey, em, ed, eh, emi, es;
+            fromtimestamp(ongoing_recs[i]->ts_end, &ey, &em, &ed, &eh, &emi, &es);
+            int sy, sm, sd, sh, smi, ss;
+            fromtimestamp(ongoing_recs[i]->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
+            _writef(sockd, "<div class=\"displayasled\"><pre>%s %02d:%02d-%02d:%02d\n%s</pre></div>", ongoing_recs[i]->channel, sh, smi, eh, emi, ongoing_recs[i]->title);
+        } else {
+            _writef(sockd, "<div class=\"displayasled\"><pre> - - -</pre></div>\n");
+        }
+        _writef(sockd, "<div class=\"caption\">\n");
+        _writef(sockd, caption_buffer);
+        _writef(sockd, "</div>\n");
+        if (ongoing_recs[i]) {
+            _writef(sockd, "<div class=\"ongoing_rec_stop\"><a href=\"killrec?rid=%d\">Stop</a></div>\n", i);
+        } else {
+            _writef(sockd, "<div class=\"ongoing_rec_stop_disabled\">Stop</div>\n");
+        }
+
+        _writef(sockd, "</div> <!-- ongoing rec entry -->\n");
+
     }
 
-    _writef(sockd, "</fieldset> <!-- Ongoing recordings -->\n");
+    _web_cmd_module_end(sockd);
 
 }
 
@@ -1001,14 +1056,13 @@ web_cmd_qadd(int sockd) {
     const size_t n_hourlength = sizeof (hourlength_list) / sizeof (char *);
     const size_t n_min_end = sizeof (min_list_end) / sizeof (char *);
 
-    _writef(sockd, "<div class=\"cmd_qadd_container\">");
+    _web_cmd_module_start(sockd,"Quick recording");
 
     /*
      * Add quick recordings
      */
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"addqrec\">\n", "id_qadd_form");
 
-    _writef(sockd, "<fieldset><legend>Quick recording</legend>");
     html_element_select(sockd, "Profile:", "profile", default_transcoding_profile, profile_list, n_profile, "id_qprofile");
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_qstation");
 
@@ -1017,11 +1071,10 @@ web_cmd_qadd(int sockd) {
 
     html_element_input_text(sockd, "Title:", "title", "id_qtitle");
     html_element_submit(sockd, "submit_qaddrec", "Start", "id_qaddrec");
-    _writef(sockd, "</fieldset>\n");
 
     _writef(sockd, "</form>\n");
 
-    _writef(sockd, "</div> <!-- qadd_container -->\n");
+    _web_cmd_module_end(sockd);
 
 }
 
@@ -1071,14 +1124,13 @@ web_cmd_add(int sockd) {
     const size_t n_min_start = sizeof (min_list_start) / sizeof (char *);
     const size_t n_min_end = sizeof (min_list_end) / sizeof (char *);
 
-    _writef(sockd, "<div class=\"cmd_add_container\">");
+    _web_cmd_module_start(sockd,"New recording");
 
     /*
      * Add recordings
      */
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"addrec\">\n", "addrecording");
 
-    _writef(sockd, "<fieldset><legend>New recording</legend>");
     html_element_select(sockd, "Profile:", "profile", default_transcoding_profile, profile_list, n_profile, "id_profile");
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_station");
     html_element_select_code(sockd, "Repeat:", "repeat", NULL, rpt_list, n_rpt,"id_rpttype");
@@ -1094,12 +1146,11 @@ web_cmd_add(int sockd) {
 
     html_element_input_text(sockd, "Title:", "title", "id_title");
     html_element_submit(sockd, "submit_addrec", "Add", "id_addrec");
-    _writef(sockd, "</fieldset>\n");
 
     _writef(sockd, "</form>\n");
 
     // Close container
-    _writef(sockd, "</div> <!-- add_container -->\n");
+    _web_cmd_module_end(sockd);
 }
 
 
@@ -1117,11 +1168,9 @@ web_cmd_del(int sockd) {
     /*
      * Delete recordings
      */
-    _writef(sockd, "<div class=\"cmd_del_container\">");
+    _web_cmd_module_start(sockd,"Delete recording");
     
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"delrec\"  onsubmit=\"return confirm('Really delete?')\">\n", "deleterecording");
-
-    _writef(sockd, "<fieldset>\n<legend>Delete recording</legend>\n");
 
     struct skeysval_t *listrec;
     size_t num = list_recskeyval(&listrec, 10); // style==10, simple format with no idx and no profile
@@ -1134,12 +1183,11 @@ web_cmd_del(int sockd) {
 
     html_element_select(sockd, "Delete serie:", "delserie", "No", yn_list, n_ynlist, "id_seriesyn");
     html_element_submit(sockd, "submit_delrec", "Delete", "delrec");
-    _writef(sockd, "</fieldset>\n");
 
     _writef(sockd, "</form>\n");
 
     // Close container
-    _writef(sockd, "</div> <!-- del_container -->\n");
+    _web_cmd_module_end(sockd);
 }
 
 
@@ -1295,21 +1343,18 @@ web_commandlist(int sockd) {
         cmdgrplen = sizeof (cmd_grp_slave) / sizeof (struct cmd_grp);
     }
 
-    _writef(sockd, "<div class=\"cmd_menu\">");
     for (int i = 0; i < cmdgrplen; ++i) {
 
-        _writef(sockd, "<div class=\"cmdgrp_title_row\"><span class=\"cmdgrp_title\">%s</span></div>",
+        _writef(sockd, "<div class=\"mnugrp_title_row\">\n<span class=\"mnugrp_title\">%s</span>\n</div>\n",
                 cmdgrp[i].grp_name, cmdgrp[i].grp_desc);
 
-        _writef(sockd, "<div class=\"cmdgrp_commands\">");
+        _writef(sockd, "<div class=\"mnugrp_commands\">\n");
         for (size_t j = 0; j < cmdgrp[i].cmd_num; ++j) {
-            _writef(sockd, "<a href=\"cmd?c=%s\">&#8718; %s</a><br>\n", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
+            _writef(sockd, "<a href=\"cmd?c=%s\">&#8718; %s</a><br />\n", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
         }
-        _writef(sockd, "</div>");
+        _writef(sockd, "</div>\n");
 
     }
-    _writef(sockd, "</div>");
-
 }
 
 /**

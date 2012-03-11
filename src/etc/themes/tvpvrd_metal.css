@@ -4,197 +4,117 @@
  *       daemon.
  * SVN:  $Id$
  *----------------------------------------------------------------------------------------------
- */
+*/
 
 /* Make it 99% to avoid scroll bars on the main page */
 body {
-    height:99%;
-    width: 720px;
-    margin-left:auto;
-    margin-right:auto;
+    background:#DEE3DA;
 }
 
-/* The overall main page is contained in this div */
-div.top_page {
-    border: 1px solid gray;
+/* The overall main window */
+div#topwindow {
     background-image:url("img/bg_metal.jpg");
-    background-size:cover;
-    height:645px;
-    width:99%;
-    padding:0px;
+    background-size:repeat;
     border: solid gray 2px;
     -moz-box-shadow: 6px  6px  10px  #999; 
     box-shadow: 6px  6px  10px  #999;     
+    margin:auto;
+    width:740px;    
 }
 
-/* The top banner line with name and version */
-div.top_banner {
+/* Window title bar. Contains of name, mode and a logout function */
+div#windowtitlebar {
     float:none;
     border-bottom: solid 1px white;
     margin-bottom: 4px;
     padding: 3px;
     padding-bottom: 8px;
-
     background-image: -moz-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(87,87,87) 51%);
     background-image: -webkit-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(87,87,87) 51%);
     color:#ddd;
-
-    font-family:arial, helvetica, sans-serif;
+    font-family:arial, sans-serif;
     font-size:12pt;
-
-    height:20px;
+    height:1.4em;
 }
 
-div.top_banner_info_container {
+/* Text content in title bar */
+div#windowtitlebar_cont {
     float:left;
     text-align:left;
     font-weight:bold;
     font-size:14pt;  
 }
 
-div.top_banner_info_container span.title-ver {
+/* Format for title in title-bar */
+span#title-ver {
     color: white;
 }
 
-div.top_banner_info_container span.run-mode { 
+/* Format for run-mode in title-bar */
+span#run-mode { 
     font-size:10pt; 
 }
 
-div.buildnbr_container {
-    clear:both;
-    width:100%;
-}
-
-div.buildnbr_container div.build {
-    font-size:10pt;
-    font-style:italic;
-    color:#666;
-    text-align:right;
-}
-
-div.logout_container {    
-    color:red;
+/* Container for logout in the top right corner */
+div#logout_container {    
     float:right;
+    color:red;
     margin-top: 3px;
     margin-right:4px;
 }
 
-/* Left side with all commands */
-div.left_side {
-    float: left;
-    width:130px;
-    height:93%;
-    margin-right : 2px;
+/* Holder for menu list of commands */
+div#windowmenu {
+    float:left;
+    width:100px;
+    margin-left : 4px;
+    color:#000;
 }
 
-/* Container around command output area */
-div.right_side {
-    float: left;
-    width:550px;
-    height:94%;
-    margin-left:12px;
+/* Container around actual content area of the top window */
+div#windowcontent {
+    float:right;
+    width:610px;
+    margin-left:8px;
 }
 
-/* This div encloses the command menu */
-div.cmd_menu {
-    float: left; 
-    width : 99%;
-    height : 90%; /* Leave some room for the logout button */
-    margin-left : 5px;
-    color:black;
-    font-size:12pt;
+
+/* Status bar at bottom of top window*/
+div#statusbar {
+    clear:both;
+    height:18px;
 }
 
-/* The preformatted output i the output window */
-pre {
-	margin:0;
-}
-
-pre a:hover {
-    color:white;
-}
-
-pre a {
-    color:#0ef;
-}
-
-/* This div encloses the command output */
-div.cmd_output {
-    clear:right;
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-right: 3px;
-    padding-left: 10px;
-    margin-left:0;
-    margin-right:1px;
-    margin-bottom:0;
-    margin-top: 0;
-    font-weight:bold;
-    border:solid gray 1px;
-    background-image:url("img/bgcmd_metal.jpg");
-    background-size:cover;
-    color:#ddd;
-    height:25%;
-    width:98%;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    text-shadow:1px 1px 1px #222;
-        border-radius: 6em;
-	-webkit-border-radius: 6px;
-	-moz-border-radius: 6px;    
-}
-
-/* Container around the command input area */
-div.cmd_add_container
-div.cmd_del_container {
-    width:100%;
-    padding-right: 0px;
-    padding-left: 0px;
-    margin-left:0px;
-    margin-right:0px;
-    margin-top:0px;
-}
-
-/* To get rid of anchor underlines in comamnd menu */
-div.cmd_menu a {
-    text-decoration:none;
-    color:black;
-}
-
-/* To highlight the current selected command */
-div.cmd_menu a:hover {
-    color: #fff;
-    font-weight:bold;
-    /* text-shadow: 0 0 2px #fff, 0 0 4px #faef50, 0 0 6px #eacf50;*/
-
-    
-}
-
-/* Encloses the command menu group title line */
-div.cmdgrp_title_row {
-    font-family:Arial, Sans-serif;
-    color : navy;
-    margin-top:10px;
-    margin-bottom:2px;
-}
-
-/* Encloses the command menu group title short name */
-span.cmdgrp_title {
-    font-weight: bold;
-}
-
-/* Encloses the command menu group description */
-span.cmdgrp_desc {
+/* Build number in the right of the status bar */
+div#buildnbr {
+    float:right;
+    font-size:10pt;
     font-style:italic;
-
+    font-weight: bold;
+    color:#666;
+    margin-right: 6px;
+    text-shadow: -1px -1px 1px #fff;
 }
 
-/* Encloses all commands in one menu group */
-div.cmdgrp_commands {
-    padding-left:10px;
+/* Container around each command input/output module */
+div.cmdmodule {
+    margin-bottom:4px;
+    margin-top:4px;
+    margin-right:6px;
 }
 
-/* Legend for the fieldset */
+/* Fieldset used around each command input/output module */
+fieldset {
+    border: 2px ridge #aaa;
+    margin-top:4px;
+    margin-right:0px;
+    margin-left:0px;
+    padding:0;
+    padding-left:3px;
+    padding-bottom:6px;
+}
+
+/* Legend used in each fieldset in the command input/output module */
 legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
@@ -206,17 +126,118 @@ legend {
     text-shadow: 1px 1px 1px #999, -1px -1px  1px #eee;
 }
 
-/* Fieldset for add/del command */
-fieldset {
-   border: 2px ridge #999;
-   margin-top:4px;
-   margin-right:0px;
-   margin-left:0px;
-   padding:0;
-   padding-left:3px;
-   padding-bottom:6px;
+/* Proformatted area in command output */
+pre {
+    margin:0;
+    padding:0;
+}
+pre a:hover {
+    color:white;
+}
+pre a {
+    color:#0ef;
 }
 
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled {
+    float:left;
+    background-image:url("img/bgcmd_metal.jpg");
+    background-size: cover;
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#eee;
+    text-shadow:1px 1px 1px #999;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    overflow:hidden;
+    margin:0;  
+    border: solid 1px #777;
+    /*    border-left:solid 1px #eee;
+        border-top:solid 1px #eee;
+        border-right:solid 1px #555;
+        border-bottom:solid 1px #555;*/
+}
+
+/* Subclass used with other main classes to indicate full or half width */
+/* Mainly used for displaying card information on ongoing activities */
+/* the size of the output and layout depends on how many cards are installed */
+.fullw {
+    width:98%;
+}
+.halfw {
+    width:49%;                
+}
+.margleft {
+    margin-left:10px;
+}
+
+div.ongoing_rec_entry,
+div.ongoing_transc_entry
+{
+    float:left;
+    padding:0px;
+}
+
+div.ongoing_rec_entry .caption {
+    float:left;
+    color:#6E5A2D;
+    font-size:10pt;
+    font-weight:bold;
+    font-family: serif;
+    text-shadow:-1px -1px 1px #fff;
+    padding-top:2px;
+}
+
+/* No float to let the LED fill available space */
+div.ongoing_rec_entry .displayasled,
+div.ongoing_transc_entry .displayasled {
+    float:none;
+    height:2.7em;
+}
+
+/* More specific formatting unique for command output */
+#cmdoutput {
+    float:none;
+    overflow-y: scroll;
+    height:11em;
+    margin-right:6px;
+    margin-left:3px;
+    margin-bottom:3px;
+}
+
+/* To get rid of anchor underlines in comamnd menu */
+div#windowmenu a {
+    text-decoration:none;
+    color:black;
+}
+
+/* To highlight the current selected command */
+div#windowmenu a:hover {
+    color: #fff;
+    font-weight:bold;
+}
+
+/* Encloses the command menu group title line */
+div.mnugrp_title_row {
+    font-family:Arial, Sans-serif;
+    color : navy;
+    margin-top:10px;
+    margin-bottom:2px;
+}
+
+/* Encloses the command menu group title short name */
+span.mnugrp_title {
+    font-weight: bold;
+}
+
+/* Encloses all menu in one menu group */
+div.mnugrp_commands {
+    padding-left:10px;
+}
 /* Container around each input and input text-legend */
 div.input_container {
     float:left;
@@ -237,18 +258,7 @@ div.input_legend {
 
 }
 
-#id_loginuser div.input_legend ,
-#id_loginpwd div.input_legend 
-{
-    text-shadow: 1px 1px  1px #555 ;
-}
-
-/*
- * All select input formats are used in the add/delete fieldset when adding and deleteing
- * records.
- */
-
-
+/* Adjustmens for browser controls */
 input,
 select  {
     border: solid gray 1px;
@@ -260,17 +270,13 @@ select  {
 
 input:focus,
 select:focus {
-     border:solid 1px yellow;
-     background:#fff;
-     color:#000;
-}
-
-
-div.input_select select {
+    border:solid 1px yellow;
+    background:#fff;
+    color:#000;
 }
 
 /* Delete series y/n selector */
-select.input_select#id_seriesyn {
+select.input_select#id_seriesyn_select {
     width:70px;
 }
 
@@ -279,37 +285,33 @@ select.input_select#id_rptcount {
     width:50px;
 }
 
-/* Used for all select with a code table */
-select.input_select_code {
-    font-family:Arial, Sans-serif;
-}
-
-/* Format for selector with list of recodings to delete */
+/* Format for selector with list of recordings to delete */
 select.input_select_code#id_delselect_select {
     width : 350px;
     overflow: hiden;
 }
 
-/* Input text */
+/* Input text controls */
 input.input_text {
     width : 150px;
 }
 
-/* Input submit button in forms*/
+/* Input submit buttons in forms */
 input.input_submit {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-size:10pt;
-    width:60px;
     margin-left: 10px;
-    
+
     background-image: -moz-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);
     background-image: -webkit-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);    
     color:white;    
-    
+
     -moz-box-shadow: 3px  3px  6px  #555; 
     box-shadow: 3px  3px  6px  #555;   
-   
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;  
+
     border: solid 1px #333;
     text-shadow:0 0 5px black;    
     color:#ddd;
@@ -317,6 +319,7 @@ input.input_submit {
     width:80px;
 }
 
+/* Indicate to user that button is about to receive input */
 input.input_submit:hover {
     cursor:pointer;
     ursor:hand;
@@ -324,20 +327,20 @@ input.input_submit:hover {
     color:#fff;
 }
 
+/* Give visual feedback that the button has been pressed */
 input.input_submit:active {
     -moz-box-shadow: 0px  0px  0px  #999; 
     box-shadow: 0px  0px  0px  #999;    
     border: solid 1px #ddd;
     font-size:9pt;
     cursor:pointer;
-     cursor:hand;
+    cursor:hand;
 }
 
-/* Adjustment for submit buttons */
+/* Adjustment for submit buttons to make them right aligned */
 div.input_container#delrec,
 div.input_container#id_addrec,
-div.input_container#id_qaddrec
- {
+div.input_container#id_qaddrec {
     padding-top:15px;
     float:right;
     margin-right:10px;
@@ -357,127 +360,90 @@ div.input_container#id_start {
     clear:left;
 }
 
-div.ongoing_rec_entry,
-div.ongoing_transc_entry {
-    float:left;
-}
-
-div.ongoing_rec_title,
-div.ongoing_transc_title {
-    padding-top: 1pt;
-    float:left;
+div.ongoing_rec_stop_disabled ,
+div.ongoing_transc_stop_disabled  {
+    float:right;
     font-weight:bold;
-    font-family:monospace;
-    color:darkred;
-    margin-bottom: 4pt;
-}
-
-div.ongoing_rec_title_disabled ,
-div.ongoing_transc_title_disabled  {
-    padding-top: 1pt;
-    float:left;
-    color: #444;
-    font-weight:bold;
-    font-family:monospace;
-    margin-bottom: 4pt;
+    font-size:9pt;
+    font-family: Arial, Sans-serif;
+    margin:0;
+    margin-top:3px;
+    border: solid 1px #999;
+    width:50px;
+    background:#aaa;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 3px;
+    padding-top: 0;
+    text-align:center;
+    color: #777;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;    
 }
 
 div.ongoing_rec_stop,
 div.ongoing_transc_stop {
-    float:left;
+    float:right;
     font-weight:bold;
-    font-size:10pt;
+    font-size:9pt;
     font-family: Arial, Sans-serif;
-    margin-left: 10pt;
-    margin-right: 10pt;
-    border: solid black 1px;
+    margin:0;
+    margin-top:3px;
+    border: solid 1px #777;
     width:50px;
-    background-image: -moz-linear-gradient(bottom, rgb(108,90,45) 1%, rgb(225,204,81) 60%);
-    background-image: -webkit-linear-gradient(bottom, rgb(108,90,45) 1%, rgb(225,204,81) 60%);    
-    -moz-box-shadow: 3px  3px  3px  #999; 
-    box-shadow: 3px  3px  3px  #999;  
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-bottom: 4px;
-    text-align:center;
-    color: white;
-}
 
-div.ongoing_rec_stop_disabled,
-div.ongoing_transc_stop_disabled {
-    float:left;
-    color: #444;
-    font-weight:bold;
-    font-family: Arial, Sans-serif;
+    background-image: -moz-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);
+    background-image: -webkit-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);    
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;      
+    -moz-box-shadow: 2px  2px  3px  #888; 
+    box-shadow: 2px  2px  3px  #888;  
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 3px;
+    text-align:center;
 }
 
 div.ongoing_rec_stop a,
 div.ongoing_transc_stop a  {
     text-decoration: none;
-    color:white;
+    color:#ddd;
 }
 
 div.ongoing_rec_stop a:hover,
 div.ongoing_transc_stop a:hover {
-    color:yellow;
+    color:#fff;
 }
 
+div.ongoing_rec_stop a:active,
+div.ongoing_transc_stop a:active {
 
-div.ongoing_rec_stop_disabled a,
-div.ongoing_transc_stop_disabled a {
-    text-decoration: none;
-    color: #444;;
 }
-
-div.next_rec_container {
-    margin-bottom:2pt;
-    margin-left: 2pt;
-    font-weight:bold;
-    font-family:monospace;
-    background-image:url("img/bgcmd_metal.jpg");
-    color:#eee;
-    border: solid 1px gray;
-    background-size:cover;
-    margin-right:0.5em;
-    padding-left: 4pt;
-    padding-bottom: 2pt;
-    padding-top: 2pt;
-}
-
-/*
- * The following styles refer to the login box/login page 
-*/
 
 /* Container for log-in box */
-div.login_container {
+div#login_window {
     border: solid gray 1px;
-    position:relative;
-    top:20%;
     bottom:0;
     left:0;
     right:0;
     width:300px;
-    background:#b0c1a3;
+    background:#898989;
     padding-top:0px;
     padding-bottom:10px;
     margin:auto;
-    background-image: -moz-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 40%);
-    background-image: -webkit-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 40%);    
-    -moz-box-shadow: 5px  5px  5px  #555; 
-    box-shadow: 5px  5px  5px  #555;    
-}
-
-div.login_container  div.input_container {
-    float:none;
-    margin-left:10px;
+    -moz-box-shadow: 5px  5px  7px  #666; 
+    box-shadow: 5px  5px  7px  #666; 
+    margin-bottom: 200px;
+    margin-top: 80px;
 }
 
 /* Title of login box */
-div.login_title {
+div#login_title {
     padding:3px;
     padding-bottom:5px;
     color:white;
-    background:#546349;
+    background-image: -moz-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);
+    background-image: -webkit-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);    
     font-weight:bold;
     font-family:Arial, Sans-serif;
     font-size:12pt;
@@ -487,44 +453,50 @@ div.login_title {
     border-bottom:solid 1px #bbb;
 }
 
+div#login_window  div.input_container {
+    float:none;
+    margin-left:10px;
+}
+
 /* Adjustment of password field */
 div.input_container#id_loginpwd {
-    Margin-top:10px;
-    clear:left;
+    margin-top:10px;
+    clear:both;
 }
 
 div.input_container#id_loginuser div.input_legend,
-div.input_container#id_loginpwd div.input_legend
- {
+div.input_container#id_loginpwd div.input_legend {
     float:left;
     margin-top:2px;
     width: 8em;
     color:#ddd;
     font-weight:bold;
-   font-size:11pt;
+    font-size:11pt;
+    text-shadow: 1px 1px  1px #555 ;
 }
 
-/* Submit button for login */
+/* Submit button container for login */
+div.input_container#id_submitlogin {
+    margin-top:1em;
+    text-align:center;
+}
+
 input.input_submit#id_submitlogin_submit {
     width:10em;
-     padding-bottom:10px;
+    padding-bottom:10px;
     -moz-box-shadow: 0px  0px  0px  #d77; 
     box-shadow: 0px  0px  0px  #d77;   
     font-size:10pt; 
 }
 input.input_submit:hover#id_submitlogin_submit {
     width:10em;
-     padding-bottom:10px;
+    padding-bottom:10px;
     -moz-box-shadow: 0px  0px  6px  #e88; 
     box-shadow: 0px  0px  6px  #e88;    
-   border:solid black 1px;
-   font-size:10pt;
+    border:solid black 1px;
+    font-size:10pt;
 }
 
-div.input_container#id_submitlogin {
-    margin-top:1em;
-    text-align:center;
-}
 
 
 /* EOF CSS Style for tvpvrd */
