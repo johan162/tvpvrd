@@ -1053,7 +1053,7 @@ startrec(void *arg) {
         if( use_postrec_processing ) {
             logmsg(LOG_DEBUG,"Post recording processing enabled.");
             char postrec_fullname[128];
-            snprintf(postrec_fullname,128,"%s/tvpvrd/%s",CONFDIR,postrec_script);
+            snprintf(postrec_fullname,128,"%s/tvpvrd/shellscript/%s",CONFDIR,postrec_script);
             int csfd = open(postrec_fullname,O_RDONLY) ;
             if( -1 == csfd ) {
                 logmsg(LOG_ERR,"Cannot open post recording script '%s' ( %d : %s )",
@@ -1797,8 +1797,8 @@ chk_startupscript(void) {
 
     // Check if the startupscript exists
     char script[256],indicator[256];
-    snprintf(script, 255, "%s/tvpvrd/%s", CONFDIR, DEFAULT_STARTUP_SCRIPT);
-    snprintf(indicator,255,"%s/%s",datadir,DEFAULT_AUTOSHUTDOWN_INDICATOR);
+    snprintf(script, sizeof(script)-1, "%s/tvpvrd/shellscript/%s", CONFDIR, DEFAULT_STARTUP_SCRIPT);
+    snprintf(indicator,sizeof(indicator)-1,"%s/%s",datadir,DEFAULT_AUTOSHUTDOWN_INDICATOR);
     char *flag = (0 == access(indicator, F_OK) ? "yes" : "no" );
 
     if ( 0 == access(script, F_OK) ) {

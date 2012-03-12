@@ -153,10 +153,10 @@ send_mail_template(char * subject, char * from, char *to,
     logmsg(LOG_DEBUG,"smtp_use=%d, use_html_mail=%d",smtp_use,use_html_mail);
 
     if( use_html_mail && smtp_use ) {
-        snprintf(templatefile,255,"%s/tvpvrd/%s.html",CONFDIR,templatename);
+        snprintf(templatefile,255,"%s/tvpvrd/mail_templates/%s.html",CONFDIR,templatename);
         logmsg(LOG_DEBUG,"Sending HTML message using template: \"%s\" ",templatefile);
     } else {
-        snprintf(templatefile,255,"%s/tvpvrd/%s.txt",CONFDIR,templatename);
+        snprintf(templatefile,255,"%s/tvpvrd/mail_templates/%s.txt",CONFDIR,templatename);
         if( use_html_mail ) {
             logmsg(LOG_NOTICE,"Cannot send HTMl mail (no SMTP server configured) using plain text instead with template: \"%s\"",templatefile);
         }
@@ -179,7 +179,7 @@ send_mail_template(char * subject, char * from, char *to,
 
     if (use_html_mail) {
         // Also try to get a plain text version
-        snprintf(templatefile,255,"%s/tvpvrd/%s.txt",CONFDIR,templatename);
+        snprintf(templatefile,255,"%s/tvpvrd/mail_templates/%s.txt",CONFDIR,templatename);
         logmsg(LOG_DEBUG,"Getting a plain text version of the HTML template: %s",templatefile);
         rc = replace_keywords_in_file(templatefile, &buffer2, keys, nkeys);
         if( -1 == rc ) {

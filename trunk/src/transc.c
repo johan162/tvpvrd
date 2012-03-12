@@ -1250,7 +1250,7 @@ _transcode_file(void *arg) {
                         // if we should send a mail with this happy news!
                         if( send_mail_on_transcode_end ) {
                             char mailbuff[1024];
-                            snprintf(mailbuff,1023,
+                            snprintf(mailbuff,sizeof(mailbuff)-1,
                                     "Transcoding of '%s/%s' using profile '%s' finished.\n"
                                     "Total time: %02d:%02d:%02d h\n",
                                      workingdir,destfile,profile->name,
@@ -2170,7 +2170,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                 if (use_posttransc_processing) {
                     logmsg(LOG_DEBUG, "Post transcoding processing enabled.");
                     char posttransc_fullname[128];
-                    snprintf(posttransc_fullname, 128, "%s/tvpvrd/%s", CONFDIR, posttransc_script);
+                    snprintf(posttransc_fullname, 128, "%s/tvpvrd/shellscript/%s", CONFDIR, posttransc_script);
                     int csfd = open(posttransc_fullname, O_RDONLY);
                     if (csfd == -1) {
                         logmsg(LOG_ERR, "Cannot open post transcoding script '%s' ( %d : %s )",

@@ -291,7 +291,7 @@ check_for_shutdown(void) {
 
                 // Call shutdown script
                 char cmd[256] ;
-                snprintf(cmd,255,"%s/tvpvrd/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
+                snprintf(cmd,sizeof(cmd)-1,"%s/tvpvrd/shellscript/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
                 logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
                 int ret = system(cmd);
                 if( -1 == ret || WEXITSTATUS(ret)) {

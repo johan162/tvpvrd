@@ -220,7 +220,7 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
         
 #endif
         char csname[128];
-        snprintf(csname,128,"%s/tvpvrd/%s",CONFDIR,external_switch_script);
+        snprintf(csname,128,"%s/tvpvrd/shellscript/%s",CONFDIR,external_switch_script);
         int csfd = open(csname,O_RDONLY) ;
         if( csfd == -1 ) {
             logmsg(LOG_CRIT,"FATAL: Cannot open channel switch script '%s' ( %d : %s )",csname,errno,strerror(errno));

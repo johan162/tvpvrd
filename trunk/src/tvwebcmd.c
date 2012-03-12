@@ -916,7 +916,7 @@ _web_cmd_module_end(int sockd) {
 void
 web_cmd_next(int sockd) {
     _web_cmd_module_start(sockd,"Next recording");
-    _writef(sockd, "<div class=\"displayasled fullw\">\n");
+    _writef(sockd, "<div class=\"displayasled_on fullw\">\n");
     list_recs(1,4,sockd); // Use style==4 , fancy
     _writef(sockd, "</div> <!-- displayasled -->\n");
     _web_cmd_module_end(sockd);
