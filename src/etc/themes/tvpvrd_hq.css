@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------------------------
- * File: TVPVRD_PLAIN.CSS
+ * File: TVPVRD_HQ.CSS
  * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
  *       daemon.
  * SVN:  $Id$
@@ -8,12 +8,12 @@
 
 /* Make it 99% to avoid scroll bars on the main page */
 body {
-    background:#DEE3DA;
+    background:#ccc;
 }
 
 /* The overall main window */
 div#topwindow {
-    background:#D0DBDB;
+    background:#fff;
     border: solid gray 2px; 
     margin:auto;
     width:770px;    
@@ -77,7 +77,8 @@ div#windowmenu a {
 
 /* To highlight the current selected command */
 div#windowmenu a:hover {
-    color: #fff;
+    color: #d00;
+    text-decoration:underline;
 }
 
 /* Encloses the command menu group title line */
@@ -119,7 +120,7 @@ div#buildnbr {
     font-size:10pt;
     font-style:italic;
     font-weight: bold;
-    color:#666;
+    color:#555;
     margin-right: 6px;
 }
 
@@ -167,7 +168,23 @@ pre a {
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_on {
     float:left;
-    background:#E4EBE5;    
+    background:#eee;    
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#222;
+    overflow:hidden;
+    margin:0;  
+/*    border: solid 1px #888;*/
+}
+
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_off {
+    float:left;
+    background:#ccc;
     padding:2px;
     padding-left:4px;
     padding-right:0px;
@@ -177,23 +194,7 @@ pre a {
     color:#444;
     overflow:hidden;
     margin:0;  
-    border: solid 1px #888;
-}
-
-/* Area used for various inforation messages formatted as a "LED" background */
-.displayasled_off {
-    float:left;
-    background:#A2B8A5;
-    padding:2px;
-    padding-left:4px;
-    padding-right:0px;
-    font-family: monospace;
-    font-size:10pt;
-    font-weight:bold;
-    color:#888;
-    overflow:hidden;
-    margin:0;  
-    border: solid 1px #888;
+/*    border: solid 1px #888;*/
 }
 
 
@@ -201,7 +202,7 @@ pre a {
 /* Mainly used for displaying card information on ongoing activities */
 /* the size of the output and layout depends on how many cards are installed */
 .fullw {
-    width:99.5%;
+    width:99%;
 }
 .halfw {
     width:49%;                
@@ -228,7 +229,7 @@ div.ongoing_transc_entry {
 
 div.ongoing_rec_entry .caption {
     float:left;
-    color:#57492A;
+    color:#222;
     font-size:10pt;
     font-weight:bold;
     font-family: serif;
@@ -255,6 +256,7 @@ div.ongoing_transc_entry .displayasled_off {
     margin-right:6px;
     margin-left:3px;
     margin-bottom:3px;
+    border:solid 1px #bbb;
 }
 
 /* Container around each input and input text-legend */
@@ -279,15 +281,15 @@ div.input_legend {
 input,
 select  {
     border: solid gray 1px;
-    background:#C4CCC8;
+    background:#ccc;
     font-family:Arial, Sans-serif;
     font-weight:bold;
-    color:#0D572F;
+    color:#000099;
 }
 
 input:focus,
 select:focus {
-    border:solid 1px #ff6633;
+    border:solid 1px #000;
     background:#fff;
     color:#000;
 }
@@ -321,7 +323,7 @@ input.input_submit {
     margin-left: 10px;
     background: #404040;
     border: solid 1px #333;
-    color:#ddd;
+    color:#eee;
     height:25px;
     width:80px;
     margin-top:0px;
@@ -381,7 +383,7 @@ div.ongoing_transc_stop_disabled  {
     padding-bottom: 3px;
     padding-top: 0;
     text-align:center;
-    color: #777;
+    color: #555;
 }
 
 div.ongoing_rec_stop,
@@ -404,7 +406,7 @@ div.ongoing_transc_stop {
 div.ongoing_rec_stop a,
 div.ongoing_transc_stop a  {
     text-decoration: none;
-    color:#ddd;
+    color:#eee;
 }
 
 div.ongoing_rec_stop a:hover,
@@ -424,7 +426,7 @@ div#login_window {
     left:0;
     right:0;
     width:300px;
-    background:#898989;
+    background:#ddd;
     padding-top:0px;
     padding-bottom:10px;
     margin:auto;
@@ -437,11 +439,11 @@ div#login_title {
     padding:3px;
     padding-bottom:5px;
     color:white;
-    background:#404040;
+    background:#444;
     font-weight:bold;
     font-family:Arial, Sans-serif;
     font-size:12pt;
-    color:white;
+    color:#fff;
     margin-bottom:10px;
     text-align:center;
     border-bottom:solid 1px #bbb;
@@ -463,10 +465,9 @@ div.input_container#id_loginpwd div.input_legend {
     float:left;
     margin-top:2px;
     width: 8em;
-    color:#ddd;
+    color:#111;
     font-weight:bold;
     font-size:11pt;
-    text-shadow: 1px 1px  1px #555 ;
 }
 
 /* Submit button container for login */

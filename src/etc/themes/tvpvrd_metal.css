@@ -72,6 +72,38 @@ div#windowmenu {
     width:130px;
     margin-left : 4px;
     color:#000;
+    font-size:11pt;
+    font-family:Arial, Sans-serif;    
+}
+
+/* To get rid of anchor underlines in comamnd menu */
+div#windowmenu a {
+    text-decoration:none;
+    color:black;
+}
+
+/* To highlight the current selected command */
+div#windowmenu a:hover {
+    color: #fff;
+}
+
+/* Encloses the command menu group title line */
+div.mnugrp_title_row {
+    color : navy;
+    margin-top:10px;
+    margin-bottom:2px;
+}
+
+/* Encloses the command menu group title short name */
+span.mnugrp_title {
+    font-weight: bold;
+}
+
+/* Encloses all menu in one menu group */
+div.mnugrp_commands {
+    padding-left:10px;
+    font-family: Arial, Sans-erif;
+    
 }
 
 /* Container around actual content area of the top window */
@@ -104,6 +136,7 @@ div.cmdmodule {
     margin-bottom:4px;
     margin-top:4px;
     margin-right:6px;
+/*    border:solid 1px red;*/
 }
 
 /* Fieldset used around each command input/output module */
@@ -172,13 +205,14 @@ pre a {
     font-family: monospace;
     font-size:10pt;
     font-weight:bold;
-    color:#eee;
+    color:#bbb;
     text-shadow:1px 1px 1px #999;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     overflow:hidden;
     margin:0;  
     border: solid 1px #777;
+    text-decoration:blink;
 }
 
 
@@ -186,7 +220,7 @@ pre a {
 /* Mainly used for displaying card information on ongoing activities */
 /* the size of the output and layout depends on how many cards are installed */
 .fullw {
-    width:98%;
+    width:99.5%;
 }
 .halfw {
     width:49%;                
@@ -194,12 +228,17 @@ pre a {
 .margleft {
     margin-left:10px;
 }
+.nofloat {
+    float:none;
+}
 
-div.ongoing_rec_entry,
-div.ongoing_transc_entry
-{
+div.ongoing_rec_entry {
     float:left;
-    padding:0px;
+    padding:0;
+}
+
+div.ongoing_transc_entry {
+
 }
 
 div.ongoing_rec_entry .caption {
@@ -214,11 +253,14 @@ div.ongoing_rec_entry .caption {
 
 /* No float to let the LED fill available space */
 div.ongoing_rec_entry .displayasled_on,
-div.ongoing_rec_entry .displayasled_off,
+div.ongoing_rec_entry .displayasled_off {
+    float:none;
+    height:2.7em;
+}
+
 div.ongoing_transc_entry .displayasled_on, 
 div.ongoing_transc_entry .displayasled_off {
     float:none;
-    height:2.7em;
 }
 
 /* More specific formatting unique for command output */
@@ -231,34 +273,6 @@ div.ongoing_transc_entry .displayasled_off {
     margin-bottom:3px;
 }
 
-/* To get rid of anchor underlines in comamnd menu */
-div#windowmenu a {
-    text-decoration:none;
-    color:black;
-}
-
-/* To highlight the current selected command */
-div#windowmenu a:hover {
-    color: #fff;
-}
-
-/* Encloses the command menu group title line */
-div.mnugrp_title_row {
-    font-family:Arial, Sans-serif;
-    color : navy;
-    margin-top:10px;
-    margin-bottom:2px;
-}
-
-/* Encloses the command menu group title short name */
-span.mnugrp_title {
-    font-weight: bold;
-}
-
-/* Encloses all menu in one menu group */
-div.mnugrp_commands {
-    padding-left:10px;
-}
 /* Container around each input and input text-legend */
 div.input_container {
     float:left;
@@ -291,7 +305,7 @@ select  {
 
 input:focus,
 select:focus {
-    border:solid 1px yellow;
+    border:solid 1px #ff6633;
     background:#fff;
     color:#000;
 }
@@ -314,7 +328,7 @@ select.input_select_code#id_delselect_select {
 
 /* Input text controls */
 input.input_text {
-    width : 150px;
+    width : 180px;
 }
 
 /* Input submit buttons in forms */
@@ -327,8 +341,6 @@ input.input_submit {
     background: #404040;
     background-image: -moz-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);
     background-image: -webkit-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);    
-    color:white;    
-
     -moz-box-shadow: 3px  3px  6px  #555; 
     box-shadow: 3px  3px  6px  #555;   
     -webkit-border-radius: 5px;
@@ -339,6 +351,7 @@ input.input_submit {
     color:#ddd;
     height:25px;
     width:80px;
+    margin-top:0px;
 }
 
 /* Indicate to user that button is about to receive input */
@@ -363,7 +376,7 @@ input.input_submit:active {
 div.input_container#delrec,
 div.input_container#id_addrec,
 div.input_container#id_qaddrec {
-    padding-top:15px;
+    padding-top:12px;
     float:right;
     margin-right:10px;
 }
