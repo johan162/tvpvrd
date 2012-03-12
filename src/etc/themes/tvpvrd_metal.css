@@ -139,9 +139,9 @@ pre a {
 }
 
 /* Area used for various inforation messages formatted as a "LED" background */
-.displayasled {
+.displayasled_on {
     float:left;
-    background-image:url("img/bgcmd_metal.jpg");
+    background-image:url("img/bgcmd_metal_on.jpg");
     background-size: cover;
     padding:2px;
     padding-left:4px;
@@ -156,11 +156,28 @@ pre a {
     overflow:hidden;
     margin:0;  
     border: solid 1px #777;
-    /*    border-left:solid 1px #eee;
-        border-top:solid 1px #eee;
-        border-right:solid 1px #555;
-        border-bottom:solid 1px #555;*/
 }
+
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_off {
+    float:left;
+    background-image:url("img/bgcmd_metal_off.jpg");
+    background-size: cover;
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#eee;
+    text-shadow:1px 1px 1px #999;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    overflow:hidden;
+    margin:0;  
+    border: solid 1px #777;
+}
+
 
 /* Subclass used with other main classes to indicate full or half width */
 /* Mainly used for displaying card information on ongoing activities */
@@ -193,8 +210,10 @@ div.ongoing_rec_entry .caption {
 }
 
 /* No float to let the LED fill available space */
-div.ongoing_rec_entry .displayasled,
-div.ongoing_transc_entry .displayasled {
+div.ongoing_rec_entry .displayasled_on,
+div.ongoing_rec_entry .displayasled_off,
+div.ongoing_transc_entry .displayasled_on, 
+div.ongoing_transc_entry .displayasled_off {
     float:none;
     height:2.7em;
 }

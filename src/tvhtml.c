@@ -93,7 +93,7 @@ html_statusbar(int sockd) {
 void
 web_cmd_output(int sockd, char *wcmd) {
 
-    _writef(sockd, "<div class=\"displayasled\" id=\"cmdoutput\">\n<pre>");
+    _writef(sockd, "<div class=\"displayasled_on\" id=\"cmdoutput\">\n<pre>");
 
     // We must wait for the semphore since since commands
     // might alter data structures and we can only have one
