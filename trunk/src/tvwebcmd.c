@@ -931,39 +931,10 @@ web_cmd_ongoingtransc(int sockd) {
 
     _web_cmd_module_start(sockd,"Ongoing transcoding");
     size_t num=get_num_ongoing_transcodings();
-/*
-
-    if( num == 0 ) {
-        _writef(sockd, "<div class=\"displayasled fullw\"><pre>None.</pre></div>");
-    } else {
-
-        for (size_t i = 0; i < max_ongoing_transcoding; i++) {
-
-            if (ongoing_transcodings[i]) {
-
-                _writef(sockd, "<div class=\"ongoing_transc_entry\">\n");
-
-                time_t now = time(NULL);
-                int rtime = now-ongoing_transcodings[i]->start_ts;
-                int rh = rtime/3600;
-                int rmin = (rtime - rh*3600)/60;
-
-                _writef(sockd, "<div class=\"displayasled fullw\">(%02d:%02d) %s</div>",rh,rmin,ongoing_transcodings[i]->filename);
-                _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?c=kt%%20%d\">Stop</a></div>",i);
-
-                _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
-            }
-        }
-    }
-    
-*/
 
     if( 0==num ) {
         _writef(sockd, "<div class=\"ongoing_transc_entry fullw\">\n");
-        _writef(sockd, "<div class=\"displayasled\"><pre> - - -</pre></div>\n");
-/*
-        _writef(sockd, "<div class=\"caption\">Transcoding 1</div>\n");
-*/
+        _writef(sockd, "<div class=\"displayasled_off\"><pre> - - -</pre></div>\n");
         _writef(sockd, "<div class=\"ongoing_transc_stop_disabled\">Stop</div>\n");
         _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
     } else {
@@ -980,7 +951,7 @@ web_cmd_ongoingtransc(int sockd) {
                 int rh = rtime/3600;
                 int rmin = (rtime - rh*3600)/60;
 
-                _writef(sockd, "<div class=\"displayasled\"><pre>(%02d:%02d)\n%s</pre></div>\n",rh,rmin,ongoing_transcodings[i]->filename);
+                _writef(sockd, "<div class=\"displayasled_on\"><pre>(%02d:%02d)\n%s</pre></div>\n",rh,rmin,ongoing_transcodings[i]->filename);
                 _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?c=kt%%20%d\">Stop</a></div>\n",i);
 
             }
@@ -1020,9 +991,9 @@ web_cmd_ongoing(int sockd) {
             fromtimestamp(ongoing_recs[i]->ts_end, &ey, &em, &ed, &eh, &emi, &es);
             int sy, sm, sd, sh, smi, ss;
             fromtimestamp(ongoing_recs[i]->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
-            _writef(sockd, "<div class=\"displayasled\"><pre>%s %02d:%02d-%02d:%02d\n%s</pre></div>", ongoing_recs[i]->channel, sh, smi, eh, emi, ongoing_recs[i]->title);
+            _writef(sockd, "<div class=\"displayasled_on\"><pre>%s %02d:%02d-%02d:%02d\n%s</pre></div>", ongoing_recs[i]->channel, sh, smi, eh, emi, ongoing_recs[i]->title);
         } else {
-            _writef(sockd, "<div class=\"displayasled\"><pre> - - -</pre></div>\n");
+            _writef(sockd, "<div class=\"displayasled_off\"><pre> - - -</pre></div>\n");
         }
         _writef(sockd, "<div class=\"caption\">\n");
         _writef(sockd, caption_buffer);
