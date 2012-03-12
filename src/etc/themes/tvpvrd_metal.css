@@ -29,8 +29,11 @@ div#windowtitlebar {
     margin-bottom: 4px;
     padding: 3px;
     padding-bottom: 8px;
+    background: #404040;
     background-image: -moz-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(87,87,87) 51%);
     background-image: -webkit-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(87,87,87) 51%);
+    background-image: -ms-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(87,87,87) 51%);
+    background-image: linear-gradient(bottom, rgb(5,5,1) 1%, rgb(87,87,87) 51%);
     color:#ddd;
     font-family:arial, sans-serif;
     font-size:12pt;
@@ -321,6 +324,7 @@ input.input_submit {
     font-size:10pt;
     margin-left: 10px;
 
+    background: #404040;
     background-image: -moz-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);
     background-image: -webkit-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);    
     color:white;    
@@ -410,6 +414,7 @@ div.ongoing_transc_stop {
     border: solid 1px #777;
     width:50px;
 
+    background: #ed904e;
     background-image: -moz-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);
     background-image: -webkit-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);    
     -webkit-border-radius: 5px;
@@ -460,6 +465,7 @@ div#login_title {
     padding:3px;
     padding-bottom:5px;
     color:white;
+    background:#404040;
     background-image: -moz-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);
     background-image: -webkit-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);    
     font-weight:bold;
