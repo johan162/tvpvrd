@@ -50,12 +50,12 @@ CLEANFILES = *~
 
 install-data-local:
 	install -D -m 644 $(abs_srcdir)/etc/*.template ${DESTDIR}${sysconfdir}/tvpvrd/
-	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/templates
+	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/shellscript
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/www
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/www/img
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/xsl
-	install -D -m 755 $(abs_srcdir)/etc/templates/* ${DESTDIR}${sysconfdir}/tvpvrd/templates/
+	install -D -m 755 $(abs_srcdir)/etc/templates/* ${DESTDIR}${sysconfdir}/tvpvrd/shellscript/
 	install -D -m 644 $(abs_srcdir)/etc/themes/* ${DESTDIR}${sysconfdir}/tvpvrd/www/
 	install -D -m 644 $(abs_srcdir)/etc/img/* ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
 	install -D -m 644 $(abs_srcdir)/etc/mail_templates/* ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates/

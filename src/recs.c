@@ -1389,19 +1389,30 @@ list_recs(size_t maxrecs, int style, int fd) {
         }
     }
 
-    qsort(entries, k, sizeof (struct recording_entry *), _cmprec);
+    // If we use the fancy style and there are no records
+    // we only print a "- - -" to indicate an empty list.
+    // style==4 is only used in the "next recording" field
+    // in the web-interface
+    if( 0 == k && 4 == style ) {
 
-    if( maxrecs > 0 )
-        k = MIN(k,maxrecs);
+	_writef(fd,"- - -");
 
-    dump_recordheader(style, buffer, sizeof(buffer));
-    _writef(fd, buffer);
-    
-    for(size_t i=0; i < k; i++ ) {
-        dump_record(entries[i], style, i+1, buffer, sizeof(buffer));
+    } else {
+
+        qsort(entries, k, sizeof (struct recording_entry *), _cmprec);
+
+        if( maxrecs > 0 )
+            k = MIN(k,maxrecs);
+
+        dump_recordheader(style, buffer, sizeof(buffer));
         _writef(fd, buffer);
-    }
+    
+        for(size_t i=0; i < k; i++ ) {
+            dump_record(entries[i], style, i+1, buffer, sizeof(buffer));
+            _writef(fd, buffer);
+        }
 
+    }
     free(entries);
 }
 

@@ -269,7 +269,7 @@ tvhist_write(void) {
 
     if (-1 == _writef(fd, 
         "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
-        "<?xml-stylesheet type=\"text/xsl\" href=\"%s/tvpvrd/%s\"?>\n",CONFDIR,HISTORY_XSL_FILENAME )) {
+        "<?xml-stylesheet type=\"text/xsl\" href=\"%s/tvpvrd/xsl/%s\"?>\n",CONFDIR,HISTORY_XSL_FILENAME )) {
         return -1;
     }
     _writef(fd, "<!-- Created: %s -->\n", ctime(&now));
