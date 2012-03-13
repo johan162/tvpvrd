@@ -1145,7 +1145,7 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
 
     // We need localtime to find the day of week for the start
     (void)localtime_r(&entry->ts_start, &result);
-
+ 
     char profbuff[256], profile[REC_MAX_TPROFILE_LEN+1];
     profbuff[0] = '\0';
     unsigned left=255;

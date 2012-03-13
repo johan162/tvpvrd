@@ -35,7 +35,7 @@
 #include <wchar.h>
 #include <locale.h>
 
-#include "tvplog.h"
+// #include "tvplog.h"
 #include "utils.h"
 
 
@@ -163,7 +163,7 @@ xstrtolower(char *s) {
         s++;
     }
     if( safetylimit <= 0 ) {
-        logmsg(LOG_ERR,"FATAL : strtolower() : Failed safetylimit !");
+        //logmsg(LOG_ERR,"FATAL : strtolower() : Failed safetylimit !");
         return -1;
     }
     return 0;
@@ -180,13 +180,13 @@ xstricmp(const char *s1, const char *s2) {
     int len1 = strnlen(s1,safetylimit);
     int len2 = strnlen(s2,safetylimit);
     if( len1 >= safetylimit || len2 >= safetylimit ) {
-        logmsg(LOG_ERR,"FATAL : stricmp() safetylimit exceedded !");
+        //logmsg(LOG_ERR,"FATAL : stricmp() safetylimit exceedded !");
         return -1;
     }
     char *b1=strdup(s1);
     char *b2=strdup(s2);
     if( b1 == NULL || b2 == NULL ) {
-        logmsg(LOG_ERR,"FATAL: stricmp() Out of memory ! ( %d : %s )",errno,strerror(errno));
+        //logmsg(LOG_ERR,"FATAL: stricmp() Out of memory ! ( %d : %s )",errno,strerror(errno));
         return -1;
     }
     xstrtolower(b1);
@@ -206,7 +206,7 @@ xmblen(const char *s) {
     memset(&t, '\0', sizeof (t));
     size_t n= mbsrtowcs(NULL, &scopy, strlen(scopy), &t);
     if( (size_t)-1 == n ) {
-        logmsg(LOG_ERR, "xmblen(): \"%s\" (mblen=%zu) -1==%zu [locale: %s]",s,n,(size_t)-1,setlocale(LC_ALL,NULL));
+        //logmsg(LOG_ERR, "xmblen(): \"%s\" (mblen=%zu) -1==%zu [locale: %s]",s,n,(size_t)-1,setlocale(LC_ALL,NULL));
     }
     return n;
 }	
@@ -218,15 +218,15 @@ xmbrpad(char *s, size_t pad, const size_t maxlen, const char padc) {
     size_t mbn = xmblen(s);
     size_t n = strlen(s);
     if ((size_t)-1 == n) {
-        logmsg(LOG_DEBUG, "xmbrpad(): Failed strlen()");
+        //logmsg(LOG_DEBUG, "xmbrpad(): Failed strlen()");
         return -1;
     }
     if ((size_t)-1 == mbn) {
-        logmsg(LOG_DEBUG, "xmbrpad(): Failed xmblen()");
+        //logmsg(LOG_DEBUG, "xmbrpad(): Failed xmblen()");
         return -1;
     }
     if (n + pad >= maxlen || mbn > pad) {
-        logmsg(LOG_DEBUG, "xmbrpad(): n=%zu pad=%zu maxlen=%zu mbn=%zu",n,pad,maxlen,mbn);
+        //logmsg(LOG_DEBUG, "xmbrpad(): n=%zu pad=%zu maxlen=%zu mbn=%zu",n,pad,maxlen,mbn);
         return -1;
     }
 
@@ -244,15 +244,15 @@ xmblpad(char *s, size_t pad, const size_t maxlen, const char padc) {
     size_t mbn = xmblen(s);
     size_t n = strlen(s);
     if ((size_t)-1 == n) {
-        logmsg(LOG_DEBUG, "xmblpad(): Failed strlen()");
+        //logmsg(LOG_DEBUG, "xmblpad(): Failed strlen()");
         return -1;
     }
     if ((size_t)-1 == mbn) {
-        logmsg(LOG_DEBUG, "xmblpad(): Failed xmblen()");
+        //logmsg(LOG_DEBUG, "xmblpad(): Failed xmblen()");
         return -1;
     }
     if (n + pad >= maxlen || mbn > pad) {
-        logmsg(LOG_DEBUG, "xmblpad(): n=%zu pad=%zu maxlen=%zu mbn=%zu",n,pad,maxlen,mbn);
+        //logmsg(LOG_DEBUG, "xmblpad(): n=%zu pad=%zu maxlen=%zu mbn=%zu",n,pad,maxlen,mbn);
         return -1;
     }
    
