@@ -7,9 +7,12 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
 
-v3.4.0
+v4.0.0
 ------
 User visible changes:
+    - Distribution now ships with three different CSS themes for the web-interface
+    - Directory structure for the config directory changed to make it cleaner
+      with a separate "virtual" web-root among other things.
     - The 'o' (query ongoing recording) command now takes an optional card number as 
       argument.
     - Added theme setting in config file
@@ -19,15 +22,21 @@ User visible changes:
     - Removed Web-menu for detailed driver settings (this is an advanced
       function that doesn't really make sense in the simplified Web-interface)
     - Added VERBOSE_LOG level 4 which also give RTC debug information in shutdown mail
-    - Some minor layout changes in the Web-interface to emphasis recording and some CSS tweaks
+    - Some layout changes in the Web-interface to emphasis recording and some CSS tweaks
 
 Bugs fixed:
-    - None.
+    - Handling of multibyte (utf-8) strings was not properly handled by the printf()
+      function in calculating the field width. This meant that columns in the 
+      output was not always correctly aligned depending on the actual content of the
+      strings.
 
 Internal changes:
     - The micro web server now behaves more like a real webserver in serving
       static files. The server is now more general but still targeted to tvpvrd
       due to the handling of commands.
+    - Multibyte strings for titles are now calculated separately with help of 
+      wide-char routines.
+    
 
 v3.3.5
 ------
