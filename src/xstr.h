@@ -96,6 +96,36 @@ xstricmp(const char *s1, const char *s2);
 void
 xstrtolower(char *s);
 
+/**
+ * MB String length
+ * @param s
+ * @return 
+ */
+size_t
+xmblen(const char *s);
+
+/**
+ * MB String right padding to length
+ * @param s
+ * @param pad
+ * @param maxlen
+ * @param padc
+ * @return 
+ */
+int
+xmbrpad(char *s, size_t pad, const size_t maxlen, const char padc);
+
+/**
+ * MB String left padding to length
+ * @param s
+ * @param pad
+ * @param maxlen
+ * @param padc
+ * @return 
+ */
+int
+xmblpad(char *s, size_t pad, const size_t maxlen, const char padc);
+
 
 #ifdef	__cplusplus
 }
