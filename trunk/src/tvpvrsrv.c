@@ -66,6 +66,7 @@
 #include <syslog.h>
 #include <errno.h>
 #include <pthread.h>
+#include <locale.h>
 
 // #include <mcheck.h>
 
@@ -1895,12 +1896,14 @@ main(int argc, char *argv[]) {
      * have a faulty locale. If the locale is set in the INI file we will use
      * that one instead.
      */
+
     strncpy(locale_name,
             iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
             255);
     logfile_name[255] = '\0';
     setenv("LC_ALL",locale_name,1);
-    logmsg(LOG_DEBUG,"Using locale '%s'",locale_name);
+    setlocale(LC_ALL,""); 
+    logmsg(LOG_DEBUG,"Using locale '%s'",setlocale(LC_ALL,NULL));
 
     // Remember when the server was started
     tzset();

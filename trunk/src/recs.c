@@ -51,8 +51,8 @@
 #include "transc.h"
 #include "datetimeutil.h"
 #include "tvplog.h"
-#include "tvplog.h"
 #include "listhtml.h"
+#include "xstr.h"
 
 /*
  * recs
@@ -713,19 +713,21 @@ dump_htmlrecordrow(struct recording_entry* entry, char *buffer, size_t bufflen, 
                                 rs->td_i, entry->channel,                    
                                 rs->td_r, profbuff);
         } else {
-
+            char padbuff[255];
+            strncpy(padbuff,entry->title,sizeof(padbuff));
+            xmbrpad(padbuff,43,sizeof(padbuff),' ');
             snprintf(buffer, bufflen, "%03zu "                                
                                   "%s %s %02d "
                                   "%02d:%02d "
                                   "%02d:%02d "
-                                  "%-43s "
+                                  "%s "
                                   "%-8s"                    
                                   "%-10s \n",
                                 idx,
                                 wday_name[result.tm_wday], month_name[sm-1], sd,
                                 sh, smi,
                                 eh, emi,
-                                entry->title,
+                                padbuff,
                                 entry->channel,
                                 profbuff);
         }
@@ -752,13 +754,17 @@ dump_htmlrecordrow(struct recording_entry* entry, char *buffer, size_t bufflen, 
                                 rs->td_i, entry->channel,                    
                                 rs->td_r, profbuff);
         } else {
+            char padbuff[255];
+            strncpy(padbuff,entry->recurrence_title,sizeof(padbuff));
+            xmbrpad(padbuff,25,sizeof(padbuff),' ');
+            
             snprintf(buffer, bufflen,"%03zu "
                                       "%s %s %02d "
                                       "%02d:%02d "
                                       "%02d:%02d "
                                       "%-9s"
                                       "%03d/%03d  "
-                                      "%-25s"
+                                      "%s"
                                       "%-8s"                    
                                       "%-10s\n",
                                         idx,
@@ -767,7 +773,7 @@ dump_htmlrecordrow(struct recording_entry* entry, char *buffer, size_t bufflen, 
                                         eh, emi,
                                         rectypelongname,
                                         entry->recurrence_start_number, entry->recurrence_num+entry->recurrence_start_number-1,
-                                        entry->recurrence_title,
+                                        padbuff,
                                         entry->channel,                    
                                         profbuff);
         }
@@ -1155,14 +1161,20 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
     profbuff[255] = '\0';
         
     // One line short format
+    char titlepadbuff[255];
+    strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff));
+    if( -1 == xmbrpad(titlepadbuff,40,sizeof(titlepadbuff),' ') ) {
+        strncpy(titlepadbuff,"ERROR",sizeof(titlepadbuff));
+    }
+    
     if (style == 0) {
 
 
-        snprintf(buffer, bufflen, "[%03d|%-8.8s|%s %s %02d|%02d:%02d|%02d:%02d|%-30s|%s]\n",
+        snprintf(buffer, bufflen, "[%03d|%-8.8s|%s %s %02d|%02d:%02d|%02d:%02d|%s|%s]\n",
                 entry->seqnbr,
                 entry->channel,
                 wday_name[result.tm_wday], month_name[sm-1], sd,
-                sh, smi, eh, emi, entry->title,profbuff);
+                sh, smi, eh, emi, titlepadbuff,profbuff);
 
     } else if ( style == 3 ) {
         // Used for 'lh' command (list all)
@@ -1171,13 +1183,13 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
                 "%s %s %02d "
                 "%02d:%02d "
                 "%02d:%02d "
-                "%-40s"
+                "%s"
                 "%-8s\n" ,
                 idx,
                 wday_name[result.tm_wday], month_name[sm-1], sd,
                 sh, smi,
                 eh, emi,
-                entry->title,                 
+                titlepadbuff,                 
                 entry->channel);
 
     } else if ( style == 10 ) {
