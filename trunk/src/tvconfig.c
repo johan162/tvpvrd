@@ -43,6 +43,7 @@
 #include "vctrl.h"
 #include "stats.h"
 #include "transc.h"
+#include "transcprofile.h"
 #include "recs.h"
 #include "tvplog.h"
 #include "listhtml.h"
