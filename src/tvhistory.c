@@ -425,24 +425,48 @@ hist_listbuff(char *buff, size_t maxlen) {
     }
 
     char filename[255];
+    char titlepadbuff[255];
+    char fnamepadbuff[255];
     for (size_t i = 0; i < nrecs && maxlen > 0 ; ++i) {
         fromtimestamp(history[i].ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
         fromtimestamp(history[i].ts_end, &ey, &em, &ed, &eh, &emi, &es);        
         (void)localtime_r(&history[i].ts_start, &result);        
 
-        strncpy(filename,history[i].filepath,sizeof(filename));
+        strncpy(filename,basename(history[i].filepath),sizeof(filename));
         filename[sizeof(filename)-1]='\0';
+        
+        const int title_width=45;
+        strncpy(titlepadbuff,history[i].title,sizeof(titlepadbuff));
+        titlepadbuff[title_width]='\0';
+        if( -1 == xmbrpad(titlepadbuff,title_width,sizeof(titlepadbuff),' ') ) {
+            logmsg(LOG_ERR,"Cannot pad history title multibyte string. Check the locale setting in config file!");
+            strncpy(titlepadbuff,history[i].title,sizeof(titlepadbuff)-2);
+            strncat(titlepadbuff,"  ",sizeof(titlepadbuff)-1);
+            titlepadbuff[sizeof(titlepadbuff)-1]='\0';
+        }
+
+        const int fname_width=50;
+        strncpy(fnamepadbuff,filename,sizeof(fnamepadbuff));
+        fnamepadbuff[fname_width]='\0';
+        if( -1 == xmbrpad(fnamepadbuff,fname_width,sizeof(fnamepadbuff),' ') ) {
+            logmsg(LOG_ERR,"Cannot pad history filename multibyte string (\"%s\"). Check the locale setting in config file!",filename);
+            strncpy(fnamepadbuff,filename,sizeof(fnamepadbuff)-2);
+            strncat(fnamepadbuff,"  ",sizeof(fnamepadbuff)-1);
+            fnamepadbuff[sizeof(fnamepadbuff)-1]='\0';
+        }
+
+        
         snprintf(line,sizeof(line),
          "%02u "
          "%s %s %02d %02d:%02d "
-         "%-43s"
-         "%-40s"
-         "%-10s\n",
+         "%s"
+         "%s"
+         "%s\n",
          (int)(i+1),
          wday_name[result.tm_wday], month_name[sm-1], sd,
          sh, smi,
-         history[i].title,
-         basename(filename),
+         titlepadbuff,
+         fnamepadbuff,
          history[i].profile);
         if( strnlen(line,256) > maxlen ) {
             return -1;
