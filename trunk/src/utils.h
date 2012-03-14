@@ -117,21 +117,6 @@ strtolower(char *s);
 int
 stricmp(const char *s1, const char *s2);
 
-/*
- * Remove specified directory and all files and directories under it
- * It behaves similar to "rm -rf dir"
- */
-int
-removedir(const char *dir);
-
-/*
- * Move and possibly rename the file if the target file already exists
- * The new name will be created by adding a numeric suffix to the base
- * name.
- */
-int
-mv_and_rename(char *from, char *to, char *newname, size_t maxlen);
-
 /**
  * Validate an integer value. If outside the limits
  * terminate program and print error message to log
@@ -198,34 +183,6 @@ set_cloexec_flag(int desc, int value);
  */
 int
 getwsetsize(int pid, int *size, char *unit, int *threads);
-
-
-/**
- * Check if a directory exists and if not then create it
- * @param basedir Basedirectory where the new directory will be created
- * @param dir The name of the directory to create
- */
-int
-chkcreatedir(const char *basedir,char *dir);
-
-/**
- * Strip the suffix by replacing the last '.' with a '\0'
- * The found suffix is placed in the space pointed to by
- * the suffix parameter
- * @param filename
- */
-int
-strip_filesuffix(char *filename,char *suffix, int slen);
-
-/**
- * Show the last n line of the logfile
- * @param n
- * @param buffer
- * @param maxlen
- * @return
- */
-int
-tail_logfile(unsigned n, char *buffer, size_t maxlen);
 
 char *
 url_encode(char *str);

@@ -2,7 +2,7 @@
  * File:        TRANSCPROFILE.C
  * Description: Module to handle transcoding profiles
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: transc.c 604 2012-03-12 12:08:33Z johan162 $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009,2010,2011,2012 Johan Persson
  *
@@ -46,6 +46,7 @@
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "utils.h"
+#include "futils.h"
 #include "stats.h"
 #include "tvplog.h"
 #include "transcprofile.h"
@@ -292,20 +293,27 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     return 0;
 }
 
+
 /**
  * Read all defined transcoding profiles in the profile directory
- * @return 0 on sucess, -1 on failure
+ * @return 0 on success, -1 on failure
  */
 int
 read_transcoding_profiles(void) {
     char dirbuff[256];
+/*
     struct stat filestat;
+*/
 
     // Search for the profile directory in
     // 1) <CONFDIR>/tvpvrd/profiles
     // 2) <cwd>/profiles
     snprintf(dirbuff,255,"%s/tvpvrd/profiles",CONFDIR);
     logmsg(LOG_DEBUG,"Profile directory: %s",dirbuff);
+    
+    return process_files(dirbuff, ".profile", MAX_TRANS_PROFILES, &num_transcoding_profiles, _read_transcoding_profile);
+    
+/*
 
     if( -1 == stat(dirbuff,&filestat) ) {
         logmsg(LOG_ERR,"Cannot find transcoding profiles in '%s' ( %d : %s )",dirbuff,
@@ -356,6 +364,7 @@ read_transcoding_profiles(void) {
     }
     closedir(dp);
     return 0;
+*/
 }
 
 /**
