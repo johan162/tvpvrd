@@ -1164,7 +1164,10 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
     char titlepadbuff[255];
     strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff));
     if( -1 == xmbrpad(titlepadbuff,40,sizeof(titlepadbuff),' ') ) {
-        strncpy(titlepadbuff,"ERROR",sizeof(titlepadbuff));
+        logmsg(LOG_ERR,"Cannot pad multibyte string. Check the locale setting in config file!");
+        strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff)-2);
+        strncat(titlepadbuff,"  ",sizeof(titlepadbuff)-1);
+        titlepadbuff[sizeof(titlepadbuff)-1]='\0';
     }
     
     if (style == 0) {
@@ -1206,31 +1209,31 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
         
 
     } else if ( style == 4 ) {
-        // Fancy format
+        // Fancy format.
         time_t now = time(NULL);
         int now_y, now_m, now_d,now_h,now_mi,now_s;
         fromtimestamp(now, &now_y, &now_m, &now_d, &now_h, &now_mi, &now_s);
 
         if( sy==now_y && sm==now_m && sd==now_d ) {
-            snprintf(buffer, bufflen, "today %02d:%02d-%02d:%02d %-7.7s \"%s\"\n",
+            snprintf(buffer, bufflen, "today %02d:%02d-%02d:%02d \"%s\"  %s\n",
                     sh, smi,
                     eh,emi,
-                    entry->channel,
-                    entry->title);
+                    entry->title,                    
+                    entry->channel);
         } else if( sy==now_y && sm==now_m && sd==now_d+1 ) {
-            snprintf(buffer, bufflen, "tomorrow %02d:%02d-%02d:%02d %-7.7s \"%s\"\n",
+            snprintf(buffer, bufflen, "tomorrow %02d:%02d-%02d:%02d \"%s\"   %s\n",
                     sh, smi,
                     eh,emi,
-                    entry->channel,
-                    entry->title);
+                    entry->title,                    
+                    entry->channel);
         } else {
-            snprintf(buffer, bufflen, "%s %s %02d %02d:%02d-%02d:%02d %-7.7s \"%s\"\n",
+            snprintf(buffer, bufflen, "%s %s %02d %02d:%02d-%02d:%02d \"%s\"   %s\n",
                     wday_name[result.tm_wday],
                     month_name[sm-1], sd,
                     sh, smi,
                     eh,emi,
-                    entry->channel,
-                    entry->title);
+                    entry->title,                    
+                    entry->channel);
         }
 
     } else if ( style == 9 ) {
