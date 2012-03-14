@@ -94,6 +94,7 @@
 #include "vctrl.h"
 #include "recs.h"
 #include "utils.h"
+#include "futils.h"
 #include "tvxmldb.h"
 #include "tvcmd.h"
 #include "freqmap.h"

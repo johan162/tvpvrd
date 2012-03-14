@@ -46,6 +46,7 @@
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "utils.h"
+#include "futils.h"
 #include "stats.h"
 #include "transc.h"
 #include "rkey.h"
@@ -56,11 +57,9 @@
 #include "tvplog.h"
 #include "transcprofile.h"
 
-
 struct ongoing_transcoding *ongoing_transcodings[3] ;
 const size_t max_ongoing_transcoding = 3;
 struct waiting_transcoding_t wtrans[MAX_WAITING_TRANSCODINGS] ;
-
 
 /**
  * Check if ffmpeg binaries can be found at the specified location

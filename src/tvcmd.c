@@ -60,6 +60,7 @@
 #include "tvpvrd.h"
 #include "tvconfig.h"
 #include "utils.h"
+#include "futils.h"
 #include "recs.h"
 #include "tvxmldb.h"
 #include "freqmap.h"

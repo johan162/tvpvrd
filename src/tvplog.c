@@ -47,6 +47,7 @@
 #include "tvconfig.h"
 #include "tvplog.h"
 #include "utils.h"
+#include "futils.h"
 #include "mailutil.h"
 
 // Last logmessage
