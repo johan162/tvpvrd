@@ -66,6 +66,7 @@
 #include "vctrl.h"
 #include "stats.h"
 #include "transc.h"
+#include "transcprofile.h"
 #include "tvwebcmd.h"
 #include "build.h"
 #include "datetimeutil.h"

@@ -58,6 +58,7 @@
 #include "recs.h"
 #include "stats.h"
 #include "transc.h"
+#include "transcprofile.h"
 #include "datetimeutil.h"
 #include "xstr.h"
 #include "tvcmd.h"

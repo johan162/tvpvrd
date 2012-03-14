@@ -49,6 +49,7 @@
 #include "recs.h"
 #include "stats.h"
 #include "transc.h"
+#include "transcprofile.h"
 #include "datetimeutil.h"
 #include "tvplog.h"
 #include "listhtml.h"

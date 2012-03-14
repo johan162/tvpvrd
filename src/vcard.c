@@ -43,6 +43,7 @@
 #include "tvconfig.h"
 #include "stats.h"
 #include "transc.h"
+#include "transcprofile.h"
 #include "recs.h"
 #include "vctrl.h"
 #include "vcard.h"

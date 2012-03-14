@@ -50,6 +50,7 @@
 #include "freqmap.h"
 #include "stats.h"
 #include "transc.h"
+#include "transcprofile.h"
 #include "recs.h"
 #include "tvhtml.h"
 #include "datetimeutil.h"
