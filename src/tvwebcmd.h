@@ -75,6 +75,16 @@ int
 webconnection(const char *buffer, char *cmd, int maxlen);
 
 
+void
+web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile);
+
+void
+web_main_page_mobile(int sockd, char *wcmd, char *cookie_val);
+
+void
+web_login_page(int sockd, int mobile);
+
+
 #ifdef	__cplusplus
 }
 #endif

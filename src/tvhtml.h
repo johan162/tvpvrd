@@ -47,6 +47,12 @@ void
 html_newpage(int sockd, char *cookie_val, int mobile);
 
 void
+html_windtitlebar(int sockd);
+
+void
+html_statusbar(int sockd);
+
+void
 html_element_select(int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id);
 
 void
@@ -72,15 +78,6 @@ html_notfound(int sockd);
 
 void
 html_notmodified(int sockd);
-
-void
-html_main_page(int sockd, char *wcmd, char *cookie_val, int mobile);
-
-void
-html_main_page_mobile(int sockd, char *wcmd, char *cookie_val);
-
-void
-html_login_page(int sockd, int mobile);
 
 
 #ifdef	__cplusplus

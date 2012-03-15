@@ -47,6 +47,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <locale.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -224,14 +225,21 @@ validate(const int min, const int max, const char *name, const int val) {
  */
 void
 getsysload(float *avg1, float *avg5, float *avg15) {
-    char lbuff[24];
+    char lbuff[30];
     int ld = open("/proc/loadavg", O_RDONLY);
-    if( -1 == read(ld, lbuff, 24) ) {
+    if( -1 == read(ld, lbuff, 30) ) {
         logmsg(LOG_ERR,"FATAL: Cannot read '/proc/loadavg' ( %d : %s )",errno,strerror(errno));
         *avg1=-1; *avg5=-1; *avg15=-1;
     }
     close(ld);
+    lbuff[14] = '\0';
+    char oldlocale[64];
+    strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1);
+    oldlocale[sizeof(oldlocale)-1] = '\0';
+    setlocale(LC_ALL,"C");
     sscanf(lbuff, "%f%f%f", avg1, avg5, avg15);
+    logmsg(LOG_DEBUG,"*** Load average: lbuff=%s (%f %f %f)",lbuff,*avg1, *avg5, *avg15);
+    setlocale(LC_ALL,oldlocale);
 }
 
 /**

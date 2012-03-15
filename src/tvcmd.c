@@ -52,6 +52,7 @@
 
 #include "config.h"
 #include <pcre.h>
+#include <locale.h>
 
 // Application specific includes
 #include "libsmtpmail/mailclientlib.h"
@@ -1955,6 +1956,15 @@ _cmd_status(const char *cmd, int sockfd) {
 
     struct mallinfo minfo = mallinfo();
 
+    /* We switch back to standard 'C' locale while formatting
+     * float in the string to avoid getting a ',' instead of a  '.'
+     * to separate the decimals.
+     */
+    char oldlocale[64];
+    strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1);
+    oldlocale[sizeof(oldlocale)-1] = '\0';
+    setlocale(LC_ALL,"C");
+    
     if( verbose_log >= 3 ) {
 
         snprintf(msgbuff,511,
@@ -1997,6 +2007,7 @@ _cmd_status(const char *cmd, int sockfd) {
                 "Server load",avg1,avg5,avg15);
     }
 
+    setlocale(LC_ALL,oldlocale);
     msgbuff[511] = 0 ;
 
     _writef(sockfd, msgbuff);

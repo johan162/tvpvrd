@@ -301,70 +301,10 @@ _read_transcoding_profile(char *filename,unsigned idx) {
 int
 read_transcoding_profiles(void) {
     char dirbuff[256];
-/*
-    struct stat filestat;
-*/
-
-    // Search for the profile directory in
-    // 1) <CONFDIR>/tvpvrd/profiles
-    // 2) <cwd>/profiles
     snprintf(dirbuff,255,"%s/tvpvrd/profiles",CONFDIR);
-    logmsg(LOG_DEBUG,"Profile directory: %s",dirbuff);
-    
-    return process_files(dirbuff, ".profile", MAX_TRANS_PROFILES, &num_transcoding_profiles, _read_transcoding_profile);
-    
-/*
-
-    if( -1 == stat(dirbuff,&filestat) ) {
-        logmsg(LOG_ERR,"Cannot find transcoding profiles in '%s' ( %d : %s )",dirbuff,
-               errno,strerror(errno));
-        return -1;
-    }
-
-    // Now loop through all profile files in 'dirbuff' directory
-    DIR *dp;
-    struct dirent *dirp;
-    char tmpbuff[512];
-
-    dp = opendir(dirbuff);
-    if (dp == NULL) {
-        logmsg(LOG_ERR,"Cannot open directory with profiles (%d : %s)",errno,strerror(errno));
-        return -1;
-    }
-
-    while ((dirp = readdir(dp)) != NULL) {
-        if ((strcmp(dirp->d_name, ".") != 0) && (strcmp(dirp->d_name, "..") != 0)) {
-
-            // Only read files with suffix ".profile"
-            unsigned len = strnlen(dirp->d_name,512);
-            if( len > 8 && (strncmp(".profile",dirp->d_name+len-8,9) == 0) ) {
-
-                snprintf(tmpbuff, 512, "%s/%s", dirbuff, dirp->d_name);
-                lstat(tmpbuff, &filestat);
-
-                if (S_ISREG(filestat.st_mode) || S_ISLNK(filestat.st_mode)) {
-
-                    if( num_transcoding_profiles >= MAX_TRANS_PROFILES ) {
-                        logmsg(LOG_ERR,"Maximum number of transcoding profiles (%d) exceeded.",
-                               MAX_TRANS_PROFILES);
-                        closedir(dp);
-                        return -1;
-                    }
-                    logmsg(LOG_INFO,"Reading transcoding profile file '%s'",tmpbuff);
-
-                    (void)_read_transcoding_profile(tmpbuff,num_transcoding_profiles++);
-
-                }
-                
-            } else {
-                logmsg(LOG_ERR,"Ignoring non profile file '%s' in profile directory.",dirp->d_name);
-            }
-
-        }
-    }
-    closedir(dp);
-    return 0;
-*/
+    logmsg(LOG_DEBUG,"Profile directory: %s",dirbuff);  
+    return process_files(dirbuff, ".profile", MAX_TRANS_PROFILES, 
+                         &num_transcoding_profiles, _read_transcoding_profile);
 }
 
 /**
@@ -372,7 +312,7 @@ read_transcoding_profiles(void) {
  */
 void
 refresh_transcoding_profiles(void) {
-    // Re-read allexisting profiles
+    // Re-read all existing profiles
     for(unsigned i=0; i < num_transcoding_profiles; i++) {
         (void)_read_transcoding_profile(profiles[i]->filename,i);
     }

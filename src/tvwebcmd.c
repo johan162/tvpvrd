@@ -573,7 +573,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
              matchcmd_free(&field);
              free(buffer);
-             html_login_page(my_socket,mobile);
+             web_login_page(my_socket,mobile);
              return;
 
          }
@@ -843,7 +843,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
                             logmsg(LOG_NOTICE,"WEB login failed. Tried users='%s', pwd='%s'",user,pwd);
 
                             // Validation of login details failed, send back the login screen
-                            html_login_page(my_socket, mobile);
+                            web_login_page(my_socket, mobile);
 
                         } else {
 #ifdef EXTRA_WEB_DEBUG
@@ -851,22 +851,22 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 #endif
                             // Login successful. Show the main page and used the "version" command
                             // as the default command to show in the output area.
-                            html_main_page(my_socket, "v", create_login_cookie(user, pwd), mobile);
+                            web_main_page(my_socket, "v", create_login_cookie(user, pwd), mobile);
                         }
 
                     } else {
 
                         // Unrecognized login POST fields so go back to login page
-                        html_login_page(my_socket, mobile);
+                        web_login_page(my_socket, mobile);
                     }
                 } else {
                     // If the login cookie is not valid and the user has not given the login command
                     // we just send back the login page.
-                    html_login_page(my_socket, mobile);              
+                    web_login_page(my_socket, mobile);              
                 }
             } else {
                 // User has a valid login so send back the main page
-                html_main_page(my_socket, wcmd, logincookie, mobile);
+                web_main_page(my_socket, wcmd, logincookie, mobile);
             }
         } else {
             // Ignore GET favicon.ico
@@ -1162,6 +1162,109 @@ web_cmd_del(int sockd) {
     _web_cmd_module_end(sockd);
 }
 
+
+/**
+ * The full main page used when we are called from an ordinary browser, This is also
+ * the place where we execute the WEb-command as a side effect to get the web output
+ * @param sockd
+ * @param wcmd
+ * @param cookie_val
+ * @param mobile
+ */
+void
+web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
+    // Initialize a new page
+
+    if (mobile) {
+        web_main_page_mobile(sockd, wcmd, cookie_val);
+        return;
+    }
+
+    html_newpage(sockd, cookie_val, FALSE);
+    html_windtitlebar(sockd);
+
+    // Left side : Command table
+    _writef(sockd, "<div id=\"windowmenu\">");
+    web_commandlist(sockd);
+
+/*
+    _writef(sockd,"\n<div id=\"logout_container\"><div id=\"logout\"><a href=\"logout\">Logout</a></div></div>\n");
+*/
+
+    _writef(sockd, "\n</div> <!-- windowmenu -->\n"); 
+
+    // Right side : Output and recording management
+    _writef(sockd, "<div id=\"windowcontent\">\n");
+    html_cmd_output(sockd, wcmd);
+    usleep(cmd_delay); // Give some time for the command to execute
+    web_cmd_next(sockd);
+    web_cmd_ongoing(sockd);
+    web_cmd_add(sockd);    
+    web_cmd_qadd(sockd);
+    web_cmd_del(sockd);
+    web_cmd_ongoingtransc(sockd);   
+    _writef(sockd, "\n</div> <!-- windowcontent -->\n");
+    html_statusbar(sockd);
+    html_endpage(sockd);
+
+}
+
+/**
+ * The modified (smaller) main page used when we are called from a mobile
+ * browser.
+ * @param sockd
+ * @param wcmd
+ * @param cookie_val
+ */
+void
+web_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
+    // Initialize a new page
+
+    html_newpage(sockd, cookie_val, TRUE);
+    html_windtitlebar(sockd);
+
+    _writef(sockd, "<div class=\"single_side\">");
+    web_commandlist_short(sockd);
+    html_cmd_output(sockd, wcmd);
+    // web_cmd_qadd(sockd);
+    web_cmd_add(sockd);
+    web_cmd_del(sockd);
+    _writef(sockd, "\n</div> <!-- single_side -->\n");
+
+    html_endpage(sockd);
+
+}
+
+
+/**
+ * Display the login page
+ * @param sockd
+ * @param mobile
+ */
+void
+web_login_page(int sockd, int mobile) {
+    // Initialize a new page
+
+    logmsg(LOG_DEBUG,"Sending back login page");
+    
+    // Give the special cookie value "logout" which will create a
+    // header which replace the old cookie and sets it expire time
+    // in the past so it is removed from the browser
+    html_newpage(sockd, "logout", mobile);
+    html_windtitlebar(sockd);
+
+    _writef(sockd, "<div id=\"login_window\">");
+    _writef(sockd, "<div id=\"login_title\">Please login</div>");
+    _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"login\">\n", "tvlogin");
+    html_element_input_text(sockd, "User:", "user", "id_loginuser");
+    html_element_input_password(sockd, "Password:", "pwd", "id_loginpwd");
+    html_element_submit(sockd, "submit_login", "Login", "id_submitlogin");
+
+    _writef(sockd, "<form>");
+    _writef(sockd, "</div>");
+
+    html_endpage(sockd);
+}
 
 
 /**
