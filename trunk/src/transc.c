@@ -514,8 +514,8 @@ _transcode_file(void *arg) {
     // loosing 8MB for exah created thread
     pthread_detach(pthread_self());
 
-    strncpy(filename,param->filename,511);
-    strncpy(profilename, param->profilename,128);
+    strncpy(filename,param->filename,sizeof(filename)-1);
+    strncpy(profilename, param->profilename,sizeof(profilename)-1);
 
     logmsg(LOG_DEBUG,"_transcode_file() : profilename='%s'",profilename);
 
@@ -539,15 +539,15 @@ _transcode_file(void *arg) {
     // can never run in the same directory.
     char wdirname[128];
     char suffix[10];
-    strncpy(wdirname, basename(filename), 127);
+    strncpy(wdirname, basename(filename), sizeof(wdirname)-1);
     wdirname[127] = '\0';
     strip_filesuffix(wdirname,suffix,10);
 
     char wdirbuff[256];
-    snprintf(wdirbuff,255,"vtmp/%s",wdirname);
+    snprintf(wdirbuff,sizeof(wdirbuff)-1,"vtmp/%s",wdirname);
 
     char workingdir[256];
-    snprintf(workingdir,255, "%s/%s",datadir,wdirbuff);
+    snprintf(workingdir,sizeof(workingdir)-1, "%s/%s",datadir,wdirbuff);
     workingdir[255] = '\0';
 
     struct stat filestat;
@@ -592,7 +592,7 @@ _transcode_file(void *arg) {
     logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, filename);
 
     create_ffmpeg_cmdline(basename(filename), profile, destfile, 128, cmd_ffmpeg, 512);
-    snprintf(cmdbuff, 1023, "cd %s;%s", workingdir, cmd_ffmpeg);
+    snprintf(cmdbuff, sizeof(cmdbuff)-1, "cd %s;%s", workingdir, cmd_ffmpeg);
     cmdbuff[1023] = '\0';
 
     pid_t pid;
@@ -837,7 +837,7 @@ struct transc_filelistparam {
     char *profilename;
 };
 
-// The maximun number of simultaneous ongoing list transcodings
+// The maximum number of simultaneous ongoing list transcodings
 #define MAX_FILELISTS 5
 struct filelist_queue {
     struct transc_filelistparam *filelist_param;
@@ -849,7 +849,7 @@ struct filelist_queue *ongoing_filelist_transcodings[MAX_FILELISTS] = {NULL};
 static int num_filelists=0;
 
 /**
- * Enqueu a gives list of files to transcode. All the transcoding file lists
+ * Enqueue a gives list of files to transcode. All the transcoding file lists
  * are kept in an array.
  * @param filelist
  * @return 0 on success, -1 on failure

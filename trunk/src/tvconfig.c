@@ -34,6 +34,7 @@
 #include <syslog.h>
 #include <errno.h>
 #include <stdint.h>
+#include <locale.h>
 
 #include "tvconfig.h"
 #include "tvpvrd.h"
@@ -285,6 +286,13 @@ setup_inifile(void) {
 void
 read_inisettings(void) {
 
+
+	
+    char oldlocale[64]; 
+    strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1); 
+    oldlocale[sizeof(oldlocale)-1] = '\0'; 
+    setlocale(LC_ALL,"C");
+    
     /*--------------------------------------------------------------------------
      * CONFIG Section
      *--------------------------------------------------------------------------
@@ -645,6 +653,8 @@ read_inisettings(void) {
                 "'stdout' is not a valid logfile when started in daemon mode.");
         exit(EXIT_FAILURE);
     }
+
+    setlocale(LC_ALL,oldlocale);
 }
 
 
