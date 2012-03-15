@@ -213,6 +213,7 @@ check_for_shutdown(void) {
         
         float avg1, avg5, avg15;
         getsysload(&avg1, &avg5, &avg15);
+	logmsg(LOG_DEBUG,"avg5=%f shutdow_max_5load=%f",avg5,shutdown_max_5load);
         if( avg5 < shutdown_max_5load &&
             get_num_ongoing_transcodings() == 0 &&
             get_num_ongoing_recordings() == 0 ) {
@@ -275,7 +276,7 @@ check_for_shutdown(void) {
                         if( -1 == send_mail_template(subj, daemon_email_from, send_mailaddress, "mail_shutdown", keys, ki) ) {
                             logmsg(LOG_ERR,"Failed to send mail using template \"mail_shutdown\"");
                         } else {
-                            logmsg(LOG_DEBUG,"Sucessfully sent mail using template \"mail_shutdown\"!");
+                            logmsg(LOG_DEBUG,"Successfully sent mail using template \"mail_shutdown\"!");
                         }
 
                         free_keypairlist(keys,ki);
@@ -301,7 +302,11 @@ check_for_shutdown(void) {
                 snprintf(cmd,255,"touch %s/%s",datadir,DEFAULT_AUTOSHUTDOWN_INDICATOR);
                 ret = system(cmd);
                 if( -1==ret || WEXITSTATUS(ret)) {
-                    logmsg(LOG_NOTICE,"Could not create autoshutdown indicator '%s' ( %d : %s) ",cmd,errno, strerror(errno));
+                    if( errno ) {
+                        logmsg(LOG_NOTICE,"Could not create autoshutdown indicator '%s' ( %d : %s)",cmd,errno, strerror(errno));
+                    } else {
+                        logmsg(LOG_NOTICE,"Could not create autoshutdown indicator '%s'",cmd);
+                    }
                 } else {
                     logmsg(LOG_DEBUG,"Created autoshutdown indicator with '%s'",cmd);
                 }
@@ -310,9 +315,9 @@ check_for_shutdown(void) {
                 sleep(15);
 
                 // This should never happen !!
-                logmsg(LOG_ERR,"Automatic shutdown failed. SIGHUP (or SIGKILL) was not received.");
-                logmsg(LOG_DEBUG,"Trying to call shutdown directly.");
-                int rc = system("shutdown now");
+                logmsg(LOG_ERR,"Automatic shutdown failed. Most likely due to that 'shutdown.sh' could not be found.");
+                logmsg(LOG_DEBUG,"Trying to call shutdown directly to halt system in 1 minute");
+                int rc = system("shutdown -h +1");
                 logmsg(LOG_DEBUG,"rc=%d for shutdown() command.",rc);
 
                 sleep(10);
