@@ -1903,8 +1903,8 @@ main(int argc, char *argv[]) {
             iniparser_getstring(dict, "config:locale_name", LOCALE_NAME),
             255);
     logfile_name[255] = '\0';
-    setenv("LC_ALL",locale_name,1);
-    setlocale(LC_ALL,""); 
+    //setenv("LC_MESSAGES",locale_name,1);
+    setlocale(LC_ALL,locale_name); 
     logmsg(LOG_DEBUG,"Using locale '%s'",setlocale(LC_ALL,NULL));
 
     // Remember when the server was started

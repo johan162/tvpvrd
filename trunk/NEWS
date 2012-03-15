@@ -36,6 +36,8 @@ Internal changes:
       due to the handling of commands.
     - Multibyte strings for titles are now calculated separately with help of 
       wide-char routines.
+    - Refactored transcoding and utility modules by breaking them up to be more logically
+      coherent and easier to maintain.
     
 
 v3.3.5

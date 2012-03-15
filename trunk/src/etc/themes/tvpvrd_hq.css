@@ -46,11 +46,6 @@ span#title-ver {
     color: white;
 }
 
-/* Format for run-mode in title-bar */
-span#run-mode { 
-    font-size:10pt; 
-}
-
 /* Container for logout in the top right corner */
 div#logout_container {    
     float:right;
@@ -112,6 +107,19 @@ div#windowcontent {
 div#statusbar {
     clear:both;
     height:18px;
+}
+
+div#run-mode-status {
+    float:left;
+    font-size:11pt;
+    font-weight: bold;
+    color:#444;
+    margin-left: 4px;
+    text-shadow: -1px -1px 1px #fff;
+}
+
+div#run-mode-status:before {
+    content: "Run-mode: ";
 }
 
 /* Build number in the right of the status bar */
