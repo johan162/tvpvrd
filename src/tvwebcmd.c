@@ -1171,13 +1171,13 @@ web_cmd_del(int sockd) {
     // Close container
     _web_cmd_module_end(sockd);
 }
-
+/*
 void
 web_theme_select(int sockd) {
     static const char *theme_list[] = {
-        "plain", "hq", "metal"
+        "plain", "hq", "metal", "night"
     };
-    const size_t n_themelist = 3;
+    const size_t n_themelist = 4;
     
     _writef(sockd,"<form name=\"chwt_form\" method=\"get\" action=\"chwt\" id=\"id_wtform\">\n");
     _writef(sockd,"<div id=\"theme_select\">\n");
@@ -1185,6 +1185,7 @@ web_theme_select(int sockd) {
     _writef(sockd,"\n</div> <!-- theme_select -->\n");
     _writef(sockd,"<form>\n");
 }
+*/
 
 /**
  * The full main page used when we are called from an ordinary browser, This is also
@@ -1222,11 +1223,11 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     web_cmd_del(sockd);
     web_cmd_ongoingtransc(sockd);   
     _writef(sockd, "\n</div> <!-- windowcontent -->\n");
-    
+ /*   
     if( disp_theme_select ) {
         web_theme_select(sockd);
     }
-    
+   */ 
     html_statusbar(sockd);
     html_endpage(sockd);
 
