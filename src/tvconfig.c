@@ -183,7 +183,11 @@ char web_password[32];
 char web_user[32];
 int require_web_password;
 int weblogin_timeout;
+
+/* Theme handling. Current theme and flag to hide/display theme selector in Web-interface
+ */
 char web_theme[32];
+int  disp_theme_select ;
 
 /*
  * Determine if we should use subdirectories for each profile or just
@@ -573,6 +577,8 @@ read_inisettings(void) {
     strncpy(web_theme,
             iniparser_getstring(dict, "format:web_theme", DEFAULT_WEB_THEME),
             sizeof(web_theme)-1);
+    
+    disp_theme_select = iniparser_getboolean(dict, "format:disp_theme_select", DEFAULT_THEME_SELECT);
     
     strncpy(tblcss_vborder_interior,
             iniparser_getstring(dict, "format:tblcss_vborder_interior", TBLCSS_VBORDER_INTERIOR),

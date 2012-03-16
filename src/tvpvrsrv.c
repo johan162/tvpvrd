@@ -1059,7 +1059,7 @@ startrec(void *arg) {
             snprintf(postrec_fullname,128,"%s/tvpvrd/shellscript/%s",CONFDIR,postrec_script);
             int csfd = open(postrec_fullname,O_RDONLY) ;
             if( -1 == csfd ) {
-                logmsg(LOG_ERR,"Cannot open post recording script '%s' ( %d : %s )",
+                logmsg(LOG_WARNING,"Cannot open post recording script '%s' ( %d : %s )",
                        postrec_fullname,errno,strerror(errno));
             } else {
                 char cmd[255];
@@ -1627,7 +1627,7 @@ startupsrv(void) {
     socketaddress.sin_port = (short unsigned)htons(tcpip_port);
 
     if (bind(sockd, (struct sockaddr *) & socketaddress, sizeof (socketaddress)) != 0) {
-        logmsg(LOG_ERR, "Unable to bind socket to port. Most likely som other application is using this port.");
+        logmsg(LOG_ERR, "Unable to bind socket to port. Most likely some other application is using this port.");
         exit(EXIT_FAILURE);
     }
 
@@ -1741,7 +1741,7 @@ startupsrv(void) {
 
         } else {
             // This should never happen. This case indicates a network/kernel problem on the server
-            logmsg(LOG_CRIT, "Internal serious error. Accepted port connection that we were not listening on. ");
+            logmsg(LOG_CRIT, "Internal serious error. Accepted port connection that we were not listening on.");
         }
 
         set_cloexec_flag(newsocket,1);

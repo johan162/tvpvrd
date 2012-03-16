@@ -1675,4 +1675,40 @@ delete_recid(unsigned seqnbr, int allrecurrences) {
     }
 }
 
+
+int
+get_nextsched_rec(struct recording_entry **nextrec, int *nextrec_video, time_t *nextrec_ts) {
+
+    // Now we need to find the next closest recording among all video cards
+    // to know when to wake up
+    int ret=0;
+    *nextrec_ts = (time_t)0;
+    *nextrec_video=0;
+    *nextrec = (struct recording_entry *)NULL;
+    int const nextrec_idx=0;
+    
+    // Find the first video card with a scheduled recording
+    while ( num_entries[*nextrec_video]==0  && *nextrec_video < (int)max_video)
+       (*nextrec_video)++;
+    
+    if (*nextrec_video < (int)max_video) {
+        *nextrec_ts = recs[REC_IDX(*nextrec_video, nextrec_idx)]->ts_start;
+        *nextrec = recs[REC_IDX(*nextrec_video, nextrec_idx)];
+        for (unsigned video = *nextrec_video + 1; video < max_video; ++video) {
+            // We must check for empty slot in case there are no future recordings for this card
+            if (num_entries[video] > 0) {
+                if (recs[REC_IDX(video, nextrec_idx)]->ts_start < *nextrec_ts) {
+                    *nextrec_ts = recs[REC_IDX(video, nextrec_idx)]->ts_start;
+                    *nextrec = recs[REC_IDX(*nextrec_video, nextrec_idx)];
+                    *nextrec_video = video;
+                }
+            }
+        }
+    } else {
+        ret = -1;
+    }
+      
+    return ret;
+}
+
 /* EOF */

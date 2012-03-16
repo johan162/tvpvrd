@@ -10,7 +10,8 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 v4.0.0
 ------
 User visible changes:
-    - Distribution now ships with three different CSS themes for the web-interface
+    - Distribution now ships with several different CSS themes for the web-interface
+    - Add optional selector for theme in the Web-UI
     - Directory structure for the config directory changed to make it cleaner
       with a separate "virtual" web-root among other things.
     - The 'o' (query ongoing recording) command now takes an optional card number as 
@@ -38,6 +39,9 @@ Internal changes:
       wide-char routines.
     - Refactored transcoding and utility modules by breaking them up to be more logically
       coherent and easier to maintain.
+    - Refactored server shutdown handling
+    - Various minor code cleanup, spelling errors, more consistent use of siezeof() etc.
+    - Don't log errors if the startup/shutdown scripts doesn't exist
     
 
 v3.3.5

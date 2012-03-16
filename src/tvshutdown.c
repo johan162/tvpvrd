@@ -129,6 +129,54 @@ get_num_users(void) {
 }
 
 void
+do_shutdown(void) {
+   
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd)-1, "%s/tvpvrd/shellscript/%s", CONFDIR, shutdown_script);
+    if ( 0 == access(cmd, F_OK) ) {            
+        snprintf(cmd, sizeof (cmd) - 1, "%s/tvpvrd/shellscript/%s -t %d", CONFDIR, shutdown_script, shutdown_time_delay);
+        logmsg(LOG_DEBUG, "Executing shutdown script: '%s'", cmd);
+        int ret = system(cmd);
+        if (-1 == ret || WEXITSTATUS(ret)) {
+            if( errno ) {
+                logmsg(LOG_ERR, "Could not execute shutdown script ( %d : %s) ", errno, strerror(errno));
+            } else {
+                logmsg(LOG_ERR, "Could not execute shutdown script");
+            }
+        }
+    }
+    
+    snprintf(cmd, 255, "touch %s/%s", datadir, DEFAULT_AUTOSHUTDOWN_INDICATOR);
+    int ret = system(cmd);
+    if (-1 == ret || WEXITSTATUS(ret)) {
+        if (errno) {
+            logmsg(LOG_NOTICE, "Could not create autoshutdown indicator '%s' ( %d : %s)", cmd, errno, strerror(errno));
+        } else {
+            logmsg(LOG_NOTICE, "Could not create autoshutdown indicator '%s'", cmd);
+        }
+    } else {
+        logmsg(LOG_DEBUG, "Created autoshutdown indicator with '%s'", cmd);
+    }
+
+    // Now wait for the SIGHUP signal we will receive when the server goes down
+    sleep(10+shutdown_time_delay);
+
+    // Normally we would not reach this point since we would have received the
+    // shutdown signal while sleeping.
+
+    logmsg(LOG_DEBUG, "Trying to shutdown directly. System going down in 1 minute");
+    ret = system("shutdown -h +1");
+    logmsg(LOG_DEBUG, "rc=%d for shutdown() command.", ret);
+
+    // Now wait for the SIGHUP signal we will receive when the server goes down
+    sleep(75);
+
+    // We are out of luck. Nothing else to do!
+    logmsg(LOG_CRIT, "Unable to shutdown server!!");
+
+}
+
+void
 check_for_shutdown(void) {
 
     if ( ! shutdown_enable )
@@ -161,30 +209,13 @@ check_for_shutdown(void) {
     }
 
     // Now we need to find the next closest recording among all video cards
-    // to know when to wake up
-    time_t nextrec = (time_t)0;
-    int nextrec_video=0;
-    int const nextrec_idx=0;
+    // to know when to wake up    
+    struct recording_entry *nextrec;
+    int nextrec_video;
+    time_t nextrec_ts;
     
     pthread_mutex_lock(&recs_mutex);
-    
-    // Find the first video card with a scheduled recording
-    while ( num_entries[nextrec_video]==0  && nextrec_video < (int)max_video)
-        ++nextrec_video;
-    
-    if (nextrec_video < (int)max_video) {
-        nextrec = recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_start;
-        for (unsigned video = nextrec_video + 1; video < max_video; ++video) {
-            // We must check for empty slot in case there are no future recordings for this card
-            if (num_entries[video] > 0) {
-                if (recs[REC_IDX(video, nextrec_idx)]->ts_start < nextrec) {
-                    nextrec = recs[REC_IDX(video, nextrec_idx)]->ts_start;
-                    nextrec_video = video;
-                }
-            }
-        }
-    }
-   
+    (void)get_nextsched_rec(&nextrec, &nextrec_video, &nextrec_ts);
     pthread_mutex_unlock(&recs_mutex);
     
     // We need the current time to compare against
@@ -196,13 +227,13 @@ check_for_shutdown(void) {
     // This is an abnormal case since we would then go to sleep forever and never
     // wake up again. To handle this we set the next recording arbitrarily to 1 year
     // in the future from the current time
-    if( nextrec == (time_t)0 ) {
-        nextrec = now + 365*24*3600;
+    if( (time_t)0 == nextrec_ts ) {
+        nextrec_ts = now + 365*24*3600;
     }
    
     // Before shutting down we need to also check that shutting us down will allow
     // us to be turned off for at least as long as the minimum shutdown time
-    if( nextrec - now > shutdown_min_time+(time_t)shutdown_pre_startup_time ) {
+    if( nextrec_ts - now > shutdown_min_time+(time_t)shutdown_pre_startup_time ) {
         // Yes we could potentially shutdown. Now check that
         // 1) No ongoing recordings
         // 2) No ongoing transcodings
@@ -219,8 +250,8 @@ check_for_shutdown(void) {
             get_num_ongoing_recordings() == 0 ) {
 
             // Set RTC alarm so we will wake up a bit before the recording time
-            nextrec -= shutdown_pre_startup_time;
-            if( -1 == set_rtc_alarm(nextrec) ) {
+            nextrec_ts -= shutdown_pre_startup_time;
+            if( -1 == set_rtc_alarm(nextrec_ts) ) {
                 logmsg(LOG_ERR,"Automatic shutdown disabled since the wakeup alarm cannot be set.");
             } else {
 
@@ -243,23 +274,23 @@ check_for_shutdown(void) {
                         if( timebuff_now[strlen(timebuff_now)-1] == '\n')
                             timebuff_now[strlen(timebuff_now)-1]='\0'; // Remove trailing "\n"
 
-                        ctime_r(&nextrec,timebuff);
+                        ctime_r(&nextrec_ts,timebuff);
                         if( timebuff[strlen(timebuff)-1] == '\n')
                             timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
                         snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);
 
-                        localtime_r(&recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_start,&tm_start);
-                        localtime_r(&recs[REC_IDX(nextrec_video, nextrec_idx)]->ts_end,&tm_end);
+                        localtime_r(&nextrec_ts,&tm_start);
+                        localtime_r(&nextrec->ts_end,&tm_end);
                         strftime(timebuff_rec_st,255,"%H:%M",&tm_start);
                         strftime(timebuff_rec_en,255,"%H:%M",&tm_end);
 
                         add_keypair(keys,maxkeys,"SERVER",hname,&ki);
                         add_keypair(keys,maxkeys,"WAKEUPTIME",timebuff,&ki);
                         add_keypair(keys,maxkeys,"TIME",timebuff_now,&ki);
-                        add_keypair(keys,maxkeys,"NEXTREC",recs[REC_IDX(nextrec_video, nextrec_idx)]->title,&ki);
+                        add_keypair(keys,maxkeys,"NEXTREC",nextrec->title,&ki);
                         add_keypair(keys,maxkeys,"NEXTRECTIME_START",timebuff_rec_st,&ki);
                         add_keypair(keys,maxkeys,"NEXTRECTIME_END",timebuff_rec_en,&ki);
-                        add_keypair(keys,maxkeys,"NEXTREC_CHANNEL",recs[REC_IDX(nextrec_video, nextrec_idx)]->channel,&ki);
+                        add_keypair(keys,maxkeys,"NEXTREC_CHANNEL",nextrec->channel,&ki);
 
                         if( verbose_log >= 4 ) {
                             int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
@@ -290,47 +321,15 @@ check_for_shutdown(void) {
 
                 }
 
-                // Call shutdown script
-                char cmd[256] ;
-                snprintf(cmd,sizeof(cmd)-1,"%s/tvpvrd/shellscript/%s -t %d",CONFDIR,shutdown_script,shutdown_time_delay);
-                logmsg(LOG_DEBUG,"Executing shutdown script: '%s'",cmd);
-                int ret = system(cmd);
-                if( -1 == ret || WEXITSTATUS(ret)) {
-                    logmsg(LOG_ERR,"Could not execute shutdown script ( %d : %s) ",errno, strerror(errno));
-                }
-
-                snprintf(cmd,255,"touch %s/%s",datadir,DEFAULT_AUTOSHUTDOWN_INDICATOR);
-                ret = system(cmd);
-                if( -1==ret || WEXITSTATUS(ret)) {
-                    if( errno ) {
-                        logmsg(LOG_NOTICE,"Could not create autoshutdown indicator '%s' ( %d : %s)",cmd,errno, strerror(errno));
-                    } else {
-                        logmsg(LOG_NOTICE,"Could not create autoshutdown indicator '%s'",cmd);
-                    }
-                } else {
-                    logmsg(LOG_DEBUG,"Created autoshutdown indicator with '%s'",cmd);
-                }
-
-                // Now wait for the SIGHUP signal we will receive when the server goes down
-                sleep(15);
-
-                // This should never happen !!
-                logmsg(LOG_ERR,"Automatic shutdown failed. Most likely due to that 'shutdown.sh' could not be found.");
-                logmsg(LOG_DEBUG,"Trying to call shutdown directly to halt system in 1 minute");
-                int rc = system("shutdown -h +1");
-                logmsg(LOG_DEBUG,"rc=%d for shutdown() command.",rc);
-
-                sleep(10);
-                logmsg(LOG_ERR,"Unable to shutdown server!!");
-
+                do_shutdown();
             }
             
         } else {
-            logmsg(LOG_DEBUG,"Aborting automatic shutdown. One or more of the conditions not fullfilled.");
+            logmsg(LOG_DEBUG,"Aborting automatic shutdown. One or more of the conditions not fulfilled.");
         }
     } else {
         // Comment out this too verbose setting.
-        //logmsg(LOG_DEBUG,"Aborting automatic shutdown. Too short off time (%d min)",(nextrec-now)/60);
+        //logmsg(LOG_DEBUG,"Aborting automatic shutdown. Too short off time (%d min)",(nextrec_ts-now)/60);
         logmsg(LOG_DEBUG,"Aborting automatic shutdown. Too short off time");
     }
 

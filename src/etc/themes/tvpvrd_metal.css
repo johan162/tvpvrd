@@ -1,12 +1,41 @@
 /*----------------------------------------------------------------------------------------------
- * File: TVPVRD_METAL.CSS
- * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
- *       daemon.
- * SVN:  $Id$
- *----------------------------------------------------------------------------------------------
+   File: TVPVRD_METAL.CSS
+   Desc: CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
+
+         The overall layout is fairly simple and completely controlled by
+         floating <div>:s, the following ascii arts gives an overall 
+         illustration of the layout.
+
+            +-------+----------------+
+            |[MENU] | [COMMAND AREA] |
+            |       |                |
+            |       |                | 
+            |       |                |           
+            |       |                |
+            |       |                |
+            +-------+----------------+
+            |     [STATUS AREA]      |
+            +------------------------+
+
+        Each main area is define by a <div>. 
+        
+        - The menu is floated to the left
+        - The command area is floated to the right
+        - The status bar is cleared left and right to make it appear on its own
+          beneth both the menu and the command area.
+
+        Within the command area each fieldset is a "command module" that can be added
+        or removed and the overall window will resize accordingly. Each command module is
+        also a <div> on its own and not floated to make them stack vertically.
+
+        If the theme selector is enabled it will be on its own row just above the 
+        status row and aligned to the left (by floating left and clearing right)
+
+   SVN:  $Id$
+  ----------------------------------------------------------------------------------------------
 */
 
-/* Make it 99% to avoid scroll bars on the main page */
+/* The body background */
 body {
     background:#DEE3DA;
 }
@@ -22,7 +51,7 @@ div#topwindow {
     width:770px;    
 }
 
-/* Window title bar. Contains of name, mode and a logout function */
+/* Window title bar. Contains application name and a logout button */
 div#windowtitlebar {
     float:none;
     border-bottom: solid 1px white;
@@ -68,7 +97,7 @@ div#windowmenu {
     margin-left : 4px;
     color:#000;
     font-size:11pt;
-    font-family:Arial, Sans-serif;    
+    font-family:Arial, Sans-serif;  
 }
 
 /* To get rid of anchor underlines in comamnd menu */
@@ -77,7 +106,7 @@ div#windowmenu a {
     color:black;
 }
 
-/* To highlight the current selected command */
+/* To highlight the current selected command in menu */
 div#windowmenu a:hover {
     color: #fff;
 }
@@ -101,13 +130,36 @@ div.mnugrp_commands {
     
 }
 
-/* Container around actual content area of the top window */
+/* Container around actual content area of the top window 
+ * This is normally to the right of the menu.
+*/
 div#windowcontent {
     float:right;
     width:610px;
     margin-left:8px;
 }
 
+/* Container for the theme select. Normally at the left bottom (if enabled) */
+div#theme_select {
+    float:left;
+    clear:right;
+    margin-left:3px;
+}
+
+/* The actual legend for the theme selector */
+div#theme_select .input_legend {
+    float:left;
+    font-size:9pt;
+    margin-top: 4px;
+    padding:0;
+}
+
+/* The select drop-down for theme selection */
+div#theme_select .input_select {
+    float:left;
+    font-size:8pt;
+    vertical-align: top;
+}
 
 /* Status bar at bottom of top window*/
 div#statusbar {
@@ -146,7 +198,7 @@ div.cmdmodule {
     margin-bottom:4px;
     margin-top:4px;
     margin-right:6px;
-/*    border:solid 1px red;*/
+    float:none;
 }
 
 /* Fieldset used around each command input/output module */
@@ -400,7 +452,7 @@ div#be_hyphen {
     text-shadow: 1px 1px 1px #777, -1px -1px 1px #fff;
 }
 
-/* Which input fields shoud start on a new line */
+/* Which input fields should start on a new line */
 div.input_container#id_start {
     clear:left;
 }

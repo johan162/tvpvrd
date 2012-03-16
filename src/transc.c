@@ -1670,7 +1670,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     snprintf(posttransc_fullname, 128, "%s/tvpvrd/shellscript/%s", CONFDIR, posttransc_script);
                     int csfd = open(posttransc_fullname, O_RDONLY);
                     if (csfd == -1) {
-                        logmsg(LOG_ERR, "Cannot open post transcoding script '%s' ( %d : %s )",
+                        logmsg(LOG_WARNING, "Cannot open post transcoding script '%s' ( %d : %s )",
                                 posttransc_fullname, errno, strerror(errno));
                     } else {
                         char cmd[255];

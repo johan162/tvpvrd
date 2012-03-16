@@ -311,6 +311,16 @@ delete_recid(unsigned seqnbr, int allrecurrences);
 int
 update_profile(unsigned seqnbr, char *profile);
 
+/**
+ * Find the next scheduled recording among all video cards
+ * @param nextrec
+ * @param nextrec_video
+ * @param nextrec_ts
+ * @return 0 on success, -1 if no scheduled recordings exists
+ */
+int
+get_nextsched_rec(struct recording_entry **nextrec, int *nextrec_video, time_t *nextrec_ts);
+
 #ifdef	__cplusplus
 }
 #endif
