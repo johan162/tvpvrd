@@ -425,6 +425,7 @@ input.input_submit {
     height:25px;
     width:80px;
     margin-top:0px;
+    margin-bottom: 5px;
 }
 
 /* Indicate to user that button is about to receive input */
