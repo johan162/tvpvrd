@@ -115,6 +115,13 @@ extern "C" {
  * Theme for the Web-interface
  */
 #define DEFAULT_WEB_THEME "metal"
+    
+/*
+ * DEFAULT_THEME_SELECT boolean
+ * Should theme selection dropdown box be displayed on Web-interface
+ */
+#define DEFAULT_THEME_SELECT 1
+    
 
 /*
  * Note: All the defines for general settings are read from an inifile
@@ -358,7 +365,12 @@ extern int weblogin_timeout;
 /*
  * Theme to use in Web-interface
  */
-extern char web_theme[];
+extern char web_theme[32];
+
+/*
+ * Should the theme selector be displayed on web-interface
+ */
+extern int disp_theme_select;
 
 // Are we running as master or slave
 extern int is_master_server;
@@ -512,6 +524,7 @@ extern int use_mobile;
  * Startup script name
  */
 #define DEFAULT_STARTUP_SCRIPT "startup.sh"
+
 
 /**
  * Name of empty file stored in the data directory to indicate that the

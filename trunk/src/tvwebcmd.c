@@ -673,9 +673,19 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
             matchcmd_free(&field);
 
+
+        } else if ((ret = matchcmd("GET /chwt\\?" 
+                    _PR_AN "=" _PR_AN " " _PR_HTTP_VER ,
+                    buffer, &field)) > 1) {
+            const int maxvlen = 128;
+            char wtheme[maxvlen];
+            get_assoc_value(wtheme, maxvlen, "t", &field[1], ret - 1);
+            strncpy(web_theme,wtheme,sizeof(web_theme)-1);
+            *wcmd = '\0';
+            
         } else if ((ret = matchcmd("GET /killrec\\?" 
                     _PR_AN "=" _PR_N " " _PR_HTTP_VER ,
-                                    buffer, &field)) > 1) {
+                    buffer, &field)) > 1) {
 
             const int maxvlen = 256;
             char recid[maxvlen], submit[maxvlen];
@@ -807,9 +817,9 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
 
         }
 
-        if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) {
-            // If it's not a favicon.ico GET command we proceed to execute the
-            // command we have received
+        if ( ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) ) {
+            // If it's not a "favicon.ico" GET command proceed to execute the
+            // tvpvrd command we have received
 
             static char logincookie[128];
 
@@ -1162,6 +1172,19 @@ web_cmd_del(int sockd) {
     _web_cmd_module_end(sockd);
 }
 
+void
+web_theme_select(int sockd) {
+    static const char *theme_list[] = {
+        "plain", "hq", "metal"
+    };
+    const size_t n_themelist = 3;
+    
+    _writef(sockd,"<form name=\"chwt_form\" method=\"get\" action=\"chwt\" id=\"id_wtform\">\n");
+    _writef(sockd,"<div id=\"theme_select\">\n");
+    html_element_select(sockd, "Theme:", "t", web_theme, theme_list, n_themelist, "id_wt");
+    _writef(sockd,"\n</div> <!-- theme_select -->\n");
+    _writef(sockd,"<form>\n");
+}
 
 /**
  * The full main page used when we are called from an ordinary browser, This is also
@@ -1186,11 +1209,6 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     // Left side : Command table
     _writef(sockd, "<div id=\"windowmenu\">");
     web_commandlist(sockd);
-
-/*
-    _writef(sockd,"\n<div id=\"logout_container\"><div id=\"logout\"><a href=\"logout\">Logout</a></div></div>\n");
-*/
-
     _writef(sockd, "\n</div> <!-- windowmenu -->\n"); 
 
     // Right side : Output and recording management
@@ -1204,6 +1222,11 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     web_cmd_del(sockd);
     web_cmd_ongoingtransc(sockd);   
     _writef(sockd, "\n</div> <!-- windowcontent -->\n");
+    
+    if( disp_theme_select ) {
+        web_theme_select(sockd);
+    }
+    
     html_statusbar(sockd);
     html_endpage(sockd);
 

@@ -94,22 +94,23 @@ html_cmd_output(int sockd, char *wcmd) {
 
     _writef(sockd, "<div class=\"displayasled_on\" id=\"cmdoutput\">\n<pre>");
 
-    // We must wait for the semaphore since since commands
-    // might alter data structures and we can only have one
-    // thread at a time accessing the data structures
-    pthread_mutex_lock(&recs_mutex);
+    if( *wcmd ) {
+        // We must wait for the semaphore since since commands
+        // might alter data structures and we can only have one
+        // thread at a time accessing the data structures
+        pthread_mutex_lock(&recs_mutex);
 
-    // Make _writef() do HTML encoding on any output sent
-    htmlencode_flag = 1;
+        // Make _writef() do HTML encoding on any output sent
+        htmlencode_flag = 1;
 
-    // The execution of the command happens in the command module.
-    // Any output from the command are sent to the given socket
-    // descriptor and passed back to the browser in this case.
-    cmdinterp(wcmd, sockd);
-    htmlencode_flag = 0;
+        // The execution of the command happens in the command module.
+        // Any output from the command are sent to the given socket
+        // descriptor and passed back to the browser in this case.
+        cmdinterp(wcmd, sockd);
+        htmlencode_flag = 0;
 
-    pthread_mutex_unlock(&recs_mutex);
-
+        pthread_mutex_unlock(&recs_mutex);
+    }
     _writef(sockd, "</pre>\n</div> <!-- cmd_output -->\n");
 
 }
@@ -221,6 +222,36 @@ http_header(int sockd, char *cookie_val) {
 
 }
 
+void
+html_page_js(int sockd) {
+    _writef(sockd,
+            "<script type=\"text/javascript\">\n"
+            "var submit_themeform = function() { id_wtform.submit(); }\n"
+            "function load() {document.getElementById('id_wt_select').onchange = submit_themeform;}\n"
+            "</script>\n"
+            );
+}
+
+void
+html_pagehead(int sockd, char *cookie_val, int mobile) {
+    const char preamble[] =
+            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">\n"
+            "<html xmlns=\"http://www.w3.org/1999/xhtml\" >\n"
+            "<head>\n"
+            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n"
+            "<title>"
+            "%s"
+            "</title>\n"
+            "<link rel=\"stylesheet\" type=\"text/css\" href=\"tvpvrd_%s.css\">\n"
+            "</head>\n";
+    char title[255];
+    snprintf(title, 254, "tvpvrd %s", server_version);
+
+    http_header(sockd, cookie_val);
+    _writef(sockd, preamble, title, mobile ? "mobile" : web_theme );
+    
+}
+
 /**
  * Initialize a new HTML page with the proper HTML headers which includes the
  * DOCTYPE and the link to the CSS file.
@@ -231,22 +262,12 @@ http_header(int sockd, char *cookie_val) {
 void
 html_newpage(int sockd, char *cookie_val, int mobile) {
     const char preamble[] =
-            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">\n"
-            "<html xmlns=\"http://www.w3.org/1999/xhtml\" >\n"
-            "<head>\n"
-            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n"
-            "<title>"
-            "%s"
-            "</title>\n"
-            "<link rel=\"stylesheet\" type=\"text/css\" href=\"tvpvrd_%s.css\">\n"
-            "</head>"
-            "<body>\n"
+            "<body onload=\"load()\">\n"
             "<div id=\"topwindow\">\n";
-    char title[255];
-    snprintf(title, 254, "tvpvrd %s", server_version);
 
-    http_header(sockd, cookie_val);
-    _writef(sockd, preamble, title, mobile ? "mobile" : web_theme );
+    html_pagehead(sockd, cookie_val,mobile);
+    html_page_js(sockd);
+    _writef(sockd, preamble);
 
 }
 
