@@ -1048,7 +1048,7 @@ web_cmd_qadd(int sockd) {
     html_element_select(sockd, "Profile:", "profile", default_transcoding_profile, profile_list, n_profile, "id_qprofile");
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_qstation");
 
-    html_element_select(sockd, "Length:", "length_hour", "00", hourlength_list, n_hourlength, "id_length_hour");
+    html_element_select(sockd, "Len:", "length_hour", "00", hourlength_list, n_hourlength, "id_length_hour");
     html_element_select(sockd, "&nbsp;", "length_min", "45", min_list_end, n_min_end, "id_length_min");
 
     html_element_input_text(sockd, "Title:", "title", "id_qtitle");
