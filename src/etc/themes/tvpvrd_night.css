@@ -366,6 +366,12 @@ div.input_legend {
 
 }
 
+#id_title,
+#id_qtitle {
+    float:left;
+    margin-right:10px;
+}
+
 /* Adjustmens for browser controls */
 input,
 select  {
@@ -431,7 +437,7 @@ input.input_submit {
 /* Indicate to user that button is about to receive input */
 input.input_submit:hover {
     cursor:pointer;
-    ursor:hand;
+    cursor:hand;
     text-shadow:0 0 0 #000;    
     color:#fff;
 }
