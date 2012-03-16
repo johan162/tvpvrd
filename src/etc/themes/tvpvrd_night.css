@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------------------------
-   File: TVPVRD_PLAIN.CSS
+   File: TVPVRD_METAL.CSS
    Desc: CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
 
          The overall layout is fairly simple and completely controlled by
@@ -32,30 +32,36 @@
         status row and aligned to the left (by floating left and clearing right)
 
    SVN:  $Id$
- ----------------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------
 */
 
-/* Make it 99% to avoid scroll bars on the main page */
+/* The body background */
 body {
     background:#DEE3DA;
 }
 
 /* The overall main window */
 div#topwindow {
-    background:#D0DBDB;
-    border: solid gray 2px; 
+    background: #3f3f3f;
+    border: solid 2px #222;
+    -moz-box-shadow: 6px  6px  10px  #777; 
+    box-shadow: 6px  6px  10px  #777;     
     margin:auto;
     width:770px;    
 }
 
-/* Window title bar. Contains of name, mode and a logout function */
+/* Window title bar. Contains application name and a logout button */
 div#windowtitlebar {
     float:none;
-    border-bottom: solid 1px white;
+    border-bottom: solid 1px #888888;
     margin-bottom: 4px;
     padding: 3px;
     padding-bottom: 8px;
-    background: #404040;
+    background: #840302;
+    background-image: -moz-linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
+    background-image: -webkit-linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
+    background-image: -ms-linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
+    background-image: linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
     color:#ddd;
     font-family:arial, sans-serif;
     font-size:12pt;
@@ -90,23 +96,24 @@ div#windowmenu {
     margin-left : 4px;
     color:#000;
     font-size:11pt;
-    font-family:Arial, Sans-serif;    
+    font-family:Arial, Sans-serif;  
 }
 
 /* To get rid of anchor underlines in comamnd menu */
 div#windowmenu a {
     text-decoration:none;
-    color:black;
+    color:#ddd;
 }
 
-/* To highlight the current selected command */
+/* To highlight the current selected command in menu */
 div#windowmenu a:hover {
     color: #fff;
+    background: #510201;
 }
 
 /* Encloses the command menu group title line */
 div.mnugrp_title_row {
-    color : #222;
+    color : #a3ceff;
     margin-top:10px;
     margin-bottom:2px;
 }
@@ -123,7 +130,9 @@ div.mnugrp_commands {
     
 }
 
-/* Container around actual content area of the top window */
+/* Container around actual content area of the top window 
+ * This is normally to the right of the menu.
+*/
 div#windowcontent {
     float:right;
     width:610px;
@@ -156,21 +165,8 @@ div#theme_select .input_select {
 div#statusbar {
     clear:both;
     height:18px;
+    margin-bottom:2px;
 }
-
-div#run-mode-status {
-    float:left;
-    font-size:10pt;
-    font-weight: bold;
-    font-style: italic;
-    color:#444;
-    margin-left: 4px;
-}
-
-div#run-mode-status:before {
-    content: "Run-mode: ";
-}
-
 
 /* Build number in the right of the status bar */
 div#buildnbr {
@@ -178,8 +174,23 @@ div#buildnbr {
     font-size:10pt;
     font-style:italic;
     font-weight: bold;
-    color:#666;
+    color:#111;
     margin-right: 6px;
+    text-shadow: -1px -1px 1px #ccc;
+}
+
+div#run-mode-status {
+    float:left;
+    font-size:10pt;
+    font-style:italic;
+    font-weight: bold;
+    color:#111;
+    margin-left: 4px;
+    text-shadow: -1px -1px 1px #ccc;
+}
+
+div#run-mode-status:before {
+    content: "Run-mode: ";
 }
 
 /* Container around each command input/output module */
@@ -187,17 +198,16 @@ div.cmdmodule {
     margin-bottom:4px;
     margin-top:4px;
     margin-right:6px;
+    float:none;
 }
 
 /* Fieldset used around each command input/output module */
 fieldset {
-    border: dotted 1px #888;
+    border: double 3px #585858;
     margin-top:4px;
     margin-right:0px;
     margin-left:0px;
-    padding:0;
-    padding-left:3px;
-    padding-bottom:6px;
+    padding:6px;
 }
 
 /* Legend used in each fieldset in the command input/output module */
@@ -208,7 +218,8 @@ legend {
     font-size:13pt;
     padding-left:2px;
     padding-right:4px;
-    color:#633;
+    color:#630305;
+    text-shadow: -1px -1px 1px #aaa;
 }
 
 /* Preformatted area in command output */
@@ -226,33 +237,40 @@ pre a {
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_on {
     float:left;
-    background:#E4EBE5;    
+    background: #191919;
     padding:2px;
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
     font-size:10pt;
     font-weight:bold;
-    color: #3333ff;
+    color:#05f0ff;
+    text-shadow:1px 1px 1px #999;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
     overflow:hidden;
     margin:0;  
-    border: solid 1px #888;
+    border: solid 1px #777;
 }
 
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_off {
     float:left;
-    background:#A2B8A5;
+    background: #191919;
     padding:2px;
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
     font-size:10pt;
     font-weight:bold;
-    color:#666;
+    color:#3f9398;
+    text-shadow:1px 1px 1px #999;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
     overflow:hidden;
     margin:0;  
-    border: solid 1px #888;
+    border: solid 1px #777;
+    text-decoration:blink;
 }
 
 
@@ -272,11 +290,6 @@ pre a {
     float:none;
 }
 
-div#nextrec {
-    width:99%;
-    color: #3333ff;
-}
-
 div.ongoing_rec_entry {
     float:left;
     padding:0;
@@ -288,7 +301,7 @@ div.ongoing_transc_entry {
 
 div.ongoing_rec_entry .caption {
     float:left;
-    color:#57492A;
+    color:#9E8A5D;
     font-size:10pt;
     font-weight:bold;
     font-family: serif;
@@ -331,26 +344,27 @@ div.input_legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-size:9pt;
-    color:#404040;
+    color:#000;
     margin:0;
+    text-shadow: -1px -1px 1px #ccc;
+
 }
 
 /* Adjustmens for browser controls */
 input,
 select  {
     border: solid gray 1px;
-/*    background:#E9F2ED;*/
-    background:#fff;
+    background:#585858;
     font-family:Arial, Sans-serif;
     font-weight:bold;
-    color:#0D572F;
+    color:#a9efeb;
 }
 
 input:focus,
 select:focus {
     border:solid 1px #ff6633;
-    background:#fff;
-    color:#000;
+    background:#181818;
+    color:#fff;
 }
 
 /* Delete series y/n selector */
@@ -380,8 +394,17 @@ input.input_submit {
     font-weight:bold;
     font-size:10pt;
     margin-left: 10px;
-    background: #4C7A7A;
+
+    background: #b29a54;
+    background-image: -moz-linear-gradient(bottom, rgb(85,77,54) 1%, rgb(178,154,84) 60%);
+    background-image: -webkit-linear-gradient(bottom, rgb(85,77,54) 1%, rgb(178,154,84) 60%);    
+    -moz-box-shadow: 3px  3px  6px  #111; 
+    box-shadow: 3px  3px  6px  #111;   
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;  
+
     border: solid 1px #333;
+    text-shadow:0 0 5px black;    
     color:#ddd;
     height:25px;
     width:80px;
@@ -398,6 +421,8 @@ input.input_submit:hover {
 
 /* Give visual feedback that the button has been pressed */
 input.input_submit:active {
+    -moz-box-shadow: 0px  0px  0px  #999; 
+    box-shadow: 0px  0px  0px  #999;    
     border: solid 1px #ddd;
     font-size:9pt;
     cursor:pointer;
@@ -419,9 +444,10 @@ div#be_hyphen {
     font-size:14pt;
     padding-bottom:0px;
     padding-top:14px;
+    text-shadow: 1px 1px 1px #777, -1px -1px 1px #fff;
 }
 
-/* Which input fields shoud start on a new line */
+/* Which input fields should start on a new line */
 div.input_container#id_start {
     clear:left;
 }
@@ -434,15 +460,17 @@ div.ongoing_transc_stop_disabled  {
     font-family: Arial, Sans-serif;
     margin:0;
     margin-top:3px;
-    border: solid 1px #999;
+    border: solid 1px #555;
     width:50px;
-    background:#B2D4D4;
+    background:#777;
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
     padding-top: 0;
     text-align:center;
-    color: #999;
+    color: #444;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;    
 }
 
 div.ongoing_rec_stop,
@@ -455,7 +483,14 @@ div.ongoing_transc_stop {
     margin-top:3px;
     border: solid 1px #777;
     width:50px;
+
     background: #ed904e;
+    background-image: -moz-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);
+    background-image: -webkit-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);    
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;      
+    -moz-box-shadow: 2px  2px  3px  #888; 
+    box-shadow: 2px  2px  3px  #888;  
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
@@ -485,10 +520,12 @@ div#login_window {
     left:0;
     right:0;
     width:330px;
-    background:#898989;
+    background:#696969;
     padding-top:0px;
     padding-bottom:10px;
     margin:auto;
+    -moz-box-shadow: 5px  5px  7px  #111; 
+    box-shadow: 5px  5px  7px  #111; 
     margin-bottom: 200px;
     margin-top: 80px;
 }
@@ -499,6 +536,8 @@ div#login_title {
     padding-bottom:5px;
     color:white;
     background:#404040;
+    background-image: -moz-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);
+    background-image: -webkit-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);    
     font-weight:bold;
     font-family:Arial, Sans-serif;
     font-size:12pt;
@@ -539,14 +578,19 @@ div.input_container#id_submitlogin {
 input.input_submit#id_submitlogin_submit {
     width:10em;
     padding-bottom:10px;
+    -moz-box-shadow: 0px  0px  0px  #d77; 
+    box-shadow: 0px  0px  0px  #d77;   
     font-size:10pt; 
 }
 input.input_submit:hover#id_submitlogin_submit {
     width:10em;
     padding-bottom:10px;
+    -moz-box-shadow: 0px  0px  6px  #e88; 
+    box-shadow: 0px  0px  6px  #e88;    
     border:solid black 1px;
     font-size:10pt;
 }
+
 
 
 /* EOF CSS Style for tvpvrd */
