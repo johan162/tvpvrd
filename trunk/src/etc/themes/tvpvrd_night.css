@@ -42,7 +42,7 @@ body {
 
 /* The overall main window */
 div#topwindow {
-    background: #3f3f3f;
+    background: #575757;
     border: solid 2px #222;
     -moz-box-shadow: 6px  6px  10px  #777; 
     box-shadow: 6px  6px  10px  #777;     
@@ -102,14 +102,16 @@ div#windowmenu {
 /* To get rid of anchor underlines in comamnd menu */
 div#windowmenu a {
     text-decoration:none;
-    color:#ddd;
+    color:#ccc;
+    font-weight:bold;
 }
 
 /* To highlight the current selected command in menu */
 div#windowmenu a:hover {
     color: #fff;
-    /* background: #510201;*/
-    border-bottom:solid 2px #f9b930; 
+    border-top:solid 2px #f9b930; 
+    border-bottom: solid 2px #f9b930; 
+    font-weight:bold;
 }
 
 /* Encloses the command menu group title line */
@@ -143,51 +145,60 @@ div#windowcontent {
 /* Container for the theme select. Normally at the left bottom (if enabled) */
 div#theme_select {
     float:left;
-    clear:right;
-    margin-left:3px;
+    margin-left:5px;
+    margin-right:10px;
+    padding:0;
+    margin-top:0px;
 }
 
 /* The actual legend for the theme selector */
 div#theme_select .input_legend {
     float:left;
-    font-size:9pt;
-    margin-top: 4px;
+    font-size:10pt;
+    font-weight:bold;
     padding:0;
+    padding-right:3px;
+    font-family:Arial,sans-serif;
 }
 
 /* The select drop-down for theme selection */
 div#theme_select .input_select {
     float:left;
-    font-size:8pt;
+    font-size:9pt;
     vertical-align: top;
+    font-family:Arial,sans-serif;
+    margin-top:-3px;
 }
 
 /* Status bar at bottom of top window*/
 div#statusbar {
     clear:both;
-    height:18px;
-    margin-bottom:2px;
+    height:22px;
+    margin-bottom:3px;
 }
 
 /* Build number in the right of the status bar */
 div#buildnbr {
     float:right;
-    font-size:10pt;
-    font-style:italic;
+    font-size:8pt;
     font-weight: bold;
-    color:#111;
+    font-style: italic;
+    color:#f95858;
     margin-right: 6px;
-    text-shadow: -1px -1px 1px #ccc;
+    margin-bottom:0;
+    padding-top:4px;
+    text-shadow: 0px 1px 1px #111;
+    font-family:Arial,sans-serif;
 }
 
 div#run-mode-status {
     float:left;
     font-size:10pt;
-    font-style:italic;
     font-weight: bold;
-    color:#111;
+    color:#f9b930;
     margin-left: 4px;
-    text-shadow: -1px -1px 1px #ccc;
+    text-shadow: 0px 1px 1px #555;
+    font-family:Arial,sans-serif;
 }
 
 div#run-mode-status:before {
@@ -204,23 +215,26 @@ div.cmdmodule {
 
 /* Fieldset used around each command input/output module */
 fieldset {
-    border: double 3px #585858;
+    border: dotted 1px #999;
     margin-top:4px;
     margin-right:0px;
     margin-left:0px;
-    padding:6px;
+    padding:3px;
 }
 
 /* Legend used in each fieldset in the command input/output module */
 legend {
     font-family:Arial, Sans-erif;
-    font-weight:bold;
+    font-weight:normal;
     font-variant:small-caps;
-    font-size:13pt;
+    font-size:14pt;
     padding-left:2px;
     padding-right:4px;
-    color:#630305;
-    text-shadow: -1px -1px 1px #aaa;
+    color: #fff;
+    text-shadow: -1px -1px 1px #000;
+    /*text-shadow: -1px -1px 1px #e9a920;*/
+/*    color:#c32325;
+   text-shadow: 0px 0px 2px #222;*/
 }
 
 /* Preformatted area in command output */
@@ -238,7 +252,7 @@ pre a {
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_on {
     float:left;
-    background: #191919;
+    background: #1f1f1f;
     padding:2px;
     padding-left:4px;
     padding-right:0px;
@@ -246,7 +260,7 @@ pre a {
     font-size:10pt;
     font-weight:bold;
     color:#05f0ff;
-    text-shadow:1px 1px 1px #999;
+    text-shadow:1px 1px 1px #000;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     overflow:hidden;
@@ -302,7 +316,7 @@ div.ongoing_transc_entry {
 
 div.ongoing_rec_entry .caption {
     float:left;
-    color:#9E8A5D;
+    color:#bEaA7D;
     font-size:10pt;
     font-weight:bold;
     font-family: serif;
@@ -345,27 +359,28 @@ div.input_legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-size:9pt;
-    color:#000;
+    color:#f9b930;
     margin:0;
-    text-shadow: -1px -1px 1px #ccc;
+    margin-bottom:2px;
+    text-shadow: 0px 1px 1px #555;
 
 }
 
 /* Adjustmens for browser controls */
 input,
 select  {
-    border: solid gray 1px;
-    background:#585858;
+    border: solid 1px #222;
+    background:#686868;
     font-family:Arial, Sans-serif;
     font-weight:bold;
-    color:#a9efeb;
+    color:#99dfdb;
 }
 
 input:focus,
 select:focus {
     border:solid 1px #ff6633;
-    background:#181818;
-    color:#fff;
+    background:#ccc;
+    color:#222;
 }
 
 /* Delete series y/n selector */

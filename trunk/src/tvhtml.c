@@ -68,18 +68,36 @@ html_windtitlebar(int sockd) {
     _writef(sockd, "</div> <!-- windowtitlebar -->\n");
 }
 
+void html_theme_select(int sockd) {
+    static const char *theme_list[] = {"plain", "hq", "metal", "night"};
+    const size_t n_themelist = 4;
+
+    _writef(sockd, "<form name=\"chwt_form\" method=\"get\" action=\"chwt\" id=\"id_wtform\">\n ");
+    _writef(sockd, "<div id=\"theme_select\">\n");
+    html_element_select(sockd, "Theme:", "t", web_theme, theme_list, n_themelist, "id_wt");
+    _writef(sockd, "\n</div> <!-- theme_select -->\n");
+    _writef(sockd, "</form>\n");
+}
+
+
 void
 html_statusbar(int sockd) {
-    _writef(sockd,
-            "<div id=\"statusbar\">"
-            "<div id=\"run-mode-status\">%s</div>"
-            "<div id=\"buildnbr\">Build: %lu.%lu"
+    _writef(sockd, "<div id=\"statusbar\">\n");
+
+    html_theme_select(sockd);
+
+    _writef(sockd,"<div id=\"run-mode-status\">%s</div>\n", 
+		    is_master_server ? "Master" : "Client");
+
+    _writef(sockd,"<div id=\"buildnbr\">Build: %lu.%lu"
 #ifdef DEBUG_SIMULATE
             " *** DEBUG ***"
 #endif
-            "</div></div> <!-- statusbar -->\n",
-            is_master_server ? "Master" : "Client",
+            "</div>\n",           
             (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
+
+
+    _writef(sockd,"\n</div> <!-- statusbar -->\n");
 }
 
 /**
@@ -226,7 +244,7 @@ void
 html_page_js(int sockd) {
     _writef(sockd,
             "<script type=\"text/javascript\">\n"
-            "var submit_themeform = function() { id_wtform.submit(); }\n"
+            "var submit_themeform = function() { document.getElementById('id_wtform').submit(); }\n"
             "function load() {document.getElementById('id_wt_select').onchange = submit_themeform;}\n"
             "</script>\n"
             );
