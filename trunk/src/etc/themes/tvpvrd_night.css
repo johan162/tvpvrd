@@ -108,7 +108,8 @@ div#windowmenu a {
 /* To highlight the current selected command in menu */
 div#windowmenu a:hover {
     color: #fff;
-    background: #510201;
+    /* background: #510201;*/
+    border-bottom:solid 2px #f9b930; 
 }
 
 /* Encloses the command menu group title line */
