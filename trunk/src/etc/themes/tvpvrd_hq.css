@@ -42,7 +42,7 @@ body {
 
 /* The overall main window */
 div#topwindow {
-    background:#fff;
+    background:#FFFFFC;
     border: solid gray 2px; 
     margin:auto;
     width:770px;    
@@ -208,7 +208,7 @@ legend {
     font-size:13pt;
     padding-left:2px;
     padding-right:4px;
-    color:#633;
+    color:#222;
 }
 
 /* Preformatted area in command output */
@@ -233,10 +233,9 @@ pre a {
     font-family: monospace;
     font-size:10pt;
     font-weight:bold;
-    color:#222;
+    color: #660066;
     overflow:hidden;
     margin:0;  
-/*    border: solid 1px #888;*/
 }
 
 /* Area used for various inforation messages formatted as a "LED" background */
@@ -252,7 +251,6 @@ pre a {
     color:#444;
     overflow:hidden;
     margin:0;  
-/*    border: solid 1px #888;*/
 }
 
 
@@ -274,6 +272,7 @@ pre a {
 
 div#nextrec {
     width:99%;
+    color: #660066;
 }
 
 div.ongoing_rec_entry {
@@ -339,7 +338,8 @@ div.input_legend {
 input,
 select  {
     border: solid gray 1px;
-    background:#ccc;
+/*    background:#BAEFFF;*/
+    background: #fff;
     font-family:Arial, Sans-serif;
     font-weight:bold;
     color:#000099;
