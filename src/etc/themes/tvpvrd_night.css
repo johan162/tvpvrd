@@ -116,7 +116,7 @@ div#windowmenu a:hover {
 
 /* Encloses the command menu group title line */
 div.mnugrp_title_row {
-    color : #a3ceff;
+    color : #83aedf;
     margin-top:10px;
     margin-bottom:2px;
 }
@@ -252,8 +252,8 @@ pre a {
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_on {
     float:left;
-    background: #1f1f1f;
-    padding:2px;
+    background: #353535;
+    padding:4px;
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
@@ -266,6 +266,9 @@ pre a {
     overflow:hidden;
     margin:0;  
     border: solid 1px #777;
+    -moz-box-shadow:    inset 3px 3px 8px #000;
+    -webkit-box-shadow: inset 3px 3px 8px #000;
+    box-shadow:         inset 3px 3px 8px #000;  
 }
 
 /* Area used for various inforation messages formatted as a "LED" background */

@@ -245,6 +245,9 @@ pre a {
     color: #660066;
     overflow:hidden;
     margin:0;  
+    -moz-box-shadow:    inset 3px 3px 8px #555;
+    -webkit-box-shadow: inset 3px 3px 8px #555;
+    box-shadow:         inset 3px 3px 8px #555;    
 }
 
 /* Area used for various inforation messages formatted as a "LED" background */
@@ -260,6 +263,9 @@ pre a {
     color:#444;
     overflow:hidden;
     margin:0;  
+ -moz-box-shadow:    inset 3px 3px 8px #333;
+   -webkit-box-shadow: inset 3px 3px 8px #333;
+   box-shadow:         inset 3px 3px 8px #333;       
 }
 
 
