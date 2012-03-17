@@ -235,10 +235,8 @@ pre a {
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_on {
     float:left;
-    background:#E4EBE5;    
-    padding:2px;
-    padding-left:4px;
-    padding-right:0px;
+    background:#A2B8A5;    
+    padding:4px;
     font-family: monospace;
     font-size:10pt;
     font-weight:bold;
@@ -246,22 +244,28 @@ pre a {
     overflow:hidden;
     margin:0;  
     border: solid 1px #888;
+       -moz-box-shadow:    inset 3px 3px 8px #555;
+    -webkit-box-shadow: inset 3px 3px 8px #555;
+    box-shadow:         inset 3px 3px 8px #555;  
 }
 
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_off {
     float:left;
-    background:#A2B8A5;
+    background:#728875;
     padding:2px;
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
-    font-size:10pt;
+    font-size:12pt;
     font-weight:bold;
-    color:#666;
+    color:#444;
     overflow:hidden;
     margin:0;  
     border: solid 1px #888;
+         -moz-box-shadow:    inset 3px 3px 8px #333;
+    -webkit-box-shadow: inset 3px 3px 8px #333;
+    box-shadow:         inset 3px 3px 8px #333;  
 }
 
 
@@ -282,7 +286,7 @@ pre a {
 }
 
 div#nextrec {
-    width:99%;
+    width:98%;
     color: #3333ff;
 }
 
@@ -308,7 +312,7 @@ div.ongoing_rec_entry .caption {
 div.ongoing_rec_entry .displayasled_on,
 div.ongoing_rec_entry .displayasled_off {
     float:none;
-    height:2.7em;
+    height:30pt;;
 }
 
 div.ongoing_transc_entry .displayasled_on, 
@@ -390,7 +394,7 @@ input.input_submit {
     font-size:10pt;
     margin-left: 10px;
     background: #4C7A7A;
-    border: solid 1px #333;
+    border: solid 2px #fff;
     color:#ddd;
     height:25px;
     width:80px;
