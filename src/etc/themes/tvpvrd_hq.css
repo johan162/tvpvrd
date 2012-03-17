@@ -253,7 +253,7 @@ pre a {
 /* Area used for various inforation messages formatted as a "LED" background */
 .displayasled_off {
     float:left;
-    background:#ccc;
+    background:#bbb;
     padding:2px;
     padding-left:4px;
     padding-right:0px;

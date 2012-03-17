@@ -55,7 +55,7 @@ div#windowtitlebar {
     margin-bottom: 4px;
     padding: 3px;
     padding-bottom: 8px;
-    background: #44686E;
+    background: #34585E;
     color:#ddd;
     font-family:arial, sans-serif;
     font-size:12pt;
@@ -200,13 +200,15 @@ div.cmdmodule {
 
 /* Fieldset used around each command input/output module */
 fieldset {
-    border: dotted 1px #888;
+    /*border: dotted 1px #888;*/
     margin-top:4px;
     margin-right:0px;
     margin-left:0px;
-    padding:0;
-    padding-left:3px;
-    padding-bottom:6px;
+    padding:5px;
+    border:2px solid #157715;
+    -moz-border-radius:8px;
+    -webkit-border-radius:8px;	
+    border-radius:8px;    
 }
 
 /* Legend used in each fieldset in the command input/output module */
