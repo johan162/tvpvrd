@@ -44,7 +44,7 @@ void
 http_header(int sockd, char *cookie_val);
 
 void
-html_newpage(int sockd, char *cookie_val, int mobile);
+html_startpage(int sockd, char *cookie_val, int mobile);
 
 void
 html_windtitlebar(int sockd);
@@ -74,10 +74,10 @@ void
 html_element_submit_disabled(int sockd, char *name, char *value, char *id);
 
 void
-html_notfound(int sockd);
+html_send_404header(int sockd);
 
 void
-html_notmodified(int sockd);
+html_send_304header(int sockd);
 
 
 #ifdef	__cplusplus
