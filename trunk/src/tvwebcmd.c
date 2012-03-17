@@ -514,13 +514,13 @@ void
 sendback_file(int sockd, char *filename, time_t modifiedSince) {
     char mimetype[24];
     if( -1==get_filemimetype(filename, mimetype, sizeof(mimetype)) ) {
-        html_notfound(sockd);            
+        html_send_404header(sockd);            
     } else {
         size_t const maxfilesize = 50000;
         char *filebuffer = calloc(maxfilesize,sizeof(char));    
         if( NULL==filebuffer ) {
             logmsg(LOG_CRIT,"Out of memory when sending back file!! '%s'",filename);    
-            html_notfound(sockd);        
+            html_send_404header(sockd);        
         } else {
             size_t actualsize=0;
             int ret=read_webroot_file(filebuffer,maxfilesize,&actualsize,filename,modifiedSince);
@@ -528,9 +528,9 @@ sendback_file(int sockd, char *filename, time_t modifiedSince) {
                 sendback_http200_file(sockd, filebuffer, actualsize, mimetype);
                 logmsg(LOG_DEBUG,"Sent back file '%s' as mime type '%s'",filename,mimetype);
             } else if( 0==ret) {
-                html_notmodified(sockd);
+                html_send_304header(sockd);
             } else {
-                html_notfound(sockd);
+                html_send_404header(sockd);
             }
             free(filebuffer);        
         }
@@ -727,7 +727,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
             matchcmd_free(&field);
             free(buffer);
             logmsg(LOG_DEBUG,"Ignoring 'GET /favicon.ico'");
-            html_notfound(my_socket);
+            html_send_404header(my_socket);
             return;
                         
         } else if ( (ret = matchcmd("^GET /" _PR_FNAME " " _PR_HTTP_VER , buffer, &field)) >= 1) {
@@ -881,10 +881,10 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
         } else {
             // Ignore GET favicon.ico
             matchcmd_free(&field);
-            html_notfound(my_socket);
+            html_send_404header(my_socket);
         }
     } else {        
-        html_notfound(my_socket);
+        html_send_404header(my_socket);
         logmsg(LOG_NOTICE, "Unrecognized WEB-command: [len=%d] %s", strlen(buffer), buffer);
     }
 
@@ -1204,7 +1204,7 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
         return;
     }
 
-    html_newpage(sockd, cookie_val, FALSE);
+    html_startpage(sockd, cookie_val, FALSE);
     html_windtitlebar(sockd);
 
     // Left side : Command table
@@ -1244,15 +1244,13 @@ void
 web_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     // Initialize a new page
 
-    html_newpage(sockd, cookie_val, TRUE);
+    html_startpage(sockd, cookie_val, TRUE);
     html_windtitlebar(sockd);
 
     _writef(sockd, "<div class=\"single_side\">");
     web_commandlist_short(sockd);
     html_cmd_output(sockd, wcmd);
-    // web_cmd_qadd(sockd);
     web_cmd_add(sockd);
-    web_cmd_del(sockd);
     _writef(sockd, "\n</div> <!-- single_side -->\n");
 
     html_endpage(sockd);
@@ -1274,7 +1272,7 @@ web_login_page(int sockd, int mobile) {
     // Give the special cookie value "logout" which will create a
     // header which replace the old cookie and sets it expire time
     // in the past so it is removed from the browser
-    html_newpage(sockd, "logout", mobile);
+    html_startpage(sockd, "logout", mobile);
     html_windtitlebar(sockd);
 
     _writef(sockd, "<div id=\"login_window\">");

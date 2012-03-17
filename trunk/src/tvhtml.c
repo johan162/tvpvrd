@@ -132,18 +132,6 @@ html_cmd_output(int sockd, char *wcmd) {
     _writef(sockd, "</pre>\n</div> <!-- cmd_output -->\n");
 
 }
-/**
- * Send back the entities that mark the end of a page
- * @param sockd
- */
-void
-html_endpage(int sockd) {
-    const char postamble[] =
-            "\n</div> <!-- topwindow -->\n"
-            "</body>\n"
-            "</html>\n";
-    _writef(sockd, postamble);
-}
 
 /**
  * Send back the proper HTTP header with cookies and other HTTP protocol
@@ -278,16 +266,34 @@ html_pagehead(int sockd, char *cookie_val, int mobile) {
  * @param mobile
  */
 void
-html_newpage(int sockd, char *cookie_val, int mobile) {
-    const char preamble[] =
-            "<body onload=\"load()\">\n"
-            "<div id=\"topwindow\">\n";
+html_startpage(int sockd, char *cookie_val, int mobile) {
 
+    // HTML header
     html_pagehead(sockd, cookie_val,mobile);
+
+    // Javascript
     html_page_js(sockd);
-    _writef(sockd, preamble);
+    
+    _writef(sockd, 
+            "<body onload=\"load()\">\n"
+            "<div id=\"topwindow\">\n");
 
 }
+
+
+/**
+ * Send back the entities that mark the end of a page
+ * @param sockd
+ */
+void
+html_endpage(int sockd) {
+
+    _writef(sockd, 
+            "\n</div> <!-- topwindow -->\n"
+            "</body>\n"
+            "</html>\n");
+}
+
 
 /**
  * Output a HTML <select> entitie where the key and the display value is the same
@@ -494,7 +500,7 @@ html_element_submit_disabled(int sockd, char *name, char *value, char *id) {
  * @param sockd
  */
 void
-html_notfound(int sockd) {
+html_send_404header(int sockd) {
     _writef(sockd,
             "HTTP/1.1 404 Not Found\r\n"
             "Server: tvpvrd\r\n"
@@ -507,7 +513,7 @@ html_notfound(int sockd) {
  * @param sockd
  */
 void
-html_notmodified(int sockd) {
+html_send_304header(int sockd) {
     logmsg(LOG_DEBUG,"Sent back not modified header");
     _writef(sockd,
             "HTTP/1.1 304 Not Modified\r\n"
