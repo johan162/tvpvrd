@@ -177,7 +177,7 @@ div#run-mode-status {
 }
 
 div#run-mode-status:before {
-    content: "Run-mode: ";
+    content: "";
 }
 
 /* Build number in the right of the status bar */

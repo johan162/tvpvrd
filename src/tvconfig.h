@@ -121,8 +121,15 @@ extern "C" {
  * Should theme selection dropdown box be displayed on Web-interface
  */
 #define DEFAULT_THEME_SELECT 1
-    
 
+/*
+ * DEFAULT_DISPLAY_WEB_QADD boolean
+ * Should the web interface display the quick recording command module
+ */
+#define DEFAULT_DISPLAY_WEB_QADD 1
+    
+#define DEFAULT_AUTODISPLAY_TRANSC 0
+    
 /*
  * Note: All the defines for general settings are read from an inifile
  * If the ini file is missing some values then the defines below will be used
@@ -366,6 +373,16 @@ extern int weblogin_timeout;
  * Theme to use in Web-interface
  */
 extern char web_theme[32];
+
+/*
+ * Should the quick recording module be displayed in the web interface
+ */
+extern int web_display_qadd;
+
+/*
+ * Should ongoing transcoding only be displayed when there are any transcodings?
+ */
+extern int web_autodisplay_transc;
 
 /*
  * Should the theme selector be displayed on web-interface
