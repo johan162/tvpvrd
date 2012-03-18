@@ -51,7 +51,7 @@
  * @param sockd
  */
 void
-html_windtitlebar(int sockd) {
+html_windtitlebar(int sockd,_Bool showlogout) {
     _writef(sockd, "<div id=\"windowtitlebar\">\n");
     
     _writef(sockd, "<div id=\"windowtitlebar_cont\">\n");
@@ -61,20 +61,22 @@ html_windtitlebar(int sockd) {
             is_master_server ? "master" : "client");
     _writef(sockd, "</div> <!-- windowtitlebar_cont -->\n");
     
-    _writef(sockd, "<div id=\"logout_container\">");
-    _writef(sockd,"<a href=\"logout\"><img src=\"%s\" /></a>",LOGOUT_BUTTON_IMG);
-    _writef(sockd, "</div> <!-- logout_container -->\n");
+    if( showlogout ) {
+        _writef(sockd, "<div id=\"logout_container\">");
+        _writef(sockd,"<a href=\"logout\"><img src=\"%s\" /></a>",LOGOUT_BUTTON_IMG);
+        _writef(sockd, "</div> <!-- logout_container -->\n");
+    }
     
     _writef(sockd, "</div> <!-- windowtitlebar -->\n");
 }
 
 void html_theme_select(int sockd) {
-    static const char *theme_list[] = {"plain", "hq", "metal", "night"};
-    const size_t n_themelist = 4;
+    static const char *theme_list[] = {"plain", "hq", "metal", "night", "deep"};
+    const size_t n_themelist = 5;
 
     _writef(sockd, "<form name=\"chwt_form\" method=\"get\" action=\"chwt\" id=\"id_wtform\">\n ");
     _writef(sockd, "<div id=\"theme_select\">\n");
-    html_element_select(sockd, "Theme:", "t", web_theme, theme_list, n_themelist, "id_wt");
+    html_element_select(sockd, "", "t", web_theme, theme_list, n_themelist, "id_wt");
     _writef(sockd, "\n</div> <!-- theme_select -->\n");
     _writef(sockd, "</form>\n");
 }

@@ -272,90 +272,6 @@ is_mobile_connection(char *buffer) {
     return FALSE;
 }
 
-
-/**
- * This test function is called when the server receives a new connection and
- * determines if the first command is a GET string. This is then an indication
- * that this is a WEB-browser calling us. The command given is stored in the
- * buffer pointed to by the second argument.
- * @param buffer
- * @param cmd
- * @param maxlen
- * @return 1 if this was a WEB-connection , 0 otherwise
- */
-int
-webconnection(const char *buffer, char *cmd, int maxlen) {
-
-/*
-    static char *allowed_commands[] = {
-        "^GET /favicon.ico" _PR_ANY _PR_E,
-        "^GET /addrec\\?" _PR_ANY _PR_E,
-        "^GET /addqrec\\?" _PR_ANY _PR_E,
-        "^GET /delrec\\?" _PR_ANY _PR_E,
-        "^GET /login\\?" _PR_ANY _PR_E,
-        "^GET /killrec\\?" _PR_ANY _PR_E,
-        "^GET /logout" _PR_ANY _PR_E
-    };
-*/
-
-    *cmd = '\0';
-    if (0 == strncmp(buffer, "GET", 3)) {
-
-        // Now extract the command string
-        char **field = (void *) NULL;
-        int ret=0, found=0;
-
-/*
-        static char dumpbuff[2048];
-        *dumpbuff='\0';
-        if( 0==dump_string_chars(dumpbuff, 2048, buffer) ) {
-            logmsg(LOG_DEBUG,"Decoded GET string: %s",dumpbuff);
-        } else {
-            logmsg(LOG_DEBUG,"Decoded GET string TOO LARGE FOR BUFFER!");
-        }
-*/
-
-        if ((ret = matchcmd("^GET /cmd\\?c=" _PR_ANPS _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
-
-            // Found a command string so store it in the buffer
-            char *tmpbuff = url_decode(field[1]);
-            strncpy(cmd, tmpbuff, maxlen);
-            free(tmpbuff);
-            if (*cmd != 'h')
-                strcat(cmd, " ");
-            cmd[maxlen - 1] = '\0';
-
-            found = 1;
-            matchcmd_free(&field);
-
-        } else if ((ret = matchcmd("^GET / " _PR_HTTP_VER _PR_E , buffer, &field)) >= 1) {
-
-            // When only the root directory is called we default the command
-            // to a "time" command.
-            strncpy(cmd, "t", maxlen);
-            found = 1;
-            matchcmd_free(&field);
-            logmsg(LOG_DEBUG,"Found empty GET directory. Assuming command 't'");
-            
-        } else if ((ret = matchcmd("^GET /" _PR_ANY _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
-
-            // We get here when the client tries to get the CSS file or issue one
-            // of the named commands
-            found = 1;
-            matchcmd_free(&field);
-                                           
-        }
-#ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG,"FOUND WEBCONNECTION: found=%d, buffer=%s",found,buffer);
-#endif
-
-        return found;
-
-    }
-
-    return 0;
-}
-
 /**
  * Read a file from our "WEB-root" directory 
  * @param buff Buffer where the file is read into
@@ -537,6 +453,90 @@ sendback_file(int sockd, char *filename, time_t modifiedSince) {
     }
 }
 
+
+
+/**
+ * This test function is called when the server receives a new connection and
+ * determines if the first command is a GET string. This is then an indication
+ * that this is a WEB-browser calling us. The command given is stored in the
+ * buffer pointed to by the second argument.
+ * @param buffer
+ * @param cmd
+ * @param maxlen
+ * @return 1 if this was a WEB-connection , 0 otherwise
+ */
+int
+webconnection(const char *buffer, char *cmd, int maxlen) {
+
+/*
+    static char *allowed_commands[] = {
+        "^GET /favicon.ico" _PR_ANY _PR_E,
+        "^GET /addrec\\?" _PR_ANY _PR_E,
+        "^GET /addqrec\\?" _PR_ANY _PR_E,
+        "^GET /delrec\\?" _PR_ANY _PR_E,
+        "^GET /login\\?" _PR_ANY _PR_E,
+        "^GET /killrec\\?" _PR_ANY _PR_E,
+        "^GET /logout" _PR_ANY _PR_E
+    };
+*/
+
+    *cmd = '\0';
+    if (0 == strncmp(buffer, "GET", 3)) {
+
+        // Now extract the command string
+        char **field = (void *) NULL;
+        int ret=0, found=0;
+
+/*
+        static char dumpbuff[2048];
+        *dumpbuff='\0';
+        if( 0==dump_string_chars(dumpbuff, 2048, buffer) ) {
+            logmsg(LOG_DEBUG,"Decoded GET string: %s",dumpbuff);
+        } else {
+            logmsg(LOG_DEBUG,"Decoded GET string TOO LARGE FOR BUFFER!");
+        }
+*/
+
+        if ((ret = matchcmd("^GET /cmd\\?c=" _PR_ANPS _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
+
+            // Found a command string so store it in the buffer
+            char *tmpbuff = url_decode(field[1]);
+            strncpy(cmd, tmpbuff, maxlen);
+            free(tmpbuff);
+            if (*cmd != 'h')
+                strcat(cmd, " ");
+            cmd[maxlen - 1] = '\0';
+
+            found = 1;
+            matchcmd_free(&field);
+
+        } else if ((ret = matchcmd("^GET / " _PR_HTTP_VER _PR_E , buffer, &field)) >= 1) {
+
+            // When only the root directory is called we default the command
+            // to a "time" command.
+            strncpy(cmd, "t", maxlen);
+            found = 1;
+            matchcmd_free(&field);
+            logmsg(LOG_DEBUG,"Found empty GET directory. Assuming command 't'");
+            
+        } else if ((ret = matchcmd("^GET /" _PR_ANY _PR_HTTP_VER _PR_E, buffer, &field)) > 1) {
+
+            // We get here when the client tries to get the CSS file or issue one
+            // of the named commands
+            found = 1;
+            matchcmd_free(&field);
+                                           
+        }
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG,"FOUND WEBCONNECTION: found=%d, buffer=%s",found,buffer);
+#endif
+
+        return found;
+
+    }
+
+    return 0;
+}
 
 
 
@@ -885,7 +885,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
         }
     } else {        
         html_send_404header(my_socket);
-        logmsg(LOG_NOTICE, "Unrecognized WEB-command: [len=%d] %s", strlen(buffer), buffer);
+        logmsg(LOG_WARNING, "Unrecognized WEB-command: [len=%d] %s", strlen(buffer), buffer);
     }
 
     free(buffer);
@@ -940,9 +940,12 @@ web_cmd_next(int sockd) {
 void
 web_cmd_ongoingtransc(int sockd) {
 
-    _web_cmd_module_start(sockd,"Ongoing transcoding");
     size_t num=get_num_ongoing_transcodings();
 
+    if( 0 == num && web_autodisplay_transc )
+        return;
+    
+    _web_cmd_module_start(sockd,"Ongoing transcoding");
     if( 0==num ) {
         _writef(sockd, "<div class=\"ongoing_transc_entry fullw\">\n");
         _writef(sockd, "<div class=\"displayasled_off\"><pre> - - -</pre></div>\n");
@@ -1029,6 +1032,10 @@ web_cmd_ongoing(int sockd) {
  */
 void
 web_cmd_qadd(int sockd) {
+    
+    if( !web_display_qadd )
+        return;
+    
     const char *station_list[128];
     const size_t n_stations = get_stations(station_list, 128);
 
@@ -1171,21 +1178,7 @@ web_cmd_del(int sockd) {
     // Close container
     _web_cmd_module_end(sockd);
 }
-/*
-void
-web_theme_select(int sockd) {
-    static const char *theme_list[] = {
-        "plain", "hq", "metal", "night"
-    };
-    const size_t n_themelist = 4;
-    
-    _writef(sockd,"<form name=\"chwt_form\" method=\"get\" action=\"chwt\" id=\"id_wtform\">\n");
-    _writef(sockd,"<div id=\"theme_select\">\n");
-    html_element_select(sockd, "Theme:", "t", web_theme, theme_list, n_themelist, "id_wt");
-    _writef(sockd,"\n</div> <!-- theme_select -->\n");
-    _writef(sockd,"<form>\n");
-}
-*/
+
 
 /**
  * The full main page used when we are called from an ordinary browser, This is also
@@ -1205,7 +1198,7 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     }
 
     html_startpage(sockd, cookie_val, FALSE);
-    html_windtitlebar(sockd);
+    html_windtitlebar(sockd,TRUE);
 
     // Left side : Command table
     _writef(sockd, "<div id=\"windowmenu\">");
@@ -1223,11 +1216,7 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     web_cmd_del(sockd);
     web_cmd_ongoingtransc(sockd);   
     _writef(sockd, "\n</div> <!-- windowcontent -->\n");
- /*   
-    if( disp_theme_select ) {
-        web_theme_select(sockd);
-    }
-   */ 
+
     html_statusbar(sockd);
     html_endpage(sockd);
 
@@ -1245,7 +1234,7 @@ web_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     // Initialize a new page
 
     html_startpage(sockd, cookie_val, TRUE);
-    html_windtitlebar(sockd);
+    html_windtitlebar(sockd,TRUE);
 
     _writef(sockd, "<div class=\"single_side\">");
     web_commandlist_short(sockd);
@@ -1273,7 +1262,7 @@ web_login_page(int sockd, int mobile) {
     // header which replace the old cookie and sets it expire time
     // in the past so it is removed from the browser
     html_startpage(sockd, "logout", mobile);
-    html_windtitlebar(sockd);
+    html_windtitlebar(sockd,FALSE);
 
     _writef(sockd, "<div id=\"login_window\">");
     _writef(sockd, "<div id=\"login_title\">Please login</div>");

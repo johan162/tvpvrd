@@ -60,7 +60,6 @@ div#windowtitlebar {
     background: #840302;
     background-image: -moz-linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
     background-image: -webkit-linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
-    background-image: -ms-linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
     background-image: linear-gradient(bottom, rgb(38,8,8) 1%, rgb(120,1,0) 70%);
     color:#ddd;
     font-family:arial, sans-serif;
@@ -202,7 +201,7 @@ div#run-mode-status {
 }
 
 div#run-mode-status:before {
-    content: "Run-mode: ";
+    content: "";
 }
 
 /* Container around each command input/output module */
@@ -253,7 +252,7 @@ pre a {
 .displayasled_on {
     float:left;
     background: #353535;
-    padding:4px;
+    padding:2px;
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
@@ -320,10 +319,13 @@ div.ongoing_transc_entry {
 div.ongoing_rec_entry .caption {
     float:left;
     color:#bEaA7D;
-    font-size:10pt;
+    font-size:9pt;
     font-weight:bold;
-    font-family: serif;
-    padding-top:2px;
+    font-family: arial,sans-serif;
+    text-shadow: 1px 1px 1px #000;
+    padding-top:5px;
+    margin-bottom: 7px;
+    margin-left: 2px;
 }
 
 /* No float to let the LED fill available space */
@@ -366,7 +368,7 @@ div.input_legend {
     margin:0;
     margin-bottom:2px;
     text-shadow: 0px 1px 1px #555;
-
+    padding-left:2px;
 }
 
 #id_title,
@@ -507,7 +509,7 @@ div.ongoing_transc_stop {
     font-family: Arial, Sans-serif;
     margin:0;
     margin-top:3px;
-    border: solid 1px #777;
+    border: solid 1px #222;
     width:50px;
 
     background: #ed904e;
@@ -515,8 +517,8 @@ div.ongoing_transc_stop {
     background-image: -webkit-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);    
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;      
-    -moz-box-shadow: 2px  2px  3px  #888; 
-    box-shadow: 2px  2px  3px  #888;  
+    -moz-box-shadow: 2px  2px  4px  #111; 
+    box-shadow: 2px  2px  4px  #111;  
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;

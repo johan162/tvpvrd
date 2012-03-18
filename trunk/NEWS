@@ -10,14 +10,16 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 v4.0.0
 ------
 User visible changes:
-    - Distribution now ships with several different CSS themes for the web-interface
+    - Add setting web_autodisplay_transc to optionally hide transcoding information
+      if there are no ongoing transcodings.
+    - Add setting to select if "Quick Recording" should be displayed in Web-UI
+    - Distribution now has extended support for theming of the Web-UI. Distribution 
+      ships with five different CSS themes for the web-interface.      
     - Add optional selector for theme in the Web-UI
     - Directory structure for the config directory changed to make it cleaner
       with a separate "virtual" web-root among other things.
     - The 'o' (query ongoing recording) command now takes an optional card number as 
       argument.
-    - Added theme setting in config file
-    - Added new default theme "metall"
     - Added Web-menu entry for mailing history.
     - Increased history default length to 99
     - Removed Web-menu for detailed driver settings (this is an advanced

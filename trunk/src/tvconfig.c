@@ -187,7 +187,9 @@ int weblogin_timeout;
 /* Theme handling. Current theme and flag to hide/display theme selector in Web-interface
  */
 char web_theme[32];
-int  disp_theme_select ;
+int  disp_theme_select;
+int web_display_qadd;
+int web_autodisplay_transc;
 
 /*
  * Determine if we should use subdirectories for each profile or just
@@ -578,7 +580,11 @@ read_inisettings(void) {
             iniparser_getstring(dict, "format:web_theme", DEFAULT_WEB_THEME),
             sizeof(web_theme)-1);
     
-    disp_theme_select = iniparser_getboolean(dict, "format:disp_theme_select", DEFAULT_THEME_SELECT);
+    disp_theme_select = iniparser_getboolean(dict, "format:web_display_theme", DEFAULT_THEME_SELECT);
+    
+    web_display_qadd = iniparser_getboolean(dict, "format:web_display_qadd", DEFAULT_THEME_SELECT);
+    
+    web_autodisplay_transc = iniparser_getboolean(dict, "format:web_autodisplay_transc", DEFAULT_AUTODISPLAY_TRANSC);
     
     strncpy(tblcss_vborder_interior,
             iniparser_getstring(dict, "format:tblcss_vborder_interior", TBLCSS_VBORDER_INTERIOR),

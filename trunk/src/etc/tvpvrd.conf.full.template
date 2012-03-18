@@ -670,11 +670,24 @@ script_name=shutdown.sh
 web_theme=metal
 
 #----------------------------------------------------------------------------
-# DISP_THEME_SELECT boolean
+# WEB_DISPLAY_THEME boolean
 # Should the dropdown box to change theme from the Web-UI be enabled.
 # This will allow users to change theme themselves.
 #----------------------------------------------------------------------------
-disp_theme_select=yes
+web_display_theme=yes
+
+#----------------------------------------------------------------------------
+# WEB_AUTODISPLAY_TRANSC boolean
+# Only display the ongoing transcoding module in the Web-UI when there are
+# ongoing transcodings. Hide the module otherwise.
+#----------------------------------------------------------------------------
+web_autodisplay_transc=no
+
+#----------------------------------------------------------------------------
+# WEB_DISPLAY_QADD boolean
+# Should the quick recording command module be displayed in the web interface
+#----------------------------------------------------------------------------
+web_display_qadd=yes
 
 #----------------------------------------------------------------------------
 # CSS Style for table with recordings included in the mail sent by the 'lm'

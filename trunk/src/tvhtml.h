@@ -47,7 +47,7 @@ void
 html_startpage(int sockd, char *cookie_val, int mobile);
 
 void
-html_windtitlebar(int sockd);
+html_windtitlebar(int sockd, _Bool showlogout);
 
 void
 html_statusbar(int sockd);
