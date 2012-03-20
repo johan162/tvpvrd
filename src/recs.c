@@ -414,6 +414,40 @@ _insertrec(unsigned video, struct recording_entry* entry) {
     return 1;
 }
 
+int 
+rec_name_mangling(struct recording_entry *entry, size_t num, char *namebuff, size_t maxlen) {
+    int sy, sm, sd, sh, smin, ssec;
+    int ey, em, ed, eh, emin, esec;            
+    fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
+    fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);    
+    
+    // Name mangling for title
+    if ( 0 == entry->recurrence_mangling ) {
+        
+        // Mangling == 0 Add date to each recording in series
+        snprintf(namebuff, maxlen, "%s %d-%02d-%02d %02d.%02d", entry->title, sy, sm, sd, sh, smin);
+        
+    } else if ( 1 == entry->recurrence_mangling ) {
+        
+        // Mangling == 1 Add (num/out_of) style to name
+        snprintf(namebuff, maxlen, "%s (%02d/%02d)", 
+                    entry->title,
+                    (int)num + entry->recurrence_start_number,
+                    entry->recurrence_num+entry->recurrence_start_number-1);
+        
+    } else if( 2 == entry->recurrence_mangling ) {
+        
+        // Mangling == 2 Add "E<num>" to title to facilitate "title_E01S05" style of naming
+        snprintf(namebuff, maxlen, "%sE%02d)", entry->title, (int)num + entry->recurrence_start_number);                
+        
+    } else {
+        logmsg(LOG_ERR,"Unknown name mangling type (%d) for recording '%s' on %d-%02d-%02d",entry->recurrence_mangling, entry->title,sy,sm,sd);
+        return -1;
+    }
+    return 0;
+    
+}
+
 /*
  * Insert a new recording in the list after checking that it doesn't
  * collide with an existing recording.
@@ -426,15 +460,18 @@ insertrec(unsigned video, struct recording_entry * entry) {
     char *bname, *dname;
     char bnamecore[256];
     char tmpbuff[512], tmpbuff2[512], bname_buffer[256], dname_buffer[256];
-    time_t ts_start, ts_end;
     int sy, sm, sd, sh, smin, ssec;
-    int ey, em, ed, eh, emin, esec;
+    int ey, em, ed, eh, emin, esec;            
+    
     struct recording_entry *newentry = NULL;
 
     if (isentryoverlapping(video, entry)) {
         return -1;
     }
 
+    fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
+    fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);  
+    
     if (entry->recurrence) {
 
         // Make sure there is enough room on this video to store
@@ -456,24 +493,11 @@ insertrec(unsigned video, struct recording_entry * entry) {
 
         (void)adjust_initital_repeat_date(&entry->ts_start, &entry->ts_end, entry->recurrence_type);
 
-        fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
-        fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);
-        ts_start = entry->ts_start;
-        ts_end = entry->ts_end;
-
         assert(entry->recurrence_num > 0);
 
         for (size_t i=0; i < entry->recurrence_num; i++) {
 
-            // Name mangling for title
-            if (entry->recurrence_mangling == 0) {
-                snprintf(tmpbuff, 512, "%s %d-%02d-%02d %02d.%02d", entry->title, sy, sm, sd, sh, smin);
-            } else {
-                snprintf(tmpbuff, 512, "%s (%02d/%02d)", 
-                         entry->title,
-                         (int)i + entry->recurrence_start_number,
-                         entry->recurrence_num+entry->recurrence_start_number-1);
-            }
+            (void)rec_name_mangling(entry,i,tmpbuff,sizeof(tmpbuff));
 
             // Name mangling of filename
             snprintf(tmpbuff2, 512, "%s/%s%s%d-%02d-%02d%s%02d.%02d%s",
@@ -481,7 +505,7 @@ insertrec(unsigned video, struct recording_entry * entry) {
                     entry->recurrence_mangling_prefix, sh, smin, filetype);
 
             newentry = newrec(tmpbuff, tmpbuff2,
-                    ts_start, ts_end,
+                    entry->ts_start, entry->ts_end,
                     entry->channel, 1,
                     entry->recurrence_type,
                     entry->recurrence_num - i,
@@ -502,6 +526,9 @@ insertrec(unsigned video, struct recording_entry * entry) {
 
             (void)_insertrec(video, newentry);
 
+            time_t ts_start = entry->ts_start;
+            time_t ts_end = entry->ts_end;
+            
             // Find out the new date for the next recording in sequence
             if( -1 == increcdays(entry->recurrence_type,
                     &ts_start, &ts_end,

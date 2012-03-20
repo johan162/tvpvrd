@@ -1413,7 +1413,8 @@ a bbb1 21:00 21:29 lastnews @tlow</screen>
                                 will be mangled with the recording date and time. In the recording
                                 list the title will usually be shown as "Base title (xx/yy)" where
                                 xx is the sequence number and yy is the total number of recordings
-                                in this sequence.</para>
+                                in this sequence. This is controlled by the mangling parameter.
+                                </para>
                         <para>By default a series of recordings specified with this command is
                             stored under a subdirectory with the same name as the basename of the
                             recording. If you instead prefer to have all recordings stored in a flat

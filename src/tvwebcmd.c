@@ -1315,13 +1315,16 @@ struct cmd_grp {
 // MASTER personality
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
-    {"lh", "List all"},
-    {"lr", "List rep."},
-    {"lu", "List single"},
-    {"lm", "Mail all"},
-    {"lmr","Mail separated"},
+    {"lh", "All"},
+    {"lr", "Series"},
+    {"lu", "Singles"},
     {"rh", "History"},
-    {"rhm","Mail history"}
+};
+
+static struct cmd_entry cmdfunc_master_mailrecs[] = {
+    {"lm", "Full"},
+    {"lmr","Separated"},
+    {"rhm","History"}
 };
 
 static struct cmd_entry cmdfunc_master_transcoding[] = {
@@ -1336,10 +1339,14 @@ static struct cmd_entry cmdfunc_master_status[] = {
 };
 
 static struct cmd_entry cmdfunc_master_view[] = {
+/*
     {"z",  "Settings"},
+*/
     {"ls", "Station list"},
+/*
     {"vc", "Cards"},
     {"li", "Card inputs"},
+ */
     {"lph","Profiles"}    
 };
 
@@ -1389,6 +1396,7 @@ static struct cmd_entry cmdfunc_master_menu_short[] = {
 static struct cmd_grp cmd_grp_master[] = {
     {"Server", "Server information", sizeof (cmdfunc_master_status) / sizeof (struct cmd_entry), cmdfunc_master_status},
     {"Recordings", "Stored recordings", sizeof (cmdfunc_master_recs) / sizeof (struct cmd_entry), cmdfunc_master_recs},
+    {"Mail recordings", "Mail recordings", sizeof (cmdfunc_master_mailrecs) / sizeof (struct cmd_entry), cmdfunc_master_mailrecs},    
     {"View", "View", sizeof (cmdfunc_master_view) / sizeof (struct cmd_entry), cmdfunc_master_view},
     {"Transcoding", "Transcoding info", sizeof (cmdfunc_master_transcoding) / sizeof (struct cmd_entry), cmdfunc_master_transcoding}    
     /*
