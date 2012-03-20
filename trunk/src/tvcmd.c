@@ -1118,6 +1118,7 @@ _cmd_add(const char *cmd, int sockfd) {
             strcat(filename, ".mpg");
             xstrtolower(filename);
 
+            /*TODO: Add this as config parameter*/
             int repeat_name_mangle_type=1;
             entry = newrec(title, filename,
                     ts_start, ts_end,
