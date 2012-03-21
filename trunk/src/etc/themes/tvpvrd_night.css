@@ -307,6 +307,11 @@ pre a {
     float:none;
 }
 
+div#nextrec { 
+    width:99%; 
+    height: 1.5em; 
+}
+
 div.ongoing_rec_entry {
     float:left;
     padding:0;
