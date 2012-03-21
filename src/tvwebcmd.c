@@ -683,6 +683,8 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
             strncpy(web_theme,wtheme,sizeof(web_theme)-1);
             *wcmd = '\0';
             
+	    matchcmd_free(&field);
+            
         } else if ((ret = matchcmd("GET /killrec\\?" 
                     _PR_AN "=" _PR_N " " _PR_HTTP_VER ,
                     buffer, &field)) > 1) {

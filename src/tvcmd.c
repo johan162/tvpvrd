@@ -1110,7 +1110,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     filename[i] == ':' || filename[i] == '!' ||
                     filename[i] == '#' || filename[i] == '?' ||
                     filename[i] == '/' || filename[i] == '\\' ||
-                    filename[i] == '@') {
+                    filename[i] == '@' || filename[i] == ',' ) {
 
                     filename[i] = '_';
                 }

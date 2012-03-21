@@ -437,7 +437,7 @@ rec_name_mangling(struct recording_entry *entry, size_t num, char *namebuff, siz
         
     } else if( 2 == entry->recurrence_mangling ) {
         
-        // Mangling == 2 Add "E<num>" to title to facilitate "title_E01S05" style of naming
+        // Mangling == 2 Add "E<num>" to title to facilitate EXXSYY style (e.g. "title_E01S05") style of naming
         snprintf(namebuff, maxlen, "%sE%02d)", entry->title, (int)num + entry->recurrence_start_number);                
         
     } else {

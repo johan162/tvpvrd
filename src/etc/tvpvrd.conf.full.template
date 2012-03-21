@@ -342,12 +342,6 @@ video_device_basename=/dev/video
 allow_profiles_adj_encoder=yes
 
 #----------------------------------------------------------------------------
-# FNAME_SEPARATOR string
-# File name separator to use when mangling filename for recurrent recordings
-#----------------------------------------------------------------------------
-fname_separator=_
-
-#----------------------------------------------------------------------------
 # CLIENT_IDLE_TIME integer
 # Max idle time in seconds before clients are automatically disconnected
 #----------------------------------------------------------------------------
