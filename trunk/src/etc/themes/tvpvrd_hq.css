@@ -519,6 +519,9 @@ div#login_window {
     margin:auto;
     margin-bottom: 200px;
     margin-top: 80px;
+    -moz-box-shadow:     5px 5px 3px #555;
+    -webkit-box-shadow:  5px 5px 3px #555;
+    box-shadow:          5px 5px 3px #555;    
 }
 
 /* Title of login box */
