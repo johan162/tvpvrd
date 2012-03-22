@@ -565,6 +565,7 @@ web_cmdinterp(const int my_socket, char *inbuffer) {
         // Try to determine if the connection originated from a
         // mobile phone.
         mobile = is_mobile_connection(buffer);
+        logmsg(LOG_DEBUG,"Mobile connection=%d",mobile);
 
 #ifdef EXTRA_WEB_DEBUG
         logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
@@ -1238,8 +1239,8 @@ web_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     html_startpage(sockd, cookie_val, TRUE);
     html_windtitlebar(sockd,TRUE);
 
-    _writef(sockd, "<div class=\"single_side\">");
-    web_commandlist_short(sockd);
+    _writef(sockd, "<div class=\"single_side\">\n");
+    //web_commandlist_short(sockd);
     html_cmd_output(sockd, wcmd);
     web_cmd_add(sockd);
     _writef(sockd, "\n</div> <!-- single_side -->\n");
@@ -1317,15 +1318,15 @@ struct cmd_grp {
 // MASTER personality
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_recs[] = {
-    {"lh", "All"},
+    {"lh", "Combined"},
+    {"lu", "Singles"},    
     {"lr", "Series"},
-    {"lu", "Singles"},
     {"rh", "History"},
 };
 
 static struct cmd_entry cmdfunc_master_mailrecs[] = {
-    {"lm", "Full"},
-    {"lmr","Separated"},
+    {"lm", "Combined"},
+    {"lmr","Singles/Series"},
     {"rhm","History"}
 };
 
@@ -1341,14 +1342,7 @@ static struct cmd_entry cmdfunc_master_status[] = {
 };
 
 static struct cmd_entry cmdfunc_master_view[] = {
-/*
-    {"z",  "Settings"},
-*/
     {"ls", "Station list"},
-/*
-    {"vc", "Cards"},
-    {"li", "Card inputs"},
- */
     {"lph","Profiles"}    
 };
 
