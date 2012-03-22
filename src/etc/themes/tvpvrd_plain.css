@@ -513,12 +513,12 @@ div.ongoing_transc_stop a:active {
 /* Container for log-in box */
 div#login_window {
     border: solid gray 1px;
-    box-shadow: 3px  3px  3px  #444;  
+    box-shadow: 6px  6px  4px  #444;  
     bottom:0;
     left:0;
     right:0;
     width:330px;
-    background:#898989;
+    background:#909B9B;
     padding-top:0px;
     padding-bottom:10px;
     margin:auto;
@@ -531,7 +531,7 @@ div#login_title {
     padding:3px;
     padding-bottom:5px;
     color:white;
-    background:#404040;
+    background:#505b5b;
     font-weight:bold;
     font-family:Arial, Sans-serif;
     font-size:12pt;
@@ -572,9 +572,8 @@ div.input_container#id_submitlogin {
 input.input_submit#id_submitlogin_submit {
     width:10em;
     border:solid black 1px;    
-    padding-bottom:10px;
-    padding-top:4px;
-    height: 2.2em;
+    padding-bottom:9px;
+    height: 1.9em;
     font-size:10pt; 
 }
 input.input_submit:hover#id_submitlogin_submit {
