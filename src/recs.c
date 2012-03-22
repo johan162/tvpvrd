@@ -500,9 +500,8 @@ insertrec(unsigned video, struct recording_entry * entry) {
             (void)rec_name_mangling(entry,i,tmpbuff,sizeof(tmpbuff));
 
             // Name mangling of filename
-            snprintf(tmpbuff2, 512, "%s/%s%s%d-%02d-%02d%s%02d.%02d%s",
-                    dname, bnamecore, entry->recurrence_mangling_prefix, sy, sm, sd,
-                    entry->recurrence_mangling_prefix, sh, smin, filetype);
+            snprintf(tmpbuff2, 512, "%s/%s%s%d-%02d-%02d%s",
+                    dname, bnamecore, entry->recurrence_mangling_prefix, sy, sm, sd, filetype);
 
             newentry = newrec(tmpbuff, tmpbuff2,
                     entry->ts_start, entry->ts_end,
@@ -660,7 +659,7 @@ dump_htmlrecordheader(char *buffer, size_t bufflen, struct css_record_style *rs,
                 "%-6s"
                 "%-43s"
                 "%-8s"                    
-                "%-10s"          
+                "%-10s\n"          
                 "%s\n",
                 hdbuffer,
                 "# ",
@@ -669,7 +668,7 @@ dump_htmlrecordheader(char *buffer, size_t bufflen, struct css_record_style *rs,
                 "End ",
                 "Title ",
                 "Ch ",
-                "Profile\n",
+                "Profile",
                 hdbuffer);
     }
     buffer[bufflen-1] = '\0';

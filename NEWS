@@ -10,6 +10,11 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 v4.0.0
 ------
 User visible changes:
+    - New structure for WEB-command menu
+    - Added command "srt" Set Repeat title Mangling
+    - Added command "srf" Set Repeat filename Mangling
+    - Do no longer include the time when date is added to repeated recordings
+      since date is always unique since the minimum repeat is each day.
     - Add setting web_autodisplay_transc to optionally hide transcoding information
       if there are no ongoing transcodings.
     - Add setting to select if "Quick Recording" should be displayed in Web-UI
@@ -20,7 +25,6 @@ User visible changes:
       with a separate "virtual" web-root among other things.
     - The 'o' (query ongoing recording) command now takes an optional card number as 
       argument.
-    - Added Web-menu entry for mailing history.
     - Increased history default length to 99
     - Removed Web-menu for detailed driver settings (this is an advanced
       function that doesn't really make sense in the simplified Web-interface)
