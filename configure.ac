@@ -7,7 +7,7 @@ AC_PREREQ([2.65])
 AC_INIT([tvpvrd],[4.0.0-beta],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010-2012])
-AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 silent-rules])
+AM_INIT_AUTOMAKE([-Wall -Werror dist-xz silent-rules])
 AM_SILENT_RULES
 AC_PROG_CC
 AC_PROG_CC_C99
