@@ -289,7 +289,8 @@ pre a {
 
 div#nextrec {
     width:99%;
-    height: 1.5em;
+    height: 1.4em;
+    padding-top:4px;
 }
 
 div.ongoing_rec_entry {
@@ -355,11 +356,10 @@ div.input_legend {
 input,
 select  {
     border: solid gray 1px;
-/*    background:#BAEFFF;*/
     background: #fff;
     font-family:Arial, Sans-serif;
     font-weight:bold;
-    color:#000099;
+    color:#660000;
 }
 
 input:focus,
