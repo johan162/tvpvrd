@@ -1875,12 +1875,12 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
             strncpy(msgbuff,"Free.\n",sizeof(msgbuff)-1);	  
 	  }
 	} else {
-	  snprintf(msgbuff,sizeof(msgbuff),"Video card number outside range [0,%d]\n",max_video-1);
-		
+	  snprintf(msgbuff,sizeof(msgbuff),"Video card number outside range [0,%d]\n",max_video-1);		
 	}
+        matchcmd_free(&field);        
+        
     } else {
-
-
+        // No video was specified so list all
        for (unsigned i = 0; i < (unsigned)max_video; i++) {
           if (ongoing_recs[i]) {
               dump_record(ongoing_recs[i], 0, 0, tmpbuff, sizeof(tmpbuff)-1);
@@ -1894,7 +1894,6 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
 
     }
 
-    matchcmd_free(&field);
     _writef(sockfd, msgbuff);
     
 }

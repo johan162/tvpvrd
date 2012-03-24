@@ -9,10 +9,10 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 v4.0.1
 ------
 User visible changes:
-    - None
+    - Theme for mobile phone now uses much larger fonts
 
 Bugs fixed:
-    - None
+    - Could call an unnecessary PCRE memory free in 'o' command
 
 Internal changes:
     - None
