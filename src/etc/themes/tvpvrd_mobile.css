@@ -106,9 +106,6 @@ div.cmd_item {
     width: 50px;
     margin-bottom:4px;
 
-/*    background: #595959; 
-    background-image: -moz-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
-    background-image: -webkit-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); */
     background: #293B29; 
     background-image: -moz-linear-gradient(bottom, rgb(55,37,26) 1%, rgb(123,77,54) 60%); 
     background-image: -webkit-linear-gradient(bottom, rgb(55,37,26) 1%, rgb(123,77,54) 60%); 
