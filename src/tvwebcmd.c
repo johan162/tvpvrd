@@ -1239,10 +1239,10 @@ web_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     html_startpage(sockd, cookie_val, TRUE);
     html_windtitlebar(sockd,TRUE);
 
-    _writef(sockd, "<div class=\"single_side\">\n");
-    //web_commandlist_short(sockd);
-    html_cmd_output(sockd, wcmd);
+    _writef(sockd, "<div class=\"single_side\">\n");    
     web_cmd_add(sockd);
+    web_commandlist_short(sockd);    
+    html_cmd_output(sockd, wcmd);
     _writef(sockd, "\n</div> <!-- single_side -->\n");
 
     html_endpage(sockd);
@@ -1380,8 +1380,9 @@ static struct cmd_entry cmdfunc_slave_view[] = {
 //------------------------------------------------------------------
 static struct cmd_entry cmdfunc_master_menu_short[] = {
     {"s", "Status"},
-    {"lh", "List"},
-    {"o", "Ongoing"}
+    {"lh", "List rec"},
+    {"o", "Ongoing"},
+    {"rh", "History"}
 };
 
 
@@ -1465,15 +1466,18 @@ web_commandlist_short(int sockd) {
         cmdgrplen = sizeof (cmd_grp_slave_short) / sizeof (struct cmd_grp);
     }
 
-    _writef(sockd, "<div class=\"cmd_menu_short\">\n");
+    _writef(sockd, "<div id=\"cmd_menu\">\n");
     for (size_t i = 0; i < cmdgrplen; ++i) {
-
-        for (size_t j = 0; j < cmdgrp[i].cmd_num; ++j) {
-            _writef(sockd, "<div class=\"cmdgrp_commands_short\">");
-            _writef(sockd, "<a href=\"cmd?c=%s\">&#8718; %s</a>", cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
-            _writef(sockd, "</div>\n");
+        _writef(sockd, "<div class=\"cmd_grp\" id=\"cmdgrp%d\">",i+1);
+        for (size_t j = 0; j < cmdgrp[i].cmd_num; ++j) {            
+            _writef(sockd, 
+                    "<div class=\"cmd_item\" id=\"cmditem%d%d\">"
+                    "<a href=\"cmd?c=%s\">%s</a>"
+                    "</div>\n",i+1,j+1, 
+                    cmdgrp[i].entry[j].cmd_name, cmdgrp[i].entry[j].cmd_desc);
         }
+        _writef(sockd, "</div>\n <!-- cmdgrp -->");
     }
-    _writef(sockd, "</div> <!-- cmd_menu_short -->\n");
+    _writef(sockd, "</div> <!-- cmd_menu -->\n");
 
 }

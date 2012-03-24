@@ -1,102 +1,456 @@
 /*----------------------------------------------------------------------------------------------
- * File: TVPVRD_MOBILE.CSS
- * Desc: CSS Style to format rudimentary WEB-interface for tvpvrd 
- *       daemon suitable for a mobile phone with smaller screen
- *       The main differemce compared with the normal CSS is that font sizes
- *       are much larger and the output area is smaller.
- * SVN:  $Id$
- *----------------------------------------------------------------------------------------------
- */
+   File: TVPVRD_MOBILE.CSS
+   Desc: CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
 
-/* Make it 99% to avoid scroll bars on the main page */
+         The overall layout in the mobile version si simplified compared to the full WEB-UI.
+         The following ascii arts gives an overall illustration of the layout.
+
+            +----------------+
+            | [COMMAND AREA] |
+            |                |
+            |                | 
+            |                |           
+            |                |
+            |                |
+            +----------------+
+            |    [OUTPUT]    |
+            +----------------+
+
+
+  SVN:  $Id$
+ ----------------------------------------------------------------------------------------------
+*/
+
+/* Main body */
 body {
-    width: 100%;
-    line-height:140%;
+    background:#ccc;
+}
+
+/* The overall main window */
+div#topwindow {
+    background:#FFFFFC;
+    border: solid gray 2px; 
+    margin-left:auto;
+    margin-right:auto;
+    width:300px;   
+    display: block; 
+}
+
+/* Window title bar. Contains of name, mode and a logout function */
+div#windowtitlebar {
+    float:none;
+    border-bottom: solid 1px white;
+    margin-bottom: 4px;
+    padding: 4px;
+    padding-bottom: 10px;
+    background: #404040;
+    color:#ddd;
+    font-family:arial, sans-serif;
+    font-size:16pt;
+    height:1em;
+}
+
+/* Text content in title bar */
+div#windowtitlebar_cont {
+    float:left;
+    text-align:left;
+    font-weight:bold;
+    font-size:16pt;  
+}
+
+/* Format for title in title-bar */
+span#title-ver {
+    color: white;
+}
+
+/* Container for logout in the top right corner */
+div#logout_container {    
+    float:right;
+    color:red;
+    margin-top: 3px;
+    margin-right:4px;
+}
+
+/* Container around actual content area of the top window */
+div.single_side {
+    float:none;
+    padding-bottom: 5px;
+}
+
+/* Menu handling */
+div#cmd_menu {
+    float:left;
+    clear:both;
+    margin:0;
+    padding:0;
+    width: 296px;
+    margin-top: 2px;
+}
+
+div.cmd_grp {
+    float:left;
+    clear:both;
+    margin-left: 12px;
+    margin-right: 2px;
+    margin-bottom:5px;
+}
+
+div.cmd_item {
+    float:left;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 2px;
+    margin-left: 1px;
+    margin-right: 5px;
+    border: solid 1px #000;
+    width: 50px;
+    margin-bottom:4px;
+
+/*    background: #595959; 
+    background-image: -moz-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
+    background-image: -webkit-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); */
+    background: #293B29; 
+    background-image: -moz-linear-gradient(bottom, rgb(55,37,26) 1%, rgb(123,77,54) 60%); 
+    background-image: -webkit-linear-gradient(bottom, rgb(55,37,26) 1%, rgb(123,77,54) 60%); 
+
+    -moz-box-shadow: 3px 3px 6px #111; 
+    box-shadow: 3px 3px 6px #111; 
+    
+    -webkit-border-radius: 5px; 
+    -moz-border-radius: 5px;     
+    
+    font-family: arial, sans-serif;
+    font-weight: bold;
+    font-size: 10pt;
+    color: #ddd; 
+    text-align: center;
+}
+
+div.cmd_item a {
+    text-decoration: none;
+    color:inherit;    
+}
+
+div.cmd_item a:hover {
+    
+}
+
+div.cmd_item:hover {
+    background-image: -moz-linear-gradient(bottom, rgb(25,37,26) 1%, rgb(53,77,54) 60%); 
+    background-image: -webkit-linear-gradient(bottom, rgb(25,37,26) 1%, rgb(53,77,54) 60%);     
+    color:#fff;
+}
+
+div.cmd_item:active {
+    -moz-box-shadow: 0px 0px 0px #fff; 
+    box-shadow: 0px 0px 0px #fff; 
+    margin-top: 2px;
+    margin-left: 2px;
+    margin-bottom:2px;
+    margin-right: 4px;
+}
+
+/* Status bar at bottom of top window*/
+div#statusbar {
+    clear:both;
+    height:22px;
+    margin-bottom:3px;
+}
+
+div#run-mode-status {
+    float:left;
+    font-size:10pt;
+    font-weight: bold;
+    color:#444;
+    margin-left: 4px;
+    text-shadow: -1px -1px 1px #fff;
+    font-family:Arial,sans-serif;
+}
+
+div#run-mode-status:before {
+    content: "";
+}
+
+/* Build number in the right of the status bar */
+div#buildnbr {
+    float:right;
+    font-size:10pt;
+    font-style:italic;
+    font-weight: bold;
+    color:#555;
+    margin-right: 6px;
+    font-family:Arial,sans-serif;
+}
+
+/* Container around each command input/output module */
+div.cmdmodule {
+    margin-bottom:4px;
+    margin-top:4px;
+    margin-right:4px;
+    margin-left:2px;
+    float:none;
+}
+
+/* Fieldset used around each command input/output module */
+fieldset {
+    border: dotted 1px #888;
+    margin-top:4px;
+    margin-right:0px;
+    margin-left:2px;
+    padding:0;
+    padding-left:3px;
+    padding-bottom:6px;
+    float:none;
+}
+
+/* Legend used in each fieldset in the command input/output module */
+legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-variant:small-caps;
+    font-size:13pt;
+    padding-left:2px;
+    padding-right:4px;
+    color:#222;
+}
+
+/* Preformatted area in command output */
+pre {
     margin:0;
     padding:0;
 }
-
-/* The overall main page is contained in this div */
-div.top_page {
-     border: 1px solid gray;
-     background: #e1e6db;
-    width:100%;
-    height:100%;
-    padding-top:0;
-    padding-bottom: 2em;
-    margin:0;
-    border: solid #555 1px;
+pre a:hover {
+    color:white;
+}
+pre a {
+    color:#0ef;
 }
 
-/* The top banner line with name and version */
-div.top_banner {
-    width:100%;
-    text-align:center;
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_on {
+    float:none;
+    background:#eee;    
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:9pt;
     font-weight:bold;
-    font-size:18pt;
-    font-family: Arial, Sans-serif;
-    color: darkred;
-    background: #a7b797;
+    color:#113b12;
+    text-shadow:1px 1px 1px #999;
+    overflow:hidden;
+    margin:0;  
+    -moz-box-shadow:    inset 3px 3px 8px #555;
+    -webkit-box-shadow: inset 3px 3px 8px #555;
+    box-shadow:         inset 3px 3px 8px #555;    
+}
+
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_off {
+    float:none;
+    background:#bbb;
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#444;
+    overflow:hidden;
+    margin:0;  
+    -moz-box-shadow:    inset 3px 3px 8px #333;
+    -webkit-box-shadow: inset 3px 3px 8px #333;
+    box-shadow:         inset 3px 3px 8px #333;       
+}
+
+
+/* Subclass used with other main classes to indicate full or half width */
+/* Mainly used for displaying card information on ongoing activities */
+/* the size of the output and layout depends on how many cards are installed */
+.fullw {
+    width:99%;
+}
+.halfw {
+    width:49%;                
+}
+.margleft {
+    margin-left:10px;
+}
+.nofloat {
+    float:none;
+}
+
+
+/* More specific formatting unique for command output */
+#cmdoutput {
+    clear:both;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    height:140px;
+    margin-right:6px;
+    margin-left:3px;
+    margin-bottom:3px;
+    border:solid 1px #bbb;
+}
+
+/* Container around each input and input text-legend */
+div.input_container {
+    float:left;
+    padding:1px;
+    margin-top:1px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+/* The legend text for each input field */
+div.input_legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:9pt;
+    color:#404040;
     margin:0;
-    padding: 0;
-    padding-bottom: 0.3em;
-    padding-top: 0.3em;
-    border-bottom: solid black 1px;
 }
 
-div.single_side {
-    width:100%;
-    margin-left:0;
-    margin-right:0;
-    padding-bottom:3px;
+/* Adjustmens for browser controls */
+input,
+select  {
+    border: solid gray 1px;
+    background: #fff;
+    font-family:Arial, Sans-serif;
+    font-weight:bold;
+    color:#660000;
 }
 
-/* Container around the command input area */
-div.cmd_bottom_container {
-    width:98%;
-    padding-right: 0px;
-    padding: 0px;
-    margin:0;
+input:focus,
+select:focus {
+    border:solid 1px #000;
+    background:#fff;
+    color:#000;
 }
 
-/*
- * The following styles refer to the login box/login page 
-*/
+/* Repeat count selector */
+select.input_select#id_rptcount {
+    width:50px;
+}
+
+/* Input text controls */
+input.input_text {
+    width : 100px;
+}
+
+/* Input submit buttons in forms */
+input.input_submit {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:10pt;
+    margin-left: 10px;
+    margin-bottom: 2px;
+    background: #404040;
+    border: solid 1px #333;
+    color:#ddd;
+    height:25px;
+    width:70px;
+    margin-top:0px;
+    padding-bottom:2px;
+
+    background: #595959; 
+    background-image: -moz-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
+    background-image: -webkit-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
+    -moz-box-shadow: 3px 3px 6px #111; 
+    box-shadow: 3px 3px 6px #111; 
+    
+    -webkit-border-radius: 5px; 
+    -moz-border-radius: 5px; 
+}
+
+/* Indicate to user that button is about to receive input */
+input.input_submit:hover {
+    cursor:pointer;
+    cursor:hand;
+    color:#fff;
+}
+
+/* Give visual feedback that the button has been pressed */
+input.input_submit:active {
+    border: solid 1px #ddd;
+    font-size:9pt;
+    cursor:pointer;
+    cursor:hand;
+    -moz-box-shadow: 0px 0px 0px #000; 
+    box-shadow: 0px 0px 0px #000; 
+}
+
+/* Adjustment for submit buttons to make them right aligned */
+div.input_container#id_addrec {
+    padding-top:12px;
+    float:right;
+    margin-right:10px;
+}
+
+/* Text between begin and end time */
+div#be_hyphen {
+    font-weight:bold;
+    font-size:14pt;
+    padding-bottom:0px;
+    padding-top:14px;
+}
+
+/* Which input fields shoud start on a new line */
+#id_starthour,
+#id_rpttype {
+    float:left;
+    clear:both;
+}
+
+.input_container#id_title input {
+    width: 150px;
+}
+
 
 /* Container for log-in box */
-div.login_container {
+div#login_window {
     border: solid gray 1px;
-    margin-top:60px;
-    margin-bottom:100px;
-    margin-left:auto;
-    margin-right:auto;
-    width:500px;
-    background:#b0c1a3;
+    bottom:0;
+    left:0;
+    right:0;
+    width:170px;
+    background:#ddd;
     padding-top:0px;
     padding-bottom:10px;
-}
-
-div.login_container  div.input_container {
-   float:none;
-    margin-left:10px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 30px;
+    margin-top: 20px;
+    -moz-box-shadow:     5px 5px 3px #555;
+    -webkit-box-shadow:  5px 5px 3px #555;
+    box-shadow:          5px 5px 3px #555;    
 }
 
 /* Title of login box */
-div.login_title {
+div#login_title {
     padding:3px;
+    padding-bottom:5px;
     color:white;
-    background:#546349;
+    background:#444;
     font-weight:bold;
     font-family:Arial, Sans-serif;
-    font-size:24pt;
-    color:white;
+    font-size:12pt;
+    color:#fff;
     margin-bottom:10px;
+    text-align:center;
+    border-bottom:solid 2px #d55;
+}
+
+div#login_window  div.input_container {
+    float:none;
+    width: 100px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Adjustment of password field */
 div.input_container#id_loginpwd {
     margin-top:10px;
-    clear:left;
 }
 
 div.input_container#id_loginuser div.input_legend,
@@ -104,276 +458,28 @@ div.input_container#id_loginpwd div.input_legend {
     float:left;
     margin-top:2px;
     width: 8em;
-    color:black;
+    color:#111;
+    font-weight:bold;
+    font-size:11pt;
+    text-shadow: -1px -1px 1px #fff;
 }
 
-/* Submit button for login */
-input.input_submit#id_submitlogin {
-    width:6em;
-}
-
+/* Submit button container for login */
 div.input_container#id_submitlogin {
-    float:none;
     margin-top:1em;
-    margin-left: 20%;
-    margin-right: 20%;
 }
 
-div#logout_container {
-    float:left;
-    width:99%;
-    height: 10%;
+input.input_submit#id_submitlogin_submit {
+    padding-bottom:10px;
+    font-size:10pt; 
+    width:100px;
+    margin-left: auto;
+    margin-right: auto;
 }
-
-div#logout {
-    border : solid gray 1px;
-    padding-bottom: 3px;
-    padding-top: 2px;
-    width: 70px;
-    height: 1.0em;
-    background: white;
-    font-weight:bold;
-    margin-left:15px;
-    padding-left:20px;
-    padding-right:0px;
-}
-
-div#logout a {
-    text-decoration:none;
-    font-weight:bold;
-    font-family:Arial,Sans-serif;
-    font-size:10pt;
-    color:black;
-}
-
-div#logout a:hover {
-    text-decoration:none;
-    font-weight:bold;
-    font-family:Arial,Sans-serif;
-    font-size:10pt;
-    color:darkred;
+input.input_submit:hover#id_submitlogin_submit {
+    border:solid black 1px;
 }
 
 
-/*
- * All select input formats are used in the add/delete fieldset when adding and deleting
- * records.
- */
-div.input_select {
-}
+/* EOF CSS Style for tvpvrd */
 
-select {
-    font-size:34pt;
-    padding: 2px;
-}
-
-/* Delete series y/n selector */
-select.input_select#id_seriesyn {
-   width:5em;
-}
-
-select.input_select#id_length_hour,
-select.input_select#id_length_min,
-select.input_select#id_starthour,
-select.input_select#id_endhour,
-select.input_select#id_startmin,
-select.input_select#id_endmin {
-   width:2em;
-}
-
-/* Repeat count selector */
-select.input_select#id_rptcount {
-   width:4em;
-}
-
-/* Used for all select with a code table */
-select.input_select_code {
-    font-family:Arial, Sans-serif;
-    color:#202020;
-}
-
-/* Format for selector with list of recodings to delete */
-select.input_select_code#id_delselect {
-    width: 14em;
-}
-
-/* Input text */
-input.input_text {
-    color : #202020;
-    font-size: 30pt;
-}
-
-/* This div encloses the command output */
-div.cmd_output {
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-right: 3px;
-    padding-left: 3px;
-    margin-left:1%;
-    margin-right:0;
-    margin-top:0.5em;
-    margin-bottom:0px;
-    font-weight:bold;
-    font-size:130%;
-    font-family: Monospace;
-    border:dotted gray 1px;
-    height:12ex;
-    width: 45em;
-    overflow:auto;
-    clear:both;
-    background:black;
-    color: #0f0;
-}
-
-/* The inside of the command output */
-pre {
-    margin:0;
-    padding: 0;
-}
-
-pre a:hover {
-    color:white;
-}
-
-pre a {
-    color:#0ef;
-}
-
-/* Legend for the fieldset */
-legend {
-    font-family:Arial, Sans-erif;
-    font-weight:bold;
-    font-variant:small-caps;
-    font-size:350%;
-    color:#a3717d;
-    padding-bottom: 15px;
-    padding-top: 15px;
-}
-
-/* Fieldset for add/del command */
-fieldset {
-    border:dotted #333 2px;
-    layout: block;
-    margin-top:1%;
-    margin-right:0px;
-    margin-left:1%;
-    width:94%;
-}
-
-
-/*
-* Command lines
-*/
-
-/* Container around each input and input text-legend */
-div.input_container {
-    float:left;
-    padding:2px;
-    margin-top:5px;
-    margin-right:0px;
-    margin-left:0px;
-}
-
-/* The legend text for each input field */
-div.input_legend {
-    font-family:Arial, Sans-serif;
-    font-weight:bold;
-    font-size:30pt;
-    color:#505050;
-    margin-bottom: 6px;
-}
-
-/* Input submit button in forms*/
-input.input_submit {
-    font-family:Arial, Sans-erif;
-    font-weight:bold;
-    width: 7em;
-    margin-left: 10px;
-    font-size: 250%;
-    color:blue;
-}
-
-
-/* text between to and from time */
-span.be_hyphen {
-    font-weight:bold;
-    font-size:36pt;
-}
-#be_hyphen {
-    padding-bottom:0px;
-    padding-top:30px;
-}
-
-/* The submit button to delete a recording */
-input.input_submit#delrec {
-    color:darkred;
-}
-
-
-/* We want the station, start and title on the "new record" to start on a new row 
- * and we do this by clearing the left side of the corresponding input containers. */
-#id_title,
-#id_starthour,
-#id_rpttype,
-#id_seriesyn,
-#id_length_hour,
-#id_qtitle,
-#id_profile {
-    clear:left;
-}
-
-/* Submit buttons */
-#id_addrec,
-#delrec,
-#id_qaddrec {
-    clear:left;
-    margin-left:0;
-}
-
-div.input_container#delrec,
-div.input_container#id_qaddrec,
-div.input_container#id_addrec {
-    padding-top:10px;
-}
-
-
-/*
-* For Menu links at the top 
-*/
-
-/* Container around all command groups */
-div.cmd_menu_short {
-    width : 100%;
-    height: 2em;
-    margin:0;
-    padding: 0em;
-    padding-top: 1.0em;
-    padding-bottom: 0.7em;
-    background: #bbb;
-    border-bottom: solid gray 1px;
-}
-
-
-/* Container around all the links in the command group */
-div.cmdgrp_commands_short {
-    float : left;
-    margin-right:2em;
-}
-
-div.cmdgrp_commands_short a {
-    font-size:300%;
-    font-weight: bold;
-    font-family: Arial, Sans-serif;
-}
-
-/* To get rid of anchor underlines in comamnd menu */
-div.cmdgrp_commands_short a {
-    text-decoration:none;
-    color:blue;
-}
-
-/* To highlight the current selected command */
-div.cmdgrp_commands_short a:hover {
-    text-decoration:underline;
-    color:darkred;
-}
