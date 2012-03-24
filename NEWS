@@ -10,6 +10,7 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 v4.0.0
 ------
 User visible changes:
+    - New structure for mobile phone version of Web-UI
     - New structure for WEB-command menu
     - Added command "srt" Set Repeat title Mangling
     - Added command "srf" Set Repeat filename Mangling
