@@ -1,0 +1,615 @@
+/*----------------------------------------------------------------------------------------------
+   File: TVPVRD_METAL.CSS
+   Desc: CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
+
+         The overall layout is fairly simple and completely controlled by
+         floating <div>:s, the following ascii arts gives an overall 
+         illustration of the layout.
+
+            +-------+----------------+
+            |[MENU] | [COMMAND AREA] |
+            |       |                |
+            |       |                | 
+            |       |                |           
+            |       |                |
+            |       |                |
+            +-------+----------------+
+            |     [STATUS AREA]      |
+            +------------------------+
+
+        Each main area is define by a <div>. 
+        
+        - The menu is floated to the left
+        - The command area is floated to the right
+        - The status bar is cleared left and right to make it appear on its own
+          beneth both the menu and the command area.
+
+        Within the command area each fieldset is a "command module" that can be added
+        or removed and the overall window will resize accordingly. Each command module is
+        also a <div> on its own and not floated to make them stack vertically.
+
+        If the theme selector is enabled it will be on its own row just above the 
+        status row and aligned to the left (by floating left and clearing right)
+
+   SVN:  $Id$
+  ----------------------------------------------------------------------------------------------
+*/
+
+/* The body background */
+body {
+    background:#DEE3DA;
+}
+
+/* The overall main window */
+div#topwindow {
+    background-image:url("img/bg_metal.jpg");
+    background-repeat: repeat;
+    border: solid gray 2px;
+    -moz-box-shadow: 6px  6px  10px  #999; 
+    box-shadow: 6px  6px  10px  #999;     
+    margin:auto;
+    width:770px;    
+}
+
+/* Window title bar. Contains application name and a logout button */
+div#windowtitlebar {
+    float:none;
+    border-bottom: solid 1px white;
+    margin-bottom: 4px;
+    padding: 3px;
+    padding-bottom: 8px;
+    background: #404040;
+    background-image: -moz-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(100,100,100) 70%);
+    background-image: -webkit-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(100,100,100) 70%);
+    background-image: -ms-linear-gradient(bottom, rgb(5,5,1) 1%, rgb(100,100,100) 70%);
+    background-image: linear-gradient(bottom, rgb(5,5,1) 1%, rgb(100,100,100) 70%);
+    color:#ddd;
+    font-family:arial, sans-serif;
+    font-size:12pt;
+    height:1.4em;
+}
+
+/* Text content in title bar */
+div#windowtitlebar_cont {
+    float:left;
+    text-align:left;
+    font-weight:bold;
+    font-size:14pt;  
+}
+
+/* Format for title in title-bar */
+span#title-ver {
+    color: white;
+}
+
+/* Container for logout in the top right corner */
+div#logout_container {    
+    float:right;
+    color:red;
+    margin-top: 3px;
+    margin-right:4px;
+}
+
+/* Holder for menu list of commands */
+div#windowmenu {
+    float:left;
+    width:130px;
+    margin-left : 4px;
+    color:#000;
+    font-size:11pt;
+    font-family:Arial, Sans-serif;  
+}
+
+/* To get rid of anchor underlines in comamnd menu */
+div#windowmenu a {
+    text-decoration:none;
+    color:black;
+}
+
+/* To highlight the current selected command in menu */
+div#windowmenu a:hover {
+    color: #fff;
+}
+
+/* Encloses the command menu group title line */
+div.mnugrp_title_row {
+    color : navy;
+    margin-top:10px;
+    margin-bottom:2px;
+}
+
+/* Encloses the command menu group title short name */
+span.mnugrp_title {
+    font-weight: bold;
+}
+
+/* Encloses all menu in one menu group */
+div.mnugrp_commands {
+    padding-left:10px;
+    font-family: Arial, Sans-erif;
+    
+}
+
+/* Container around actual content area of the top window 
+ * This is normally to the right of the menu.
+*/
+div#windowcontent {
+    float:right;
+    width:610px;
+    margin-left:8px;
+}
+
+
+/* Container for the theme select. Normally at the left bottom (if enabled) */
+div#theme_select {
+    float:left;
+    margin-left:5px;
+    margin-right:10px;
+    padding:0;
+    margin-top:0px;
+}
+
+/* The actual legend for the theme selector */
+div#theme_select .input_legend {
+    float:left;
+    font-size:10pt;
+    font-weight:bold;
+    padding:0;
+    padding-right:3px;
+    font-family:Arial,sans-serif;
+}
+
+/* The select drop-down for theme selection */
+div#theme_select .input_select {
+    float:left;
+    font-size:9pt;
+    vertical-align: top;
+    font-family:Arial,sans-serif;
+    margin-top:-3px;
+}
+
+/* Status bar at bottom of top window*/
+div#statusbar {
+    clear:both;
+    height:22px;
+    margin-bottom:3px;
+}
+
+/* Build number in the right of the status bar */
+div#buildnbr {
+    float:right;
+    font-size:8pt;
+    font-style:italic;
+    font-weight: bold;
+    color:#333;
+    margin-right: 6px;
+    text-shadow: -1px -1px 1px #fff;
+    font-family:Arial,sans-serif;
+}
+
+div#run-mode-status {
+    float:left;
+    font-size:10pt;
+    font-weight: bold;
+    color:#444;
+    margin-left: 4px;
+    text-shadow: -1px -1px 1px #fff;
+    font-family:Arial,sans-serif;
+}
+
+div#run-mode-status:before {
+    content: "Run-mode: ";
+}
+
+/* Container around each command input/output module */
+div.cmdmodule {
+    margin-bottom:4px;
+    margin-top:4px;
+    margin-right:6px;
+    float:none;
+}
+
+/* Fieldset used around each command input/output module */
+fieldset {
+    border: 2px ridge #aaa;
+    margin-top:4px;
+    margin-right:0px;
+    margin-left:0px;
+    padding:0;
+    padding-left:3px;
+    padding-bottom:6px;
+}
+
+/* Legend used in each fieldset in the command input/output module */
+legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-variant:small-caps;
+    font-size:13pt;
+    padding-left:2px;
+    padding-right:4px;
+    color:#633;
+    text-shadow: 1px 1px 1px #999, -1px -1px  1px #eee;
+}
+
+/* Preformatted area in command output */
+pre {
+    margin:0;
+    padding:0;
+}
+pre a:hover {
+    color:white;
+}
+pre a {
+    color:#0ef;
+}
+
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_on {
+    float:left;
+    background-image:url("img/bgcmd_metal_on.jpg");
+    background-size: cover;
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#eee;
+    text-shadow:1px 1px 1px #999;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    overflow:hidden;
+    margin:0;  
+    border: solid 1px #777;
+}
+
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_off {
+    float:left;
+    background-image:url("img/bgcmd_metal_off.jpg");
+    background-size: cover;
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#bbb;
+    text-shadow:1px 1px 1px #999;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    overflow:hidden;
+    margin:0;  
+    border: solid 1px #777;
+    text-decoration:blink;
+}
+
+
+/* Subclass used with other main classes to indicate full or half width */
+/* Mainly used for displaying card information on ongoing activities */
+/* the size of the output and layout depends on how many cards are installed */
+.fullw {
+    width:99.5%;
+}
+.halfw {
+    width:49%;                
+}
+.margleft {
+    margin-left:10px;
+}
+.nofloat {
+    float:none;
+}
+
+div#nextrec { 
+    width:99%; 
+    height: 1.5em; 
+}
+
+div.ongoing_rec_entry {
+    float:left;
+    padding:0;
+}
+
+div.ongoing_transc_entry {
+
+}
+
+div.ongoing_rec_entry .caption {
+    float:left;
+    color:#6E5A2D;
+    font-size:10pt;
+    font-weight:bold;
+    font-family: serif;
+    text-shadow:-1px -1px 1px #fff;
+    padding-top:2px;
+}
+
+/* No float to let the LED fill available space */
+div.ongoing_rec_entry .displayasled_on,
+div.ongoing_rec_entry .displayasled_off {
+    float:none;
+    height:2.7em;
+}
+
+div.ongoing_transc_entry .displayasled_on, 
+div.ongoing_transc_entry .displayasled_off {
+    float:none;
+}
+
+/* More specific formatting unique for command output */
+#cmdoutput {
+    float:none;
+    overflow-y: scroll;
+    height:11em;
+    margin-right:6px;
+    margin-left:3px;
+    margin-bottom:3px;
+}
+
+/* Container around each input and input text-legend */
+div.input_container {
+    float:left;
+    padding:1px;
+    margin-top:1px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+/* The legend text for each input field */
+div.input_legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:9pt;
+    color:#404040;
+    margin:0;
+    text-shadow: 1px 1px  1px #888, -1px -1px 1px #eee;
+
+}
+
+/* Adjustmens for browser controls */
+input,
+select  {
+    border: solid gray 1px;
+    background:#C4CCC8;
+    font-family:Arial, Sans-serif;
+    font-weight:bold;
+    color:#0D572F;
+}
+
+input:focus,
+select:focus {
+    border:solid 1px #ff6633;
+    background:#fff;
+    color:#000;
+}
+
+/* Delete series y/n selector */
+select.input_select#id_seriesyn_select {
+    width:70px;
+}
+
+/* Repeat count selector */
+select.input_select#id_rptcount {
+    width:50px;
+}
+
+/* Format for selector with list of recordings to delete */
+select.input_select_code#id_delselect_select {
+    width : 350px;
+    overflow: hiden;
+}
+
+/* Input text controls */
+input.input_text {
+    width : 180px;
+}
+
+/* Input submit buttons in forms */
+input.input_submit {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:10pt;
+    margin-left: 10px;
+
+    background: #404040;
+    background-image: -moz-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);
+    background-image: -webkit-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);    
+    -moz-box-shadow: 3px  3px  6px  #555; 
+    box-shadow: 3px  3px  6px  #555;   
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;  
+
+    border: solid 1px #333;
+    text-shadow:0 0 5px black;    
+    color:#ddd;
+    height:25px;
+    width:80px;
+    margin-top:0px;
+}
+
+/* Indicate to user that button is about to receive input */
+input.input_submit:hover {
+    cursor:pointer;
+    ursor:hand;
+    text-shadow:0 0 0 #000;    
+    color:#fff;
+}
+
+/* Give visual feedback that the button has been pressed */
+input.input_submit:active {
+    -moz-box-shadow: 0px  0px  0px  #999; 
+    box-shadow: 0px  0px  0px  #999;    
+    border: solid 1px #ddd;
+    font-size:9pt;
+    cursor:pointer;
+    cursor:hand;
+}
+
+/* Adjustment for submit buttons to make them right aligned */
+div.input_container#delrec,
+div.input_container#id_addrec,
+div.input_container#id_qaddrec {
+    padding-top:12px;
+    float:right;
+    margin-right:10px;
+}
+
+/* Text between begin and end time */
+div#be_hyphen {
+    font-weight:bold;
+    font-size:14pt;
+    padding-bottom:0px;
+    padding-top:14px;
+    text-shadow: 1px 1px 1px #777, -1px -1px 1px #fff;
+}
+
+/* Which input fields should start on a new line */
+div.input_container#id_start {
+    clear:left;
+}
+
+div.ongoing_rec_stop_disabled ,
+div.ongoing_transc_stop_disabled  {
+    float:right;
+    font-weight:bold;
+    font-size:9pt;
+    font-family: Arial, Sans-serif;
+    margin:0;
+    margin-top:3px;
+    border: solid 1px #999;
+    width:50px;
+    background:#aaa;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 3px;
+    padding-top: 0;
+    text-align:center;
+    color: #777;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;    
+}
+
+div.ongoing_rec_stop,
+div.ongoing_transc_stop {
+    float:right;
+    font-weight:bold;
+    font-size:9pt;
+    font-family: Arial, Sans-serif;
+    margin:0;
+    margin-top:3px;
+    border: solid 1px #777;
+    width:50px;
+
+    background: #ed904e;
+    background-image: -moz-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);
+    background-image: -webkit-linear-gradient(bottom, rgb(125,79,46) 4%, rgb(237,144,78) 60%);    
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;      
+    -moz-box-shadow: 2px  2px  3px  #888; 
+    box-shadow: 2px  2px  3px  #888;  
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 3px;
+    text-align:center;
+}
+
+div.ongoing_rec_stop a,
+div.ongoing_transc_stop a  {
+    text-decoration: none;
+    color:#ddd;
+}
+
+div.ongoing_rec_stop a:hover,
+div.ongoing_transc_stop a:hover {
+    color:#fff;
+}
+
+div.ongoing_rec_stop a:active,
+div.ongoing_transc_stop a:active {
+
+}
+
+/* Container for log-in box */
+div#login_window {
+    border: solid gray 1px;
+    bottom:0;
+    left:0;
+    right:0;
+    width:330px;
+    background:#898989;
+    padding-top:0px;
+    padding-bottom:10px;
+    margin:auto;
+    -moz-box-shadow: 5px  5px  7px  #666; 
+    box-shadow: 5px  5px  7px  #666; 
+    margin-bottom: 200px;
+    margin-top: 80px;
+}
+
+/* Title of login box */
+div#login_title {
+    padding:3px;
+    padding-bottom:5px;
+    color:white;
+    background:#404040;
+    background-image: -moz-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);
+    background-image: -webkit-linear-gradient(bottom, rgb(43,51,38) 1%, rgb(84,99,73) 50%);    
+    font-weight:bold;
+    font-family:Arial, Sans-serif;
+    font-size:12pt;
+    color:white;
+    margin-bottom:10px;
+    text-align:center;
+    border-bottom:solid 1px #bbb;
+}
+
+div#login_window  div.input_container {
+    float:none;
+    margin-left:10px;
+}
+
+/* Adjustment of password field */
+div.input_container#id_loginpwd {
+    margin-top:10px;
+    clear:both;
+}
+
+div.input_container#id_loginuser div.input_legend,
+div.input_container#id_loginpwd div.input_legend {
+    float:left;
+    margin-top:2px;
+    width: 8em;
+    color:#ddd;
+    font-weight:bold;
+    font-size:11pt;
+    text-shadow: 1px 1px  1px #555 ;
+}
+
+/* Submit button container for login */
+div.input_container#id_submitlogin {
+    margin-top:1em;
+    text-align:center;
+}
+
+input.input_submit#id_submitlogin_submit {
+    width:10em;
+    padding-bottom:10px;
+    -moz-box-shadow: 0px  0px  0px  #d77; 
+    box-shadow: 0px  0px  0px  #d77;   
+    font-size:10pt; 
+}
+input.input_submit:hover#id_submitlogin_submit {
+    width:10em;
+    padding-bottom:10px;
+    -moz-box-shadow: 0px  0px  6px  #e88; 
+    box-shadow: 0px  0px  6px  #e88;    
+    border:solid black 1px;
+    font-size:10pt;
+}
+
+
+
+/* EOF CSS Style for tvpvrd */
+
