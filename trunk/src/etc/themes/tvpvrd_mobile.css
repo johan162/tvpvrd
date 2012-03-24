@@ -32,7 +32,7 @@ div#topwindow {
     border: solid gray 2px; 
     margin-left:auto;
     margin-right:auto;
-    width:300px;   
+    width:800px;   
     display: block; 
 }
 
@@ -46,7 +46,7 @@ div#windowtitlebar {
     background: #404040;
     color:#ddd;
     font-family:arial, sans-serif;
-    font-size:16pt;
+    font-size:32pt;
     height:1em;
 }
 
@@ -55,7 +55,7 @@ div#windowtitlebar_cont {
     float:left;
     text-align:left;
     font-weight:bold;
-    font-size:16pt;  
+    font-size:32pt;  
 }
 
 /* Format for title in title-bar */
@@ -83,8 +83,8 @@ div#cmd_menu {
     clear:both;
     margin:0;
     padding:0;
-    width: 296px;
-    margin-top: 2px;
+    width: 99%;
+    margin-top: 40px;
 }
 
 div.cmd_grp {
@@ -92,7 +92,7 @@ div.cmd_grp {
     clear:both;
     margin-left: 12px;
     margin-right: 2px;
-    margin-bottom:5px;
+    margin-bottom:25px;
 }
 
 div.cmd_item {
@@ -101,9 +101,9 @@ div.cmd_item {
     padding-right: 5px;
     padding-bottom: 2px;
     margin-left: 1px;
-    margin-right: 5px;
+    margin-right: 20px;
     border: solid 1px #000;
-    width: 50px;
+    width: 150px;
     margin-bottom:4px;
 
     background: #293B29; 
@@ -118,7 +118,7 @@ div.cmd_item {
     
     font-family: arial, sans-serif;
     font-weight: bold;
-    font-size: 10pt;
+    font-size: 28pt;
     color: #ddd; 
     text-align: center;
 }
@@ -156,7 +156,7 @@ div#statusbar {
 
 div#run-mode-status {
     float:left;
-    font-size:10pt;
+    font-size:20pt;
     font-weight: bold;
     color:#444;
     margin-left: 4px;
@@ -192,7 +192,7 @@ div.cmdmodule {
 fieldset {
     border: dotted 1px #888;
     margin-top:4px;
-    margin-right:0px;
+    margin-right:5px;
     margin-left:2px;
     padding:0;
     padding-left:3px;
@@ -205,10 +205,10 @@ legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-variant:small-caps;
-    font-size:13pt;
+    font-size:44pt;
     padding-left:2px;
     padding-right:4px;
-    color:#222;
+    color:#922;
 }
 
 /* Preformatted area in command output */
@@ -231,7 +231,7 @@ pre a {
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
-    font-size:9pt;
+    font-size:20pt;
     font-weight:bold;
     color:#113b12;
     text-shadow:1px 1px 1px #999;
@@ -250,7 +250,7 @@ pre a {
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
-    font-size:10pt;
+    font-size:20pt;
     font-weight:bold;
     color:#444;
     overflow:hidden;
@@ -283,10 +283,10 @@ pre a {
     clear:both;
     overflow-y: scroll;
     overflow-x: scroll;
-    height:140px;
+    height:280px;
     margin-right:6px;
     margin-left:3px;
-    margin-bottom:3px;
+    margin-bottom:10px;
     border:solid 1px #bbb;
 }
 
@@ -294,7 +294,7 @@ pre a {
 div.input_container {
     float:left;
     padding:1px;
-    margin-top:1px;
+    margin-top:40px;
     margin-right:0px;
     margin-left:0px;
 }
@@ -303,7 +303,7 @@ div.input_container {
 div.input_legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
-    font-size:9pt;
+    font-size:30pt;
     color:#404040;
     margin:0;
 }
@@ -315,6 +315,7 @@ select  {
     background: #fff;
     font-family:Arial, Sans-serif;
     font-weight:bold;
+    font-size:40pt;
     color:#660000;
 }
 
@@ -326,31 +327,30 @@ select:focus {
 }
 
 /* Repeat count selector */
-select.input_select#id_rptcount {
-    width:50px;
+select.input_select#id_rptcount_select {
+    width:140px;
 }
 
 /* Input text controls */
 input.input_text {
-    width : 100px;
+    width : 200px;
 }
 
 /* Input submit buttons in forms */
 input.input_submit {
     font-family:Arial, Sans-erif;
     font-weight:bold;
-    font-size:10pt;
+    font-size:40pt;
     margin-left: 10px;
-    margin-bottom: 2px;
-    background: #404040;
+    margin-bottom: 5px;
     border: solid 1px #333;
     color:#ddd;
-    height:25px;
-    width:70px;
-    margin-top:0px;
-    padding-bottom:2px;
+    height:66px;
+    width:180px;
+    margin-top:40px;
+    padding-bottom:14px;
 
-    background: #595959; 
+    background: #c95959; 
     background-image: -moz-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
     background-image: -webkit-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
     -moz-box-shadow: 3px 3px 6px #111; 
@@ -370,7 +370,7 @@ input.input_submit:hover {
 /* Give visual feedback that the button has been pressed */
 input.input_submit:active {
     border: solid 1px #ddd;
-    font-size:9pt;
+    font-size:24pt;
     cursor:pointer;
     cursor:hand;
     -moz-box-shadow: 0px 0px 0px #000; 
@@ -393,14 +393,24 @@ div#be_hyphen {
 }
 
 /* Which input fields shoud start on a new line */
-#id_starthour,
+#id_start,
 #id_rpttype {
     float:left;
-    clear:both;
+    clear:left;
 }
 
+#id_start {
+    margin-right:50px;
+}
+
+#id_endhour {
+    margin-left:50px;
+}
+
+
+
 .input_container#id_title input {
-    width: 150px;
+    width: 450px;
 }
 
 
@@ -431,7 +441,7 @@ div#login_title {
     background:#444;
     font-weight:bold;
     font-family:Arial, Sans-serif;
-    font-size:12pt;
+    font-size:24pt;
     color:#fff;
     margin-bottom:10px;
     text-align:center;
@@ -457,7 +467,7 @@ div.input_container#id_loginpwd div.input_legend {
     width: 8em;
     color:#111;
     font-weight:bold;
-    font-size:11pt;
+    font-size:22pt;
     text-shadow: -1px -1px 1px #fff;
 }
 
@@ -468,7 +478,7 @@ div.input_container#id_submitlogin {
 
 input.input_submit#id_submitlogin_submit {
     padding-bottom:10px;
-    font-size:10pt; 
+    font-size:20pt; 
     width:100px;
     margin-left: auto;
     margin-right: auto;
