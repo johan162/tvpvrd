@@ -44,8 +44,8 @@ body {
 div#topwindow {
     background: #575757;
     border: solid 2px #222;
-    -moz-box-shadow: 6px  6px  10px  #777; 
-    box-shadow: 6px  6px  10px  #777;     
+    -moz-box-shadow: 8px  8px  10px  #777; 
+    box-shadow: 8px  8px  10px  #777;     
     margin:auto;
     width:770px;    
 }
