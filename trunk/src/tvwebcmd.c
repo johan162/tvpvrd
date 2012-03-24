@@ -1132,7 +1132,11 @@ web_cmd_add(int sockd) {
     
     html_element_select(sockd, "Start:", "start_hour", "18", hour_list, n_hour, "id_starthour");
     html_element_select(sockd, "&nbsp;", "start_min", NULL, min_list_start, n_min_start, NULL);
+    
+/*
     _writef(sockd, "<div class=\"input_container\" id=\"be_hyphen\"><span class=\"be_hyphen\"> &rarr; </span></div>");
+*/
+    
     html_element_select(sockd, "End:", "end_hour", "18", hour_list, n_hour, "id_endhour");
     html_element_select(sockd, "&nbsp;", "end_min", "59", min_list_end, n_min_end, NULL);
 
