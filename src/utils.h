@@ -184,11 +184,33 @@ set_cloexec_flag(int desc, int value);
 int
 getwsetsize(int pid, int *size, char *unit, int *threads);
 
+/**
+ * URL encode into a allocated buffer
+ * Note: Calling function is responsible to free returned string
+ * @param str
+ * @return 
+ */
 char *
 url_encode(char *str);
 
+/**
+ * URL decode a into a allocated buffer
+ * Note: Calling function is responsible to free returned string
+ * @param str
+ * @return 
+ */
 char *
 url_decode(char *str);
+
+/**
+ * URL decode a into a given buffer.
+ * @param decode
+ * @param maxlen
+ * @param str
+ * @return 
+ */
+int 
+url_decode_buff(char *decode, size_t maxlen, char *str);
 
 char *
 html_encode(char *str);
