@@ -469,6 +469,42 @@ char *url_decode(char *str) {
   return buf;
 }
 
+
+/**
+ * URL decode a into a buffer.
+ * @param decode
+ * @param maxlen
+ * @param str
+ * @return 
+ */
+int 
+url_decode_buff(char *decode, size_t maxlen, char *str) {
+  if( str == (char *)NULL ) {
+      return -1;
+  }
+  char *pstr = str;
+  while (maxlen > 1 && *pstr) {
+    if (*pstr == '%') {
+      if (pstr[1] && pstr[2]) {
+        *decode++ = from_hex(pstr[1]) << 4 | from_hex(pstr[2]);
+        pstr += 2;
+      }
+    } else if (*pstr == '+') {
+      *decode++ = ' ';
+    } else {
+      *decode++ = *pstr;
+    }
+    pstr++;
+    maxlen--;
+  }
+  *decode = '\0';
+  if( 1 == maxlen && *pstr ) {
+      return -1;
+  } else {   
+        return 0;
+  }
+}
+
 /*
  * HTML encode a buffer.
  * Note: Calling function is responsible to free returned string
