@@ -197,6 +197,39 @@ xstricmp(const char *s1, const char *s2) {
     return ret;
 }
 
+/**
+ * Exatrct substring to buffer
+ * @param to     Buffer to write the extracted string to
+ * @param maxlen Maximum length of buffer
+ * @param from   String to extract from
+ * @param s      Start position
+ * @param e      End position
+ * @return 0 on success, -1 on failure
+ */
+int
+xsubstr(char *to, size_t maxlen, char *from,size_t s,size_t e) {
+    printf("f=%s, s=%d -> e=%d\n",from,s,e);
+    *to = '\0';   
+    
+    if( (size_t)-1 == e ) 
+        e = strlen(from)-1;
+    
+    if( e < s )
+        return -1;
+   
+    const size_t len = e-s+1;       
+    if( len >= maxlen )
+        return -1;
+             
+    size_t i=0;
+    while( i < len ) {
+        to[i++] = from[s++];
+    }
+    to[i]='\0';
+    return 0;
+}
+
+
 /* MB string length 
  */
 size_t

@@ -92,9 +92,22 @@ xstricmp(const char *s1, const char *s2);
 
 /*
  * Utility function. Convert string of maximum 4095 characters to lower case
+ * @param s 
  */
 void
 xstrtolower(char *s);
+
+/**
+ * Extract substring to buffer
+ * @param to     Buffer to write the extracted string to
+ * @param maxlen Maximum length of buffer
+ * @param from   String to extract from
+ * @param s      Start position
+ * @param e      End position
+ * @return 0 on success, -1 on failure
+ */
+int
+xsubstr(char *to, size_t maxlen, char *from,size_t s,size_t e);
 
 /**
  * MB String length
