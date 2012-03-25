@@ -208,7 +208,6 @@ xstricmp(const char *s1, const char *s2) {
  */
 int
 xsubstr(char *to, size_t maxlen, char *from,size_t s,size_t e) {
-    printf("f=%s, s=%d -> e=%d\n",from,s,e);
     *to = '\0';   
     
     if( (size_t)-1 == e ) 
