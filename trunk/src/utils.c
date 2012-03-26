@@ -86,7 +86,7 @@ _chk_calloc(size_t num, size_t size) {
     void *ptr = calloc(num, size);
     if( ptr == NULL ) {
         logmsg(LOG_ERR,"FATAL: Cannot allocate memory. Terminating.");
-        exit(1);
+        exit(EXIT_FAILURE);
     } else {
         return ptr;
     }
@@ -579,6 +579,35 @@ get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t list
     }
     return -1;
 }
+
+int
+get_assoc_value_s(struct keypair_t kv[],size_t maxlen,char *key,char **v) {
+    size_t i=0;
+    while( i < maxlen && strcmp(kv[i].key,key) ) 
+        i++;
+    if( i==maxlen )
+        return -1;
+    else {
+        *v = kv[i].val;
+        return 0;
+    }
+}
+
+
+int
+get_assoc_value_i(struct keypair_t kv[],size_t maxlen,char *key,int *v) {
+    size_t i=0;
+    while( i < maxlen && strcmp(kv[i].key,key) ) 
+        i++;
+    if( i==maxlen )
+        return -1;
+    else {
+        *v = xatoi(kv[i].val);
+        return 0;
+    }
+}
+
+
 
 /**
  * Dump ascii values in string together with the string

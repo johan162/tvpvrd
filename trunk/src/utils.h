@@ -38,6 +38,10 @@ extern "C" {
 
 extern int htmlencode_flag;
 
+struct keypair_t {
+    char key[255];
+    char val[255];
+};
 
 int
 _x_dbg_close(int fd);
@@ -231,6 +235,27 @@ esc_percentsign(char *str);
 int
 get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t listlen);
 
+/**
+ * Get associuate value for key/value pair as string
+ * @param kv
+ * @param maxlen
+ * @param key
+ * @param v
+ * @return 
+ */
+int
+get_assoc_value_s(struct keypair_t kv[],size_t maxlen,char *key,char **v);
+
+/**
+ * Get associuate value for key/value pair as integer
+ * @param kv
+ * @param maxlen
+ * @param key
+ * @param v
+ * @return 
+ */
+int
+get_assoc_value_i(struct keypair_t kv[],size_t maxlen,char *key,int *v);
 
 /**
  * Escape doublequotes in a string
