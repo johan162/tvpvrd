@@ -460,6 +460,7 @@ insertrec(unsigned video, struct recording_entry * entry) {
     char *bname, *dname;
     char bnamecore[256];
     char tmpbuff[512], tmpbuff2[512], bname_buffer[256], dname_buffer[256];
+    time_t ts_start, ts_end;
     int sy, sm, sd, sh, smin, ssec;
     int ey, em, ed, eh, emin, esec;            
     
@@ -469,9 +470,6 @@ insertrec(unsigned video, struct recording_entry * entry) {
         return -1;
     }
 
-    fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
-    fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);  
-    
     if (entry->recurrence) {
 
         // Make sure there is enough room on this video to store
@@ -493,6 +491,11 @@ insertrec(unsigned video, struct recording_entry * entry) {
 
         (void)adjust_initital_repeat_date(&entry->ts_start, &entry->ts_end, entry->recurrence_type);
 
+        fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
+        fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);
+        ts_start = entry->ts_start;
+        ts_end = entry->ts_end;
+
         assert(entry->recurrence_num > 0);
 
         for (size_t i=0; i < entry->recurrence_num; i++) {
@@ -504,7 +507,7 @@ insertrec(unsigned video, struct recording_entry * entry) {
                     dname, bnamecore, entry->recurrence_mangling_prefix, sy, sm, sd, filetype);
 
             newentry = newrec(tmpbuff, tmpbuff2,
-                    entry->ts_start, entry->ts_end,
+                    ts_start, ts_end,
                     entry->channel, 1,
                     entry->recurrence_type,
                     entry->recurrence_num - i,
@@ -525,14 +528,12 @@ insertrec(unsigned video, struct recording_entry * entry) {
 
             (void)_insertrec(video, newentry);
 
-            time_t ts_start = entry->ts_start;
-            time_t ts_end = entry->ts_end;
-            
             // Find out the new date for the next recording in sequence
             if( -1 == increcdays(entry->recurrence_type,
                     &ts_start, &ts_end,
                     &sy, &sm, &sd, &sh, &smin, &ssec,
                     &ey, &em, &ed, &eh, &emin, &esec) )  {
+                logmsg(LOG_DEBUG,"increcdays(): failed!");
                 return 0;
             }
 

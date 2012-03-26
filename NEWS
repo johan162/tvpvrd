@@ -12,6 +12,8 @@ User visible changes:
     - Theme for mobile phone now uses much larger fonts
 
 Bugs fixed:
+    - Critical error that repeated recordings had dates/times not updated due to
+      brainfart when refactoring.      
     - Could call an unnecessary PCRE memory free in 'o' command
 
 Internal changes:
