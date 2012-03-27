@@ -3,7 +3,7 @@
 # Automake build script
 # 
 # ===============================================================================
-AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -rdynamic -ggdb -pthread -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wshadow -Wformat=2 -fstack-protector `xml2-config --cflags`  -D_FORTIFY_SOURCE=2
+AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -rdynamic -ggdb -pthread -pedantic -Wall -Werror -Werror=format -Wpointer-arith -Wstrict-prototypes -Wextra -Wshadow -Wformat=2 -fstack-protector `xml2-config --cflags`  -D_FORTIFY_SOURCE=2
 bin_PROGRAMS = tvpvrd
 
 BUILDNBR_FILE=buildnumber.txt

@@ -42,6 +42,7 @@
 #include <sys/param.h> // Needed to get MIN()/MAX()
 #include <time.h>
 #include <pthread.h>
+#include <sys/stat.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"

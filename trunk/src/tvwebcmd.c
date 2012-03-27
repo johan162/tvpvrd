@@ -994,7 +994,7 @@ web_cmd_ongoing(int sockd) {
     char buffer[255],caption_buffer[255];
     for (size_t i = 0; i < max_video; i++) {
         if (-1 == video_get_cardinfo(i, FALSE, buffer, sizeof (buffer))) {
-            snprintf(caption_buffer, sizeof (caption_buffer), "Card %d", i + 1);
+            snprintf(caption_buffer, sizeof (caption_buffer), "Card %zu", i + 1);
         } else {
             snprintf(caption_buffer, sizeof (caption_buffer), "%s.", buffer);
         }
