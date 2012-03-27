@@ -6,6 +6,18 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.0.2
+------
+User visible changes:
+    - None
+
+Bugs fixed:
+    - Fixed build issue on x64 systems due to warning in printf() format for size_t
+
+Internal changes:
+    - None
+
+
 v4.0.1
 ------
 User visible changes:

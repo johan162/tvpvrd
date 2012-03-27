@@ -1210,7 +1210,7 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
     } else if ( style == 3 ) {
         // Used for 'lh' command (list all)
         snprintf(buffer, bufflen, 
-                "%03d "
+                "%03zu "
                 "%s %s %02d "
                 "%02d:%02d "
                 "%02d:%02d "
