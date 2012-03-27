@@ -1,0 +1,59 @@
+#!/bin/sh
+# 
+# File:   posttransc_processing.sh.template
+# Desc:   Template for external post transcoding process script.
+#         This script will be called just after the recording
+#         transcoding is sucessfully finished.
+#         There are two arguments to this script:
+#         -f <filename>   Full filename of transcoded video
+#         -l <size>       Length in bytes of recording
+# SVN:    $Id$
+#
+# Note: This is just a TEMPLATE that must be modified to do
+# whatever post processing you need to do after a of the file
+# is done. For example, upload to a specific external WEB-site
+#-----------------------------------------------------------
+
+
+#-----------------------------------------------------------
+# Get options
+# -f <filename> Filename to be processed
+# -l <size>     Size of file in bytes
+# Note: The daemon will supply both arguments to the script
+#-----------------------------------------------------------
+mpeg4file=
+length=
+while getopts f:l: o
+do  case "$o" in
+    f)      mpeg4file="$OPTARG"
+            ;;
+    l)      size="$OPTARG"
+            ;;
+    [?])    printf >&2 "Usage; $0 -f file -l size\n"
+            exit 1
+            ;;
+    esac
+done
+
+if test -z "$mpeg4file"; then
+    exit 1
+fi
+
+#-----------------------------------------------------------
+# Script to process the file with the full name stored in
+# "$mpeg4file" and with size (in bytes) stored in "$size" .
+# If the process ends correctly the script should end with
+# "exit 0" and if there is a problem it should end with
+# "exit 1"
+#-----------------------------------------------------------
+
+# .... Your code  here .........
+
+
+# Normal exit from the script
+exit 0
+
+
+
+
+
