@@ -69,7 +69,7 @@
 #include "stats.h"
 #include "transc.h"
 #include "transcprofile.h"
-#include "tvwebcmd.h"
+#include "tvwebui.h"
 #include "build.h"
 #include "datetimeutil.h"
 #include "xstr.h"

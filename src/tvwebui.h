@@ -35,9 +35,6 @@ void
 web_commandlist(int sockd);
 
 void
-web_process_httprequest(const int socket, char *req);
-
-void
 web_cmd_add(int sockd);
 
 void
@@ -45,9 +42,6 @@ web_cmd_del(int sockd);
 
 void
 web_cmd_qadd(int sockd);
-
-int
-read_cssfile(char *buff, int maxlen, char *css_filename, time_t modifiedSince);
 
 void
 web_cmd_ongoingtransc(int sockd);
@@ -60,20 +54,6 @@ web_cmd_ongoing(int sockd);
 
 void
 web_cmd_next(int sockd);
-
-/**
- * This test function is called when the server receives a new conection and
- * determines if the first command is a GET string. This is then an indication
- * that this is a WEB-browser calling us. The command given is stored in the
- * buffer posinted to by the second argument.
- * @param buffer
- * @param cmd
- * @param maxlen
- * @return 1 on succesfull command parsing, 0 otherwise
- */
-int
-webconnection(const char *buffer, char *cmd, int maxlen);
-
 
 void
 web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile);

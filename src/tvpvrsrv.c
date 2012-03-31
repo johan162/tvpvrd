@@ -101,7 +101,7 @@
 #include "stats.h"
 #include "transc.h"
 #include "transcprofile.h"
-#include "tvwebcmd.h"
+#include "tvwebui.h"
 #include "lockfile.h"
 #include "build.h"
 #include "pcretvmalloc.h"
@@ -113,6 +113,7 @@
 #include "vcard.h"
 #include "tvplog.h"
 #include "tvhistory.h"
+#include "httpreq.h"
 
 /*
  * This structure mirrors the one found in /usr/include/asm/ucontext.h and is
