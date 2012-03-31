@@ -14,13 +14,13 @@ SUBDIRS += shell
 #endif
 
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c \
-vctrl.c tvwebcmd.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c \
+vctrl.c tvwebui.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c \
 datetimeutil.c xstr.c rkey.c vcard.c tvplog.c tvhistory.c listhtml.c transcprofile.c \
-futils.c \
+futils.c httpreq.c \
 datetimeutil.h pcretvmalloc.h freqmap.h  recs.h  stats.h  transc.h  tvcmd.h rkey.h \
-tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebcmd.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
+tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebui.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
 mailutil.h xstr.h vcard.h tvplog.h tvhistory.h listhtml.h transcprofile.h \
-futils.h
+futils.h httpreq.h
 
 tvpvrd_LDFLAGS =  `xml2-config --libs`
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"
@@ -40,6 +40,7 @@ etc/themes/tvpvrd_plain.css etc/themes/tvpvrd_metal.css etc/themes/tvpvrd_hq.css
 etc/img/logout_button.jpg \
 etc/img/bg_metal.jpg etc/img/bgcmd_metal_off.jpg etc/img/bgcmd_metal_on.jpg \
 etc/img/bgtbar_deep.jpeg \
+etc/img/favicon.ico \
 etc/templates/postrec_processing.sh.template \
 etc/templates/posttransc_processing.sh.template \
 etc/templates/shutdown.sh.template \
@@ -62,7 +63,10 @@ install-data-local:
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/xsl
 	install -D -m 755 $(abs_srcdir)/etc/templates/* ${DESTDIR}${sysconfdir}/tvpvrd/shellscript/
 	install -D -m 644 $(abs_srcdir)/etc/themes/* ${DESTDIR}${sysconfdir}/tvpvrd/www/
-	install -D -m 644 $(abs_srcdir)/etc/img/* ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
+	install -D -m 644 $(abs_srcdir)/etc/img/*.png ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
+	install -D -m 644 $(abs_srcdir)/etc/img/*.jpg ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
+	install -D -m 644 $(abs_srcdir)/etc/img/*.gif ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
+	install -D -m 644 $(abs_srcdir)/etc/img/favicon.ico ${DESTDIR}${sysconfdir}/tvpvrd/www/
 	install -D -m 644 $(abs_srcdir)/etc/mail_templates/* ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates/
 	install -D -m 644 $(abs_srcdir)/etc/xsl/* ${DESTDIR}${sysconfdir}/tvpvrd/xsl/
 

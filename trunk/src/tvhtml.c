@@ -42,7 +42,7 @@
 #include "recs.h"
 #include "tvcmd.h"
 #include "tvhtml.h"
-#include "tvwebcmd.h"
+#include "tvwebui.h"
 #include "build.h"
 #include "tvplog.h"
 
