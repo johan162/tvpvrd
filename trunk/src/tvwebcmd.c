@@ -73,9 +73,9 @@
  * corresponding tvpvrd command. For example, running on the localserver the following
  * command will return a list of all upcoming recordings to the browser
  *
- * http://localhost:9300/cmd?c=l
+ * http://localhost:9301/cmd?c=l
  *
- * The above URL assumes that the server listens on port 9300 as is the default in
+ * The above URL assumes that the server listens on port 9301 as is the default in
  * the distribution. If you change the port the URL has to be udpated accordingly.
  *
  * The main difference from the terminal connection is that the connection will be
@@ -175,104 +175,6 @@ validate_cookie(char *cookie) {
 
 }
 
-/**
- * Validate that the user is logged in before doing anything else when the
- * WEB login is enabled. This function is called before any other WEB commands
- * are executed.
- * @param buffer
- * @param cookie
- * @param maxlen
- * @return
- */
-int
-user_loggedin(char *buffer, char *cookie, int maxlen) {
-    char **field = (void *) NULL;
-    int ret;
-
-    *cookie = '\0';
-
-    if (!require_web_password) {
-        // Always succeed
-        return 1;
-    }
-
-    if ((ret = matchcmd_ml("^Cookie:.*tvpvrd=" _PR_ANP, buffer, &field)) > 1) {
-
-#ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG, "Cookie found in HTTP Header: %s",buffer);
-#endif
-
-        char *tmpbuff = url_decode(field[1]);
-        if( tmpbuff ) {
-            logmsg(LOG_DEBUG, "Received cookie: '%s' decoded as: '%s'", field[1], tmpbuff);
-            int sucess=0;
-            if (validate_cookie(tmpbuff)) {
-
-                logmsg(LOG_DEBUG, "Received cookie validated correctly.");
-                strncpy(cookie, tmpbuff, maxlen);
-                cookie[maxlen - 1] = '\0';
-                sucess = 1;
-
-            } else {
-
-                logmsg(LOG_DEBUG, "Received cookie is not the valid login cookie.");
-
-            }
-            free(tmpbuff);
-            matchcmd_free(&field);
-            return sucess;
-        } else {
-            matchcmd_free(&field);
-            return 0;
-        }
-
-    } else {
-#ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header: %s",buffer);
-#else
-        logmsg(LOG_DEBUG, "No cookie found to validate in HTTP Header.");
-#endif
-        return 0;
-
-    }
-}
-
-/* 
- * Try to determine if the connection is from a mobile phone by examine the headers.
- * If it is a mobile we use a different set of CSS formatting to make it more
- * suitable for a mobiles smaller screen.
- */
-int
-is_mobile_connection(char *buffer) {
-
-    if( !use_mobile )
-        return FALSE;
-    
-    char **field = (void *) NULL;
-    if (matchcmd("X-Wap-Profile:", buffer, &field) > 0) {
-
-        matchcmd_free(&field);
-        return TRUE;
-    }
-
-    // Extract User-Agent String
-    if (matchcmd("User-Agent: (.+)", buffer, &field) > 0) {
-
-#ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG, "Found User-Agent: %s", field[1]);
-#endif
-        char *header = strdup(field[1]);
-        matchcmd_free(&field);
-
-        if (matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung|blac|moto|doco|java|symb)", header, &field) > 0) {
-            matchcmd_free(&field);
-            return TRUE;
-        }
-
-    }
-    
-    return FALSE;
-}
 
 /**
  * Read a file from our "WEB-root" directory 
@@ -487,6 +389,38 @@ struct http_reqheaders {
 };
 
 
+/* 
+ * Try to determine if the connection is from a mobile phone by examine the headers.
+ * If it is a mobile we use a different set of CSS formatting to make it more
+ * suitable for a mobiles smaller screen.
+ */
+int
+is_mobile_connection(struct http_reqheaders *headers) {
+
+    if( !use_mobile )
+        return FALSE;
+
+    char *wap;
+    if( 0==get_assoc_value_s(headers->headers,headers->num,"X-Wap-Profile",&wap) ) {
+        return TRUE;
+    }
+    
+    char **field = (void *) NULL;
+    if (matchcmd("(mobile|Nokia|HTC|Android|SonyEricsson|LG|Samsung|blac|moto|doco|java|symb)", headers->UserAgent, &field) > 0) {
+        matchcmd_free(&field);
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+/**
+ * Parse the HTTP request from the browser and split it up in the header fields
+ * supplied.
+ * @param req
+ * @param headers
+ * @return 
+ */
 int
 web_parse_httpreq(char *req, struct http_reqheaders *headers) {
     // We extract the following possible fields from the HTTP request header
@@ -547,7 +481,8 @@ web_parse_httpreq(char *req, struct http_reqheaders *headers) {
     get_assoc_value_s(headers->headers,headers->num,"Post",&headers->Post);
     get_assoc_value_s(headers->headers,headers->num,"Host",&headers->Host);
     
-    headers->ismobile = FALSE;
+    // Check if this is an access from a mobile phone by checking the user-agent string    
+    headers->ismobile = is_mobile_connection(headers);
     
 _httpreq_freeret:
     free(row);
@@ -948,12 +883,12 @@ web_validate_login(struct http_reqheaders *headers, char *login_token) {
     // 2. If not, check if the client just logged in
     
     char cookie[80];
+    *login_token = '\0';
     if( 0 == web_get_cookie("tvpvrd",cookie,sizeof(cookie),headers) ) {
         if( validate_cookie(cookie) ) {
             strncpy(login_token,cookie,sizeof(cookie)-1);
             return 0; 
         }
-        else *login_token = '\0';
     }
     return -1;
 }
@@ -1046,6 +981,14 @@ web_dispatch_httpget_staticfile(const int socket, char *path, char *filename, st
     }
 }
 
+
+/**
+ * Parse the HTTP request from the browser. We start by splitting the header 
+ * @param socket
+ * @param headers
+ * @param login_token
+ * @return 
+ */
 int
 web_exec_httpget(const int socket,struct http_reqheaders *headers,char *login_token) {
     struct keypair_t *args;
@@ -1062,8 +1005,10 @@ web_exec_httpget(const int socket,struct http_reqheaders *headers,char *login_to
         goto _freeret;
     }
     
+#ifdef EXTRA_WEB_DEBUG    
     logmsg(LOG_DEBUG,"File=%s, GET=%s, numargs=%zu, login_token=%s",file,headers->Get,numargs,login_token);
-    
+#endif
+       
     if( *login_token ) {
         // First try if this is any of the predefined commands
         if( -1==web_dispatch_httpget_cmd(socket,dir,file,args,numargs,headers,login_token) ) {
@@ -1082,10 +1027,11 @@ web_exec_httpget(const int socket,struct http_reqheaders *headers,char *login_to
             size_t n=strlen(file);
             if( (file[n-4]=='.' && file[n-3]=='c' && file[n-2]=='s' && file[n-1]=='s') || 
                 (file[n-4]=='.' && file[n-3]=='j' && file[n-2]=='p' && file[n-1]=='g') ||
-                (file[n-4]=='.' && file[n-3]=='p' && file[n-2]=='n' && file[n-1]=='g') ) {
+                (file[n-4]=='.' && file[n-3]=='p' && file[n-2]=='n' && file[n-1]=='g') || 
+                (file[n-4]=='.' && file[n-3]=='i' && file[n-2]=='c' && file[n-1]=='o') ) {
 
                 // If the file is found send it back, otherwise send back not-found-header
-                // This means that this funciton will always succeed
+                // This means that this function will always succeed
                 web_dispatch_httpget_staticfile(socket,dir,file,args,numargs,headers,login_token);
 
             } else {
@@ -1120,9 +1066,8 @@ web_process_httprequest(const int socket, char *req) {
         logmsg(LOG_DEBUG,"HTTP REQUEST:\n------------------------------------------------------------\n%s\n------------------------------------------------------------\n",req);
 #endif
     
-    
     // The first thing we need to do is to handle the login 
-    // or possible logout
+    // If the login is validated the login_token is set
     char login_token[80];
     web_validate_login(headers,login_token);
         
