@@ -38,6 +38,7 @@
 #include <sys/param.h>
 #include <time.h>
 #include <inttypes.h>
+#include <ctype.h>
 
 #include "config.h"
 #include <pcre.h>
@@ -56,6 +57,7 @@
 #include "datetimeutil.h"
 #include "tvplog.h"
 #include "vctrl.h"
+#include "xstr.h"
 
 
 // Get the name of the CSS file from the basename of the package, i.e. "tvpvrd"
@@ -282,7 +284,7 @@ int
 read_webroot_file(char *file_buffer, size_t maxlen, size_t *actualfilelen, char *filename, time_t modifiedSince) {
     char full_filename[255];
 
-    snprintf(full_filename, sizeof(full_filename)-1, "%s/tvpvrd/www/%s", CONFDIR, filename);
+    snprintf(full_filename, sizeof(full_filename)-1, "%s/tvpvrd/www%s", CONFDIR, filename);
     logmsg(LOG_DEBUG,"Reading web-root file '%s'",full_filename);
 
     full_filename[sizeof(full_filename)-1] = '\0';
@@ -383,14 +385,17 @@ sendback_http200_file(int sockd, char *file_buffer, size_t buffer_len, char *mim
         logmsg(LOG_ERR, "Could not send file back to browser. Unknown error in write operation.");
     }
 #ifdef EXTRA_WEB_DEBUG
-    logmsg(LOG_DEBUG, "HTTP Header sent back (printed without \\r: "
+    logmsg(LOG_DEBUG, "HTTP Header sent back (printed without \\r):\n"
+            "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
             "HTTP/1.1 200 OK\n"
             "Date: %s\n"
             "Last-Modified: %s\n"
             "Server: %s\n"
             "Connection: close\n"
             "Content-Length: %zu\n"
-            "Content-Type: %s\n\n", ftime, ftime, server_id, buffer_len, mime_type);
+            "Content-Type: %s\n"
+            "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+            , ftime, ftime, server_id, buffer_len, mime_type);
 #endif    
 }
 
@@ -418,6 +423,14 @@ get_filemimetype(char *filename, char *mimetype, size_t maxlen) {
             strncpy(mimetype,"text/css",maxlen);
         } else if( 0==strncmp(&filename[n+1],"txt",4) ) {
             strncpy(mimetype,"text/plain",maxlen);            
+        } else if( 0==strncmp(&filename[n+1],"ico",4) ) {
+            strncpy(mimetype,"image/x-icon",maxlen);            
+        } else if( 0==strncmp(&filename[n+1],"html",5) ) {
+            strncpy(mimetype,"text/html",maxlen); 
+        } else if( 0==strncmp(&filename[n+1],"pdf",4) ) {
+            strncpy(mimetype,"application/pdf",maxlen);
+        } else if( 0==strncmp(&filename[n+1],"xml",4) ) {
+            strncpy(mimetype,"text/xml",maxlen);             
         } else {
             logmsg(LOG_ERR,"Unknown file extension '%s'",filename);    
             return -1;
@@ -429,23 +442,29 @@ get_filemimetype(char *filename, char *mimetype, size_t maxlen) {
 void
 sendback_file(int sockd, char *filename, time_t modifiedSince) {
     char mimetype[24];
+    
     if( -1==get_filemimetype(filename, mimetype, sizeof(mimetype)) ) {
         html_send_404header(sockd);            
     } else {
         size_t const maxfilesize = 50000;
         char *filebuffer = calloc(maxfilesize,sizeof(char));    
         if( NULL==filebuffer ) {
+#ifdef EXTRA_WEB_DEBUG            
             logmsg(LOG_CRIT,"Out of memory when sending back file!! '%s'",filename);    
+#endif            
             html_send_404header(sockd);        
         } else {
             size_t actualsize=0;
             int ret=read_webroot_file(filebuffer,maxfilesize,&actualsize,filename,modifiedSince);
             if( 1==ret ) {
                 sendback_http200_file(sockd, filebuffer, actualsize, mimetype);
+
                 logmsg(LOG_DEBUG,"Sent back file '%s' as mime type '%s'",filename,mimetype);
             } else if( 0==ret) {
+                // Sendback not modified header
                 html_send_304header(sockd);
             } else {
+                // Sendback not found header
                 html_send_404header(sockd);
             }
             free(filebuffer);        
@@ -506,7 +525,6 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
             if (*cmd != 'h')
                 strcat(cmd, " ");
             cmd[maxlen - 1] = '\0';
-
             found = 1;
             matchcmd_free(&field);
 
@@ -540,358 +558,663 @@ webconnection(const char *buffer, char *cmd, int maxlen) {
 
 
 
+#define MAX_HTTP_HEADERS 20
+struct http_reqheaders {
+    char *Get;
+    char *Post;
+    char *Cookie;
+    char *IfModifiedSince;
+    char *UserAgent;
+    char *Host;
+    struct keypair_t headers[MAX_HTTP_HEADERS];
+    size_t num;
+    _Bool ismobile;
+};
+
+
+int
+web_parse_httpreq(char *req, struct http_reqheaders *headers) {
+    // We extract the following possible fields from the HTTP request header
+    // GET <path>
+    int ret = 0;
+    char *row;
+    const size_t rowsize=4096;
+    row = calloc(rowsize,sizeof(char));
+    
+    // First read the method line. This will be one of Get, Post, Head, ryc.
+    // This u-server only really supports Get and Post methods
+    size_t i=0,j=0;
+    while( i < rowsize && req[i] && req[i]!='\r' && req[i+1] && req[i+1]!='\n' ) {
+        row[j++] = req[i++];        
+    }
+    if( i>=rowsize || req[i]=='\0' || req[i+1]=='\0' || req[i]!='\r' || req[i+1]!='\n') {
+        ret = -1;        
+        goto _httpreq_freeret;
+    }
+    i+=2;    
+    row[j]='\0';
+    xstrtrim(row);
+    
+    headers->num=0;
+    while( *row ) {
+        
+        // Extract the name of the field from the current row
+        size_t k=0;
+        const size_t fieldnamelen = 80;       
+        while( k < fieldnamelen && row[k] && row[k]!=' ' && row[k]!=':' ) k++;
+        if( k>=fieldnamelen ) {
+            ret = -1;
+            goto _httpreq_freeret;
+        }
+        xsubstr(headers->headers[headers->num].key,fieldnamelen,row,0,k-1);
+        xsubstr(headers->headers[headers->num].val,1024,row,row[k] == ':' ? k+2 : k+1, -1);
+        url_decode_inplace(headers->headers[headers->num].val,sizeof(headers->headers[headers->num].val));
+        headers->num++;
+        
+        j=0;
+        while( i < rowsize && req[i] && req[i]!='\r' && req[i+1] && req[i+1]!='\n' ) {
+            row[j++] = req[i++];        
+        }
+        if( i>=rowsize || req[i]=='\0' || req[i+1]=='\0' || req[i]!='\r' || req[i+1]!='\n') {
+            goto _httpreq_freeret;
+            ret = -1;
+        }
+        i+=2;    
+        row[j]='\0';
+        xstrtrim(row);
+    }
+    
+    // Now set some shortcuts to most often used fields
+    get_assoc_value_s(headers->headers,headers->num,"GET",&headers->Get);
+    get_assoc_value_s(headers->headers,headers->num,"Cookie",&headers->Cookie);
+    get_assoc_value_s(headers->headers,headers->num,"If-Modified-Since",&headers->IfModifiedSince);
+    get_assoc_value_s(headers->headers,headers->num,"User-Agent",&headers->UserAgent);
+    get_assoc_value_s(headers->headers,headers->num,"Post",&headers->Post);
+    get_assoc_value_s(headers->headers,headers->num,"Host",&headers->Host);
+    
+    headers->ismobile = FALSE;
+    
+_httpreq_freeret:
+    free(row);
+    return ret;
+    
+}
+
 /**
- * This is the main routine that gets called from the connection handler
- * when a new browser connection has been detected and the command from
- * the browser have been received. This function is totally responsible to
- * execute the command and prepare the WEB-page to be sent back.
- *
- * @param my_socket
- * @param inbuffer
+ * Parse a HTTP GET command
+ * @param str
+ * @param dir
+ * @param file
+ * @param args
+ * @param numargs
+ * @return -1 on failure, 0 on success
  */
-void
-web_cmdinterp(const int my_socket, char *inbuffer) {
-    char wcmd[1024];
-    char *buffer = url_decode(inbuffer);
-    char **field = (void *) NULL;
+int
+web_parse_httpget(char* str, 
+        char *dir, size_t maxdirlen, 
+        char *file, size_t maxfilelen, 
+        struct keypair_t args[], size_t maxargs, 
+        size_t *numargs) {
+    
+    const char SPACE = ' ';
+    *numargs=0;
+        
+    // The last letters must be a HTTP version, for example " HTTP/1.1"
+    const size_t n = strnlen(str,512);
+    if( !(isdigit(str[n-1]) && str[n-2]=='.' && isdigit(str[n-3]) &&
+          str[n-4] == '/' && 
+          str[n-5] == 'P' && str[n-6] == 'T' && str[n-7] == 'T' && str[n-8] == 'H' && str[n-9] == ' ' ) ) {
+        return -1;
+    }
+    
+    char *s=strdup(str);
+    size_t len = strlen(s);
+    // The string after the GET command will be a URL with the DNS name removed and the first
+    // character being the '/' which indicates the web root
+    // The rest of the string can be a simple filename (e.g. "GET /readme.txt HTTP/1.1")
+    // but it could also be a file with parameters, as in "GET /side.php?a=3&b=45&c=19 HTTP/1.1"
+    
+    // Extract the substring up to ' ' or '?' whichever comes first
+    size_t i = 0;
+    while( i < n && s[i] != SPACE && s[i] != '?' ) ++i;    
+    if( i==n ) return -1;
     int ret=0;
-    int mobile=FALSE;
+    
+    if( s[i] == SPACE || s[i] == '?') {
+        char *fbuff = calloc(len+1,sizeof(char));    
 
-    if (webconnection(buffer, wcmd, sizeof(wcmd)-1)) {
-
-        // Reset cmd_delay
-        cmd_delay = 0;
-
-        // Try to determine if the connection originated from a
-        // mobile phone.
-        mobile = is_mobile_connection(buffer);
-        logmsg(LOG_DEBUG,"Mobile connection=%d",mobile);
-
-#ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG,"WEB connection after URL decoding:\n%s\n",buffer);
-#endif
-         if ((ret = matchcmd("GET /logout HTTP/1.1", buffer, &field)) == 1) {
-
-             matchcmd_free(&field);
-             free(buffer);
-             web_login_page(my_socket,mobile);
-             return;
-
-         }
-
-        // First check if we should handle an add/delete command
-        if ((ret = matchcmd("GET /addrec\\?"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_AN
-                " " _PR_HTTP_VER ,
-                buffer, &field)) > 1) {
-
-            const size_t maxvlen = 256;
-            char channel[maxvlen], repeat[maxvlen], repeatcount[maxvlen];
-            char sd[maxvlen], sh[maxvlen], smin[maxvlen], eh[maxvlen], emin[maxvlen];
-            char profile[maxvlen], title[maxvlen], submit[maxvlen];
-
-            get_assoc_value(repeat, maxvlen, "repeat", &field[1], ret - 1);
-            get_assoc_value(repeatcount, maxvlen, "repeatcount", &field[1], ret - 1);
-            get_assoc_value(channel, maxvlen, "channel", &field[1], ret - 1);
-            get_assoc_value(sd, maxvlen, "start_day", &field[1], ret - 1);
-            get_assoc_value(sh, maxvlen, "start_hour", &field[1], ret - 1);
-            get_assoc_value(smin, maxvlen, "start_min", &field[1], ret - 1);
-            get_assoc_value(eh, maxvlen, "end_hour", &field[1], ret - 1);
-            get_assoc_value(emin, maxvlen, "end_min", &field[1], ret - 1);
-            get_assoc_value(profile, maxvlen, "profile", &field[1], ret - 1);
-            get_assoc_value(title, maxvlen, "title", &field[1], ret - 1);
-            get_assoc_value(submit, maxvlen, "submit_addrec", &field[1], ret - 1);
-
-            if (0 == strcmp(submit, "Add")) {
-                char tmpcmd[128];
-                // Build command
-
-                if (0 == strcmp(repeat, "")) {
-                    snprintf(wcmd, sizeof(wcmd)-1, "a %s", channel);
-                } else {
-                    // Repeat add
-                    snprintf(wcmd, sizeof(wcmd)-1, "ar %s %s %s ", repeat, repeatcount, channel);
-                }
-                if (*sd != '\0') {
-                    snprintf(tmpcmd, 128, " %s ", sd);
-                    strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
-                }
-                snprintf(tmpcmd, 128, " %s:%s ", sh, smin);
-                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
-
-                snprintf(tmpcmd, 128, " %s:%s ", eh, emin);
-                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
-
-                snprintf(tmpcmd, 128, " %s @%s ", title, profile);
-                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
-
-            }
-
-            matchcmd_free(&field);
-
-        } else if ((ret = matchcmd("GET /addqrec\\?"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_ANPSO "&"
-                _PR_AN "=" _PR_AN
-                " " _PR_HTTP_VER,
-                buffer, &field)) > 1) {
-
-            const int maxvlen = 256;
-            char channel[maxvlen];
-            char length_hour[maxvlen], length_min[maxvlen];
-            char profile[maxvlen], title[maxvlen], submit[maxvlen];
-
-            get_assoc_value(channel, maxvlen, "channel", &field[1], ret - 1);
-            get_assoc_value(length_hour, maxvlen, "length_hour", &field[1], ret - 1);
-            get_assoc_value(length_min, maxvlen, "length_min", &field[1], ret - 1);
-            get_assoc_value(profile, maxvlen, "profile", &field[1], ret - 1);
-            get_assoc_value(title, maxvlen, "title", &field[1], ret - 1);
-            get_assoc_value(submit, maxvlen, "submit_qaddrec", &field[1], ret - 1);
-
-            if (0 == strcmp(submit, "Start")) {
-                char tmpcmd[128];
-                // Build command
-                snprintf(wcmd, sizeof(wcmd)-1, "q %s", channel);
-                snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s:%s ", length_hour, length_min);
-                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
-                snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s @%s ", title, profile);
-                strncat(wcmd, tmpcmd, sizeof(wcmd)-1-strlen(wcmd));
-                cmd_delay = 2400000;
-            }
-
-            matchcmd_free(&field);
-
-
-        } else if ((ret = matchcmd("GET /chwt\\?" 
-                    _PR_AN "=" _PR_AN " " _PR_HTTP_VER ,
-                    buffer, &field)) > 1) {
-            const int maxvlen = 128;
-            char wtheme[maxvlen];
-            get_assoc_value(wtheme, maxvlen, "t", &field[1], ret - 1);
-            strncpy(web_theme,wtheme,sizeof(web_theme)-1);
-            *wcmd = '\0';
-            
-	    matchcmd_free(&field);
-            
-        } else if ((ret = matchcmd("GET /killrec\\?" 
-                    _PR_AN "=" _PR_N " " _PR_HTTP_VER ,
-                    buffer, &field)) > 1) {
-
-            const int maxvlen = 256;
-            char recid[maxvlen], submit[maxvlen];
-            get_assoc_value(recid, maxvlen, "rid", &field[1], ret - 1);
-            get_assoc_value(submit, maxvlen, "submit_killrec", &field[1], ret - 1);
-            snprintf(wcmd, sizeof(wcmd)-1, "! %s", recid);
-
-            // Wait half a second to allow the removal to be done and completed so that
-            // it will show when the WEB-page is refreshed.
-            cmd_delay = 500000;
-
-            matchcmd_free(&field);
-
-        } else if ((ret = matchcmd("^GET /delrec\\?"
-                _PR_AN "=" _PR_ANO "&"
-                _PR_AN "=" _PR_ANO "&"
-                _PR_AN "=" _PR_ANO
-                " " _PR_HTTP_VER,
-                buffer, &field)) > 1) {
-
-            const int maxvlen = 256;
-            char recid[maxvlen], submit[maxvlen], delserie[maxvlen];
-            get_assoc_value(recid, maxvlen, "recid", &field[1], ret - 1);
-            get_assoc_value(delserie, maxvlen, "delserie", &field[1], ret - 1);
-            get_assoc_value(submit, maxvlen, "submit_delrec", &field[1], ret - 1);
-
-            if (0 == strcmp(submit, "Delete")) {
-                if (0 == strcmp(delserie, "Yes")) {
-                    snprintf(wcmd, sizeof(wcmd)-1, "dr %s", recid);
-                } else {
-                    snprintf(wcmd, sizeof(wcmd)-1, "d %s", recid);
-                }
-            }
-
-            matchcmd_free(&field);
-
-        } else if ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) >= 1) {
-            
-            matchcmd_free(&field);
-            free(buffer);
-            logmsg(LOG_DEBUG,"Ignoring 'GET /favicon.ico'");
-            html_send_404header(my_socket);
-            return;
-                        
-        } else if ( (ret = matchcmd("^GET /" _PR_FNAME " " _PR_HTTP_VER , buffer, &field)) >= 1) {
-                       
-            logmsg(LOG_DEBUG,"Found generic GET file command.");
-                       
-            // Send back the requested file
-
-                // Check if we have received the "If-Modified-Since:" header
-                // In that case we send beck the "Not Modified 304" reply
-                // HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
-                // RFC 1123 format
-                char *filename = strdup(field[1]);
-                matchcmd_free(&field);
-
-                time_t mtime = 0;
-                struct tm tm_date;
-                if( (ret = matchcmd_ml("^If-Modified-Since\\: (.*)", buffer, &field)) > 1 ) {
-#ifdef EXTRA_WEB_DEBUG
-                    logmsg(LOG_DEBUG,"Found If-Modified-Since: header. Value=%s",field[1]);
-#endif
-                    // Convert time to a timestamp to compare with file modified time
-                    // Match HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
-
-                    // Try first to use en_US locale since the header is in English.
-                    // If this doesn't work then we use the "C" locale but this might not
-                    // work to interpret the header.
-                    locale_t lc =  newlocale(LC_ALL_MASK,"en_US",NULL);
-                    if( lc == NULL ) {
-                        lc =  newlocale(LC_ALL_MASK,"C",NULL);
-                    }
-                    if( lc == NULL ) {
-                        logmsg(LOG_ERR,"Cannot create locale to set a date to compare modified since header");
-                        matchcmd_free(&field);
-                        mtime = mktime(&tm_date);
-                        localtime_r(&mtime,&tm_date);
-                        mtime += tm_date.tm_gmtoff;
-                        localtime_r(&mtime,&tm_date);
-                        sendback_file(my_socket,filename,mtime);
-                    } else {
-                        char *retptr = strptime_l(field[1],"%a, %d %b %Y %T GMT",&tm_date,lc);
-                        freelocale(lc);
-                        if( retptr == NULL ) {
-                            logmsg(LOG_NOTICE,"Failed date parsing in IF-Modified-Since Header (%s)",field[1]);
-                            // Set the date a month back to force a resend of the CSS header in case the header
-                            // can not be parsed.
-                            sendback_file(my_socket,filename,time(NULL)-3600*24*30);
-                        } else {
-
-#ifdef EXTRA_WEB_DEBUG
-                            logmsg(LOG_DEBUG,"After strptime_l hour=%d, zone=GMT",tm_date.tm_hour);
-#endif
-                            mtime = mktime(&tm_date);
-                            localtime_r(&mtime,&tm_date);
-
-#ifdef EXTRA_WEB_DEBUG
-                            logmsg(LOG_DEBUG,"Localtime offset=%d, zone=%s",tm_date.tm_gmtoff,tm_date.tm_zone);
-#endif
-
-                            // Since the original time is given in GMT and we want it expressed
-                            // in the local time zone we must add the offset from GMTIME for the
-                            // current time zone
-                            mtime += tm_date.tm_gmtoff;
-                            localtime_r(&mtime,&tm_date);
-
-#ifdef EXTRA_WEB_DEBUG
-                            logmsg(LOG_DEBUG,"After localtime adjustment hour=%d",tm_date.tm_hour);
-#endif
-
-
-                            sendback_file(my_socket,filename,mtime);
-                        }
-                        matchcmd_free(&field);
-                    }
-                    
-                } else {
-#ifdef EXTRA_WEB_DEBUG
-                    logmsg(LOG_DEBUG,"No 'If-Modified-Since:' field. Sending back file.");
-#endif
-                    sendback_file(my_socket,filename,mtime);
-                }
-                free(filename);
-                free(buffer);
-                
-                return;
-
-
-        }
-
-        if ( ((ret = matchcmd("^GET /favicon.ico" _PR_ANY _PR_E, buffer, &field)) < 1) ) {
-            // If it's not a "favicon.ico" GET command proceed to execute the
-            // tvpvrd command we have received
-
-            static char logincookie[128];
-
-            // If user does not have a valid login then send back the login page
-            if (!user_loggedin(buffer, logincookie, 127)) {
-
-                // Check if user just tried to login
-                if ((ret = matchcmd("^GET /login\\?"
-                        _PR_AN "=" _PR_ANPO "&"
-                        _PR_AN "=" _PR_ANPO "&"
-                        _PR_AN "=" _PR_ANPO
-                        " " _PR_HTTP_VER,
-                        buffer, &field)) > 1) {
-
-                    const int maxvlen = 64;
-                    char user[maxvlen], pwd[maxvlen], logsubmit[maxvlen];
-                    get_assoc_value(user, maxvlen, "user", &field[1], ret - 1);
-                    get_assoc_value(pwd, maxvlen, "pwd", &field[1], ret - 1);
-                    get_assoc_value(logsubmit, maxvlen, "submit_login", &field[1], ret - 1);
-
-                    matchcmd_free(&field);
-                    
-                    if (0 == strcmp(logsubmit, "Login")) {
-
-#ifdef EXTRA_WEB_DEBUG
-                        logmsg(LOG_DEBUG,"WEB login. users=%s, pwd=%s",user,pwd);
-#endif
-
-                        if (!validate_login(user, pwd)) {
-
-                            logmsg(LOG_NOTICE,"WEB login failed. Tried users='%s', pwd='%s'",user,pwd);
-
-                            // Validation of login details failed, send back the login screen
-                            web_login_page(my_socket, mobile);
-
-                        } else {
-#ifdef EXTRA_WEB_DEBUG
-                        logmsg(LOG_DEBUG,"WEB login successful. Sending back main page with cookie",user,pwd);
-#endif
-                            // Login successful. Show the main page and used the "version" command
-                            // as the default command to show in the output area.
-                            web_main_page(my_socket, "v", create_login_cookie(user, pwd), mobile);
-                        }
-
-                    } else {
-
-                        // Unrecognized login POST fields so go back to login page
-                        web_login_page(my_socket, mobile);
-                    }
-                } else {
-                    // If the login cookie is not valid and the user has not given the login command
-                    // we just send back the login page.
-                    web_login_page(my_socket, mobile);              
-                }
-            } else {
-                // User has a valid login so send back the main page
-                web_main_page(my_socket, wcmd, logincookie, mobile);
-            }
+        if( -1 == xsubstr(fbuff,len,s,0,i-1) ) {
+            free(fbuff);
+            ret=-1;
         } else {
-            // Ignore GET favicon.ico
-            matchcmd_free(&field);
-            html_send_404header(my_socket);
+
+            // Find the dir/basename
+            const size_t flen=strlen(fbuff);
+            size_t j=flen-1;
+            while( j>0 && fbuff[j] != '/' ) j--;
+
+            xsubstr(file,maxfilelen,fbuff,j+1,-1);
+            
+            if( 0==j ) {
+                dir[0]='/';
+                dir[1]='\0';
+            } else {
+                xsubstr(dir,maxdirlen,fbuff,0,j-1);
+            }
+
+            free(fbuff);            
         }
-    } else {        
-        html_send_404header(my_socket);
-        logmsg(LOG_WARNING, "Unrecognized WEB-command: [len=%d] %s", strlen(buffer), buffer);
+        
+        if( 0==ret && s[i] == '?') {
+            // Extract all parameters
+            size_t sp=i,ep=i+1;
+            char tmpval[255];
+            *numargs = 0;
+            s[sp] = '&';
+            while( 0==ret && s[sp]=='&' ) {
+                while( ep < len  && s[ep]!='&' && s[ep]!=SPACE ) ++ep;
+                
+                size_t j=sp+1;
+                while( j < ep && s[j]!='=') ++j;
+                if( j >= ep ) {
+                    ret=-1;
+                } else {
+                    // key is sp+1 to j-1
+                    // val is j+1 to ep-1
+                    if( *numargs < maxargs ) {
+                        xsubstr(tmpval,255,s,sp+1,j-1);
+                        url_decode_buff(args[*numargs].key,sizeof(args[*numargs].key),tmpval);
+                        xsubstr(tmpval,255,s,j+1,ep-1);
+                        url_decode_buff(args[*numargs].val,sizeof(args[*numargs].val),tmpval);
+                        (*numargs)++;
+                    } else {
+                        ret=-1;
+                    }
+                    sp = ep++;                       
+                }
+            }
+        }
+        
+    } else {
+        // Should never happen!
+        ret = -1;
+    }
+    free(s);
+    return ret;
+}
+
+int
+_web_cmd_logout(int socket,struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    logmsg(LOG_DEBUG,"cmd_logout: sock=%d, numargs=%d\n",socket,numargs);
+    
+    (void)args; // To shut up warning about non used arguments
+    (void)login_token;
+    
+    web_login_page(socket,headers->ismobile);
+    return 0;    
+}
+
+int
+_web_cmd_login(int socket,struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    logmsg(LOG_DEBUG,"cmd_login: sock=%d, numargs=%d\n",socket,numargs);
+    
+    char *user, *pwd, *submit;
+    (void)login_token;
+    // Now extract the parameters and if they are found check that this
+    // is the correct form submission and check that the credentials match.
+    // Otherwise just send back the login page.
+    if( -1 == get_assoc_value_s(args,numargs,"user",&user) ||
+        -1 == get_assoc_value_s(args,numargs,"pwd",&pwd) ||
+        -1 == get_assoc_value_s(args,numargs,"submit_login",&submit) || 
+        strcmp(submit, "Login") ||
+        !validate_login(user, pwd) ) {
+        
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"WEB login unsuccessful. users=%s, pwd=%s",user!=NULL ? user : "NULL",pwd!=NULL  ? pwd : "NULL");
+#endif    
+        
+        // No valid login parameters. Send back login page
+        web_login_page(socket, headers->ismobile);
+        return 0;
+    }
+    
+    // Login successful. Show the main page and use the "version" command
+    // as the default command to show in the output area.
+    web_main_page(socket, "v", create_login_cookie(user, pwd), headers->ismobile);
+
+    return 0;
+}
+
+int
+_web_cmd_addrec(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    char *repeat, *repeatcount, *channel;
+    char *sd,*sh,*smin;
+    char *ed,*eh,*emin;
+    char *profile,*title,*submit;
+    char cmdstr[255];
+   
+
+    if( -1 == get_assoc_value_s(args,numargs,"repeat",&repeat) ||
+        -1 == get_assoc_value_s(args,numargs,"repeatcount",&repeatcount) ||   
+        -1 == get_assoc_value_s(args,numargs,"channel", &channel) ||
+        -1 == get_assoc_value_s(args,numargs,"start_day",&sd) ||
+        -1 == get_assoc_value_s(args,numargs,"start_hour",&sh) ||
+        -1 == get_assoc_value_s(args,numargs,"start_min",&smin) ||
+        -1 == get_assoc_value_s(args,numargs,"end_day",&ed) ||
+        -1 == get_assoc_value_s(args,numargs,"end_hour",&eh) ||
+        -1 == get_assoc_value_s(args,numargs,"end_min",&emin) ||
+        -1 == get_assoc_value_s(args,numargs,"profile",&profile) ||
+        -1 == get_assoc_value_s(args,numargs,"title",&title) ||
+        -1 == get_assoc_value_s(args,numargs,"submit_addrec",&submit) ||
+        strcmp(submit, "Add") ) {
+        
+        return -1;
     }
 
-    free(buffer);
+    char tmpcmd[128];
+    // Build command
+
+    if (0 == strcmp(repeat, "")) {
+        snprintf(cmdstr, sizeof(cmdstr)-1, "a %s", channel);
+    } else {
+        // Repeat add
+        snprintf(cmdstr, sizeof(cmdstr)-1, "ar %s %s %s ", repeat, repeatcount, channel);
+    }
+    if (*sd != '\0') {
+        snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s ", sd);
+        strncat(cmdstr, tmpcmd, sizeof(cmdstr)-1-strlen(cmdstr));
+    }
+    snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s:%s ", sh, smin);
+    strncat(cmdstr, tmpcmd, sizeof(cmdstr)-1-strlen(cmdstr));
+
+    snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s:%s ", eh, emin);
+    strncat(cmdstr, tmpcmd, sizeof(cmdstr)-1-strlen(cmdstr));
+
+    snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s @%s ", title, profile);
+    strncat(cmdstr, tmpcmd, sizeof(cmdstr)-1-strlen(cmdstr));
+
+    web_main_page(socket, tmpcmd, login_token, headers->ismobile);
+    return 0;
+        
+}
+
+// (int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token)
+
+int
+_web_cmd_delrec(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    char *recid, *submit, *delserie;
+    
+    if( -1 == get_assoc_value_s(args,numargs,"recid",&recid) ||    
+        -1 == get_assoc_value_s(args,numargs,"delserie",&delserie) ||
+        -1 == get_assoc_value_s(args,numargs,"submit_delrec",&submit) ||
+        strcmp(submit, "Delete") ) {
+        
+        return -1;
+    }
+        
+    char tmpcmd[128];
+    
+    if (0 == strcmp(delserie, "Yes")) {
+       snprintf(tmpcmd, sizeof(tmpcmd)-1, "dr %s", recid);
+    } else {
+       snprintf(tmpcmd, sizeof(tmpcmd)-1, "d %s", recid);
+    }
+
+    web_main_page(socket, tmpcmd, login_token, headers->ismobile);
+    return 0;
+}
+
+int
+_web_cmd_chwt(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    char *wtheme;
+    
+    if( -1 == get_assoc_value_s(args,numargs,"t",&wtheme) ) {
+        return -1;
+    }
+    
+    strncpy(web_theme,wtheme,sizeof(web_theme)-1);
+    web_main_page(socket, "t", login_token, headers->ismobile);
+    return 0;
+
+}
+
+/*
+
+_web_cmd_XXXXX(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    char *a1,*a2,*a3;
+    
+    if( -1 == get_assoc_value_s(args,numargs,"a1",&a1) || 
+        -1 == get_assoc_value_s(args,numargs,"a2",&a2) || 
+        -1 == get_assoc_value_s(args,numargs,"a3",&a3) ) {
+        
+        return -1;
+        
+    }
+ 
+    web_main_page(socket, COMMAND, login_token, headers->ismobile);
+    return 0;  
+ 
+}
+*/
+int
+_web_cmd_killrec(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+
+    char *recid, *submit;
+    if( -1 == get_assoc_value_s(args,numargs,"recid",&recid) || 
+        -1 == get_assoc_value_s(args,numargs,"submit_killrec",&submit) ) {
+        
+        return -1;
+    }
+    
+    char tmpcmd[128];
+    snprintf(tmpcmd, sizeof(tmpcmd)-1, "! %s", recid);
+    web_main_page(socket, tmpcmd, login_token, headers->ismobile);
+    return 0;
+}
+
+
+int
+_web_cmd_addqrec(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    char *channel;
+    char *length_hour, *length_min;
+    char *profile, *title, *submit;
+
+    if( -1 == get_assoc_value_s(args,numargs,"channel",&channel) || 
+        -1 == get_assoc_value_s(args,numargs,"length_hour",&length_hour) || 
+        -1 == get_assoc_value_s(args,numargs,"length_min",&length_min) || 
+        -1 == get_assoc_value_s(args,numargs,"profile",&profile) || 
+        -1 == get_assoc_value_s(args,numargs,"title",&title) ||             
+        -1 == get_assoc_value_s(args,numargs,"submit_qaddrec",&submit) ||
+        strcmp(submit, "Start") ) {    
+        
+        return -1;
+        
+    }
+    
+    char tmpcmd[128];
+    snprintf(tmpcmd, sizeof(tmpcmd)-1, "q %s %s:%s %s @%s ", channel,length_hour, length_min, title, profile);
+    web_main_page(socket, tmpcmd, login_token, headers->ismobile);
+    return 0;     
+    
+}
+
+int
+_web_cmd_default(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    (void) args;
+    (void) numargs;
+    web_main_page(socket, "t", login_token, headers->ismobile);
+    return 0;
+}
+
+int
+_web_cmd_command(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
+    (void) args;
+    (void) numargs;
+    
+    char *c;
+    if( -1 == get_assoc_value_s(args,numargs,"c",&c) ) {
+        
+        return -1;
+    }
+        
+    web_main_page(socket, c, login_token, headers->ismobile);
+    return 0;
+}
+
+typedef int (*pwf_t)(int,struct keypair_t *args, const size_t, struct http_reqheaders *,char *);
+
+struct web_cmds_t {
+    char path[80];
+    char name[80];
+    size_t numargs;    
+    pwf_t cmdfunc;
+};
+
+// The array index for the login command
+#define LOGIN_CMDIDX 0
+
+struct web_cmds_t web_cmds[] = {
+    {"/","login",0,_web_cmd_login},
+    {"/","logout",0,_web_cmd_logout},
+    {"/","addrec",12,_web_cmd_addrec},
+    {"/","addqreq",6,_web_cmd_addqrec},
+    {"/","delreq",3,_web_cmd_delrec},
+    {"/","chwt",1,_web_cmd_chwt},
+    {"/","killrec",2,_web_cmd_killrec},
+    {"/","cmd",1,_web_cmd_command},
+    {"/","",0,_web_cmd_default},
+    
+    /* Sentinel */
+    {"","",0,NULL}
+};
+
+/**
+ * Store the value of the named cookie in the val field
+ * @param name
+ * @param val
+ * @param maxlen
+ * @param headers
+ * @return -1 if not found, 0 if found
+ */
+int
+web_get_cookie(char *name, char *val, size_t maxlen, struct http_reqheaders *headers) {
+    char *c = headers->Cookie;
+    
+    if( c==NULL ) {
+        return -1; // No cookies in header
+    }
+    
+    char cname[255];
+    // Cookies are stored as ';' separated key=val pairs in the cookie field
+    size_t s=0,e=0,eq=0;
+    while( c[s] ) {
+        e=s;
+        eq=0;
+        while( c[e] && c[e] != ';' ) {
+            if( '=' == c[e]) eq=e;
+            e++;
+        }     
+        // There must be an '=' sign
+        if( 0 == eq) return -1;
+        xsubstr(cname,sizeof(cname),c,s,eq-1);
+        if( 0==strncmp(cname,name,sizeof(cname)) ) {
+            xsubstr(val,maxlen,c,eq+1, (c[e]=='\0' ? (size_t)-1 : e-1) );
+            return 0;
+        }
+        s = c[e] ? e+1 : e;     
+    }
+    return -1;
+}
+
+int
+web_validate_login(struct http_reqheaders *headers, char *login_token) {
+    
+    // 1. First check if the client sent back a valid cookie
+    // 2. If not, check if the client just logged in
+    
+    char cookie[80];
+    if( 0 == web_get_cookie("tvpvrd",cookie,sizeof(cookie),headers) ) {
+        if( validate_cookie(cookie) ) {
+            strncpy(login_token,cookie,sizeof(cookie)-1);
+            return 0; 
+        }
+        else *login_token = '\0';
+    }
+    return -1;
+}
+
+int
+web_dispatch_httpget_cmd(const int socket,char *path,char *name,
+                     struct keypair_t *args,size_t numargs,
+                     struct http_reqheaders *headers,
+                     char *login_token) {
+    size_t i=0;
+    
+    // If either a path or name doesn't match keep searching
+    while( *web_cmds[i].path && 
+           (strncmp(path,web_cmds[i].path,255) || strncmp(name,web_cmds[i].name,255)) ) {
+        ++i;
+    }
+    if( *web_cmds[i].path == '\0' || web_cmds[i].numargs != numargs ) {
+        return -1;
+    }
+    return web_cmds[i].cmdfunc(socket,args,numargs,headers,login_token);
+
+}
+
+void
+web_dispatch_httpget_staticfile(const int socket, char *path, char *filename, struct keypair_t *args, size_t numargs, struct http_reqheaders *headers, char *login_token) {
+
+#ifdef EXTRA_WEB_DEBUG
+    if( headers->IfModifiedSince ) {
+        logmsg(LOG_DEBUG, "Found If-Modified-Since: header. Value=%s", headers->IfModifiedSince);
+    }
+#endif
+    (void) path;
+    (void) args;
+    (void) numargs;
+    (void) login_token;
+    
+    char fullfilename[255];
+    if( path[0]=='/' && path[1]=='\0' ) {
+        snprintf(fullfilename,sizeof(fullfilename),"/%s",filename);
+    } else {
+        snprintf(fullfilename,sizeof(fullfilename),"%s/%s",path,filename);
+    }
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG, "path=%s, filename=%s, fullfilename=%s",path,filename,fullfilename);
+#endif
+    
+    // Convert time to a timestamp to compare with file modified time
+    // Match HTTP Header date format, i.e. Sat, 29 Oct 1994 19:43:31 GMT
+
+    // Try first to use en_US locale since the header is in English.
+    // If this doesn't work then we use the "C" locale but this might not
+    // work to interpret the header.
+    time_t mtime = 0;
+    struct tm tm_date;
+    CLEAR(tm_date);
+
+    if ( NULL == headers->IfModifiedSince || NULL == strptime(headers->IfModifiedSince, "%a, %d %b %Y %T %Z", &tm_date)) {
+#ifdef EXTRA_WEB_DEBUG            
+        logmsg(LOG_DEBUG, "No IF-Modified-Since headers or failed to parse it");
+#endif            
+        // Set the date a month back to force a resend of the file in case the header can not be parsed.
+        sendback_file(socket, fullfilename, time(NULL) - 3600 * 24 * 30);
+    } else {
+
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG, "After strptime hour=%d, zone=%s, isdst=%d", tm_date.tm_hour,
+                tm_date.tm_zone,tm_date.tm_isdst);
+#endif
+        tm_date.tm_zone = "GMT";
+        mtime = mktime(&tm_date);
+        localtime_r(&mtime, &tm_date);
+
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG, "Localtime offset=%d, zone=%s, hour=%d, isdst=%d", 
+                tm_date.tm_gmtoff, tm_date.tm_zone,tm_date.tm_hour,tm_date.tm_isdst);
+#endif
+
+        // Since the original time is given in GMT and we want it expressed
+        // in the local time zone we must add the offset from GMTIME for the
+        // current time zone            
+        mtime -= tm_date.tm_isdst * 3600;
+        mtime += tm_date.tm_gmtoff;
+        localtime_r(&mtime, &tm_date);
+
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG, "After localtime adjustment hour=%d", tm_date.tm_hour);
+#endif
+        sendback_file(socket, fullfilename, mtime);
+
+    }
+}
+
+int
+web_exec_httpget(const int socket,struct http_reqheaders *headers,char *login_token) {
+    struct keypair_t *args;
+    char dir[255];
+    char file[255];
+    size_t numargs;
+    int ret=0;
+    
+    const size_t maxargs=20;
+    args = calloc(maxargs,sizeof(struct keypair_t));
+    
+    if( -1==web_parse_httpget(headers->Get,dir,sizeof(dir),file,sizeof(file),args,maxargs,&numargs) ) {
+        ret = -1;
+        goto _freeret;
+    }
+    
+    logmsg(LOG_DEBUG,"File=%s, GET=%s, numargs=%zu, login_token=%s",file,headers->Get,numargs,login_token);
+    
+    if( *login_token ) {
+        // First try if this is any of the predefined commands
+        if( -1==web_dispatch_httpget_cmd(socket,dir,file,args,numargs,headers,login_token) ) {
+
+            // If the file is found send it back, otherwise send back not-found-header
+            // This means that this function will always succeed
+            web_dispatch_httpget_staticfile(socket,dir,file,args,numargs,headers,login_token);
+
+        }
+    } else {
+        // First check if this is a try to login
+        if( 0 == strcmp(file,web_cmds[LOGIN_CMDIDX].name) ) {
+            _web_cmd_login(socket,args,numargs,headers,login_token);
+        } else {        
+            // We only allow *.css and image files files to get sent back without a login
+            size_t n=strlen(file);
+            if( (file[n-4]=='.' && file[n-3]=='c' && file[n-2]=='s' && file[n-1]=='s') || 
+                (file[n-4]=='.' && file[n-3]=='j' && file[n-2]=='p' && file[n-1]=='g') ||
+                (file[n-4]=='.' && file[n-3]=='p' && file[n-2]=='n' && file[n-1]=='g') ) {
+
+                // If the file is found send it back, otherwise send back not-found-header
+                // This means that this funciton will always succeed
+                web_dispatch_httpget_staticfile(socket,dir,file,args,numargs,headers,login_token);
+
+            } else {
+
+                web_login_page(socket, headers->ismobile);
+
+            }
+        }
+    }
+    
+_freeret:    
+    free(args);
+    return ret;
+     
+}
+
+/**
+ * This is the top function that receive the HTTP request header from the client
+ * @param socket
+ * @param req
+ * @return 
+ */
+
+void
+web_process_httprequest(const int socket, char *req) {
+    struct http_reqheaders *headers = calloc(1,sizeof(struct http_reqheaders));    
+
+    if( -1 == web_parse_httpreq(req, headers) ) {
+        html_send_404header(socket);
+    }
+#ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG,"HTTP REQUEST:\n------------------------------------------------------------\n%s\n------------------------------------------------------------\n",req);
+#endif
+    
+    
+    // The first thing we need to do is to handle the login 
+    // or possible logout
+    char login_token[80];
+    web_validate_login(headers,login_token);
+        
+    if( -1 == web_exec_httpget(socket,headers,login_token) ) {
+        web_main_page(socket, "", login_token, headers->ismobile);
+    }
+
 }
 
 static const char *min_list_start[] = {
@@ -994,7 +1317,7 @@ web_cmd_ongoing(int sockd) {
     char buffer[255],caption_buffer[255];
     for (size_t i = 0; i < max_video; i++) {
         if (-1 == video_get_cardinfo(i, FALSE, buffer, sizeof (buffer))) {
-            snprintf(caption_buffer, sizeof (caption_buffer), "Card %zu", i + 1);
+            snprintf(caption_buffer, sizeof (caption_buffer), "Card %d", i + 1);
         } else {
             snprintf(caption_buffer, sizeof (caption_buffer), "%s.", buffer);
         }

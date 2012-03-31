@@ -207,6 +207,14 @@ char *
 url_decode(char *str);
 
 /**
+ * Decode string inplace.
+ * @param str
+ * @param maxlen
+ */
+void
+url_decode_inplace(char *str,size_t maxlen);
+
+/**
  * URL decode a into a given buffer.
  * @param decode
  * @param maxlen

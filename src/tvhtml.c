@@ -184,7 +184,7 @@ http_header(int sockd, char *cookie_val) {
 
         char header[2048];
         if ( weblogin_timeout > 0 || texp < t ) {
-            snprintf(header,2047,
+            snprintf(header,sizeof(header)-1,
                     "HTTP/1.1 200 OK\r\n"
                     "Date: %s\r\n"
                     "Server: %s\r\n"
@@ -192,7 +192,7 @@ http_header(int sockd, char *cookie_val) {
                     "Connection: close\r\n"
                     "Content-Type: text/html\r\n\r\n", ftime, server_id, tmpbuff, fexptime);
         } else {
-            snprintf(header,2047,
+            snprintf(header,sizeof(header)-1,
                     "HTTP/1.1 200 OK\r\n"
                     "Date: %s\r\n"
                     "Server: %s\r\n"
@@ -202,7 +202,7 @@ http_header(int sockd, char *cookie_val) {
         }
         tmpbuff2 = esc_percentsign(header);
 #ifdef EXTRA_WEB_DEBUG
-        logmsg(LOG_DEBUG,"Sending back header: %s",tmpbuff2);
+        logmsg(LOG_DEBUG,"Sending back header:\n++++++++++++++++++++++++++++++++\n%s\n++++++++++++++++++++++++++++++++\n",tmpbuff2);
 #endif
         _writef(sockd,tmpbuff2);
         free(tmpbuff2);
@@ -503,6 +503,10 @@ html_element_submit_disabled(int sockd, char *name, char *value, char *id) {
  */
 void
 html_send_404header(int sockd) {
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"Sending back 404 Header (Not-Found)");
+#endif
+    
     _writef(sockd,
             "HTTP/1.1 404 Not Found\r\n"
             "Server: tvpvrd\r\n"
@@ -516,7 +520,9 @@ html_send_404header(int sockd) {
  */
 void
 html_send_304header(int sockd) {
-    logmsg(LOG_DEBUG,"Sent back not modified header");
+#ifdef EXTRA_WEB_DEBUG    
+    logmsg(LOG_DEBUG,"Sending back 304 Header (Not-Modified)");
+#endif
     _writef(sockd,
             "HTTP/1.1 304 Not Modified\r\n"
             "Server: tvpvrd\r\n"
