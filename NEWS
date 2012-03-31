@@ -6,6 +6,19 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.1.0-beta
+------
+User visible changes:
+    - Added favicon
+
+Bugs fixed:
+    - None
+
+Internal changes:
+    - Complete rewrite of internal HTTP protocol handling
+
+
+
 4.0.2
 ------
 User visible changes:
