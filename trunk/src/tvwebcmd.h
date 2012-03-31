@@ -35,7 +35,7 @@ void
 web_commandlist(int sockd);
 
 void
-web_cmdinterp(const int my_socket, char *buffer);
+web_process_httprequest(const int socket, char *req);
 
 void
 web_cmd_add(int sockd);

@@ -421,7 +421,8 @@ char to_hex(const char code) {
  * URL encode a buffer.
  * Note: Calling function is responsible to free returned string
  */
-char *url_encode(char *str) {
+char *
+url_encode(char *str) {
   char *pstr = str;
   char *buf = _chk_calloc(1,strlen(str) * 3 + 1);
   char *pbuf = buf;
@@ -447,7 +448,8 @@ char *url_encode(char *str) {
  * URL decode a buffer.
  * Note: Calling function is responsible to free returned string
  */
-char *url_decode(char *str) {
+char *
+url_decode(char *str) {
   if( str == NULL ) {
       return NULL;
   }
@@ -467,6 +469,13 @@ char *url_decode(char *str) {
   }
   *pbuf = '\0';
   return buf;
+}
+
+void
+url_decode_inplace(char *str,size_t maxlen) {
+    char *p = url_decode(str);
+    strncpy(str,p,maxlen);
+    free(p);
 }
 
 
@@ -583,6 +592,7 @@ get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t list
 int
 get_assoc_value_s(struct keypair_t kv[],size_t maxlen,char *key,char **v) {
     size_t i=0;
+    *v = NULL;
     while( i < maxlen && strcmp(kv[i].key,key) ) 
         i++;
     if( i==maxlen )
@@ -597,6 +607,7 @@ get_assoc_value_s(struct keypair_t kv[],size_t maxlen,char *key,char **v) {
 int
 get_assoc_value_i(struct keypair_t kv[],size_t maxlen,char *key,int *v) {
     size_t i=0;
+    *v = 0;
     while( i < maxlen && strcmp(kv[i].key,key) ) 
         i++;
     if( i==maxlen )
