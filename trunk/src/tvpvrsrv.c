@@ -1438,22 +1438,9 @@ clientsrv(void *arg) {
                     // Exit command. Exit the loop and close the socket
                     _writef(my_socket,"Goodbye.\n");
                     numreads = -1;
-                    break;
-                } else if( 0 == strncmp("GET",buffer,3) ) {
-                    // Web commands must always close the socket after each command
-                    char wcmd[1024];
-                    if( webconnection(buffer,wcmd,1023) ) {
-                        logmsg(LOG_INFO, "Client (%s) sent WEB command: %s", client_ipadr[i], wcmd);
-                        cmdinterp(buffer, my_socket);
-                        numreads = -1;
-                        break;
-                    } else {
-                        logmsg(LOG_ERR, "Client (%s) sent ILLEGAL WEB command: %s", client_ipadr[i], buffer);
-                        numreads = -1;
-                        break;
-                    }
+                    break;                                        
                 } else {
-                    buffer[MAX(strnlen(buffer,1023) - 2, 0)] = 0; // REmove trailing newline and carrige return
+                    buffer[MAX(strnlen(buffer,1023) - 2, 0)] = 0; // Remove trailing newline and carrige return
                     xstrtrim(buffer);
                     if( *buffer ) {
                         // Ignore empty command
@@ -1560,7 +1547,7 @@ webclientsrv(void *arg) {
         numreads = read(my_socket, buffer, maxbufflen-1);
         buffer[maxbufflen-1] = '\0';
         buffer[numreads] = '\0';
-        web_cmdinterp(my_socket,buffer);
+        web_process_httprequest(my_socket,buffer);
 
     }
 
