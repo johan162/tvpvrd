@@ -174,7 +174,7 @@ web_cmd_ongoing(int sockd) {
             fromtimestamp(ongoing_recs[i]->ts_end, &ey, &em, &ed, &eh, &emi, &es);
             int sy, sm, sd, sh, smi, ss;
             fromtimestamp(ongoing_recs[i]->ts_start, &sy, &sm, &sd, &sh, &smi, &ss);
-            _writef(sockd, "<div class=\"displayasled_on\"><pre>%s %02d:%02d-%02d:%02d\n%s</pre></div>", ongoing_recs[i]->channel, sh, smi, eh, emi, ongoing_recs[i]->title);
+            _writef(sockd, "<div class=\"displayasled_on\"><pre>%s %02d:%02d-%02d:%02d\n%s</pre></div>\n", ongoing_recs[i]->channel, sh, smi, eh, emi, ongoing_recs[i]->title);
         } else {
             _writef(sockd, "<div class=\"displayasled_off\"><pre> - - -</pre></div>\n");
         }
@@ -374,7 +374,7 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     html_windtitlebar(sockd,TRUE);
 
     // Left side : Command table
-    _writef(sockd, "<div id=\"windowmenu\">");
+    _writef(sockd, "<div id=\"windowmenu\">\n");
     web_commandlist(sockd);
     _writef(sockd, "\n</div> <!-- windowmenu -->\n"); 
 
@@ -427,25 +427,22 @@ web_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
  */
 void
 web_login_page(int sockd, int mobile) {
-    // Initialize a new page
-
-    logmsg(LOG_DEBUG,"Sending back login page");
-    
+    // Initialize a new page   
     // Give the special cookie value "logout" which will create a
     // header which replace the old cookie and sets it expire time
     // in the past so it is removed from the browser
     html_startpage(sockd, "logout", mobile);
     html_windtitlebar(sockd,FALSE);
 
-    _writef(sockd, "<div id=\"login_window\">");
-    _writef(sockd, "<div id=\"login_title\">Please login</div>");
+    _writef(sockd, "<div id=\"login_window\">\n");
+    _writef(sockd, "<div id=\"login_title\">Please login</div>\n");
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"login\">\n", "tvlogin");
     html_element_input_text(sockd, "User:", "user", "id_loginuser");
     html_element_input_password(sockd, "Password:", "pwd", "id_loginpwd");
     html_element_submit(sockd, "submit_login", "Login", "id_submitlogin");
 
-    _writef(sockd, "<form>");
-    _writef(sockd, "</div>");
+    _writef(sockd, "<form>\n");
+    _writef(sockd, "</div>\n");
 
     html_endpage(sockd);
 }
