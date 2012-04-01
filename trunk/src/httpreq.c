@@ -558,7 +558,7 @@ web_parse_httpget(char* str,
             *numargs = 0;
             s[sp] = '&';
             while( 0==ret && s[sp]=='&' ) {
-                while( ep < len  && s[ep]!='&' && s[ep]!=SPACE ) ++ep;
+                while( ep < len-9  && s[ep]!='&' ) ++ep;
                 
                 size_t j=sp+1;
                 while( j < ep && s[j]!='=') ++j;
@@ -591,7 +591,9 @@ web_parse_httpget(char* str,
 
 int
 _web_cmd_logout(int socket,struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
-    logmsg(LOG_DEBUG,"cmd_logout: sock=%d, numargs=%d\n",socket,numargs);
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmd_logout: sock=%d, numargs=%d",socket,numargs);
+#endif        
     
     (void)args; // To shut up warning about non used arguments
     (void)login_token;
@@ -602,7 +604,9 @@ _web_cmd_logout(int socket,struct keypair_t *args, const size_t numargs, struct 
 
 int
 _web_cmd_login(int socket,struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
-    logmsg(LOG_DEBUG,"cmd_login: sock=%d, numargs=%d\n",socket,numargs);
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmd_login: sock=%d, numargs=%d",socket,numargs);
+#endif 
     
     char *user, *pwd, *submit;
     (void)login_token;
@@ -635,18 +639,20 @@ int
 _web_cmd_addrec(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
     char *repeat, *repeatcount, *channel;
     char *sd,*sh,*smin;
-    char *ed,*eh,*emin;
+    char *eh,*emin;
     char *profile,*title,*submit;
     char cmdstr[255];
    
-
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmd_addrec: sock=%d, numargs=%d",socket,numargs);
+#endif 
+    
     if( -1 == get_assoc_value_s(args,numargs,"repeat",&repeat) ||
         -1 == get_assoc_value_s(args,numargs,"repeatcount",&repeatcount) ||   
         -1 == get_assoc_value_s(args,numargs,"channel", &channel) ||
         -1 == get_assoc_value_s(args,numargs,"start_day",&sd) ||
         -1 == get_assoc_value_s(args,numargs,"start_hour",&sh) ||
         -1 == get_assoc_value_s(args,numargs,"start_min",&smin) ||
-        -1 == get_assoc_value_s(args,numargs,"end_day",&ed) ||
         -1 == get_assoc_value_s(args,numargs,"end_hour",&eh) ||
         -1 == get_assoc_value_s(args,numargs,"end_min",&emin) ||
         -1 == get_assoc_value_s(args,numargs,"profile",&profile) ||
@@ -679,7 +685,11 @@ _web_cmd_addrec(int socket, struct keypair_t *args, const size_t numargs, struct
     snprintf(tmpcmd, sizeof(tmpcmd)-1, " %s @%s ", title, profile);
     strncat(cmdstr, tmpcmd, sizeof(cmdstr)-1-strlen(cmdstr));
 
-    web_main_page(socket, tmpcmd, login_token, headers->ismobile);
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmdstring=\"%s\"",cmdstr);
+#endif 
+
+    web_main_page(socket, cmdstr, login_token, headers->ismobile);
     return 0;
         
 }
@@ -689,6 +699,10 @@ _web_cmd_addrec(int socket, struct keypair_t *args, const size_t numargs, struct
 int
 _web_cmd_delrec(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
     char *recid, *submit, *delserie;
+
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmd_delrec: sock=%d, numargs=%d",socket,numargs);
+#endif 
     
     if( -1 == get_assoc_value_s(args,numargs,"recid",&recid) ||    
         -1 == get_assoc_value_s(args,numargs,"delserie",&delserie) ||
@@ -705,6 +719,11 @@ _web_cmd_delrec(int socket, struct keypair_t *args, const size_t numargs, struct
     } else {
        snprintf(tmpcmd, sizeof(tmpcmd)-1, "d %s", recid);
     }
+    
+
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmdstring=\"%s\"",tmpcmd);
+#endif   
 
     web_main_page(socket, tmpcmd, login_token, headers->ismobile);
     return 0;
@@ -714,11 +733,20 @@ int
 _web_cmd_chwt(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
     char *wtheme;
     
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmd_chwt: sock=%d, numargs=%d",socket,numargs);
+#endif 
+    
     if( -1 == get_assoc_value_s(args,numargs,"t",&wtheme) ) {
         return -1;
     }
     
     strncpy(web_theme,wtheme,sizeof(web_theme)-1);
+
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmdstring=\"t\"");
+#endif   
+    
     web_main_page(socket, "t", login_token, headers->ismobile);
     return 0;
 
@@ -744,7 +772,9 @@ _web_cmd_XXXXX(int socket, struct keypair_t *args, const size_t numargs, struct 
 */
 int
 _web_cmd_killrec(int socket, struct keypair_t *args, const size_t numargs, struct http_reqheaders *headers,char *login_token) {
-
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmd_killrec: sock=%d, numargs=%d",socket,numargs);
+#endif 
     char *recid, *submit;
     if( -1 == get_assoc_value_s(args,numargs,"recid",&recid) || 
         -1 == get_assoc_value_s(args,numargs,"submit_killrec",&submit) ) {
@@ -754,6 +784,11 @@ _web_cmd_killrec(int socket, struct keypair_t *args, const size_t numargs, struc
     
     char tmpcmd[128];
     snprintf(tmpcmd, sizeof(tmpcmd)-1, "! %s", recid);
+    
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmdstring=\"%s\"",tmpcmd);
+#endif   
+    
     web_main_page(socket, tmpcmd, login_token, headers->ismobile);
     return 0;
 }
@@ -764,7 +799,11 @@ _web_cmd_addqrec(int socket, struct keypair_t *args, const size_t numargs, struc
     char *channel;
     char *length_hour, *length_min;
     char *profile, *title, *submit;
-
+    
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmd_addqrec: sock=%d, numargs=%d",socket,numargs);
+#endif 
+    
     if( -1 == get_assoc_value_s(args,numargs,"channel",&channel) || 
         -1 == get_assoc_value_s(args,numargs,"length_hour",&length_hour) || 
         -1 == get_assoc_value_s(args,numargs,"length_min",&length_min) || 
@@ -779,6 +818,11 @@ _web_cmd_addqrec(int socket, struct keypair_t *args, const size_t numargs, struc
     
     char tmpcmd[128];
     snprintf(tmpcmd, sizeof(tmpcmd)-1, "q %s %s:%s %s @%s ", channel,length_hour, length_min, title, profile);
+    
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG,"cmdstring=\"%s\"",tmpcmd);
+#endif   
+    
     web_main_page(socket, tmpcmd, login_token, headers->ismobile);
     return 0;     
     
@@ -822,9 +866,9 @@ struct web_cmds_t {
 struct web_cmds_t web_cmds[] = {
     {"/","login",0,_web_cmd_login},
     {"/","logout",0,_web_cmd_logout},
-    {"/","addrec",12,_web_cmd_addrec},
-    {"/","addqreq",6,_web_cmd_addqrec},
-    {"/","delreq",3,_web_cmd_delrec},
+    {"/","addrec",11,_web_cmd_addrec},
+    {"/","addqrec",6,_web_cmd_addqrec},
+    {"/","delrec",3,_web_cmd_delrec},
     {"/","chwt",1,_web_cmd_chwt},
     {"/","killrec",2,_web_cmd_killrec},
     {"/","cmd",1,_web_cmd_command},
@@ -900,8 +944,11 @@ web_dispatch_httpget_cmd(const int socket,char *path,char *name,
     while( *web_cmds[i].path && 
            (strncmp(path,web_cmds[i].path,255) || strncmp(name,web_cmds[i].name,255)) ) {
         ++i;
-    }
+    }    
     if( *web_cmds[i].path == '\0' || web_cmds[i].numargs != numargs ) {
+#ifdef EXTRA_WEB_DEBUG
+    logmsg(LOG_DEBUG, "c[%d].path=%s, c[%d].numargs=%d, numargs=%d",i,web_cmds[i].path,i,web_cmds[i].numargs,numargs);
+#endif        
         return -1;
     }
     return web_cmds[i].cmdfunc(socket,args,numargs,headers,login_token);
