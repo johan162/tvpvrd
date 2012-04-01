@@ -7,15 +7,20 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
 4.1.0-alpha
-------
+-----------
 User visible changes:
-    - Added favicon
+    - Added favicon.ico
+    - Small tweaks in most supplied standard WEB-themes
 
 Bugs fixed:
-    - None
+    - (Kind of). The date/time handling for Web files will now follow the local
+    time zone handling specified in the tvpvrd.conf. The conversion between
+    GMT time (in the HTTP header) and the local file modified time is now robust and
+    takes DST into account. (Why is always time-zone/conversion so difficult to get right?)
 
 Internal changes:
     - Complete rewrite of internal HTTP protocol handling
+    - Split all low level HTTP handling in its own file httpreq.c
 
 
 

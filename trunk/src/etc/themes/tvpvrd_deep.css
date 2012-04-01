@@ -63,7 +63,7 @@ div#windowtitlebar {
     background-image: -moz-linear-gradient(bottom, rgb(31,34,54) 1%, rgb(28,29,117) 70%);
     background-image: -webkit-linear-gradient(bottom, rgb(31,34,54) 1%, rgb(20,23,117) 70%);
     background-image: linear-gradient(bottom, rgb(31,34,54) 1%, rgb(20,23,117) 70%);   */
-    background-image: url("img/bgtbar_deep.jpeg");
+    background-image: url("img/bgtbar_deep.jpg");
     background-size: cover;
     color:#ddd;
     font-family:arial, sans-serif;

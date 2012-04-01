@@ -63,9 +63,7 @@ install-data-local:
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/xsl
 	install -D -m 755 $(abs_srcdir)/etc/templates/* ${DESTDIR}${sysconfdir}/tvpvrd/shellscript/
 	install -D -m 644 $(abs_srcdir)/etc/themes/* ${DESTDIR}${sysconfdir}/tvpvrd/www/
-	install -D -m 644 $(abs_srcdir)/etc/img/*.png ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
 	install -D -m 644 $(abs_srcdir)/etc/img/*.jpg ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
-	install -D -m 644 $(abs_srcdir)/etc/img/*.gif ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
 	install -D -m 644 $(abs_srcdir)/etc/img/favicon.ico ${DESTDIR}${sysconfdir}/tvpvrd/www/
 	install -D -m 644 $(abs_srcdir)/etc/mail_templates/* ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates/
 	install -D -m 644 $(abs_srcdir)/etc/xsl/* ${DESTDIR}${sysconfdir}/tvpvrd/xsl/
