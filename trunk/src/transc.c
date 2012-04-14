@@ -43,6 +43,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <sys/stat.h>
+#include <libgen.h> // Needed to get dirname()
 
 #include "tvpvrd.h"
 #include "tvconfig.h"
@@ -1744,9 +1745,9 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     list_recsbuff(str_buff,n_str_buff-1,3,4);
                     str_buff[n_str_buff-1] = '\0';
                     add_keypair(keys,maxkeys,"NEXTRECS",str_buff,&ki);
-                    add_keypair(keys,maxkeys,"TITLE",short_filename,&ki);
+                    add_keypair(keys,maxkeys,"FILENAME",short_filename,&ki);
                     add_keypair(keys,maxkeys,"PROFILE",profile->name,&ki);
-                    add_keypair(keys,maxkeys,"FILENAME",tmpbuff,&ki);
+                    add_keypair(keys,maxkeys,"DIRNAME",dirname(tmpbuff),&ki);
 
                     char subjectbuff[256];
                     snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
@@ -1755,7 +1756,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     if( -1 == send_mail_template(subjectbuff, daemon_email_from, send_mailaddress,"mail_transcend", keys, ki) ) {
                         logmsg(LOG_ERR,"Failed to send mail using template \"mail_transcend\"");
                     } else {
-                        logmsg(LOG_DEBUG,"Sucessfully sent mail using template \"mail_transcend\"!");
+                        logmsg(LOG_DEBUG,"Successfully sent mail using template \"mail_transcend\"!");
                     }
 
                     free_keypairlist(keys,ki);
