@@ -6,11 +6,12 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.1.0-alpha
------------
+4.1.0
+-----
 User visible changes:
-    - Added favicon.ico
+    - Added "favicon.ico" that will show up in browser bookmarks when using Web-interface
     - Small tweaks in most supplied standard WEB-themes
+    - Small change in mail template for mail sent at transcoding end
 
 Bugs fixed:
     - (Kind of). The date/time handling for Web files will now follow the local
@@ -19,7 +20,7 @@ Bugs fixed:
     takes DST into account. (Why is always time-zone/conversion so difficult to get right?)
 
 Internal changes:
-    - Complete rewrite of internal HTTP protocol handling
+    - Complete rewrite of internal HTTP protocol handling for micro web-server to ease maintenance
     - Split all low level HTTP handling in its own file httpreq.c
 
 
