@@ -14,6 +14,8 @@ User visible changes:
     - Small change in mail template for mail sent at transcoding end
 
 Bugs fixed:
+    - Fixed problem with wrong handling of cookie HTTP header when several cookies
+    are sent back from the same domain/path as the server is running on.
     - (Kind of). The date/time handling for Web files will now follow the local
     time zone handling specified in the tvpvrd.conf. The conversion between
     GMT time (in the HTTP header) and the local file modified time is now robust and
