@@ -32,7 +32,8 @@ div#topwindow {
     border: solid gray 2px; 
     margin-left:auto;
     margin-right:auto;
-    width:800px;   
+    width:100%;   
+    min-height: 500px;
     display: block; 
 }
 
@@ -46,7 +47,7 @@ div#windowtitlebar {
     background: #404040;
     color:#ddd;
     font-family:arial, sans-serif;
-    font-size:32pt;
+    font-size:14pt;
     height:1em;
 }
 
@@ -55,7 +56,7 @@ div#windowtitlebar_cont {
     float:left;
     text-align:left;
     font-weight:bold;
-    font-size:32pt;  
+    font-size:14pt;  
 }
 
 /* Format for title in title-bar */
@@ -83,8 +84,8 @@ div#cmd_menu {
     clear:both;
     margin:0;
     padding:0;
-    width: 99%;
-    margin-top: 40px;
+    width: 100%;
+    margin-top: 10px;
 }
 
 div.cmd_grp {
@@ -92,18 +93,18 @@ div.cmd_grp {
     clear:both;
     margin-left: 12px;
     margin-right: 2px;
-    margin-bottom:25px;
+    margin-bottom:10px;
 }
 
 div.cmd_item {
     float:left;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
     padding-bottom: 2px;
     margin-left: 1px;
-    margin-right: 20px;
+    margin-right: 4px;
     border: solid 1px #000;
-    width: 150px;
+    width: 65px;
     margin-bottom:4px;
 
     background: #293B29; 
@@ -118,7 +119,7 @@ div.cmd_item {
     
     font-family: arial, sans-serif;
     font-weight: bold;
-    font-size: 28pt;
+    font-size: 12pt;
     color: #ddd; 
     text-align: center;
 }
@@ -156,7 +157,7 @@ div#statusbar {
 
 div#run-mode-status {
     float:left;
-    font-size:20pt;
+    font-size:10pt;
     font-weight: bold;
     color:#444;
     margin-left: 4px;
@@ -205,7 +206,7 @@ legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-variant:small-caps;
-    font-size:44pt;
+    font-size:16pt;
     padding-left:2px;
     padding-right:4px;
     color:#922;
@@ -231,7 +232,7 @@ pre a {
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
-    font-size:20pt;
+    font-size:10pt;
     font-weight:bold;
     color:#113b12;
     text-shadow:1px 1px 1px #999;
@@ -250,7 +251,7 @@ pre a {
     padding-left:4px;
     padding-right:0px;
     font-family: monospace;
-    font-size:20pt;
+    font-size:10pt;
     font-weight:bold;
     color:#444;
     overflow:hidden;
@@ -294,7 +295,7 @@ pre a {
 div.input_container {
     float:left;
     padding:1px;
-    margin-top:40px;
+    margin-top:10px;
     margin-right:0px;
     margin-left:0px;
 }
@@ -303,19 +304,19 @@ div.input_container {
 div.input_legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
-    font-size:30pt;
+    font-size:12pt;
     color:#404040;
     margin:0;
 }
 
-/* Adjustmens for browser controls */
+/* Adjustments for browser controls */
 input,
 select  {
     border: solid gray 1px;
     background: #fff;
     font-family:Arial, Sans-serif;
     font-weight:bold;
-    font-size:40pt;
+    font-size:12pt;
     color:#660000;
 }
 
@@ -328,27 +329,26 @@ select:focus {
 
 /* Repeat count selector */
 select.input_select#id_rptcount_select {
-    width:140px;
+    width:70px;
 }
 
 /* Input text controls */
 input.input_text {
-    width : 200px;
+    width : 170px;
 }
 
 /* Input submit buttons in forms */
 input.input_submit {
     font-family:Arial, Sans-erif;
     font-weight:bold;
-    font-size:40pt;
+    font-size:14pt;
     margin-left: 10px;
     margin-bottom: 5px;
     border: solid 1px #333;
     color:#ddd;
-    height:66px;
-    width:180px;
-    margin-top:40px;
-    padding-bottom:14px;
+    height:24pt;
+    width:80px;
+    margin-top:5px;
 
     background: #c95959; 
     background-image: -moz-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
@@ -370,7 +370,7 @@ input.input_submit:hover {
 /* Give visual feedback that the button has been pressed */
 input.input_submit:active {
     border: solid 1px #ddd;
-    font-size:24pt;
+    font-size:14pt;
     cursor:pointer;
     cursor:hand;
     -moz-box-shadow: 0px 0px 0px #000; 
@@ -379,38 +379,33 @@ input.input_submit:active {
 
 /* Adjustment for submit buttons to make them right aligned */
 div.input_container#id_addrec {
-    padding-top:12px;
+    padding-top:15px;
     float:right;
-    margin-right:10px;
+    margin-right:5px;
 }
 
-/* Text between begin and end time */
-div#be_hyphen {
-    font-weight:bold;
-    font-size:14pt;
-    padding-bottom:0px;
-    padding-top:14px;
-}
-
-/* Which input fields shoud start on a new line */
-#id_start,
-#id_rpttype {
+/* Which input fields should start on a new line */
+#id_rpttype,
+#id_starthour {
     float:left;
     clear:left;
 }
 
 #id_start {
-    margin-right:50px;
+    margin-right:10px;
 }
 
 #id_endhour {
-    margin-left:50px;
+    margin-left:10px;
 }
 
-
+#id_station select {
+    width:150px;
+}
 
 .input_container#id_title input {
-    width: 450px;
+    width: 200px;
+    font-size: 16pt;
 }
 
 
@@ -420,13 +415,14 @@ div#login_window {
     bottom:0;
     left:0;
     right:0;
-    width:170px;
+    width:80%;
+    height:70%;
     background:#ddd;
     padding-top:0px;
     padding-bottom:10px;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
     margin-top: 20px;
     -moz-box-shadow:     5px 5px 3px #555;
     -webkit-box-shadow:  5px 5px 3px #555;
@@ -441,7 +437,7 @@ div#login_title {
     background:#444;
     font-weight:bold;
     font-family:Arial, Sans-serif;
-    font-size:24pt;
+    font-size:14pt;
     color:#fff;
     margin-bottom:10px;
     text-align:center;
@@ -450,9 +446,10 @@ div#login_title {
 
 div#login_window  div.input_container {
     float:none;
-    width: 100px;
+    width: 200px;
     margin-left: auto;
     margin-right: auto;
+    font-size: 16pt;
 }
 
 /* Adjustment of password field */
@@ -467,7 +464,7 @@ div.input_container#id_loginpwd div.input_legend {
     width: 8em;
     color:#111;
     font-weight:bold;
-    font-size:22pt;
+    font-size:14pt;
     text-shadow: -1px -1px 1px #fff;
 }
 
@@ -478,7 +475,7 @@ div.input_container#id_submitlogin {
 
 input.input_submit#id_submitlogin_submit {
     padding-bottom:10px;
-    font-size:20pt; 
+    font-size:14pt; 
     width:100px;
     margin-left: auto;
     margin-right: auto;

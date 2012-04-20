@@ -247,6 +247,7 @@ html_pagehead(int sockd, char *cookie_val, int mobile) {
             "<html xmlns=\"http://www.w3.org/1999/xhtml\" >\n"
             "<head>\n"
             "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n"
+            "%s"
             "<title>"
             "%s"
             "</title>\n"
@@ -256,7 +257,10 @@ html_pagehead(int sockd, char *cookie_val, int mobile) {
     snprintf(title, 254, "tvpvrd %s", server_version);
 
     http_header(sockd, cookie_val);
-    _writef(sockd, preamble, title, mobile ? "mobile" : web_theme );
+    _writef(sockd, preamble,
+            mobile ? "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n" : "",
+            title, 
+            mobile ? "mobile" : web_theme );
     
 }
 

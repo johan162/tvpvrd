@@ -12,14 +12,16 @@ User visible changes:
     - Added "favicon.ico" that will show up in browser bookmarks when using Web-interface
     - Small tweaks in most supplied standard WEB-themes
     - Small change in mail template for mail sent at transcoding end
+    - Much improved Web-interface when accessed from mobile phone. The interface now uses the
+      native mobile browser viewport to adjust to different screen densities.
 
 Bugs fixed:
     - Fixed problem with wrong handling of cookie HTTP header when several cookies
-    are sent back from the same domain/path as the server is running on.
+      are sent back from the same domain/path as the server is running on.
     - (Kind of). The date/time handling for Web files will now follow the local
-    time zone handling specified in the tvpvrd.conf. The conversion between
-    GMT time (in the HTTP header) and the local file modified time is now robust and
-    takes DST into account. (Why is always time-zone/conversion so difficult to get right?)
+      time zone handling specified in the tvpvrd.conf. The conversion between
+      GMT time (in the HTTP header) and the local file modified time is now robust and
+      takes DST into account. (Why is always time-zone/conversion so difficult to get right?)
 
 Internal changes:
     - Complete rewrite of internal HTTP protocol handling for micro web-server to ease maintenance
