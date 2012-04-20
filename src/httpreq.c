@@ -597,6 +597,7 @@ _web_cmd_logout(int socket,struct keypair_t *args, const size_t numargs, struct 
     
     (void)args; // To shut up warning about non used arguments
     (void)login_token;
+    (void)numargs;
     
     web_login_page(socket,headers->ismobile);
     return 0;    
@@ -889,6 +890,10 @@ struct web_cmds_t web_cmds[] = {
 int
 web_get_cookie(char *name, char *val, size_t maxlen, struct http_reqheaders *headers) {
     char *c = headers->Cookie;
+
+#ifdef EXTRA_WEB_DEBUG    
+    logmsg(LOG_DEBUG,"Looking for '%s' in cookie header: '%s'",name,c);
+#endif
     
     if( c==NULL ) {
         return -1; // No cookies in header
@@ -906,13 +911,26 @@ web_get_cookie(char *name, char *val, size_t maxlen, struct http_reqheaders *hea
         }     
         // There must be an '=' sign
         if( 0 == eq) return -1;
-        xsubstr(cname,sizeof(cname),c,s,eq-1);
+        xsubstr(cname,sizeof(cname),c,s,eq-1);               
+        
+#ifdef EXTRA_WEB_DEBUG    
+    logmsg(LOG_DEBUG,"Checking cookie '%s' in header.",cname);
+#endif            
+        
         if( 0==strncmp(cname,name,sizeof(cname)) ) {
             xsubstr(val,maxlen,c,eq+1, (c[e]=='\0' ? (size_t)-1 : e-1) );
+
+#ifdef EXTRA_WEB_DEBUG    
+    logmsg(LOG_DEBUG,"Found cookie '%s' = '%s'",cname,val);
+#endif            
+            
             return 0;
         }
-        s = c[e] ? e+1 : e;     
+        s = c[e] ? e+2 : e;     
     }
+#ifdef EXTRA_WEB_DEBUG    
+    logmsg(LOG_DEBUG,"Cookie '%s' NOT found in header",name);
+#endif    
     return -1;
 }
 
