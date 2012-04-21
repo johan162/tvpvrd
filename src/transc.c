@@ -60,7 +60,7 @@
 #include "transcprofile.h"
 
 struct ongoing_transcoding *ongoing_transcodings[3] ;
-const size_t max_ongoing_transcoding = 3;
+const size_t max_ongoing_transcoding = 2;
 struct waiting_transcoding_t wtrans[MAX_WAITING_TRANSCODINGS] ;
 
 /**
