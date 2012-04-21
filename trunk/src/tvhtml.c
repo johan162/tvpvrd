@@ -342,7 +342,7 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
     _writef(sockd, buffer);
     for (int i = 0; i < num; ++i) {
         if (selected && 0 == strcmp(selected, list[i])) {
-            snprintf(buffer, maxlen, "<option selected value=\"%s\">%s</option>\n", list[i], list[i]);
+            snprintf(buffer, maxlen, "<option selected=\"selected\" value=\"%s\">%s</option>\n", list[i], list[i]);
         } else {
             snprintf(buffer, maxlen, "<option value=\"%s\">%s</option>\n", list[i], list[i]);
         }
@@ -394,7 +394,7 @@ html_element_select_code(int sockd, char *legend, char *name, char *selected, co
     int i = 0;
     while (i < num) {
         if (selected && 0 == strcmp(selected, list[i].val)) {
-            snprintf(buffer, maxlen, "<option selected value=\"%s\">%s</option>\n", list[i].key, list[i].val);
+            snprintf(buffer, maxlen, "<option selected=\"selected\" value=\"%s\">%s</option>\n", list[i].key, list[i].val);
         } else {
             snprintf(buffer, maxlen, "<option value=\"%s\">%s</option>\n", list[i].key, list[i].val);
         }
