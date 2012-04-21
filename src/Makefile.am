@@ -39,7 +39,7 @@ etc/themes/tvpvrd_mobile.css \
 etc/themes/tvpvrd_plain.css etc/themes/tvpvrd_metal.css etc/themes/tvpvrd_hq.css \
 etc/img/logout_button.jpg \
 etc/img/bg_metal.jpg etc/img/bgcmd_metal_off.jpg etc/img/bgcmd_metal_on.jpg \
-etc/img/bgtbar_deep.jpeg \
+etc/img/bgtbar_deep.jpg \
 etc/img/favicon.ico \
 etc/templates/postrec_processing.sh.template \
 etc/templates/posttransc_processing.sh.template \
