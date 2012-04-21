@@ -26,6 +26,7 @@ Bugs fixed:
 Internal changes:
     - Complete rewrite of internal HTTP protocol handling for micro web-server to ease maintenance
     - Split all low level HTTP handling in its own file httpreq.c
+    - More robust HTTP handling in case of buggy browsers
 
 
 
