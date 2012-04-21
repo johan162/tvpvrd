@@ -22,12 +22,13 @@ Bugs fixed:
       time zone handling specified in the tvpvrd.conf. The conversion between
       GMT time (in the HTTP header) and the local file modified time is now robust and
       takes DST into account. (Why is always time-zone/conversion so difficult to get right?)
+    - Layoutfor multiple ongoging transcoding windows was ugly
 
 Internal changes:
     - Complete rewrite of internal HTTP protocol handling for micro web-server to ease maintenance
     - Split all low level HTTP handling in its own file httpreq.c
     - More robust HTTP handling in case of buggy browsers
-
+    - Some minor (X)HTML changes to make generated HTML be fully standards compliant
 
 
 4.0.2
