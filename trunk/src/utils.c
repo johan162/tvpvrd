@@ -238,7 +238,9 @@ getsysload(float *avg1, float *avg5, float *avg15) {
     oldlocale[sizeof(oldlocale)-1] = '\0';
     setlocale(LC_ALL,"C");
     sscanf(lbuff, "%f%f%f", avg1, avg5, avg15);
+/*
     logmsg(LOG_DEBUG,"*** Load average: lbuff=%s (%f %f %f)",lbuff,*avg1, *avg5, *avg15);
+*/
     setlocale(LC_ALL,oldlocale);
 }
 
