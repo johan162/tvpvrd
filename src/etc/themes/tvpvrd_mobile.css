@@ -2,7 +2,7 @@
    File: TVPVRD_MOBILE.CSS
    Desc: CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
 
-         The overall layout in the mobile version si simplified compared to the full WEB-UI.
+         The overall layout in the mobile version is simplified compared to the full WEB-UI.
          The following ascii arts gives an overall illustration of the layout.
 
             +----------------+
@@ -10,12 +10,14 @@
             |                |
             |                | 
             |                |           
-            |                |
-            |                |
+            +----------------+
+            |   [CMD_GRP]    |
             +----------------+
             |    [OUTPUT]    |
             +----------------+
 
+  Note: Since the generated HTML includes the "viewport" META tag setting all modern
+  mobile browsers will adjust the overall scaling to the device.
 
   SVN:  $Id$
  ----------------------------------------------------------------------------------------------
@@ -56,7 +58,7 @@ div#windowtitlebar_cont {
     float:left;
     text-align:left;
     font-weight:bold;
-    font-size:14pt;  
+    font-size:13pt;  
 }
 
 /* Format for title in title-bar */
@@ -75,7 +77,7 @@ div#logout_container {
 /* Container around actual content area of the top window */
 div.single_side {
     float:none;
-    padding-bottom: 5px;
+    padding-bottom: 3px;
 }
 
 /* Menu handling */
@@ -88,14 +90,16 @@ div#cmd_menu {
     margin-top: 10px;
 }
 
+/* Container around the mednu commands */
 div.cmd_grp {
     float:left;
     clear:both;
     margin-left: 12px;
     margin-right: 2px;
-    margin-bottom:10px;
+    margin-bottom:8px;
 }
 
+/* Command "buttons" */
 div.cmd_item {
     float:left;
     padding-left: 3px;
@@ -155,35 +159,10 @@ div#statusbar {
     margin-bottom:3px;
 }
 
-div#run-mode-status {
-    float:left;
-    font-size:10pt;
-    font-weight: bold;
-    color:#444;
-    margin-left: 4px;
-    text-shadow: -1px -1px 1px #fff;
-    font-family:Arial,sans-serif;
-}
-
-div#run-mode-status:before {
-    content: "";
-}
-
-/* Build number in the right of the status bar */
-div#buildnbr {
-    float:right;
-    font-size:10pt;
-    font-style:italic;
-    font-weight: bold;
-    color:#555;
-    margin-right: 6px;
-    font-family:Arial,sans-serif;
-}
-
 /* Container around each command input/output module */
 div.cmdmodule {
-    margin-bottom:4px;
-    margin-top:4px;
+    margin-bottom:3px;
+    margin-top:3px;
     margin-right:4px;
     margin-left:2px;
     float:none;
@@ -193,11 +172,11 @@ div.cmdmodule {
 fieldset {
     border: dotted 1px #888;
     margin-top:4px;
-    margin-right:5px;
+    margin-right:4px;
     margin-left:2px;
     padding:0;
     padding-left:3px;
-    padding-bottom:6px;
+    padding-bottom:4px;
     float:none;
 }
 
@@ -280,12 +259,14 @@ pre a {
 
 
 /* More specific formatting unique for command output */
+/* Note: Android browsers seems buggy and does not show the scroll bars
+   as they should ! */
 #cmdoutput {
     clear:both;
     overflow-y: scroll;
     overflow-x: scroll;
     height:280px;
-    margin-right:6px;
+    margin-right:4px;
     margin-left:3px;
     margin-bottom:10px;
     border:solid 1px #bbb;
@@ -385,7 +366,6 @@ div.input_container#id_addrec {
 }
 
 /* Which input fields should start on a new line */
-#id_rpttype,
 #id_starthour {
     float:left;
     clear:left;
