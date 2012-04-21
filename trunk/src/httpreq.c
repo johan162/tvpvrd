@@ -480,6 +480,11 @@ web_parse_httpreq(char *req, struct http_reqheaders *headers) {
     // Check if this is an access from a mobile phone by checking the user-agent string    
     headers->ismobile = is_mobile_connection(headers);
     
+    // In case the browser gone mad
+    if( '\0' == *headers->Get ) {
+        ret = -1;
+    }
+    
 _httpreq_freeret:
     free(row);
     return ret;
@@ -504,7 +509,18 @@ web_parse_httpget(char* str,
     
     const char SPACE = ' ';
     *numargs=0;
-        
+    
+    if( NULL == str ) {
+        logmsg(LOG_CRIT,"NULL pointer passed to web_parse_httpget (numargs=%zu)",numargs);
+        if( file ) {
+            logmsg(LOG_CRIT,"file=%s",file);
+        }
+        if( dir ) {
+            logmsg(LOG_CRIT,"dir=%s",dir);
+        }
+        return -1;
+    }
+    
     // The last letters must be a HTTP version, for example " HTTP/1.1"
     const size_t n = strnlen(str,512);
     if( !(isdigit(str[n-1]) && str[n-2]=='.' && isdigit(str[n-3]) &&
@@ -865,7 +881,7 @@ struct web_cmds_t {
 #define LOGIN_CMDIDX 0
 
 struct web_cmds_t web_cmds[] = {
-    {"/","login",0,_web_cmd_login},
+    {"/","login",3,_web_cmd_login},
     {"/","logout",0,_web_cmd_logout},
     {"/","addrec",11,_web_cmd_addrec},
     {"/","addqrec",6,_web_cmd_addqrec},
@@ -965,7 +981,7 @@ web_dispatch_httpget_cmd(const int socket,char *path,char *name,
     }    
     if( *web_cmds[i].path == '\0' || web_cmds[i].numargs != numargs ) {
 #ifdef EXTRA_WEB_DEBUG
-    logmsg(LOG_DEBUG, "c[%d].path=%s, c[%d].numargs=%d, numargs=%d",i,web_cmds[i].path,i,web_cmds[i].numargs,numargs);
+    logmsg(LOG_DEBUG, "Command not recognized. c[%d].path=%s, c[%d].numargs=%d, numargs=%d",i,web_cmds[i].path,i,web_cmds[i].numargs,numargs);
 #endif        
         return -1;
     }
