@@ -321,7 +321,8 @@ div.ongoing_rec_entry {
 }
 
 div.ongoing_transc_entry {
-
+    float:left;
+    padding:0;
 }
 
 div.ongoing_rec_entry .caption {
