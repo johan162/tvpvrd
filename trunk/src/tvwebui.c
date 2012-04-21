@@ -116,19 +116,22 @@ web_cmd_ongoingtransc(int sockd) {
     
     _web_cmd_module_start(sockd,"Ongoing transcoding");
     if( 0==num ) {
+        
         _writef(sockd, "<div class=\"ongoing_transc_entry fullw\">\n");
         _writef(sockd, "<div class=\"displayasled_off\"><pre> - - -</pre></div>\n");
         _writef(sockd, "<div class=\"ongoing_transc_stop_disabled\">Stop</div>\n");
         _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
+        
     } else {
+        int active_transc=0;
         for (size_t i = 0; i < max_ongoing_transcoding; i++) {
-            if (0 == i % 2) {
-                _writef(sockd, "<div class=\"ongoing_transc_entry%s\">\n", num > 1 ? " halfw" : " fullw");
-            } else {
-                _writef(sockd, "<div class=\"ongoing_transc_entry%s margleft\">\n", num > 1 ? " halfw" : " fullw");
-            }
-
-            if (ongoing_transcodings[i]) {
+            if (ongoing_transcodings[i]) {                
+                if (0 == active_transc % 2) {
+                    _writef(sockd, "<div class=\"ongoing_transc_entry%s\">\n", num > 1 ? " halfw" : " fullw");
+                } else {
+                    _writef(sockd, "<div class=\"ongoing_transc_entry%s margleft\">\n", num > 1 ? " halfw" : " fullw");
+                }
+            
                 time_t now = time(NULL);
                 int rtime = now-ongoing_transcodings[i]->start_ts;
                 int rh = rtime/3600;
@@ -136,15 +139,14 @@ web_cmd_ongoingtransc(int sockd) {
 
                 _writef(sockd, "<div class=\"displayasled_on\"><pre>(%02d:%02d)\n%s</pre></div>\n",rh,rmin,ongoing_transcodings[i]->filename);
                 _writef(sockd, "<div class=\"ongoing_transc_stop\"><a href=\"cmd?c=kt%%20%d\">Stop</a></div>\n",i);
-
+                _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
+                active_transc++;
             }
             
-            _writef(sockd, "</div> <!-- ongoing_transc_entry -->\n");
+
         }
     }
-    
-    
-
+        
     _web_cmd_module_end(sockd);
 }
 
