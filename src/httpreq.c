@@ -792,9 +792,8 @@ _web_cmd_killrec(int socket, struct keypair_t *args, const size_t numargs, struc
 #ifdef EXTRA_WEB_DEBUG
     logmsg(LOG_DEBUG,"cmd_killrec: sock=%d, numargs=%d",socket,numargs);
 #endif 
-    char *recid, *submit;
-    if( -1 == get_assoc_value_s(args,numargs,"recid",&recid) || 
-        -1 == get_assoc_value_s(args,numargs,"submit_killrec",&submit) ) {
+    char *recid;
+    if( -1 == get_assoc_value_s(args,numargs,"rid",&recid) ) {
         
         return -1;
     }
@@ -887,7 +886,7 @@ struct web_cmds_t web_cmds[] = {
     {"/","addqrec",6,_web_cmd_addqrec},
     {"/","delrec",3,_web_cmd_delrec},
     {"/","chwt",1,_web_cmd_chwt},
-    {"/","killrec",2,_web_cmd_killrec},
+    {"/","killrec",1,_web_cmd_killrec},
     {"/","cmd",1,_web_cmd_command},
     {"/","",0,_web_cmd_default},
     
