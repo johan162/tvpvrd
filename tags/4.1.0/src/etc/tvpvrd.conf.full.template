@@ -1,0 +1,709 @@
+############################################################################
+# About this file (tvpvrd.conf.full.template)
+#
+# This is the comlpete template config file for tvpvrd. It contains
+# all user adjustable settings. If you only want to use mostly default
+# settings consider starting with the template tvpvrd.conf.simplified.template
+# which only contains the most common settings.
+#
+# How to use this file:
+# Copy this template to a file "tvpvrd.conf" and then make the necessary
+# changes according to your server setup.
+#
+# There are four major sections in this file, they are:
+#
+# config:     General settings for the server
+# encoder:    Setting for the TV Capture card HW MP2 encoder
+# ffmpeg:     General setting for the ffmpeg based transcoding to .mp4 files
+# shutdown:   Settings to manage the automatic shutdown of the server in
+#             between recordings
+#
+# -------------------------------------------------------------------------------------------------------
+#
+# Copyright (C) 2009,2010,2011 Johan Persson
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+############################################################################
+
+############################################################################
+# config - General settings
+############################################################################
+
+[config]
+#----------------------------------------------------------------------------
+# MASTER boolean
+# Determine if this server is to run as master or slave. A master server
+# must have one or more video cards and supports the full command set.
+# A slave server do not need to have a video card. Instead a slave server
+# is exclusively used to transcode files.  A slave server can therefore
+# be used to help the master to transcode files. For this to work well the
+# slave server must have access to the masters server data catalogue.
+# The slave assumes that the master data catalogue is mounted on the
+# specified dirctory (see DATADIR) this should point to the same
+# directory as DATADIR on the master but as seen from the slave, 
+# for example /mnt/master/data/pvr or similar if a NFS file mount is used
+# on the slave to view the master file system
+#----------------------------------------------------------------------------
+master=yes
+
+#----------------------------------------------------------------------------
+# PORT integer
+# Default TCP/IP port where the server will listen for incoming connections
+# The port number must be unique for this server. If any other applications
+# currently running is using this port an error message will be printed
+# during server startup and the server will be terminated.
+#----------------------------------------------------------------------------
+port=9300
+
+#----------------------------------------------------------------------------
+# ENABLE_WEBINTERFACE boolean
+# Should we allow connections to the (very) primitive WEB-interface
+# available on port (port+1), i.e. 9301 with the default settings.
+# The Web interface only supports a subset of all available commands.
+#----------------------------------------------------------------------------
+enable_webinterface=no
+
+#----------------------------------------------------------------------------
+# REQUIRE_WEB_PASSWORD boolean
+# Determines if the WEB interface require user to login
+#----------------------------------------------------------------------------
+require_web_password=no
+
+#----------------------------------------------------------------------------
+# WEB_USER string
+# WEB_PASSWORD string
+# The login details (if enabled) for the WEB interface
+#----------------------------------------------------------------------------
+web_user=xxxxx
+web_password=
+
+#----------------------------------------------------------------------------
+# WEBLOGIN_TIMEOUT int
+# Timeout in minutes how long a WEB login is active when user is idle.
+# A value of 0 indicates login is valid until the browser is closed
+#----------------------------------------------------------------------------
+weblogin_timout=0
+
+#----------------------------------------------------------------------------
+# MAX_CLIENTS integer
+# The maximum number of simultaneous clients that are allowed to connect
+# to this server. When enabling the web-interface thuis should be at least
+# four times the unmber of expected clients since web-browsers setup several
+# parallell connections when fetching images and stylesheets.
+#----------------------------------------------------------------------------
+max_clients=10
+
+#----------------------------------------------------------------------------
+# DATADIR string
+# Base directory for storing all the data procuded and used by the server. 
+# The file structure under the base directory is defined as:
+#
+# datadir
+# |-- mp2                           // Saved original MP2 files
+# |-- mp4                           // Contains a subfolder for each
+# |   |-- high                      // defined transcoding profile
+# |   |-- low
+# |   |-- mobile
+# |   |-- normal
+# |   `-- wnormal
+# |-- stats                         // Contains a statistics for each
+# |   |-- high.stats                // defined profile
+# |   |-- low.stats
+# |   |-- mobile.stats
+# |   |-- normal.stats
+# |   `-- wnormal.stats
+# |-- vtmp                          // Contains a subdirectory for each
+# |   |-- vid0                      // available video card
+# |   `-- vid1
+# |   |-- ...
+# `-- xmldb
+#     `-- tvpvrd_db.xml             // The XML DB of all recording
+#
+# Legend:
+# 
+# mp2   - The original mp2 encoded files from the video cards
+# vtmp  - Temporary files created during recording and transcoding
+# mp4   - The transcoded mp4 files per defined profile
+# xmldb - The XML DB file (+backups) are stored in this directory
+# stats - Transcoding statistics
+#
+#----------------------------------------------------------------------------
+datadir=/data/pvr/
+
+#----------------------------------------------------------------------------
+# TRANSCODING_TMPDIR string
+# Temporary directory used when transcoding files. When the the server
+# is running as a client it is useful to have this point to a local
+# directory on the server and not the shared data directory pointed
+# to by 'datadir' to avoid unnecessary network traffic
+#----------------------------------------------------------------------------
+transcoding_tmpdir=/data/pvr/vtmp
+
+#----------------------------------------------------------------------------
+# USE_PROFILE_DIECTORIES string
+# Should we create and use a directory hierarchy based on the profile
+# names to store the video files (and the transcoded files) under the
+# basename "mp2/" and "mp4/". This can be useful if you regularly
+# use multiple transcodings for the same video for display on different
+# devices. The hierarchy will make it easier to structure the recordings.
+#----------------------------------------------------------------------------
+use_profile_directories=no
+
+#----------------------------------------------------------------------------
+# USE_REPEAT_REC_BASEDIR string
+# When recurring recordings are specified this settings determines if all
+# recordings should be stored under a subdirectory. The name of the basedir
+# will be that of the basename of the recurring recording.
+#----------------------------------------------------------------------------
+use_repeat_rec_basedir=no
+
+#----------------------------------------------------------------------------
+# LOGFILE_NAME string
+# Name of logfile to use. The name can also be one of two special values
+# 1) "syslog" - Use system logger
+# 2) "stdout" - Use stdout - this is not valid if tvpvrd is run as a daemon 
+#----------------------------------------------------------------------------
+logfile_name=/tmp/tvpvrd.log
+
+#----------------------------------------------------------------------------
+# VERBOSE_LOG integer
+# Setting verbose to 0 will only show error messages
+# Setting verbose to 1 will also show info messages
+# Setting verbose to 2 will also show info messages + notices
+# Setting verbose to 3 will also show info messages + notices + debug messages
+# Setting verbose to 4 will also add RTC debug info in shutdown mail
+#----------------------------------------------------------------------------
+verbose_log=1
+
+#----------------------------------------------------------------------------
+# DAEMONIZE bool
+# Determine if we should disconnect from the controlling terminal i.e.
+# become a daemon process by default when started
+#----------------------------------------------------------------------------
+daemonize=yes
+
+#----------------------------------------------------------------------------
+# USERNAME string
+# What user should the server be running under in case it is started
+# as a daemon by root. For security reason the server should not be running
+# as the root user.
+# Note: The user must exist in the system and be a member of the video
+# group since this is normally required to access the video device.
+# To create a new (system) user, (i.e. a user without a login shell)
+# the "adduser" command can be used, for example
+#    $>adduser --system -G video tvpvrd
+# The new user will belong to the default primary group, normally "users"
+#----------------------------------------------------------------------------
+username=xxxxx
+
+#----------------------------------------------------------------------------
+# REQUIRE_PASSWORD boolean
+# Should a password be required to login to the server on the TVP/IP port
+#----------------------------------------------------------------------------
+require_password=no
+
+#----------------------------------------------------------------------------
+# PASSWORD string
+# Password needed to connect to the server
+#----------------------------------------------------------------------------
+password=xxxxx
+
+#----------------------------------------------------------------------------
+# FREQUENCY_MAP string
+# Specify what geographic frequency map should be used. Possible options are
+# "europe-west"
+# "europe-east"
+# "france"
+# "ireland"
+# "italy"
+# "australia"
+# "newzealand"
+# "us-bcast"
+# "us-cable"
+#----------------------------------------------------------------------------
+frequency_map=europe-west
+
+#----------------------------------------------------------------------------
+# XMLDBFILE_NAME string 
+# Name of file where the XML database of recordings are stored.
+# Note: This file will always be stored under the "xmldb" directory.
+#----------------------------------------------------------------------------
+xmldbfile_name=tvpvrd_db.xml
+
+#----------------------------------------------------------------------------
+# TIME_RESOLUTION integer
+# How often do we check when to start a recording (in seconds)
+# (The logic is such that a recording will always start on the exact time
+# or at most time_resolution seconds before the actual time.
+# Setting the daemon to check too often just results in tvpvrd putting
+# slightly higher load on the server
+#----------------------------------------------------------------------------
+time_resolution=3
+
+#----------------------------------------------------------------------------
+# MAX_ENTRIES integer
+# Maximum number of pending recordings per video stream.
+#----------------------------------------------------------------------------
+max_entries=1024
+
+#----------------------------------------------------------------------------
+# MAX_VIDEO integer
+# The number of video cards that can be used  by the server.
+# This is usually the same as the number of TV-Cards available. The number
+# can never be higher than the number of physically available coders but it
+# can be less to tell the server to only use some of the available coders.
+# The program will also validate the available cards. If the number here
+# is higher than the number of found cards in the system the server will
+# given an error during startup and then terminate.
+# If the number is set to 0 then the server will automatically determine
+# the maximum number of cards and use all. In practice very few motherboards
+# have sockets from more than two videocards on the PCI-Express slot
+#----------------------------------------------------------------------------
+max_video=0
+
+#----------------------------------------------------------------------------
+# TUNER_INPUT_INDEX integer
+# A capture card usually have several inputs. The server needs to know which
+# one of the inputs is the tuner so it can be selected. Most cards only have
+# one tuner which is available as the first input source (e.g. index 0).
+# The input to the encoder can also be selected as one of the other sources
+# by using the meta station name "_inpXY" where X is replace by the wanted
+# capture card and Y is replaced by the wanted input source. See the man
+# page for more information on how to choose between the possible inputs.
+#----------------------------------------------------------------------------
+tuner_input_index=0
+
+#----------------------------------------------------------------------------
+# VIDEO_DEVICE_BASENAME string
+# Basename for video device. This is almost without exception /dev/video
+# Each tuner will then be access as /dev/video0, /dev/video1 etc.
+# This device should be the device providing the MPEG2 output from the card.
+# See also the related setting ENCODER_DEVICE below
+#----------------------------------------------------------------------------
+video_device_basename=/dev/video
+
+#----------------------------------------------------------------------------
+# ENCODER_DEVICE<n> string
+# For most cards the encoder device (which provides the MPEG2 output of the
+# video stream) is located at "/dev/video0" for the first card, "/dev/video1"
+# for the second card and so on. The encoder device name is then constructed
+# from the <video_device_basename> defined above.
+# However, some cards presents both a raw video output and the encoded version
+# so the simple numbering scheme with adding a number to the video device will
+# not work. In this case the exact video device for each card must be specified.
+# If specified, the settings below will override the constructed device name
+# based on the <video_device_basename>. Cards are numbered from 0 and upwards.
+# The specified device should be the MPEG2 encoder device.
+# NOTE: If you have these kinds of cards it might be necessary to specify
+# "max_video" above since the autodetection will be fooled if each card have
+# several video devices.
+# NOTE2: For most cards this can be left commented out (e.g. Hauppauge cards)
+#----------------------------------------------------------------------------
+#encoder_device0=/dev/video0
+#encoder_device1=/dev/video1
+#encoder_device2=/dev/video2
+#encoder_device3=/dev/video3
+
+#----------------------------------------------------------------------------
+# TUNER_DEVICE<n> string
+# Most cards present one device that is used both to set the tuner (channel
+# and so on) and to send back the encoder stream. However, some cards used
+# different devices. So this setting gives the opportunity to specify for
+# each available card which device should be used to switch channels as well
+# as selecting the input source. Most often this is used in conjunction with
+# the encoder_device settings above.
+# NOTE: For most cards this can be left commented out (e.g. Hauppauge cards)
+#----------------------------------------------------------------------------
+#tuner_device0=/dev/video0
+#tuner_device1=/dev/video1
+#tuner_device2=/dev/video2
+#tuner_device3=/dev/video3
+
+#----------------------------------------------------------------------------
+# ALLOW_PROFILES_ADJ_ENCODER boolean
+# Normally each profile will adjust both the parameters on the capture
+# card as well as the transcoding (ffmpeg) parameters. However, it seems
+# that some capture card/driver combinations doesn't really like to have
+# there HW settings (apart from tuner freq) adjusted too often. The
+# indications of this is often that the driver temporarily lock up and
+# that the card does not produce any MPEG data. This seems to happen more
+# when there are many short recordings. Setting this parameter to "no"
+# will cause the profiles to not be allowed to adjust the HW paramaters.
+# Instead the HW parameters will be set in the startup of the server to
+# the HW encoder parameters in the default profile, normally "normal". 
+# Unless youi experience problems leave this setting to "yes"
+#----------------------------------------------------------------------------
+allow_profiles_adj_encoder=yes
+
+#----------------------------------------------------------------------------
+# CLIENT_IDLE_TIME integer
+# Max idle time in seconds before clients are automatically disconnected
+#----------------------------------------------------------------------------
+client_idle_time=1800
+
+#----------------------------------------------------------------------------
+# RECORDING_TIMEHOUR integer
+# RECORDING_TIMEMIN integer
+# Default recording time (hour and minutes) if not specified otherwise
+#----------------------------------------------------------------------------
+recording_timehour=0
+recording_timemin=59
+
+#----------------------------------------------------------------------------
+# XAWTV_STATION_FILE string
+# The station file is a mapping between the officially named
+# frequency channels and the common name of the stations. When
+# specifying a frequency it is much easier to use, for example,
+# "BBC1" than the official channel name e.g. "SE13".
+# This file is in the same format as the
+# xawtv station file so if you already have such a station file
+# it can be reused here as well. For historic reasons the old
+# place under /etc/X11 is the default here. Feel free to change if your
+# setup is different.
+#----------------------------------------------------------------------------
+xawtv_station_file=/etc/X11/xawtvrc
+
+#----------------------------------------------------------------------------
+# LOCALE_NAME string
+# Specify the locale that should be used when running the daemon. If the
+# daemon is started from a boot script (the most common way) then this will 
+# most likely set the locale to "POSIX" which doesn't allow UTF8 characters.
+# This can cause problem when sending mail from the daemon in case the
+# recorded titles have UTF8 extended characters.
+# Most modern system uses UTF8 as default for normal user interaction. 
+# If you are unsure what locale you are running run "locale" from your
+# console and use the value listed for LC_CTYPE or LC_ALL in this setting.
+# Run "locale -a" to see a list of supported locales on your server.
+#----------------------------------------------------------------------------
+locale_name=en_US.UTF8
+
+#----------------------------------------------------------------------------
+# EXTERNAL_SWITCH boolean
+# If you are using an external cable box which is connected to the TV-card
+# on a fixed input, say S-video. then switching channels must be done on the
+# cable box. Normally this is don via a IR remote control. The way this
+# daemon copes with this is to always use a fixed input device and send
+# all channel switched to en external script which iw then responsible for
+# doing the actual channel switch. This script is located in the config
+# dir and usually called "switchchannel.sh".
+# This variable tells whether to use this channel switching method or not.
+#----------------------------------------------------------------------------
+external_switch=no
+
+#----------------------------------------------------------------------------
+# EXTERNAL_INPUT integer
+# Determine which input on the TV-card that is connected to the Cable-box.
+# If unsure you can use the daemon command "li" to list the possible inputs.
+# If the external input is the tuner you MUST also define what station the
+# tuner should be tuned to.
+#----------------------------------------------------------------------------
+external_input=1
+
+#----------------------------------------------------------------------------
+# EXTERNAL_TUNER_STATION string
+# When an external cable box is connected to the tuner input on a fixed
+# channel/station this settings specifies which channel to use. It is 
+# important to understand that when the external_switch setting is enabled
+# the tuner will always listen on this specified channel. 
+# The value here is assumed to be the human readable station name (not the
+# technical channel number) so this name must be defined in the xawtvrc file
+# so it corresponds to the proper channel.
+# If this setting is left empty the tuning is undefined.
+#----------------------------------------------------------------------------
+external_tuner_station=
+
+#----------------------------------------------------------------------------
+# EXTERNAL_SWITCH_SCRIPT string
+# This script gets called when the daemon needs to change channel on the
+# input. It will pass the name of the station as the first argument and
+# it is then up to the script to call any necessary routines to do the
+# actual channel switching.
+#----------------------------------------------------------------------------
+external_switch_script="switchchannel.sh"
+
+#----------------------------------------------------------------------------
+# USE_POSTREC_PROCESSING boolean
+# Determine if the post recording script specified in postrec_script
+# should be called after each recording (but before transcoding) or not.
+# The script is assumed to be stored in the config directory and the name
+# specified with the postrec_processing_script config parameter
+#----------------------------------------------------------------------------
+use_postrec_processing=no
+
+#----------------------------------------------------------------------------
+# POSTREC_PROCESSING_SCRIPT string
+# This is an optional script that gets called after the recording has been
+# done to the file but before the transcoding process starts.
+# The script will be given the argument "-f <full_filename>"
+# The script is assumed to be stored in the config directory.
+#----------------------------------------------------------------------------
+postrec_processing_script="postrec_processing.sh"
+
+#----------------------------------------------------------------------------
+# USE_POSTTRANSC_PROCESSING boolean
+# Determine if the post recording script specified in posttransc_script
+# should be called after each transcoding or not.
+# The script is assumed to be stored in the config directory and the name
+# specified with the posttransc_processing_script config parameter
+#----------------------------------------------------------------------------
+use_posttransc_processing=no
+
+#----------------------------------------------------------------------------
+# POSTTRANSC_PROCESSING_SCRIPT string
+# This is an optional script that gets called after the transcoding process
+# has finnished.
+# The script will be given the argument "-f <full_filename> -l <size of file>"
+# The script is assumed to be stored in the config directory.
+#----------------------------------------------------------------------------
+posttransc_processing_script="posttransc_processing.sh"
+
+#----------------------------------------------------------------------------
+# Should the Web-Ui use a phone version when a connection from a mobile
+# device is detected. (The Phone UI has fewer commands and is optimized
+# for the smaller screen)
+#----------------------------------------------------------------------------
+use_mobile=yes
+
+############################################################################
+# mail - Settings for daemon email sending
+############################################################################
+[mail]
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ON_TRANSCODE_END boolean
+# Send a mail notification whenever a transcoding have finished
+#----------------------------------------------------------------------------
+sendmail_on_transcode_end=no
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ON_SHUTDOWN boolean
+# Should we send short status mail on server shutdown. The email address
+# used is the one specified above in 'sendmail_address'
+#----------------------------------------------------------------------------
+sendmail_on_shutdown=no
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ON_ERROR boolean
+# Determine if all sever error messages also should be sent to a specified
+# mail address (see sendmail_address)
+#----------------------------------------------------------------------------
+sendmail_on_error=no
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ADDRESS string
+# Mail address to use when sending notification of errors and transcode finished
+#----------------------------------------------------------------------------
+sendmail_address=root@localhost
+
+#----------------------------------------------------------------------------
+# DAEMON_EMAIL_FROM string
+# The from address used in the email sent from the daemon. If this is left
+# empty the address will default to the address of the user the daemon is
+# running as. NOTE: this must usually be a valid domain address since many
+# email relays refuse to forward mails from bogus domains. Hence it is
+# normally not possible to specify the "localhost" as domain here.
+#----------------------------------------------------------------------------
+daemon_email_from=
+
+#----------------------------------------------------------------------------
+# SMTP_USE boolean
+# Use the specified SMTP server to send mail instead of the system mail
+# command. If you want to use HTML formatted mail you MUST use an SMTP
+# server.
+#----------------------------------------------------------------------------
+smtp_use=no
+
+#----------------------------------------------------------------------------
+# SMTP_SERVER string
+# SMTP server to use
+#----------------------------------------------------------------------------
+smtp_server=localhost
+
+#----------------------------------------------------------------------------
+# SMTP_USER string
+# User name for login on the smtp server
+#----------------------------------------------------------------------------
+smtp_user=
+
+#----------------------------------------------------------------------------
+# SMTP_PWD string
+# Password for login on the smtp server
+#----------------------------------------------------------------------------
+smtp_pwd=
+
+#----------------------------------------------------------------------------
+# USE_HTML boolean
+# Use HTML mail when sending mail with templates when available. Note
+# to use HTML mail you must have a valid SMTP server configured! You
+# cannot send HTMl mail through the "mail" command line.
+#----------------------------------------------------------------------------
+use_html=no
+
+############################################################################
+# ffmpeg - General settings for transcoding
+############################################################################
+
+[ffmpeg]
+
+#----------------------------------------------------------------------------
+# FFMPEG_BIN
+# Command to execute ffmpeg
+#----------------------------------------------------------------------------
+ffmpeg_bin=/usr/bin/ffmpeg
+
+#----------------------------------------------------------------------------
+# MAX_LOAD_FOR_TRANSCODING float
+# The maximum load on the server allowed in order to start a transcoding
+# Must be a value in range [1,10].
+# The maximum setting for this should <= 2*<number of CPU cores> in server.
+# There is really no point in setting this too high since transcoding
+# is *very* CPU intensive and there is negative impact of multitasking too
+# many transcoding jobs at once. 
+#----------------------------------------------------------------------------
+max_load_for_transcoding=4
+
+#----------------------------------------------------------------------------
+# MAX_WAITING_TIME_TO_TRANSCODE integer
+# The maximum time in seconds we will be waiting for the server load to fall
+# below max_load_for_transcoding. Default is 12h = 12*3600 = 43200.
+# If the maximum time is exceeded no transcoding will take place.
+# If the time is specified as 0 then the daemon will wait forever
+#----------------------------------------------------------------------------
+max_waiting_time_to_transcode=43200
+
+#----------------------------------------------------------------------------
+# DEFAULT_TRANSCODING_PROFIL string
+# The profile that all new recodings will use as primary profile
+#----------------------------------------------------------------------------
+default_transcoding_profile=normal
+
+
+############################################################################
+# shutdown - Settings for automatic server shutdown
+# This makes it possible to have the server automatically shutdown until
+# it is time for the next recording
+############################################################################
+
+[shutdown]
+#----------------------------------------------------------------------------
+# ENABLE boolean
+# USe automatic shutdown or not
+#----------------------------------------------------------------------------
+enable=no
+
+#----------------------------------------------------------------------------
+# MIN_TIME integer
+# Minimum time in seconds the server must be powered off in order to initiate
+# automatic power off. Defaults to 30min (30*60)
+#----------------------------------------------------------------------------
+min_time=1800
+
+#----------------------------------------------------------------------------
+# MAX_5LOAD float
+# Maximum load on server to still allow shutdown. This is taken as the
+# 5 minute load average (see uptime for more information)
+#----------------------------------------------------------------------------
+max_5load=0.5
+
+#----------------------------------------------------------------------------
+# IGNORE_USERS boolean
+# Determine if shutdown should be initiated even if there are logged in
+# users on the server 
+#----------------------------------------------------------------------------
+ignore_users=no
+
+#----------------------------------------------------------------------------
+# TIME_DELAY integer
+# Warning time (in minutes) used in shutdown command
+#----------------------------------------------------------------------------
+time_delay=0
+
+#----------------------------------------------------------------------------
+# MIN_UPTIME integer
+# The minimum time in seconds the server must have been running before we
+# allow an automatic shutdown. This is useful to have time to login to the
+# server and do stuff before it shuts down again. Defaults to 15 minutes.
+#----------------------------------------------------------------------------
+min_uptime=900
+
+#----------------------------------------------------------------------------
+# PRE_STARTUP_TIME integer
+# Number of seconds before the recording should start that we need to wakeup
+# the server. Minimum time is 60 s. The default 3 min (180s) is adequate for
+# all but the very, very slowest old HW.
+#----------------------------------------------------------------------------
+pre_startup_time=180
+
+#----------------------------------------------------------------------------
+# SCRIPT_NAME string
+# Name of script to use for automatic shutdown. This script gets called
+# when shutdown should be initiated. This shell script has the actual
+# responsibility to do the shutdown. The script should be located in the
+# configuration directory for the daemon (usually /etc/tvpvrd)
+#----------------------------------------------------------------------------
+script_name=shutdown.sh
+
+############################################################################
+# format - Format for adjustable HTML styles
+# As of now this only includes the style setting for the mail with the
+# list of recordings
+#
+############################################################################
+
+[format]
+#----------------------------------------------------------------------------
+# WEB_THEME string
+# Default theme to use for Web-interface. 
+#----------------------------------------------------------------------------
+web_theme=metal
+
+#----------------------------------------------------------------------------
+# WEB_DISPLAY_THEME boolean
+# Should the dropdown box to change theme from the Web-UI be enabled.
+# This will allow users to change theme themselves.
+#----------------------------------------------------------------------------
+web_display_theme=yes
+
+#----------------------------------------------------------------------------
+# WEB_AUTODISPLAY_TRANSC boolean
+# Only display the ongoing transcoding module in the Web-UI when there are
+# ongoing transcodings. Hide the module otherwise.
+#----------------------------------------------------------------------------
+web_autodisplay_transc=no
+
+#----------------------------------------------------------------------------
+# WEB_DISPLAY_QADD boolean
+# Should the quick recording command module be displayed in the web interface
+#----------------------------------------------------------------------------
+web_display_qadd=yes
+
+#----------------------------------------------------------------------------
+# CSS Style for table with recordings included in the mail sent by the 'lm'
+# command.
+#----------------------------------------------------------------------------
+
+# The following block only specifies a specific property. There should be no
+# ending ';' character.
+tblcss_vborder_interior   = "1px solid lightgray"
+tblcss_vborder_outer      = "2px solid black"
+tblcss_hborder_interior   = "0px dotted gray"
+tblcss_hborder_outer      = "2px solid black"
+tblcss_even_row_background= "white"
+tblcss_odd_row_background = "#e7e7e7"
+tblcss_header_background  = "#404040"
+tblcss_header_textcolor   = "white"
+tblcss_header_fontfamily  = "sans-serif"
+tblcss_fontfamily         = "monospace"
+
+# The following two formats specify the full CSS style. This means that they
+# must have an ending ';' character.
+tblcss_table              = "width:700px;"
+tblcss_date               = "font-size:small;font-style:italic;margin-bottom:1px;color:#404040;"
+
+# EOF - End of ini file
