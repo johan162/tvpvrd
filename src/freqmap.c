@@ -77,7 +77,8 @@ static struct freqmap frequence_map[] = {
     { "china-bcast", 0, NULL},
     { "southafrica", 0, NULL},
     { "argentina", 0, NULL},
-    { "australia-optus", 0, NULL}
+    { "australia-optus", 0, NULL},
+    { "" , 0, NULL} /* sentinel */
 };
 
 /*
@@ -1952,7 +1953,7 @@ getfreqfromstr(unsigned int *freq,const char *name) {
 
 /*
  * Fill the supplied buffer (array of string pointers) 
- * with pointer to statically alocated buffers with the name of 
+ * with pointer to statically allocated buffers with the name of 
  * all the defined frequency maps
  */
 unsigned
@@ -1962,6 +1963,24 @@ getfmapnames(char *names[], size_t size) {
         names[i] = frequence_map[i].name;
     }
     return i;
+}
+
+/**
+ * Store a list of "maxnum" elements length with pointers to all names of the
+ * predefined frequency tables
+ * 
+ * @param list
+ * @param maxnum
+ * @return 0 on success, -1 on failure
+ */
+int
+getfreqmaplist(char *list[], size_t maxnum) {
+    size_t i=0;
+    while( frequence_map[i].size > 0 && i < maxnum ) {
+        list[i] = frequence_map[i].name;
+        ++i;
+    }
+    return i > 0 ? 0 : -1;
 }
 
 /* freqmap.c */
