@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+<?oxygen RNGSchema="http://www.oasis-open.org/docbook/xml/5.0/rng/docbook.rng" type="xml"?>
+<article
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    version="5.0">
+    <title>tvpsh</title>
+    <refentry
+        xml:id="tvpvrd">
+        <info>
+            <author>
+                <personname>
+                    <firstname>Johan</firstname>
+                    <surname>Persson</surname>
+                </personname>
+                <email>johan162@gmail.com</email>
+                <contrib>Main author and maintainer</contrib>
+            </author>
+        </info>
+        <refmeta>
+            <refentrytitle>tvpvrd</refentrytitle>
+            <manvolnum>1</manvolnum>
+            <refmiscinfo
+                class="version">@VERSION@</refmiscinfo>
+            <refmiscinfo
+                class="source">http://sourceforge.net/projects/tvpvrd/</refmiscinfo>
+            <refmiscinfo
+                class="manual">http://sourceforge.net/projects/tvpvrd/docs/</refmiscinfo>
+        </refmeta>
+        <refnamediv>
+            <refname>tvpsh</refname>
+            <refpurpose>Command line shell to interface tvpvrd daemon</refpurpose>
+        </refnamediv>
+        <refsynopsisdiv
+            xml:id="tvpsh.synopsis">
+            <title>Synopsis</title>
+            <cmdsynopsis>
+                <command>tvpsh</command>
+                <arg
+                    choice="opt">options...</arg>
+            </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1
+            xml:id="tvpsh.description">
+            <title>Description</title>
+            <para>The <citerefentry>
+                    <refentrytitle>tvpsh</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry> is a command line shell meant to interface the
+                    <command>tvpvrd</command> daemon. The program offers full command line editing
+                (emulating emacs command set) as well as history. This makes it the preferred way to
+                inteface with the daemon for the full feature set. The alternative command line way
+                is to connect directly to the daemon port using telnet, however the normal telnet
+                does not allow any command line editing.</para>
+            <para>The most user friendly way is probably still to use the basic Web-interface of the
+                daemon. However, only a subset of the available commands are implemented in the
+                Web-client in order to keep it easy to use.</para>
+            <para>The shell can be run either on the same server as the daemon in which case it can
+                simply be started with</para>
+            <para>
+                <screen>$>tvpsh</screen>
+            </para>
+            <para>or it can be run on a different computer in which case the
+                    <command>tvpvrd</command> server must be specified either on the command line as </para>
+            <para>
+                <screen>$> tvpsh -s 192.168.010 -p 9301</screen>
+            </para>
+            <para>or by storing the server and port setting in the <command>tvpsh</command> config
+                file stored in the users home directory. The config file is named
+                    "<filename>.tvpshrc</filename>" and should be stored in the home
+                directory.</para>
+            <para>When the daemon is run on the same server the shell will read the necessary
+                informatoin from the daemons config file after looking first for the
+                    <command>tvpsh</command> config file in the users home directory.</para>
+        </refsect1>
+        <refsect1>
+            <title>Using the shell as a login shell</title>
+            <para>One possible wasy to use the shell is to use it as a <emphasis role="italic"
+                    >system login shell</emphasis>. In this way it will be possible to login
+                directly to the server by using, for example, <command>ssh</command> and connecting
+                as a dedicated user who uses <command>tvpsh</command> as default login shell.</para>
+            <para>In order to do this there are two things that must be done:</para>
+            <para>
+                <orderedlist>
+                    <listitem>
+                        <para>Add a new user to the server and specify <command>tvpsh</command> as
+                            the login shell. This is done by adding a line in the
+                                <filename>/etc/passwd</filename> file. For example as</para>
+                        <para>
+                            <screen>pvr:x:0:0:tvpvrd shell user:/home/pvr:/usr/bin/tvpsh </screen>
+                        </para>
+                        <para>The above line creates a new user called <emphasis role="italic"
+                                >pvr</emphasis> which uses <command>tvpsh</command> as login shell.
+                            (The '<emphasis role="italic">x</emphasis>' in the password field
+                            indicates that the system is using shadow passwords.). You can also use
+                            the system tools  you are comfortable with in order to create a new
+                            user.</para>
+                    </listitem>
+                    <listitem>
+                        <para>Allow <command>tvpsh</command> to be used as system shell by adding it
+                            to the list of allowed system shells in
+                                '<filename>/etc/shells</filename>'</para>
+                    </listitem>
+                </orderedlist>
+            </para>
+            <para/>
+        </refsect1>
+        <refsect1
+            xml:id="tvpvrd.options">
+            <title>Arguments</title>
+            <para>The following command line arguments are supported when starting the shell</para>
+            <variablelist>
+                <varlistentry>
+                    <term><option>-s</option>, <option>--server</option>
+                        <emphasis>IP-address</emphasis></term>
+                    <listitem>
+                        <para>Specify the server that is running <command>tvpvrd</command>. Default
+                            value is <emphasis role="italic">localhost</emphasis>.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-p</option>, <option>--port</option>
+                        <emphasis>portnumber</emphasis></term>
+                    <listitem>
+                        <para>TCP/IP port where the <command>tvpvrd</command> server is listening.
+                            If the shell is run on the same server as the daemon then the port will
+                            be automatically determined from the <command>tvpvrd</command> config
+                            file. </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-h</option>, <option>--help</option></term>
+                    <listitem>
+                        <para>Print a short help and exit.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-v</option>, <option>--version</option></term>
+                    <listitem>
+                        <para>Print program version information and exit.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        <refsect1
+            xml:id="tvpvrd.files">
+            <title>Files</title>
+            <variablelist>
+                <varlistentry>
+                    <term>.tvpshrc</term>
+                    <listitem>
+                        <para>Default configuration file in the users home directory.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>Resources</title>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para>SourceForge: &lt;http://sourceforge.net/projects/tvpvrd/></para>
+                    </listitem>
+                    <listitem>
+                        <para>ivtv-driver: &lt;http://ivtvdriver.org/></para>
+                    </listitem>
+                    <listitem>
+                        <para>Video for Linux: &lt;http://linux.bytesex.org/v4l2/></para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>Author</title>
+            <para>Written and maintained by Johan Persson &lt;johan162@gmail.com></para>
+        </refsect1>
+        <refsect1>
+            <title>Copyright</title>
+            <para>Free use of this software is granted under the terms of the GNU General Public
+                License (GPL v3)., see the file COPYING included in the distribution archive for
+                details.</para>
+        </refsect1>
+        <refsect1
+            xml:id="tvpvrd.seealso">
+            <title>See also</title>
+            <para><citerefentry>
+                    <refentrytitle>tvpvrd</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>tvpowerd</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>ffmpeg</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>scantv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4l-info</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4l-conf</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>v4lctl</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry>, <citerefentry>
+                    <refentrytitle>xawtv</refentrytitle>
+                    <manvolnum>1</manvolnum>
+                </citerefentry></para>
+        </refsect1>
+    </refentry>
+</article>
