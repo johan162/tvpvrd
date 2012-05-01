@@ -6,6 +6,20 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.1.1
+------
+User visible changes:
+    - Added frequency tables for: "argentina", "australia-optus", "china-bcast", "japan-bcast", 
+      "japan-cable", "southafrica", "us-cable-hrc" and "us-cable-irc"
+    - Updated manual page to reflect the added frequency tables
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - None
+
+
 4.1.0
 -----
 User visible changes:

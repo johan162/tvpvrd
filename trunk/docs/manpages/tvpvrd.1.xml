@@ -623,37 +623,67 @@ Connection will be closed after 30 min of inactivity.
             <para>
                 <itemizedlist>
                     <listitem>
-                        <para>FREQMAP_EUROPEWEST, Western europe</para>
+                        <para><code>"europe-west"</code>, Western europe</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_EUROPEEAST, Eastern Europe</para>
+                        <para><code>"europe-east"</code>, Eastern Europe</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_FRANCE, France</para>
+                        <para><code>"france"</code>, France</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_IRELAND, Ireland</para>
+                        <para><code>"ireland"</code>, Ireland</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_ITALY, Italy</para>
+                        <para><code>"italy"</code>, Italy</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_AUSTRALIA, Australia</para>
+                        <para><code>"australia"</code>, Australia</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_NEWZEALAND, New Zealand</para>
+                        <para><code>"newzealand"</code>, New Zealand</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_USBCAST, United States air frequencies</para>
+                        <para><code>"us-bcast"</code>, United States air frequencies</para>
                     </listitem>
                     <listitem>
-                        <para>FREQMAP_USCABLE, United States cable frequencies</para>
+                        <para><code>"us-cable"</code>, United States cable frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"us-cable-hrc"</code>, United States cable frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"us-cable-irc"</code>, United States cable frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"japan-bcast"</code>, Japan air frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"japan-cable"</code>, Japan cable frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"china-bcast"</code>, China air frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"southafrica"</code>, Southafrica air frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"argentina"</code>, Argentina air frequencies</para>
+                    </listitem>
+                    <listitem>
+                        <para><code>"australia-optus"</code>, Australia alternative air
+                            frequencies</para>
                     </listitem>
                 </itemizedlist>
             </para>
             <para>Since the program has no way to automatically know which map to use this must be
                 specified in the application ini-file. This map file lists all the defined
-                frequencies and the official name for that country and frequency.</para>
+                frequencies and the official name for that country and frequency. The map to use
+                should be specified with the name shown in the list above as one entry in the
+                station-channel map file under the <code>"global"</code> section as tag
+                    <code>"freqtab"</code>, for example as</para>
+                <screen>[global] 
+freqtab = europe-west</screen>            
             <para>In order to record a specific station the tuner on the capture card must be tuned
                 to the correct frequency channel used by the station we want to record. Since it is
                 a lot easier to use the station names, for example "BBC1", than the official name on
@@ -675,7 +705,9 @@ Connection will be closed after 30 min of inactivity.
                 happens to be the maps for a large Swedish distributor in the Stockholm
                 region):</para>
             
-                <screen>[Kanal5]
+                <screen>[global]
+freqtab = europe-west
+[Kanal5]
 channel = SE11
 [Kanal8]
 channel = 57
@@ -698,8 +730,7 @@ channel = E6
 [TV4+]
 channel = SE14
 [TV6]
-channel = E8
-</screen>
+channel = E8</screen>
             <para>The mapping above says that for example the station "Kanal5" can be found on
                 frequency channel SE11. This mapping will then make it possible to use the name
                 "Kanal5" when specifying recordings which is a lot easier than to remember that this

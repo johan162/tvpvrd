@@ -38,7 +38,11 @@ extern "C" {
  */
 typedef enum freqm {FREQMAP_EUROPEWEST=0, FREQMAP_EUROPEEAST, FREQMAP_FRANCE,
                     FREQMAP_IRELAND, FREQMAP_ITALY, FREQMAP_AUSTRALIA,
-                    FREQMAP_NEWZEALAND, FREQMAP_USBCAST, FREQMAP_USCABLE} freqm_t;
+                    FREQMAP_NEWZEALAND, FREQMAP_USBCAST, FREQMAP_USCABLE,
+                    FREQMAP_USCABLE_HRC, FREQMAP_USCABLE_IRC,
+                    FREQMAP_JAPAN_BCAST, FREQMAP_JAPAN_CABLE,
+                    FREQMAP_CHINA_BCAST, FREQMAP_SOUTHAFRICA,
+                    FREQMAP_ARGENTINA, FREQMAP_AUSTRALIA_OPTUS } freqm_t;
 
 /**
  * A frequency and its corresponding name. This is an element in the
