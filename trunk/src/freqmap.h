@@ -174,6 +174,19 @@ get_chfromstation(const char *station, char *chbuffer, size_t size);
 int
 getfreqfromstr(unsigned int *freq,const char *name);
 
+/**
+ * Store a list of "maxnum" elements length with pointers to all names of the
+ * predefined frequency tables
+ * 
+ * @param list - list of array pointers that are filled with pointers to statically
+ * allocated areas that MUST NOT be touched by the calling function.
+ * @param maxnum
+ * @return 0 on success, -1 on failure
+ */
+int
+getfreqmaplist(char *list[], size_t maxnum);
+
+
 #ifdef	__cplusplus
 }
 #endif

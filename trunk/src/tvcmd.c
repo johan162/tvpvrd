@@ -126,9 +126,10 @@
 #define CMD_MAIL_LOG 43
 #define CMD_VIEWHIST 44
 #define CMD_MAILHIST 45
+#define CMD_LIST_FREQTABLE 46
 
 
-#define CMD_UNDEFINED 46
+#define CMD_UNDEFINED 47
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -160,6 +161,7 @@ static ptrcmd _getCmdPtr(const char *cmd);
  * ----------------------------------------------------------------------------
  */
 
+
 /**
  * Command: _cmd_help
  * List all available commands and there syntax
@@ -169,81 +171,82 @@ static ptrcmd _getCmdPtr(const char *cmd);
 static void
 _cmd_help(const char *cmd, int sockfd) {
     static char msgbuff_master[2048] =
-                        "Commands:\n"\
+            "Commands:\n"\
 			"  a    - Add recording\n"\
 			"  ar   - Add repeated recording\n"\
-                        "  af   - Add recording from list in file\n"\
+            "  af   - Add recording from list in file\n"\
 			"  d    - delete single recording\n"\
-                        "  df   - display total and used diskspace\n"
-                        "  dp   - display all settings for specified profile\n"\
+            "  df   - display total and used diskspace\n"
+            "  dp   - display all settings for specified profile\n"\
 			"  dr   - delete all repeated recording\n"\
 			"  h    - help\n"\
 			"  i    - print detailed information on recording\n"\
-                        "  kt   - kill all ongoing transcoding(s)\n"\
-                        "  ktf  - set/unset kill transcoding flag at shutdown\n"\
+            "  kt   - kill all ongoing transcoding(s)\n"\
+            "  ktf  - set/unset kill transcoding flag at shutdown\n"\
 			"  l    - list of recordings\n"\
-                        "  lc   - list all controls for the capture card\n"\
-                        "  li   - list all video inputs for the capture card\n"\
-    			"  lh   - list of recordings, human format\n"\
-                        "  lm   - send mail with list of all recordings\n"\
-                        "  lmr  - send mail with list repeat and single recordings\n"\
-                        "  lr   - list repeating recordings\n"\
-                        "  lu   - list single recordings\n"\
-                        "  lt   - list recordings, using timestamps good for m2m communications\n"\
-                        "  log n -show the last n lines of the logfile\n"\
-                        "  ls   - list all stations\n"\
-                        "  lp   - list all profiles\n"\
-                        "  lph  - list all profiles with HTML links\n"\
-                        "  lq n - list queued transcodings\n"\
-                        "  mlg  - mail logfile as attachment\n"\
+            "  lc   - list all controls for the capture card\n"\
+            "  lf   - list predefined frequency tables\n"\
+            "  lh   - list of recordings, human format\n"\
+            "  li   - list all video inputs for the capture card\n"\
+            "  lm   - send mail with list of all recordings\n"\
+            "  lmr  - send mail with list repeat and single recordings\n"\
+            "  lr   - list repeating recordings\n"\
+            "  lu   - list single recordings\n"\
+            "  lt   - list recordings, using timestamps good for m2m communications\n"\
+            "  log n -show the last n lines of the logfile\n"\
+            "  ls   - list all stations\n"\
+            "  lp   - list all profiles\n"\
+            "  lph  - list all profiles with HTML links\n"\
+            "  lq n - list queued transcodings\n"\
+            "  mlg  - mail logfile as attachment\n"\
 			"  n    - list the immediate next recording on each video\n"\
 			"  o    - list the ongoing recording(s)\n"\
-                        "  ot   - list the ongoing transcoding(s)\n"\
+            "  ot   - list the ongoing transcoding(s)\n"\
 			"  q    - quick recording\n"\
-                        "  rst  - reset all statistics\n"\
-                        "  rh   - view history of previous transcodings\n"\
-                        "  rhm  - mail history of previous transcodings\n"\
-                        "  rp   - refresh transcoding profiles from file\n"\
-                        "  s    - print server status\n"\
-                        "  sp   - set transcoding profile for specified recording\n"\
-                        "  st   - print profile statistics\n"\
+            "  rst  - reset all statistics\n"\
+            "  rh   - view history of previous transcodings\n"\
+            "  rhm  - mail history of previous transcodings\n"\
+            "  rp   - refresh transcoding profiles from file\n"\
+            "  s    - print server status\n"\
+            "  sp   - set transcoding profile for specified recording\n"\
+            "  st   - print profile statistics\n"\
 			"  t    - print server time\n"\
-    			"  tf   - transcode specified file\n"\
-    			"  tl   - read list of videos to transcode from file\n"\
-                        "  td   - transcode all videos in directory\n"\
+            "  tf   - transcode specified file\n"\
+            "  tl   - read list of videos to transcode from file\n"\
+            "  td   - transcode all videos in directory\n"\
 			"  u    - force update of database with recordings\n"\
-    			"  v    - print version\n"\
-                        "  vc <n> - print information on TV-Card <n>\n"\
-                        "  wt   - list waiting transcodings\n"\
+    		"  v    - print version\n"\
+            "  vc <n> - print information on TV-Card <n>\n"\
+            "  wt   - list waiting transcodings\n"\
 			"  x    - view database (in XML format) with recordings\n"\
-                        "  z    - display all settings from ini-file\n"\
-                        "  ! <n>  - cancel ongoing recording\n"\
-                        "Type h <cmd> for syntax of each command\n";
+            "  z    - display all settings from ini-file\n"\
+            "  ! <n>  - cancel ongoing recording\n"\
+            "Type h <cmd> for syntax of each command\n";
 
     static char msgbuff_slave[2048] =
-                        "Commands:\n"\
-                        "  dp   - display all settings for specified profile\n"\
+            "Commands:\n"\
+            "  dp   - display all settings for specified profile\n"\
 			"  h    - help\n"\
-                        "  kt   - kill all ongoing transcoding(s)\n"\
-                        "  ktf  - set/unset kill transcoding flag at shutdown\n"\
-                        "  log n -show the last n lines of the logfile\n"\
-                        "  lp   - list all profiles\n"\
-                        "  lq n - list queued transcodings\n"\
-                        "  ot   - list the ongoing transcoding(s)\n"\
-                        "  rst  - reset all statistics\n"\
-                        "  rh   - view history of previous transcodings\n"\
-                        "  rhm  - mail history of previous transcodings\n"\
-                        "  rp   - refresh transcoding profiles from file\n"\
-                        "  s    - print server status\n"\
+            "  kt   - kill all ongoing transcoding(s)\n"\
+            "  ktf  - set/unset kill transcoding flag at shutdown\n"\
+            "  log n -show the last n lines of the logfile\n"\
+            "  lp   - list all profiles\n"\
+            "  lq n - list queued transcodings\n"\
+            "  ot   - list the ongoing transcoding(s)\n"\
+            "  rst  - reset all statistics\n"\
+            "  rh   - view history of previous transcodings\n"\
+            "  rhm  - mail history of previous transcodings\n"\
+            "  rp   - refresh transcoding profiles from file\n"\
+            "  s    - print server status\n"\
 			"  t    - print server time\n"\
-    			"  tf   - transcode specified file\n"\
-    			"  tl   - read list of videos to transcode from file\n"\
-                        "  td   - transcode all videos in directory\n"\
-    			"  v    - print version\n"\
-                        "  wt   - list waiting transcodings\n"\
-                        "  z    - display all settings from ini-file\n"\
-                        "  ! <n>  - cancel ongoing recording\n"\
-                        "Type h <cmd> for syntax of each command\n";
+    		"  tf   - transcode specified file\n"\
+    		"  tl   - read list of videos to transcode from file\n"\
+            "  td   - transcode all videos in directory\n"\
+    		"  v    - print version\n"\
+            "  wt   - list waiting transcodings\n"\
+            "  z    - display all settings from ini-file\n"\
+            "  ! <n>  - cancel ongoing recording\n"\
+            "Type h <cmd> for syntax of each command\n";
 
     char **field = (void *)NULL;
     int ret;
@@ -1801,6 +1804,43 @@ _cmd_info(const char *cmd, int sockfd) {
 }
 
 /**
+ * Command: _cmd_freqtables
+ * List all predefined frequency tables
+ * @param cmd
+ * @param sockfd
+ */
+static void
+_cmd_freqtables(const char *cmd, int sockfd) {
+    char msgbuff[2048];
+    const size_t maxnum=20;
+    char *list[20] = {NULL};
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "List all predefined frequency tables.\n"
+                );
+        return;
+    }
+    
+    if (0 == getfreqmaplist(list, maxnum) ) {
+        size_t i=0;
+        snprintf(msgbuff,sizeof(msgbuff),"\n");
+        char tmpbuff[128];
+        while( list[i] ) {
+            snprintf(tmpbuff,sizeof(tmpbuff),"%02zu %s\n",i+1,list[i]);
+            strcat(msgbuff,tmpbuff);
+            ++i;
+        }        
+    } else {
+        snprintf(msgbuff,sizeof(msgbuff),"No frequency tables found!\n");
+    }
+    
+    
+
+    _writef(sockfd, msgbuff);
+}
+
+
+/**
  * Command: _cmd_ongoingtrans
  * List all ongoing transcodings
  * @param cmd
@@ -3055,6 +3095,7 @@ cmdinit(void) {
     cmdtable[CMD_LISTRECSINGLE]     = _cmd_listsingle;
     cmdtable[CMD_VIEWHIST]          = _cmd_view_history;
     cmdtable[CMD_MAILHIST]          = _cmd_mail_history;
+    cmdtable[CMD_LIST_FREQTABLE]    = _cmd_freqtables;
 }
 
 /**
@@ -3090,6 +3131,7 @@ _getCmdPtr(const char *cmd) {
         {"lts",CMD_LIST_TS},
         {"lq", CMD_LIST_QUEUEDTRANSC},
         {"lc", CMD_LIST_CONTROLS},
+        {"lf", CMD_LIST_FREQTABLE},
         {"lh", CMD_LIST_RECHUMAN},
         {"ls", CMD_LIST_STATIONS},
         {"li", CMD_LIST_VIDEO_INPUTS},
