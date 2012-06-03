@@ -224,10 +224,10 @@ audio_bitrate=96
 video_size=vga
 
 #----------------------------------------------------------------------------
-# FFMPEG_EXTRA_OPTIONS string
+# EXTRA_OPTIONS string
 # Any additional options to give to ffmpeg (see ffmpeg(1))
 #----------------------------------------------------------------------------
-ffmpeg_extra_options=
+extra_options=
 
 #----------------------------------------------------------------------------
 # FILE_EXTENSION string

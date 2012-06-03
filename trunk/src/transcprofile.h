@@ -225,8 +225,6 @@ struct transcoding_profile_entry {
     char vcodec[32];
     char acodec[32];
     char file_extension[16];
-    unsigned crop_top,crop_bottom;
-    unsigned crop_left,crop_right;
     char extra_ffmpeg_options[256];
     char filename[256];
 };

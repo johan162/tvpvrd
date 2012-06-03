@@ -12,7 +12,9 @@ User visible changes:
     - Added command "lf" - list frequency tables
 
 Bugs fixed:
-    - None.
+    - Options for "extra ffmpeg options" had name mismatch in default profile vs what the 
+      program was looking for. It is now called "extra_options" in the ffmpeg section of the
+      profile file.
 
 Internal changes:
     - None.
