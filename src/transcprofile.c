@@ -204,30 +204,6 @@ _read_transcoding_profile(char *filename,unsigned idx) {
                            iniparser_getint(profile, buffer,DEFAULT_PROFILE_PASS));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_top",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    entry->crop_top = (unsigned)validate(0,160,"ffmpeg_crop_top",
-                               iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_TOP));
-
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_bottom",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    entry->crop_bottom = (unsigned)validate(0,160,"ffmpeg_crop_bottom",
-                                  iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_BOTTOM));
-
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_left",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    entry->crop_left = (unsigned)validate(0,160,"ffmpeg_crop_left",
-                                iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_LEFT));
-
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":crop_right",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    entry->crop_right = (unsigned)validate(0,160,"ffmpeg_crop_right",
-                                 iniparser_getint(profile, buffer,DEFAULT_PROFILE_CROP_RIGHT));
-
-    strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":video_size",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->size,
@@ -276,7 +252,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     entry->file_extension[7] = '\0';
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":extra_ffmpeg_options",bufsize-1-strlen(buffer));
+    strncat(buffer,":extra_options",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->extra_ffmpeg_options,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_EXTRA_FFMPEG_OPTIONS),
@@ -340,18 +316,18 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "%-22s: %d\n"           /* audio_bitrate*/
     "%-22s: %s\n"           /* aspect */
     "%-22s: %s\n"           /* frame_size */
-    "FFMPEG:\n"
-    "%-22s: %d\n"
-    "%-22s: %d\n"
-    "%-22s: %s\n"
-    "%-22s: %s\n"
-    "%-22s: %d\n"
-    "%-22s: %s\n"
-    "%-22s: %d\n"
-    "%-22s: %s\n"
-    "%-22s: l=%d, r=%d, t=%d, b=%d\n"
-    "%-22s: %s\n"
-    "%-22s: %s\n",
+    "FFMPEG:\n"             
+    "%-22s: %d\n"           /* use_transcodings */
+    "%-22s: %d\n"           /* video_bitrate */
+    "%-22s: %s\n"           /* vcodec */
+    "%-22s: %s\n"           /* vpre */
+    "%-22s: %d\n"           /* pass */
+    "%-22s: %s\n"           /* acodec */
+    "%-22s: %d\n"           /* audio_bitrate */
+    "%-22s: %s\n"           /* video_bitrate */
+    "%-22s: %s\n"           /* ffmmpeg_extra_options */
+    "%-22s: %s\n",          /* file_extension */
+            
     "name",profile->name,
 
     "video_bitrate", profile->encoder_video_bitrate,
@@ -370,7 +346,6 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "acodec", profile->acodec,
     "audio_bitrate",profile->audio_bitrate,
     "video_size",profile->size,
-    "crop",profile->crop_left,profile->crop_right,profile->crop_top,profile->crop_bottom,
     "ffmpeg_extra_options",profile->extra_ffmpeg_options,
     "file_extension",profile->file_extension
     );
