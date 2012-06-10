@@ -47,7 +47,7 @@ video_peak_bitrate=7000000
 # This is the sie of the frame we request from the HW encoder on
 # the TV card. By default the size will be full PAL size (720x576)
 # on a PAL system. NTSC will have a different default size.
-# It is not really necesary to requre such a "large" frame for 
+# It is not really necessary to requre such a "large" frame for 
 # good-enough quality when transcoding to MP4 and viewing on computer.
 # To reduce the file size it is often enough to use "3q" format
 # with a lower bitrate (~3Mbps - 4Mbps) on the MP2 encoding before we
@@ -145,7 +145,7 @@ use_transcoding=yes
 # VIDEO_BITRATE integer [100,2500]
 # Average video bitrate in kbps
 #----------------------------------------------------------------------------
-video_bitrate=1400
+video_bitrate=1200
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -194,17 +194,17 @@ pass=2
 # NOTE: Not all players can handle all audio stream codec.
 # NOTE: By setting the codec to "copy" the original audio
 # from the HW encoding will be copied straight through to the transcoded
-# file. Note on this note: Windows mediaplyer have problem decoding a copied
+# file. Note on this note: Windows mediaplayer have problem decoding a copied
 # stream by ffmpeg. 
 #----------------------------------------------------------------------------
-acodec=libmp3lame
+acodec=aac
 
 #----------------------------------------------------------------------------
 # AUDIO_BITRATE integer [32,320]
 # Audio bitrate in kbps for the encoder specified above
 # Note: If "acodec" is set to "copy" this option will have no effect
 #----------------------------------------------------------------------------
-audio_bitrate=256
+audio_bitrate=192
 
 #----------------------------------------------------------------------------
 # VIDEO_SIZE string-menu

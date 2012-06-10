@@ -47,7 +47,7 @@ video_peak_bitrate=4800000
 # This is the sie of the frame we request from the HW encoder on
 # the TV card. By default the size will be full PAL size (720x576)
 # on a PAL system. NTSC will have a different default size.
-# It is not really necesary to requre such a "large" frame for 
+# It is not really necessary to requre such a "large" frame for 
 # good-enough quality when transcoding to MP4 and viewing on computer.
 # To reduce the file size it is often enough to use "3q" format
 # with a lower bitrate (~3Mbps - 4Mbps) on the MP2 encoding before we
@@ -144,7 +144,7 @@ use_transcoding=yes
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
 #----------------------------------------------------------------------------
-video_bitrate=900
+video_bitrate=800
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -160,7 +160,7 @@ vcodec=libx264
 # difference in encoding time. If this is left empty no preset will be added
 # in the command line. This implies that the built in default will be used.
 #----------------------------------------------------------------------------
-vpre=""
+vpre=
 
 #----------------------------------------------------------------------------
 # VPRE1 string
@@ -189,14 +189,14 @@ pass=1
 # ffmpeg. If you want to use MP3 encoding instead it might not work
 # by just specifying "mp3" it might be necessary to specify
 # libmp3lame in roder to do MP3 encoding.
-# Other options might be "ac3" or "vorbis" for OGG encoding.
+# Other options might be "ac3", "aac" or "vorbis" for OGG encoding.
 # NOTE: Not all players can handle all audio stream codec.
 # NOTE: By setting the codec to "copy" the original audio
 # from the HW encoding will be copied straight through to the transcoded
-# file. Note on this note: Windows mediaplyer have problem decoding a copied
+# file. Note on this note: Windows mediaplayer have problem decoding a copied
 # stream by ffmpeg. 
 #----------------------------------------------------------------------------
-acodec=libmp3lame
+acodec=aac
 
 #----------------------------------------------------------------------------
 # AUDIO_BITRATE integer [32,320]
@@ -226,7 +226,7 @@ video_size=
 # EXTRA_OPTIONS string
 # Any additional options to give to ffmpeg (see ffmpeg(1))
 #----------------------------------------------------------------------------
-extra_options=
+extra_options=-strict experimental
 
 #----------------------------------------------------------------------------
 # FILE_EXTENSION string

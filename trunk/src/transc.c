@@ -341,6 +341,13 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                filename);
         return -1;
     }
+    
+    char ffmpeg_logfile[80];
+    if( verbose_log >= 3 ) {
+        strncpy(ffmpeg_logfile,"ffmpeg.log",sizeof(ffmpeg_logfile)-1);
+    } else {
+        strncpy(ffmpeg_logfile,"/dev/null",sizeof(ffmpeg_logfile)-1);
+    }
 
     destfile[l] = '\0';
     strncat(destfile, profile->file_extension,destsize-1);
@@ -359,25 +366,25 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
     if (profile->pass == 1) {
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -vcodec %s %s -b %dk -acodec %s -ab %dk "
+                    "%s -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
                     " -s %s"
-                    " -y %s %s > /dev/null 2>&1",
+                    "  %s -y %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->size,
                     profile->extra_ffmpeg_options,
-                    destfile);
+                    destfile, ffmpeg_logfile);
 
         } else {
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -vcodec %s %s -b %dk -acodec %s -ab %dk "
-                    " -y %s %s > /dev/null 2>&1",
+                    "%s -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
+                    " %s -y %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->extra_ffmpeg_options,
-                    destfile);
+                    destfile,ffmpeg_logfile);
         }
         
     } else {
@@ -392,7 +399,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 
      if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
+                    "%s -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
                     " -an "
                     " -s %s "
                     " -f rawvideo -y %s "
@@ -400,7 +407,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s %s -b %dk "
                     "-acodec %s -ab %dk "
                     " -s %s "
-                    " -y %s %s > /dev/null 2>&1",
+                    " %s -y %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre1_buffer, profile->video_bitrate, 
                     profile->size,
@@ -410,16 +417,16 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     profile->acodec, profile->audio_bitrate,
                     profile->size,
                     profile->extra_ffmpeg_options,
-                    destfile);
+                    destfile,ffmpeg_logfile);
         } else {
             snprintf(cmd, size,
-                    "%s -v 0 -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
+                    "%s -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
                     " -an "
                     " -f rawvideo -y %s "
                     "/dev/null > /dev/null 2>&1; "
-                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s %s -b %dk "
+                    "%s -i %s -threads 0 -pass 2 -vcodec %s %s -b %dk "
                     "-acodec %s -ab %dk "
-                    " -y %s %s > /dev/null 2>&1",
+                    " %s -y %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre1_buffer, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
@@ -427,16 +434,11 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
                     profile->extra_ffmpeg_options,
-                    destfile);           
+                    destfile,ffmpeg_logfile);           
         }
     }
-    
-#ifdef OLDER_FFMPEG
-    logmsg(LOG_NOTICE, "[Using old style] ffpmeg command: %s", cmd);
-#else
-    logmsg(LOG_NOTICE, "ffpmeg command: %s", cmd);
-#endif
 
+    logmsg(LOG_NOTICE, "ffpmeg command: %s", cmd);
     return 0;
 
 }

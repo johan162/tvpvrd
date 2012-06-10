@@ -10,6 +10,12 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 ------
 User visible changes:
     - Added command "lf" - list frequency tables
+    - Some parameter changes in profiles tnormal, tlow and thigh profiles to better
+      fit with latest versions of ffpmeg (v0.11). Make "aac" audio encoding the default
+      in the transcoding profiles. 
+    - ffmpeg "-v" option has been removed from the call to ffmpeg
+    - When verbose logging is enabled the ffmpeg output will be stored in log file
+      in the temporary encoding directory.
 
 Bugs fixed:
     - Options for "extra ffmpeg options" had name mismatch in default profile vs what the 
