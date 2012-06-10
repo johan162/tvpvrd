@@ -258,6 +258,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_EXTRA_FFMPEG_OPTIONS),
             255);
     entry->extra_ffmpeg_options[255] = '\0';
+    logmsg(LOG_DEBUG,"    [%s] ffmpeg_extra_options: %s",entry->name,entry->extra_ffmpeg_options);  
     
     strncpy(entry->filename,filename,255);
     entry->filename[255] = '\0';
@@ -324,7 +325,7 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "%-22s: %d\n"           /* pass */
     "%-22s: %s\n"           /* acodec */
     "%-22s: %d\n"           /* audio_bitrate */
-    "%-22s: %s\n"           /* video_bitrate */
+    "%-22s: %s\n"           /* video_size */
     "%-22s: %s\n"           /* ffmmpeg_extra_options */
     "%-22s: %s\n",          /* file_extension */
             

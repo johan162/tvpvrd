@@ -39,15 +39,15 @@ keep_mp2file=no
 # Values must be in range 500,000 up to 10,000,000
 # Default values are 2.5Mbps, 3.2Mbps
 #----------------------------------------------------------------------------
-video_bitrate=2500000
-video_peak_bitrate=3200000
+video_bitrate=3200000
+video_peak_bitrate=3700000
 
 #----------------------------------------------------------------------------
 # VIDEO_FRAME_SIZE string
 # This is the sie of the frame we request from the HW encoder on
 # the TV card. By default the size will be full PAL size (720x576)
 # on a PAL system. NTSC will have a different default size.
-# It is not really necesary to requre such a "large" frame for 
+# It is not really necessary to requre such a "large" frame for 
 # good-enough quality when transcoding to MP4 and viewing on computer.
 # To reduce the file size it is often enough to use "3q" format
 # with a lower bitrate (~3Mbps - 4Mbps) on the MP2 encoding before we
@@ -103,7 +103,7 @@ audio_sampling=0
 # that you need Windows MP compatibility use a high data rate here and
 # then make sure your profile does transcoding to either acc or mp3.
 #----------------------------------------------------------------------------
-audio_bitrate=9
+audio_bitrate=10
 
 #----------------------------------------------------------------------------
 # VIDEO_ASPECT
@@ -161,7 +161,7 @@ vcodec=libx264
 # difference in encoding time. If this is left empty no preset will be added
 # in the command line. This implies that the built in default will be used.
 #----------------------------------------------------------------------------
-vpre=""
+vpre=
 
 #----------------------------------------------------------------------------
 # VPRE1 string
@@ -197,14 +197,14 @@ pass=1
 # file. Note on this note: Windows mediaplyer have problem decoding a copied
 # stream by ffmpeg. 
 #----------------------------------------------------------------------------
-acodec=libmp3lame
+acodec=aac
 
 #----------------------------------------------------------------------------
 # AUDIO_BITRATE integer [32,320]
 # Audio bitrate in kbps for the encoder specified above
 # Note: If "acodec" is set to "copy" this option will have no effect
 #----------------------------------------------------------------------------
-audio_bitrate=96
+audio_bitrate=128
 
 #----------------------------------------------------------------------------
 # VIDEO_SIZE string-menu
@@ -227,7 +227,7 @@ video_size=vga
 # EXTRA_OPTIONS string
 # Any additional options to give to ffmpeg (see ffmpeg(1))
 #----------------------------------------------------------------------------
-extra_options=
+extra_options=-strict experimental
 
 #----------------------------------------------------------------------------
 # FILE_EXTENSION string
