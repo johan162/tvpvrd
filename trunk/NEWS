@@ -9,9 +9,16 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.2.0
 ------
 User visible changes:
+    - Make it possible to specify direct frequencies in the 'xawtvrc' file and not 
+      indirectly vi channel names and the official frequency maps. 
+      A direct frequency is specified as number prefixed with a '@' character. 
+      This could be used in the cases where a cable company is naughty and
+      doesn't follow the officially agreed upon channel names and frequencies. This will
+      then make it possible to manually add tweaked channels. The frequency number 
+      is specified in kHz.
     - Added command "lf" - list frequency tables
     - Some parameter changes in profiles tnormal, tlow and thigh profiles to better
-      fit with latest versions of ffpmeg (v0.11). Make "aac" audio encoding the default
+      fit with latest versions of ffmpeg (v0.11). Make "aac" audio encoding the default
       in the transcoding profiles. 
     - ffmpeg "-v" option has been removed from the call to ffmpeg
     - When verbose logging is enabled the ffmpeg output will be stored in log file

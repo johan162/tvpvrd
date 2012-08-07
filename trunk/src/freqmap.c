@@ -7,7 +7,8 @@
  *              for frequences. The names changes depending on geographic
  *              location and hence each geographic location uses its own
  *              frequency map to translate to/from numeric frequency values.
- *              By default the "west-euprope" map will be used.
+ *              By default the "west-europe" map will be used.
+ *              All frequences below are given in KHz as integers
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
@@ -1244,7 +1245,7 @@ static struct freqch china_bcast_chtable[] = {
 
 
 /*
- * China broadcast
+ * South Africa
  */
 static struct freqch southafrica_chtable[] = {
     {17525, "4"},
@@ -1910,19 +1911,45 @@ getchfromfreq(char **ch, const unsigned int freq) {
 }
 
 /**
- * Translate a channel name to a frequency using the specified frequency map
- * @return 0 on successs, -1 otherwise
+ * Translate a channel name to a frequency using the specified frequency map.
+ * For the special case where the channel name starts with a '#' character interpret
+ * the channel name as a frequency directly
+ * @return 0 on success, -1 otherwise
  */
 int
 getfreqfromch(unsigned int *freq, const char *ch) {
+    /* Start with sanity check of the current frequency map */
     if (curr_fmap >= num_fmap) {
         return -1;
     }
-    for (unsigned int i = 0; i < frequence_map[curr_fmap].size; ++i) {
-        if (xstricmp(ch, frequence_map[curr_fmap].tbl[i].ch) == 0 ) {
-            *freq = frequence_map[curr_fmap].tbl[i].freq*1000;
-            return 0;
+    
+    /* Check if the frequency is specified directly */
+    if( '@' == *ch ) {
+        
+        /* Must be four to six digits to specify frequency */
+        size_t n = strnlen(ch,7);
+        if( n < 5 || n > 7 ) {
+            return -1;
         }
+        char nch[7];
+        strncpy(nch,ch+1,7);
+        *freq = xatoi(nch);
+        if( *freq < 1000 || *freq > 999999 ) {
+            return -1;
+        }
+        logmsg(LOG_DEBUG,"Channel frequency manually specified to %u kHz ",*freq);
+        *freq *= 1000;
+        return 0;
+        
+    } else {     
+        
+        for (unsigned int i = 0; i < frequence_map[curr_fmap].size; ++i) {
+            if (xstricmp(ch, frequence_map[curr_fmap].tbl[i].ch) == 0 ) {
+                *freq = frequence_map[curr_fmap].tbl[i].freq*1000;
+                return 0;
+            }
+        }
+        
     }
     return -1;
 }
