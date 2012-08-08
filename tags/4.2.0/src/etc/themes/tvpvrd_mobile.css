@@ -1,0 +1,469 @@
+/*----------------------------------------------------------------------------------------------
+   File: TVPVRD_MOBILE.CSS
+   Desc: CSS Style to format rudimentary WEB-interface for tvpvrd daemon.
+
+         The overall layout in the mobile version is simplified compared to the full WEB-UI.
+         The following ascii arts gives an overall illustration of the layout.
+
+            +----------------+
+            | [COMMAND AREA] |
+            |                |
+            |                | 
+            |                |           
+            +----------------+
+            |   [CMD_GRP]    |
+            +----------------+
+            |    [OUTPUT]    |
+            +----------------+
+
+  Note: Since the generated HTML includes the "viewport" META tag setting all modern
+  mobile browsers will adjust the overall scaling to the device.
+
+  SVN:  $Id$
+ ----------------------------------------------------------------------------------------------
+*/
+
+/* Main body */
+body {
+    background:#ccc;
+}
+
+/* The overall main window */
+div#topwindow {
+    background:#FFFFFC;
+    border: solid gray 2px; 
+    margin-left:auto;
+    margin-right:auto;
+    width:100%;   
+    min-height: 500px;
+    display: block; 
+}
+
+/* Window title bar. Contains of name, mode and a logout function */
+div#windowtitlebar {
+    float:none;
+    border-bottom: solid 1px white;
+    margin-bottom: 4px;
+    padding: 4px;
+    padding-bottom: 10px;
+    background: #404040;
+    color:#ddd;
+    font-family:arial, sans-serif;
+    font-size:14pt;
+    height:1em;
+}
+
+/* Text content in title bar */
+div#windowtitlebar_cont {
+    float:left;
+    text-align:left;
+    font-weight:bold;
+    font-size:13pt;  
+}
+
+/* Format for title in title-bar */
+span#title-ver {
+    color: white;
+}
+
+/* Container for logout in the top right corner */
+div#logout_container {    
+    float:right;
+    color:red;
+    margin-top: 3px;
+    margin-right:4px;
+}
+
+/* Container around actual content area of the top window */
+div.single_side {
+    float:none;
+    padding-bottom: 3px;
+}
+
+/* Menu handling */
+div#cmd_menu {
+    float:left;
+    clear:both;
+    margin:0;
+    padding:0;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Container around the mednu commands */
+div.cmd_grp {
+    float:left;
+    clear:both;
+    margin-left: 12px;
+    margin-right: 2px;
+    margin-bottom:8px;
+}
+
+/* Command "buttons" */
+div.cmd_item {
+    float:left;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-bottom: 2px;
+    margin-left: 1px;
+    margin-right: 4px;
+    border: solid 1px #000;
+    width: 65px;
+    margin-bottom:4px;
+
+    background: #293B29; 
+    background-image: -moz-linear-gradient(bottom, rgb(55,37,26) 1%, rgb(123,77,54) 60%); 
+    background-image: -webkit-linear-gradient(bottom, rgb(55,37,26) 1%, rgb(123,77,54) 60%); 
+
+    -moz-box-shadow: 3px 3px 6px #111; 
+    box-shadow: 3px 3px 6px #111; 
+    
+    -webkit-border-radius: 5px; 
+    -moz-border-radius: 5px;     
+    
+    font-family: arial, sans-serif;
+    font-weight: bold;
+    font-size: 12pt;
+    color: #ddd; 
+    text-align: center;
+}
+
+div.cmd_item a {
+    text-decoration: none;
+    color:inherit;    
+}
+
+div.cmd_item a:hover {
+    
+}
+
+div.cmd_item:hover {
+    background-image: -moz-linear-gradient(bottom, rgb(25,37,26) 1%, rgb(53,77,54) 60%); 
+    background-image: -webkit-linear-gradient(bottom, rgb(25,37,26) 1%, rgb(53,77,54) 60%);     
+    color:#fff;
+}
+
+div.cmd_item:active {
+    -moz-box-shadow: 0px 0px 0px #fff; 
+    box-shadow: 0px 0px 0px #fff; 
+    margin-top: 2px;
+    margin-left: 2px;
+    margin-bottom:2px;
+    margin-right: 4px;
+}
+
+/* Status bar at bottom of top window*/
+div#statusbar {
+    clear:both;
+    height:22px;
+    margin-bottom:3px;
+}
+
+/* Container around each command input/output module */
+div.cmdmodule {
+    margin-bottom:3px;
+    margin-top:3px;
+    margin-right:4px;
+    margin-left:2px;
+    float:none;
+}
+
+/* Fieldset used around each command input/output module */
+fieldset {
+    border: dotted 1px #888;
+    margin-top:4px;
+    margin-right:4px;
+    margin-left:2px;
+    padding:0;
+    padding-left:3px;
+    padding-bottom:4px;
+    float:none;
+}
+
+/* Legend used in each fieldset in the command input/output module */
+legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-variant:small-caps;
+    font-size:16pt;
+    padding-left:2px;
+    padding-right:4px;
+    color:#922;
+}
+
+/* Preformatted area in command output */
+pre {
+    margin:0;
+    padding:0;
+}
+pre a:hover {
+    color:white;
+}
+pre a {
+    color:#0ef;
+}
+
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_on {
+    float:none;
+    background:#eee;    
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#113b12;
+    text-shadow:1px 1px 1px #999;
+    overflow:hidden;
+    margin:0;  
+    -moz-box-shadow:    inset 3px 3px 8px #555;
+    -webkit-box-shadow: inset 3px 3px 8px #555;
+    box-shadow:         inset 3px 3px 8px #555;    
+}
+
+/* Area used for various inforation messages formatted as a "LED" background */
+.displayasled_off {
+    float:none;
+    background:#bbb;
+    padding:2px;
+    padding-left:4px;
+    padding-right:0px;
+    font-family: monospace;
+    font-size:10pt;
+    font-weight:bold;
+    color:#444;
+    overflow:hidden;
+    margin:0;  
+    -moz-box-shadow:    inset 3px 3px 8px #333;
+    -webkit-box-shadow: inset 3px 3px 8px #333;
+    box-shadow:         inset 3px 3px 8px #333;       
+}
+
+
+/* Subclass used with other main classes to indicate full or half width */
+/* Mainly used for displaying card information on ongoing activities */
+/* the size of the output and layout depends on how many cards are installed */
+.fullw {
+    width:99%;
+}
+.halfw {
+    width:49%;                
+}
+.margleft {
+    margin-left:10px;
+}
+.nofloat {
+    float:none;
+}
+
+
+/* More specific formatting unique for command output */
+/* Note: Android browsers seems buggy and does not show the scroll bars
+   as they should ! */
+#cmdoutput {
+    clear:both;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    height:280px;
+    margin-right:4px;
+    margin-left:3px;
+    margin-bottom:10px;
+    border:solid 1px #bbb;
+}
+
+/* Container around each input and input text-legend */
+div.input_container {
+    float:left;
+    padding:1px;
+    margin-top:10px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+/* The legend text for each input field */
+div.input_legend {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:12pt;
+    color:#404040;
+    margin:0;
+}
+
+/* Adjustments for browser controls */
+input,
+select  {
+    border: solid gray 1px;
+    background: #fff;
+    font-family:Arial, Sans-serif;
+    font-weight:bold;
+    font-size:12pt;
+    color:#660000;
+}
+
+input:focus,
+select:focus {
+    border:solid 1px #000;
+    background:#fff;
+    color:#000;
+}
+
+/* Repeat count selector */
+select.input_select#id_rptcount_select {
+    width:70px;
+}
+
+/* Input text controls */
+input.input_text {
+    width : 170px;
+}
+
+/* Input submit buttons in forms */
+input.input_submit {
+    font-family:Arial, Sans-erif;
+    font-weight:bold;
+    font-size:14pt;
+    margin-left: 10px;
+    margin-bottom: 5px;
+    border: solid 1px #333;
+    color:#ddd;
+    height:24pt;
+    width:80px;
+    margin-top:5px;
+
+    background: #c95959; 
+    background-image: -moz-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
+    background-image: -webkit-linear-gradient(bottom, rgb(21,21,21) 1%, rgb(75,75,75) 60%); 
+    -moz-box-shadow: 3px 3px 6px #111; 
+    box-shadow: 3px 3px 6px #111; 
+    
+    -webkit-border-radius: 5px; 
+    -moz-border-radius: 5px; 
+}
+
+/* Indicate to user that button is about to receive input */
+input.input_submit:hover {
+    cursor:pointer;
+    cursor:hand;
+    color:#fff;
+}
+
+/* Give visual feedback that the button has been pressed */
+input.input_submit:active {
+    border: solid 1px #ddd;
+    font-size:14pt;
+    cursor:pointer;
+    cursor:hand;
+    -moz-box-shadow: 0px 0px 0px #000; 
+    box-shadow: 0px 0px 0px #000; 
+}
+
+/* Adjustment for submit buttons to make them right aligned */
+div.input_container#id_addrec {
+    padding-top:15px;
+    float:right;
+    margin-right:5px;
+}
+
+/* Which input fields should start on a new line */
+#id_starthour {
+    float:left;
+    clear:left;
+}
+
+#id_start {
+    margin-right:10px;
+}
+
+#id_endhour {
+    margin-left:10px;
+}
+
+#id_station select {
+    width:150px;
+}
+
+.input_container#id_title input {
+    width: 200px;
+    font-size: 16pt;
+}
+
+
+/* Container for log-in box */
+div#login_window {
+    border: solid gray 1px;
+    bottom:0;
+    left:0;
+    right:0;
+    width:80%;
+    height:70%;
+    background:#ddd;
+    padding-top:0px;
+    padding-bottom:10px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 50px;
+    margin-top: 20px;
+    -moz-box-shadow:     5px 5px 3px #555;
+    -webkit-box-shadow:  5px 5px 3px #555;
+    box-shadow:          5px 5px 3px #555;    
+}
+
+/* Title of login box */
+div#login_title {
+    padding:3px;
+    padding-bottom:5px;
+    color:white;
+    background:#444;
+    font-weight:bold;
+    font-family:Arial, Sans-serif;
+    font-size:14pt;
+    color:#fff;
+    margin-bottom:10px;
+    text-align:center;
+    border-bottom:solid 2px #d55;
+}
+
+div#login_window  div.input_container {
+    float:none;
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 16pt;
+}
+
+/* Adjustment of password field */
+div.input_container#id_loginpwd {
+    margin-top:10px;
+}
+
+div.input_container#id_loginuser div.input_legend,
+div.input_container#id_loginpwd div.input_legend {
+    float:left;
+    margin-top:2px;
+    width: 8em;
+    color:#111;
+    font-weight:bold;
+    font-size:14pt;
+    text-shadow: -1px -1px 1px #fff;
+}
+
+/* Submit button container for login */
+div.input_container#id_submitlogin {
+    margin-top:1em;
+}
+
+input.input_submit#id_submitlogin_submit {
+    padding-bottom:10px;
+    font-size:14pt; 
+    width:100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+input.input_submit:hover#id_submitlogin_submit {
+    border:solid black 1px;
+}
+
+
+/* EOF CSS Style for tvpvrd */
+
