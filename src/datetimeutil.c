@@ -182,19 +182,20 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
     int sy, sm, sd, sh, smin, ssec;
     int ey, em, ed, eh, emin, esec;
 
-    if( recurrence_type < 0 || recurrence_type > 7 ) {
+    if( recurrence_type < 0 || recurrence_type > 9 ) {
         logmsg(LOG_ERR, "FATAL: Internal error. Unknown recurrence type %d in adjust_initital_repeat_date()",recurrence_type);
         return -1;
     }
-
+    
     fromtimestamp(*start, &sy, &sm, &sd, &sh, &smin, &ssec);
-    fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);
-
+    fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);    
+  
     // If we have a recurrence on Mon-Fri (or possible Sat-Sun)
     // The we need to make sure that the start date also
     // obeys this. If this is not the case we move the start
     // day forward until the condition is met.
-    if( recurrence_type == 4 || recurrence_type == 6 || recurrence_type == 7) {
+    if( recurrence_type == 4 || recurrence_type == 6 || recurrence_type == 7 || 
+        recurrence_type == 8 || recurrence_type == 9 ) {
         // Mon Fri
         struct tm tm_start;
         tm_start.tm_sec = ssec;
@@ -205,7 +206,7 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
         tm_start.tm_year = sy - 1900;
         tm_start.tm_isdst = -1;
         mktime(&tm_start);
-
+        
         if( recurrence_type == 4  ) {
             // Type is 7 (Mon-Fri)
             if( tm_start.tm_wday == 6 ) {
@@ -230,7 +231,7 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
                 sd += 3;
                 ed += 3;
             }
-        } else {
+        } else if( recurrence_type == 7  ) {
             // Type is 7 (Tue-Fri)
             if (tm_start.tm_wday == 6) {
                 // skip a sat+sun+mon
@@ -245,7 +246,44 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
                 sd += 1;
                 ed += 1;
             }
-
+        } else if( recurrence_type == 8  ) {
+            // Type is 8 (Wed-Fri)
+            if (tm_start.tm_wday == 6) {
+                // skip a sat+sun+mon+tue
+                sd += 4;
+                ed += 4;
+            } else if (tm_start.tm_wday == 0) {
+                // skip a sunday and monday
+                sd += 3;
+                ed += 3;
+            } else if (tm_start.tm_wday == 1) {
+                // skip monday
+                sd += 2;
+                ed += 2;
+            } else if (tm_start.tm_wday == 2) {
+                // skip tue
+                sd += 1;
+                ed += 1;           
+            }
+        } else if( recurrence_type == 9  ) {
+            // Type is 9 (Tue-Thu)
+            if (tm_start.tm_wday == 6) {
+                // skip a sat+sun+mon
+                sd += 3;
+                ed += 3;
+            } else if (tm_start.tm_wday == 0) {
+                // skip a sunday and monday
+                sd += 2;
+                ed += 2;
+            } else if (tm_start.tm_wday == 1) {
+                // skip monday
+                sd += 1;
+                ed += 1;
+            } else if (tm_start.tm_wday == 5) {
+                // skip fri+sat+sun+mon
+                sd += 4;
+                ed += 4;                
+            }            
         }
 
     } else if( recurrence_type == 5 ) {
@@ -284,7 +322,7 @@ increcdays(int recurrence_type,
         int *ey, int *em, int *ed, int *eh, int *emin, int *esec) {
     struct tm tm_start;
 
-    if( recurrence_type < 0 || recurrence_type > 7 ) {
+    if( recurrence_type < 0 || recurrence_type > 9 ) {
         logmsg(LOG_ERR, "FATAL: Internal error. Unknown recurrence type %d in increcdays()",recurrence_type);
         return -1;
     }
@@ -376,10 +414,42 @@ increcdays(int recurrence_type,
                 mktime(&tm_start);
             } while (tm_start.tm_wday == 6 || tm_start.tm_wday <= 1 );
             break;
+            
+        case 8:
+            // Wed-Fri
+            do {
+                *sd += 1;
+                *ed += 1;
+                tm_start.tm_sec = *ssec;
+                tm_start.tm_min = *smin;
+                tm_start.tm_hour = *sh;
+                tm_start.tm_mday = *sd;
+                tm_start.tm_mon = *sm - 1;
+                tm_start.tm_year = *sy - 1900;
+                tm_start.tm_isdst = -1;
+                mktime(&tm_start);
+            } while (tm_start.tm_wday == 6 || tm_start.tm_wday <= 2 );
+            break;
+            
+        case 9:
+            // Tue-Thu
+            do {
+                *sd += 1;
+                *ed += 1;
+                tm_start.tm_sec = *ssec;
+                tm_start.tm_min = *smin;
+                tm_start.tm_hour = *sh;
+                tm_start.tm_mday = *sd;
+                tm_start.tm_mon = *sm - 1;
+                tm_start.tm_year = *sy - 1900;
+                tm_start.tm_isdst = -1;
+                mktime(&tm_start);
+            } while (tm_start.tm_wday >= 5 || tm_start.tm_wday <= 1 );
+            break;
 
 
         default:
-            logmsg(LOG_ERR, "Unknown type of repeat specified for record.");
+            logmsg(LOG_ERR, "Unknown recurrence_type (%d) specified for record.",recurrence_type);
             return -1;
             break;
     }

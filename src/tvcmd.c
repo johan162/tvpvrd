@@ -484,7 +484,7 @@ _cmd_add(const char *cmd, int sockfd) {
 
         // Repeated variant 1
         // ar <type> <id> <...>
-        ret = matchcmd("^ar" _PR_S "([1-7]|d|w|m|f|s|t|n)" _PR_S _PR_ID _PR_S _PR_ANY, cmd, &field);
+        ret = matchcmd("^ar" _PR_S "([1-9]|d|w|m|f|s|t|n|e|i)" _PR_S _PR_ID _PR_S _PR_ANY, cmd, &field);
         if( ret == 4 ) {
             if( isdigit(*field[1]) ) {
                 repeat_type = xatoi(field[1]);
@@ -497,6 +497,8 @@ _cmd_add(const char *cmd, int sockfd) {
                     case 's': repeat_type = 5; break;
                     case 't': repeat_type = 6; break;
                     case 'n': repeat_type = 7; break;
+                    case 'e': repeat_type = 8; break;
+                    case 'i': repeat_type = 9; break;
                 }
             }
             repeat_nbr = (unsigned)xatoi(field[2]);
@@ -507,7 +509,7 @@ _cmd_add(const char *cmd, int sockfd) {
         }
         else {
             // See if number of instances was specified with an end date instead
-            ret = matchcmd("^ar" _PR_S "([1-7]|d|w|m|f|s|t|n)" _PR_S _PR_FULLDATE _PR_S _PR_ANY, cmd, &field);
+            ret = matchcmd("^ar" _PR_S "([1-9]|d|w|m|f|s|t|n|e|i)" _PR_S _PR_FULLDATE _PR_S _PR_ANY, cmd, &field);
             logmsg(LOG_DEBUG,"ret=%d after 'ar' command",ret);
             if( ret == 6 ) {
 
@@ -522,6 +524,8 @@ _cmd_add(const char *cmd, int sockfd) {
                         case 's': repeat_type = 5; break;
                         case 't': repeat_type = 6; break;
                         case 'n': repeat_type = 7; break;
+                        case 'e': repeat_type = 8; break;
+                        case 'i': repeat_type = 9; break;                        
                     }
                 }
 
@@ -626,8 +630,10 @@ _cmd_add(const char *cmd, int sockfd) {
             ts_end = totimestamp(ey,em,ed,eh,emin,esec);
             fromtimestamp(ts_end,&ey,&em,&ed,&eh,&emin,&esec);
 
-            if (ts_start < now) {
+            if (repeat_type == 0 && ts_start < now) {
                 // Start time in the future. Assume tomorrow
+                // We don't do this for repeated recordings since the start
+                // date has already been adjusted properly.
                 ts_start = totimestamp(sy, sm, sd + 1, sh, smin, ssec);
                 ts_end = totimestamp(ey, em, ed + 1, eh, emin, esec);
                 fromtimestamp(ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);

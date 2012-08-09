@@ -12,12 +12,16 @@ User visible changes:
     - Added possibility to delete individual recordings in a recurring series. This also
       means that the DB schema has been updated to version 3 in order to record which
       individual recordings in a series should be excluded.
+    - Added two new repeat types "Wed-Fri" (specified as '8' or 'e')  and 
+      "Tue-Thu" (specified as '9' or 'i'). Updated docs with info about this.
 
 Bugs fixed:
     - None.
 
 Internal changes:
-    - None
+    - Database format updated to version 3. This added the <excluded> list in the
+      repeat section to handle single excluded recordings in series (recurring recordings).
+    - Some spelling cleanup.
 
 
 4.2.0

@@ -263,9 +263,11 @@ web_cmd_add(int sockd) {
         {.key = "f", .val = "Mon-Fri"},
         {.key = "t", .val = "Mon-Thu"},
         {.key = "n", .val = "Tue-Fri"},
-        {.key = "s", .val = "Sat-Sun"}
+        {.key = "e", .val = "Wed-Fri"},
+        {.key = "i", .val = "Tue-Thu"},
+        {.key = "s", .val = "Sat-Sun"},
     };
-    const size_t n_rpt = 7;
+    const size_t n_rpt = 9;
     static const char *rptcount_list[] = {
         " ", "02", "03", "04", "05", "06", "07", "08", "09", "10",
         "11", "12", "13", "14", "15", "16", "17", "18", "19",
