@@ -6,6 +6,20 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.2.1
+------
+User visible changes:
+    - Added possibility to delete individual recordings in a recurring series. This also
+      means that the DB schema has been updated to version 3 in order to record which
+      individual recordings in a series has been deleted.
+
+Bugs fixed:
+    - None.
+
+Internal changes:
+    - None
+
+
 4.2.0
 ------
 User visible changes:

@@ -72,7 +72,7 @@
 /*
  * Names of element in the XML file
  */
-#define XMLDB_VERSIONNUM "2"
+#define XMLDB_VERSIONNUM "3"
 
 static const xmlChar *xmldb_version =           (xmlChar *) XMLDB_VERSIONNUM;
 static const xmlChar *xmldb_root =              (xmlChar *) "tvrecdb";
@@ -95,54 +95,9 @@ static const xmlChar *xmldb_nameRecMangling =   (xmlChar *) "titlemangling";
 static const xmlChar *xmldb_propnameRecPrefix = (xmlChar *) "prefix";
 static const xmlChar *xmldb_nameTProfile =      (xmlChar *) "transcodeprofile";
 static const xmlChar *xmldb_nameRecStartNumber= (xmlChar *) "startnumber";
+static const xmlChar *xmldb_nameExcludes      = (xmlChar *) "excludes";
+static const xmlChar *xmldb_nameExcludeItem   = (xmlChar *) "excluderecord";
 
-/*
- * Process a <repeat> .. </repeat> block
- */
-static void processRepeatingRecording(xmlNodePtr node, int *rectype, int *recnbr, 
-                                      int *recmangling, char *recprefix, int *startnumber) {
-    xmlNodePtr childnode;
-    xmlChar *xmlval;
-
-    node = node->xmlChildrenNode;
-    while (node != NULL) {
-
-        if (xmlStrcmp(node->name, xmldb_nameText)) {
-
-            childnode = node->xmlChildrenNode;
-
-            if (xmlStrcmp(node->name, xmldb_nameRecType) == 0) {
-                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    *rectype = xatoi((char * const) childnode->content);
-                }
-            } else if (xmlStrcmp(node->name, xmldb_nameRecNbr) == 0) {
-                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    *recnbr = xatoi((char * const) childnode->content);
-                }
-            } else if(xmlStrcmp(node->name,xmldb_nameRecStartNumber) == 0 ) {
-                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    *startnumber = xatoi((char * const) childnode->content);
-                }
-            } else if (xmlStrcmp(node->name, xmldb_nameRecMangling) == 0) {
-                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
-                    xmlval = xmlGetProp(node, xmldb_propnameRecPrefix);
-                    if (xmlval != NULL) {
-                        strncpy(recprefix, (const char *) xmlval, REC_MAX_NPREFIX - 1);
-                        recprefix[REC_MAX_NPREFIX - 1] = 0;
-                        xmlFree(xmlval);
-                    } else {
-                        strncpy(recprefix, DEFAULT_PREFIX, REC_MAX_NPREFIX - 1);
-                        recprefix[REC_MAX_NPREFIX - 1] = 0;
-                    }
-                    *recmangling = xatoi((char * const) childnode->content);
-                }
-            } else {
-                logmsg(LOG_ERR, "Unknown XML node name in repeated recording: %s", node->name);
-            }
-        }
-        node = node->next;
-    }
-}
 
 /*
  * Parse a time string given as nn:nn[:nn] and store the values in
@@ -201,6 +156,79 @@ parseDate(const char *date, int *y, int *m, int *d) {
     }
 }
 
+static void 
+processExcludes(xmlNodePtr node,struct excluded_items *excluded) {
+    xmlNodePtr childnode;
+
+    node = node->xmlChildrenNode;
+    excluded->num = 0;
+    while (node != NULL) {
+        if (xmlStrcmp(node->name, xmldb_nameText)) {
+
+            childnode = node->xmlChildrenNode;    
+            if (xmlStrcmp(node->name, xmldb_nameExcludeItem) == 0) {
+                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
+                    int excludeditem = xatoi((char * const) childnode->content);
+                    excluded->excluded_items[excluded->num++] = excludeditem;
+                }            
+            }
+        }
+        node = node->next;
+    }    
+}
+
+/*
+ * Process a <repeat> .. </repeat> block
+ */
+static void 
+processRepeatingRecording(xmlNodePtr node, int *rectype, int *recnbr, 
+                          int *recmangling, char *recprefix, int *startnumber,
+                          struct excluded_items *excluded) {
+    xmlNodePtr childnode;
+    xmlChar *xmlval;
+
+    node = node->xmlChildrenNode;
+    while (node != NULL) {
+
+        if (xmlStrcmp(node->name, xmldb_nameText)) {
+
+            childnode = node->xmlChildrenNode;
+
+            if (xmlStrcmp(node->name, xmldb_nameRecType) == 0) {
+                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
+                    *rectype = xatoi((char * const) childnode->content);
+                }
+            } else if (xmlStrcmp(node->name, xmldb_nameRecNbr) == 0) {
+                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
+                    *recnbr = xatoi((char * const) childnode->content);
+                }
+            } else if(xmlStrcmp(node->name,xmldb_nameRecStartNumber) == 0 ) {
+                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
+                    *startnumber = xatoi((char * const) childnode->content);
+                }
+            } else if (xmlStrcmp(node->name, xmldb_nameRecMangling) == 0) {
+                if (xmlStrcmp(childnode->name, xmldb_nameText) == 0) {
+                    xmlval = xmlGetProp(node, xmldb_propnameRecPrefix);
+                    if (xmlval != NULL) {
+                        strncpy(recprefix, (const char *) xmlval, REC_MAX_NPREFIX - 1);
+                        recprefix[REC_MAX_NPREFIX - 1] = 0;
+                        xmlFree(xmlval);
+                    } else {
+                        strncpy(recprefix, DEFAULT_PREFIX, REC_MAX_NPREFIX - 1);
+                        recprefix[REC_MAX_NPREFIX - 1] = 0;
+                    }
+                    *recmangling = xatoi((char * const) childnode->content);
+                }
+            } else if (xmlStrcmp(node->name, xmldb_nameExcludes) == 0) {
+                processExcludes(node,excluded);      
+            } else {
+                logmsg(LOG_ERR, "Unknown XML node name in repeated recording: %s", node->name);
+            }
+        }
+        node = node->next;
+    }
+}
+
 /*
  * Parse a single recording in the XML file. Extract the necessary fields
  * and add this as a proper entry in the list of recordings.
@@ -217,6 +245,9 @@ processRecording(xmlNodePtr node) {
     int eh, emin, esec;
     time_t ts_start, ts_end;
     struct recording_entry *entry;
+    struct excluded_items *excluded;    
+    excluded = calloc(1,sizeof(struct excluded_items));
+    excluded->num = 0;
 
     node = node->xmlChildrenNode;
     
@@ -290,7 +321,7 @@ processRecording(xmlNodePtr node) {
             } else if (xmlStrcmp(node->name, xmldb_nameRecurrence) == 0) {
                 recurrence = 1;
                 processRepeatingRecording(node,
-                        &rectype, &recnbr, &recmangling, recprefix, &startnumber);
+                        &rectype, &recnbr, &recmangling, recprefix, &startnumber, excluded);
             } else {
                 logmsg(LOG_ERR, "Unknown XML node name: %s", node->name);
             }
@@ -313,6 +344,7 @@ processRecording(xmlNodePtr node) {
         for (size_t i = 0; i < REC_MAX_TPROFILES; i++) {
             free(profiles[i]);
         }
+        free(excluded);
         return;
     }
 
@@ -348,7 +380,7 @@ processRecording(xmlNodePtr node) {
     int ret;
     size_t v = 0;
     do {
-        ret = insertrec(v, entry);
+        ret = insertrec(v, entry, excluded);
     } while (-1 == ret && ++v < max_video);
 
     if (-1 == ret) {
@@ -359,6 +391,8 @@ processRecording(xmlNodePtr node) {
         logmsg(LOG_INFO, "  -- inserted record '%s' in queue for video %d", title, v);
     }
 
+    free(excluded);
+    
 }
 
 /**
@@ -419,7 +453,7 @@ readXMLFile(const char *filename) {
             xmlFreeDoc(doc);
             return -1;
         } else {
-            logmsg(LOG_NOTICE, "Will update XML DB to new schema");
+            logmsg(LOG_NOTICE, "Will update XML DB to new schema automatically");
             forceUpdate=1;
         }
     }
@@ -558,6 +592,24 @@ _writeXMLFileHTML(const int fd) {
                             recs[REC_IDX(video, i)]->recurrence_mangling,
                             xmldb_nameRecMangling);
                     _writef(fd, "      <%s>%d</%s>\n",xmldb_nameRecStartNumber,min_start_number,xmldb_nameRecStartNumber);
+                    
+                    if( has_excluded_items(recs[REC_IDX(video, i)]->recurrence_id) ) {
+                        
+                        iterate_excluded_init(recs[REC_IDX(video, i)]->recurrence_id);
+                    
+                        _writef(fd, "      <%s>\n",xmldb_nameExcludes);
+                        
+                        int item_idx;
+                        while( (item_idx = next_excluded_item()) >= 0 ) {
+                            if( item_idx > (int)min_start_number )
+                                _writef(fd, "        <%s>%d</%s>\n",xmldb_nameExcludeItem,item_idx,xmldb_nameExcludeItem);                            
+                        }                        
+                    
+                        _writef(fd, "      </%s>\n",xmldb_nameExcludes);
+                    
+                    }
+                    
+                    
                     _writef(fd, "    </%s>\n",xmldb_nameRecurrence);
                     _writef(fd, "  </%s>\n",xmldb_nameRecording);
                 }

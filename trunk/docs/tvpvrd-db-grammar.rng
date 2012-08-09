@@ -97,6 +97,14 @@
         </element>
     </define>
     
+    <define name="excluding">
+        <zeroOrMore>
+            <element name="excludingitem">
+                <data type="int"></data>
+            </element>
+        </zeroOrMore>
+    </define>
+    
     <define name="repeat">
         <element name="repeat">
             <interleave>
@@ -104,6 +112,9 @@
                 <ref name="repeat.nbr"></ref>
                 <ref name="repeat.titlemangling"></ref>
                 <ref name="repeat.startnumber"></ref>
+                <zeroOrOne>
+                    <ref name="excluding">
+                </zeroOrOne>
             </interleave>
         </element>
     </define>
