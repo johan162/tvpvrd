@@ -1449,6 +1449,10 @@ a bbb1 21:00 21:29 lastnews @tlow</screen>
                                 to Thursday (can also be specified as '6')</para>
                         <para>'<option>n</option>' - Repeat every Tuesday to Friday (can also be
                             specified as '7')</para>
+                        <para>'<option>e</option>' - Repeat every Wednesday to Friday (can also be
+                            specified as '8')</para>
+                        <para>'<option>i</option>' - Repeat every Tuesday to Thursday (can also be
+                            specified as '9')</para>
                                                         
                             <para><emphasis>repeat-cnt | end-date</emphasis></para>
                             <para>This specifies the number of repeated recordings
