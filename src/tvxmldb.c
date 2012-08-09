@@ -88,7 +88,6 @@ static const xmlChar *xmldb_nameVideo =         (xmlChar *) "video";
 static const xmlChar *xmldb_nameFilename =      (xmlChar *) "filename";
 static const xmlChar *xmldb_nameTitle =         (xmlChar *) "title";
 static const xmlChar *xmldb_nameRecurrence =    (xmlChar *) "repeat";
-//static const xmlChar *xmldb_nameDir =           (xmlChar *) "directory";
 static const xmlChar *xmldb_nameRecType =       (xmlChar *) "type";
 static const xmlChar *xmldb_nameRecNbr =        (xmlChar *) "nbr";
 static const xmlChar *xmldb_nameRecMangling =   (xmlChar *) "titlemangling";
@@ -570,7 +569,6 @@ _writeXMLFileHTML(const int fd) {
                     _writef(fd, "  <%s>\n",xmldb_nameRecording);
                     _writef(fd, "    <%s>%s</%s>\n",xmldb_nameTitle, recs[REC_IDX(video, i)]->recurrence_title, xmldb_nameTitle);
                     _writef(fd, "    <%s>%s</%s>\n",xmldb_nameChannel, recs[REC_IDX(video, i)]->channel, xmldb_nameChannel);
-                    //_writef(fd, "    <%s>%d</%s>\n", xmldb_nameVideo,video,xmldb_nameVideo);
 
                     fromtimestamp(recs[REC_IDX(video, i)]->ts_start, &y, &m, &d, &h, &min, &sec);
                     _writef(fd, "    <%s>%02d-%02d-%02d</%s>\n",xmldb_nameStartdate, y, m, d,xmldb_nameStartdate);
