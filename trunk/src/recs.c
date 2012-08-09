@@ -156,9 +156,8 @@ isentryoverlapping(unsigned video, struct recording_entry* entry) {
         int esy, esm, esd, esh, esmin, essec;
         int eey, eem, eed, eeh, eemin, eesec;
 
-
         // Recurrence. This means we need to check all future
-        // recurrences for collisins as well.
+        // recurrences for collisions as well.
         fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
         fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);
         time_t ts_start = entry->ts_start;

@@ -123,7 +123,10 @@ struct skeysval_t {
     char *val;
 };
 
-
+/**
+ * Used to record which entries in a recurring series has been deleted when we insert
+ * a new recurring record.
+ */
 struct excluded_items {
     size_t num;
     unsigned excluded_items[1024];
@@ -142,9 +145,9 @@ extern struct recording_entry **recs; // [MAX_VIDEO][MAX_ENTRIES];
 extern unsigned *num_entries; //[MAX_VIDEO];
 
 /**
- * A list of current ongogin recordings. When a recording is started
+ * A list of current ongoing recordings. When a recording is started
  * it is moved from the global list of planned recordings 'recs' to the
- * the position in this list thta corresponds to the video card used.
+ * the position in this list that corresponds to the video card used.
  */
 extern struct recording_entry **ongoing_recs; //[MAX_VIDEO];
 
