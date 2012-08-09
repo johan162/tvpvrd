@@ -42,6 +42,7 @@
 #include <errno.h>
 #include <sys/param.h> // Needed to get MIN()/MAX()
 #include <time.h>
+#include <readline/chardefs.h>
 
 #include "tvpvrd.h"
 #include "tvconfig.h"
@@ -414,6 +415,9 @@ _insertrec(unsigned video, struct recording_entry* entry) {
     return 1;
 }
 
+/**
+ * Handle names of repeating recordings
+ */
 int 
 rec_name_mangling(struct recording_entry *entry, size_t num, char *namebuff, size_t maxlen) {
     int sy, sm, sd, sh, smin, ssec;
@@ -454,7 +458,7 @@ rec_name_mangling(struct recording_entry *entry, size_t num, char *namebuff, siz
  * Return last used sequence number > 0 on success and -1 on failure
  */
 int
-insertrec(unsigned video, struct recording_entry * entry) {
+insertrec(unsigned video, struct recording_entry * entry, struct excluded_items *excluded) {
     size_t len;
     char *filetype;
     char *bname, *dname;
@@ -475,7 +479,7 @@ insertrec(unsigned video, struct recording_entry * entry) {
         // Make sure there is enough room on this video to store
         // all repeated recordings
         if( num_entries[video]+entry->recurrence_num > max_entries ) {
-            return 0;
+            return -1;
         }
 
         strncpy(bname_buffer, entry->filename, 255);
@@ -498,45 +502,66 @@ insertrec(unsigned video, struct recording_entry * entry) {
 
         assert(entry->recurrence_num > 0);
 
+        /*
+         * Expand all the recurring entries to single entries
+         */
         for (size_t i=0; i < entry->recurrence_num; i++) {
-
-            (void)rec_name_mangling(entry,i,tmpbuff,sizeof(tmpbuff));
-
-            // Name mangling of filename
-            snprintf(tmpbuff2, 512, "%s/%s%s%d-%02d-%02d%s",
-                    dname, bnamecore, entry->recurrence_mangling_prefix, sy, sm, sd, filetype);
-
-            newentry = newrec(tmpbuff, tmpbuff2,
-                    ts_start, ts_end,
-                    entry->channel, 1,
-                    entry->recurrence_type,
-                    entry->recurrence_num - i,
-                    entry->recurrence_mangling,
-                    entry->transcoding_profiles);
-
-            newentry->seqnbr =  global_seqnbr++;
-            newentry->recurrence_id = recurrence_id;
-            newentry->recurrence_start_number = i + entry->recurrence_start_number;
-
-            // Store an unmangled filename with the recording
-            strncpy(newentry->recurrence_filename, bname, REC_MAX_NFILENAME - 1);
-            newentry->recurrence_filename[REC_MAX_NFILENAME - 1] = '\0';
-
-            // Store an unmangled title with the recording
-            strncpy(newentry->recurrence_title, entry->title, REC_MAX_NTITLE - 1);
-            newentry->recurrence_title[REC_MAX_NTITLE - 1] = '\0';
-
-            (void)_insertrec(video, newentry);
-
-            // Find out the new date for the next recording in sequence
-            if( -1 == increcdays(entry->recurrence_type,
-                    &ts_start, &ts_end,
-                    &sy, &sm, &sd, &sh, &smin, &ssec,
-                    &ey, &em, &ed, &eh, &emin, &esec) )  {
-                logmsg(LOG_DEBUG,"increcdays(): failed!");
-                return 0;
+            
+            // Check if this recording should be excluded
+            _Bool found = FALSE;
+            if( excluded ) {            
+                for( size_t j=0; j < excluded->num && !found; ++j ) {
+                    found = (i + entry->recurrence_start_number == excluded->excluded_items[j]);
+                }
             }
+            
+            if( found ) {
+                logmsg(LOG_DEBUG,"Excluding item %d (out of %d exclusions) from series \"%s\" (startnumber=%d)",
+                        i + entry->recurrence_start_number,excluded->num,bname,
+                        entry->recurrence_start_number);
+            }
+            
+            if( !found ) {
 
+                (void)rec_name_mangling(entry,i,tmpbuff,sizeof(tmpbuff));
+
+                // Name mangling of filename
+                snprintf(tmpbuff2, 512, "%s/%s%s%d-%02d-%02d%s",
+                        dname, bnamecore, entry->recurrence_mangling_prefix, sy, sm, sd, filetype);
+
+                newentry = newrec(tmpbuff, tmpbuff2,
+                        ts_start, ts_end,
+                        entry->channel, entry->recurrence,
+                        entry->recurrence_type,
+                        entry->recurrence_num - i,
+                        entry->recurrence_mangling,
+                        entry->transcoding_profiles);
+
+                newentry->seqnbr =  global_seqnbr++;
+                newentry->recurrence_id = recurrence_id;
+                newentry->recurrence_start_number = i + entry->recurrence_start_number;
+
+                // Store an unmangled filename with the recording
+                strncpy(newentry->recurrence_filename, bname, REC_MAX_NFILENAME - 1);
+                newentry->recurrence_filename[REC_MAX_NFILENAME - 1] = '\0';
+
+                // Store an unmangled title with the recording
+                strncpy(newentry->recurrence_title, entry->title, REC_MAX_NTITLE - 1);
+                newentry->recurrence_title[REC_MAX_NTITLE - 1] = '\0';
+
+                (void)_insertrec(video, newentry);
+
+                // Find out the new date for the next recording in sequence
+                if( -1 == increcdays(entry->recurrence_type,
+                        &ts_start, &ts_end,
+                        &sy, &sm, &sd, &sh, &smin, &ssec,
+                        &ey, &em, &ed, &eh, &emin, &esec) )  {
+                    logmsg(LOG_DEBUG,"increcdays(): failed!");
+                    return 0;
+                }
+                
+            }
+            
         }
         recurrence_id++;
         freerec(entry);
@@ -1584,7 +1609,7 @@ delete_toprec(const unsigned video) {
  * Remove the top recording from the list but do NOT deallocate the memory
  * occupied by the record. This is useful when we just want to move the record
  * from the waiting recording list to the ongoing recording list. In this case
- * we want to remove it from the waiting que but not delete the record.
+ * we want to remove it from the waiting queue but not delete the record.
  */
 void
 remove_toprec(const unsigned video) {
@@ -1637,7 +1662,7 @@ update_profile(unsigned seqnbr, char *profile) {
 /*
  * Delete a recording with specified sequence number.
  * If "allrecurrences" is true then all recurrent recording
- * will be deleted if the specified record is part of a sequnce of recordings
+ * will be deleted if the specified record is part of a sequence of recordings
  * (recurrent recording)
  */
 int
@@ -1690,8 +1715,17 @@ delete_recid(unsigned seqnbr, int allrecurrences) {
             num_entries[foundvideo] = nbr;
             free(tmprecs);
 
-        } else {
-            // Just delete this record
+        } else {                        
+            
+            // If we delete any record except for the first one we have to mark it as an excluded
+            // recording in the middle of the series
+            if (recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]->recurrence ) {
+                add_excluded_from_repeated_recording(
+                        recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]->recurrence_id,
+                        recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]->recurrence_start_number);
+            }
+
+            // Delete this record
             freerec(recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)]);
             recs[REC_IDX((unsigned)foundvideo, (unsigned)foundidx)] = recs[REC_IDX((unsigned)foundvideo, num_entries[foundvideo] - 1)];
             recs[REC_IDX((unsigned)foundvideo, num_entries[foundvideo] - 1)] = NULL;
@@ -1738,4 +1772,109 @@ get_nextsched_rec(struct recording_entry **nextrec, int *nextrec_video, time_t *
     return ret;
 }
 
+
+// Keep track of individual recordings that have been deleted from recurring (series) 
+// recordings.
+
+struct excluded {
+    unsigned recurrence_id;
+    size_t num;
+    unsigned excluded_items[1024];
+};
+
+// An array with elements for each series that has one or more deleted individual recordings
+static struct excluded *excluded_recordings[1024];
+
+// Number of series with a deleted recording
+static size_t num_excluded_recordings = 0 ;
+
+/**
+ *
+ * @return 0 on success, -1 on failure
+ */
+int 
+add_excluded_from_repeated_recording(const unsigned series_id, const unsigned recurrence_number) {
+    
+    // First check if this series already has an entry
+    size_t i=0;
+    while(i < num_excluded_recordings ) {
+        if( excluded_recordings[i]->recurrence_id == series_id ) {
+            excluded_recordings[i]->excluded_items[excluded_recordings[i]->num++] = recurrence_number;
+            return 0;
+        }
+        ++i;
+    }
+    
+    // Not found so add a new excluded series
+    excluded_recordings[num_excluded_recordings] = calloc(1,sizeof(struct excluded));
+    if( NULL == excluded_recordings[num_excluded_recordings] ) {
+        logmsg(LOG_ERR,"Failed to allocate memory for excluded recording");
+        return -1;
+    }
+    excluded_recordings[num_excluded_recordings]->num = 1;
+    excluded_recordings[num_excluded_recordings]->recurrence_id = series_id;
+    excluded_recordings[num_excluded_recordings]->excluded_items[0] = recurrence_number;
+    ++num_excluded_recordings;
+    return 0;
+}
+
+_Bool 
+has_excluded_items(const unsigned series_id) {
+    for(size_t i=0; i < num_excluded_recordings; ++i) {
+        if( excluded_recordings[i]->recurrence_id == series_id ) {
+            return TRUE;
+        }
+    }    
+    return FALSE;
+}
+
+static size_t iterate_idx=0;
+static unsigned iterate_series_id = 0;
+static struct excluded *iterate_serie=NULL;
+
+int
+iterate_excluded_init(const unsigned series_id) {
+    iterate_idx = 0;
+    iterate_series_id = series_id;
+    for( size_t i=0; i < num_excluded_recordings; ++i ) {
+        if( excluded_recordings[i]->recurrence_id == iterate_series_id ) {
+            iterate_serie = excluded_recordings[i];
+            return 0;
+        }
+    }
+    return -1;
+}
+
+int
+next_excluded_item(void) {
+    if( NULL == iterate_serie ) {
+        return -1;
+    }
+    
+    if( iterate_idx < iterate_serie->num ) {
+        return iterate_serie->excluded_items[iterate_idx++];
+    } else {
+        return -1;
+    }
+}
+
+
+/**
+ *
+ * @return TRUE if found on success, FALSE if not found
+ */
+_Bool 
+is_excluded_from_repeated_recording(const unsigned series_id, const unsigned recurrence_number) {
+    for(size_t i=0; i < num_excluded_recordings; ++i) {
+        if( excluded_recordings[i]->recurrence_id == series_id ) {
+            for(size_t j=0; j < excluded_recordings[i]->num; ++j) {
+                if( recurrence_number == excluded_recordings[i]->excluded_items[j] ) {
+                    return TRUE;
+                }
+            }
+            return FALSE;
+        }
+    }    
+    return FALSE;
+}
 /* EOF */

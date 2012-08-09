@@ -124,6 +124,13 @@ struct skeysval_t {
 };
 
 
+struct excluded_items {
+    size_t num;
+    unsigned excluded_items[1024];
+};
+
+
+
 /**
  * The list with all planned recordings
  */
@@ -194,7 +201,7 @@ newrec(const char *title, const char *filename, const time_t start,
         char *profiles[]);
 
 /**
- * Free memory associated with the gievn recording entry
+ * Free memory associated with the given recording entry
  * @param entry The entry to be freed
  * @param caller The name of the calling function. USed in memory tracing
  */
@@ -204,10 +211,11 @@ void freerec(struct recording_entry *entry); //,char *caller);
  * Try to insert a recording into the list for the specified video card
  * @param video
  * @param entry
- * @return Boolean., 0 = failed to insert, 1 sucess
+ * @param excluded
+ * @return Boolean., 0 = failed to insert, 1 success
  */
 int
-insertrec(unsigned video, struct recording_entry * entry);
+insertrec(unsigned video, struct recording_entry * entry, struct excluded_items *excluded);
 
 
 /**
@@ -320,6 +328,24 @@ update_profile(unsigned seqnbr, char *profile);
  */
 int
 get_nextsched_rec(struct recording_entry **nextrec, int *nextrec_video, time_t *nextrec_ts);
+
+
+
+int 
+add_excluded_from_repeated_recording(const unsigned series_id, const unsigned recurrence_number);
+
+_Bool 
+has_excluded_items(const unsigned series_id);
+
+_Bool 
+is_excluded_from_repeated_recording(const unsigned series_id, const unsigned recurrence_number);
+
+int
+iterate_excluded_init(const unsigned series_id);
+
+int
+next_excluded_item(void);
+
 
 #ifdef	__cplusplus
 }

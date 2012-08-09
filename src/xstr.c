@@ -198,7 +198,7 @@ xstricmp(const char *s1, const char *s2) {
 }
 
 /**
- * Exatrct substring to buffer
+ * Extract substring to buffer
  * @param to     Buffer to write the extracted string to
  * @param maxlen Maximum length of buffer
  * @param from   String to extract from
@@ -237,9 +237,10 @@ xmblen(const char *s) {
     const char *scopy = s;
     memset(&t, '\0', sizeof (t));
     size_t n= mbsrtowcs(NULL, &scopy, strlen(scopy), &t);
-    if( (size_t)-1 == n ) {
-        //logmsg(LOG_ERR, "xmblen(): \"%s\" (mblen=%zu) -1==%zu [locale: %s]",s,n,(size_t)-1,setlocale(LC_ALL,NULL));
-    }
+//    
+//    if( (size_t)-1 == n ) {
+//        logmsg(LOG_ERR, "xmblen(): \"%s\" (mblen=%zu) -1==%zu [locale: %s]",s,n,(size_t)-1,setlocale(LC_ALL,NULL));
+//    }
     return n;
 }	
 

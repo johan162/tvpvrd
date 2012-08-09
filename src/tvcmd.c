@@ -378,7 +378,7 @@ _cmd_delete(const char *cmd, int sockfd) {
         if (writeXMLFile(xmldbfile) >= 0 ) {
             snprintf(logmsgbuff, 255,"Database successfully updated '%s' after delete command", xmldbfile);
             logmsgbuff[255] = 0 ;
-            logmsg(LOG_INFO,logmsgbuff);
+            logmsg(LOG_DEBUG,logmsgbuff);
         } else {
             snprintf(logmsgbuff, 255,"Failed to update database '%s' after delete command", xmldbfile);
             logmsgbuff[255] = 0 ;
@@ -1136,13 +1136,13 @@ _cmd_add(const char *cmd, int sockfd) {
                 // Recording should be made on the specific video card
                 // and input source
 
-                ret = insertrec((unsigned)input_card, entry);
+                ret = insertrec((unsigned)input_card, entry, NULL);
 
             } else {
                 
                 // Take the first video stream available
                 for (size_t video = 0; video < max_video && (-1 == ret); video++) {
-                    ret = insertrec(video, entry);
+                    ret = insertrec(video, entry, NULL);
                 }
             }
 
