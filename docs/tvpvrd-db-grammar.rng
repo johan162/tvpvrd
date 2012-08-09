@@ -98,11 +98,13 @@
     </define>
     
     <define name="excluding">
-        <zeroOrMore>
-            <element name="excludingitem">
-                <data type="int"></data>
-            </element>
-        </zeroOrMore>
+        <element name="excluding">
+            <zeroOrMore>
+                <element name="excludingitem">
+                    <data type="int"></data>
+                </element>
+            </zeroOrMore>
+        </element>
     </define>
     
     <define name="repeat">
@@ -112,9 +114,9 @@
                 <ref name="repeat.nbr"></ref>
                 <ref name="repeat.titlemangling"></ref>
                 <ref name="repeat.startnumber"></ref>
-                <zeroOrOne>
-                    <ref name="excluding">
-                </zeroOrOne>
+                <optional>
+                    <ref name="excluding"></ref>
+                </optional>
             </interleave>
         </element>
     </define>

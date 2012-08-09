@@ -735,22 +735,35 @@ channel = E8</screen>
                 frequency channel SE11. This mapping will then make it possible to use the name
                 "Kanal5" when specifying recordings which is a lot easier than to remember that this
                 station is on channel "SE11".</para>
+            <para>Some cable providers are a bit naughty and does not follow the officially
+                allocated channel names and frequencies. To handle this case there is also a
+                possibility to specify the frequency directly in the station-channel mapping file.
+                Please note that this is an extension to the original format of the
+                    <filename>xawtvrc</filename> file and is only usable by
+                    <application>tvpvrd</application>.</para>
+            <para>In order to provide a frequency directly the frequency is specified in place of
+                the channel name as an integer prefixed by a '@' character. The frequency is given
+                in kHz. An example of this is shown below</para>
+            <para>
+                <screen>[StrangeStation]
+channel = @134550</screen>
+            </para>
             
             <para>In some Unix distributions there are automatic frequency scanning helper programs
                 (for example <citerefentry>
                     <refentrytitle>scantv</refentrytitle>
                     <manvolnum>1</manvolnum>
                 </citerefentry>) which will search through a given frequency map and list all
-                channels where a broadcasting was find (this is identified as a high enough signal
-                strength). For example SuSE distribution have a TV channel scanning setup in the
-                yast2 configuration tool. The result of this channel scan is usually stored in a
-                file named '<filename>xawtvrc</filename>'. This is usually stored in either
-                    '<filename>/etc/X11/xawtvrc</filename>' or in you home directory, usually as
+                channels where a broadcasting was found (this is identified as a high enough
+                signal-to-noise ratio). For example the SuSE distribution have a TV channel scanning
+                setup in the yast2 configuration tool. The result of this channel scan is usually
+                stored in a file named '<filename>xawtvrc</filename>'. This is normally stored in
+                either '<filename>/etc/X11/xawtvrc</filename>' or in your home directory, as
                     '<filename>~/.awtvrc</filename>'. However the actual station names you want to
-                use for the channels must of course be manually given. </para>
+                use for the channels must be manually given. </para>
             <para>The somewhat strange name of the map file comes from an ancient TV viewer program
-                under X11 which was/(is) called 'xawtv'. For historic reason this name has
-                stayed.</para>
+                under X11 which was/(is) called '<application>xawtv</application>'. For historic
+                reason this name has stayed.</para>
             <para>While it is possible to use either the station name or the channel name in a
                 recording there must be a '<filename>xawtvrc</filename>' file in order for the
                 server to start properly. If the station file cannot be found an error message will
@@ -1087,9 +1100,12 @@ channel = E8</screen>
                             shutdown</para>
                     </listitem>
                     <listitem>
-                        <para><emphasis
-                                role="bold">l [n]</emphasis> - list all pending recordings, possibly
-                            restricted to the next &lt;n> recordings</para>
+                        <para><emphasis role="bold">l [n]</emphasis> - list all pending recordings,
+                            possibly restricted to the next &lt;n> recordings</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis role="bold">[lf]</emphasis> - list all defined frequency
+                            tables</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1602,6 +1618,31 @@ killflag=n</screen>
 [039|kanal5 |2010-03-18|22:00|22:59|Fringe (18/20)                |@normal]</screen>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term>'<command>lf</command>' - <emphasis role="bold">list all defined frequency
+                            tables</emphasis></term>
+                    <listitem>
+                        <para>List all defined frequency tables.</para>
+                        <para>Output example:</para>
+                            <screen>01 europe-west
+02 europe-east
+03 france
+04 ireland
+05 italy
+06 australia
+07 newzealand
+08 us-bcast
+09 us-cable
+10 us-cable-hrc
+11 us-cable-irc
+12 japan-bcast
+13 japan-cable
+14 china-bcast
+15 southafrica
+16 argentina
+17 australia-optus </screen>                        
+                    </listitem>
+                </varlistentry>
                 <varlistentry>
                     <term>'<command>lh</command>' [<emphasis>n</emphasis>] - <emphasis
                             role="bold">List future recordings in human readable
