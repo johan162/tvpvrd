@@ -553,7 +553,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 // Sanity check of end date
                 if( end_repeat_time < t1time ) {
                     err=8;
-                    logmsg(LOG_ERR,"End date cannnot be earlier than current date/time.");
+                    logmsg(LOG_ERR,"End date cannot be earlier than current date/time.");
                 } else {
 
                     (void)adjust_initital_repeat_date(&t1time, &t2time, repeat_type);
@@ -630,10 +630,8 @@ _cmd_add(const char *cmd, int sockfd) {
             ts_end = totimestamp(ey,em,ed,eh,emin,esec);
             fromtimestamp(ts_end,&ey,&em,&ed,&eh,&emin,&esec);
 
-            if (repeat_type == 0 && ts_start < now) {
+            if (ts_start < now) {
                 // Start time in the future. Assume tomorrow
-                // We don't do this for repeated recordings since the start
-                // date has already been adjusted properly.
                 ts_start = totimestamp(sy, sm, sd + 1, sh, smin, ssec);
                 ts_end = totimestamp(ey, em, ed + 1, eh, emin, esec);
                 fromtimestamp(ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
@@ -783,10 +781,6 @@ _cmd_add(const char *cmd, int sockfd) {
                 if (ts_start < now) {
                     int ny,nm,nd,nh,nmin,nsec;
                     fromtimestamp(now, &ny, &nm, &nd, &nh, &nmin, &nsec);
-                    logmsg(LOG_INFO,"Adding: ts_start=%d, %02d:%02d:%02d, ts_end=%d , now=%d, %02d:%02d:%02d",
-                            ts_start,sh,smin,ssec,
-                            ts_end,now, nh,nmin,nsec);
-                    // Start time in the future. Assume tomorrow
                     ts_start = totimestamp(sy, sm, sd + 1, sh, smin, ssec);
                     ts_end = totimestamp(ey, em, ed + 1, eh, emin, esec);
                     fromtimestamp(ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);

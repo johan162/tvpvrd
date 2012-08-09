@@ -188,7 +188,16 @@ adjust_initital_repeat_date(time_t *start, time_t *end, int recurrence_type) {
     }
     
     fromtimestamp(*start, &sy, &sm, &sd, &sh, &smin, &ssec);
-    fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);    
+    fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);   
+    
+    time_t now = time(NULL);
+    if (*start < now) {
+        // Time is earlier than current time. Assume first possible day is tomorrow
+        *start = totimestamp(sy, sm, sd + 1, sh, smin, ssec);
+        *end = totimestamp(ey, em, ed + 1, eh, emin, esec);
+        fromtimestamp(*start, &sy, &sm, &sd, &sh, &smin, &ssec);
+        fromtimestamp(*end, &ey, &em, &ed, &eh, &emin, &esec);   
+    }    
   
     // If we have a recurrence on Mon-Fri (or possible Sat-Sun)
     // The we need to make sure that the start date also
