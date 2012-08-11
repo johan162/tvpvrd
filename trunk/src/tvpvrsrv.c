@@ -1929,6 +1929,9 @@ main(int argc, char *argv[]) {
 
     // Get the overall settings from the ini-file
     read_inisettings();
+    
+    // The initialization of web commands are partly controlled by the ini-file
+    init_web_cmds();
 
     //----------------------------------------------------------------------------------------
     // Note: The order of the initialization below is somewhat important. The vital dependencies

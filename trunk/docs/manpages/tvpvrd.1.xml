@@ -2019,7 +2019,8 @@ Wed Jun 01 00:50 Once more       /mnt/omega/mm/pvr/mp4/once_more.mp4           t
                     </varlistentry>
                 <varlistentry>
                     <term>'<command>sm</command>
-                        <emphasis>n</emphasis>' - Set default name mangling type</term>
+                        <emphasis>n</emphasis>' - <emphasis role="bold">Set default name mangling
+                            type</emphasis></term>
                     <listitem>
                         <para>Set default name mangling type for series recording</para>
                         <para>Supported types:</para>
@@ -2028,6 +2029,8 @@ Wed Jun 01 00:50 Once more       /mnt/omega/mm/pvr/mp4/once_more.mp4           t
 1 = Number and total number of recordings, e.g. "myrec_02-12"
 2 = Add episode number 'Enn' to the end of the name usefull for "SxxEyy" style naming, e.g. "myrec_S11E12"</screen>
                         </para>
+                        <para>See '<command>ss</command>' command for controlling the episode
+                            numbering.</para>
                     </listitem>
                 </varlistentry>
                     <varlistentry>
@@ -2047,6 +2050,15 @@ Wed Jun 01 00:50 Once more       /mnt/omega/mm/pvr/mp4/once_more.mp4           t
                                     <emphasis>#87</emphasis></para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term>'<command>ss</command>
+                        <emphasis>nn</emphasis>' - Set episode start number</term>
+                    <listitem>
+                        <para>Specify the start episode number used for specifying title and file
+                            name for the recording. Se the '<command>sm</command>' command for
+                            example on how the episode number is used.</para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>s</command>' - <emphasis
                                 role="bold">Server status command</emphasis></term>

@@ -131,6 +131,12 @@ extern "C" {
 #define DEFAULT_AUTODISPLAY_TRANSC 0
     
 /*
+ * DEFAULT_DISPLAY_ADVANCED_REC_CONTROL boolean
+ * Decide if the advanced recording controls should be displayed in the WEB-UI
+ */    
+#define DEFAULT_DISPLAY_ADVANCED_REC_CONTROL 0
+    
+/*
  * Note: All the defines for general settings are read from an inifile
  * If the ini file is missing some values then the defines below will be used
  * as the default value.
@@ -399,6 +405,11 @@ extern int web_autodisplay_transc;
  * Should the theme selector be displayed on web-interface
  */
 extern int disp_theme_select;
+
+/*
+ * Decide if advanced recording controls (name mangling and start number) should be displayed
+ */
+extern int display_advanced_rec_control ;
 
 // Are we running as master or slave
 extern int is_master_server;

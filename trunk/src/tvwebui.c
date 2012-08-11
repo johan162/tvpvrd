@@ -276,6 +276,19 @@ web_cmd_add(int sockd) {
         "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50"
     };
     const size_t n_rptcount = 39;
+    static const char *startnum_list[] = {
+        "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+        "11", "12", "13", "14", "15", "16", "17", "18", "19",
+        "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+        "30"
+    };    
+    const size_t n_startnum = 30;
+    static const struct skeysval_t name_mangling_list[] = {
+        {.key="0", .val="date (yyyy-mm-dd)"},
+        {.key="1", .val="sequence (&lt;nn&gt;-&lt;tot>)"},
+        {.key="2", .val="episode (E&lt;nn>)"}
+    };
+    const size_t n_name_mangling = 3;
     const char *station_list[128];
     const size_t n_stations = get_stations(station_list, 128);
 
@@ -297,6 +310,11 @@ web_cmd_add(int sockd) {
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_station");
     html_element_select_code(sockd, "Repeat:", "repeat", NULL, rpt_list, n_rpt,"id_rpttype");
     html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
+    
+    if( display_advanced_rec_control ) {
+        html_element_select_code(sockd, "Naming type:", "name_mangling", name_mangling_list[default_repeat_name_mangle_type].val, name_mangling_list, n_name_mangling,"id_name_mangling");
+        html_element_select(sockd, "Start num:", "startnum", NULL, startnum_list, n_startnum, "id_startnum");    
+    }
     
     html_element_select_code(sockd, "Day:", "start_day", NULL, day_list, n_day, "id_start");
     

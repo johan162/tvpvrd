@@ -9,6 +9,12 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.2.1
 ------
 User visible changes:
+    - Added optional controls in the WEB-UI to make it possible to control name mangling
+      and episode start number in series from the UI. By default these options are 
+      disabled to keep the WEB-UI the same as before. To enable these controls set 
+      the config file setting "display_advanced_rec_control" to true
+    - Added 'ss' "Set start series number" command to set the initial episode number in the
+      automatic naming of individual recordings in a series.
     - Made dropdown list in Web-UI in all themes for list of records to delete monospaced
     - Slightly altered the way recurring recordings are named in order to have the same
       name for both the title and file (necessary since some characters causes problems
