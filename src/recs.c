@@ -92,6 +92,18 @@ static int global_seqnbr = 1;
  */
 static unsigned recurrence_id = 1;
 
+/*
+ * The initial number for a recurrence series. This can be modified by the 'ss'
+ * command. This will then affect the next repeated recording and then be reset
+ * to 1
+ */
+int initial_recurrence_start_number = 1;
+
+void
+set_initial_recurrence_start_number(const int n) {
+    initial_recurrence_start_number = n;
+}
+
 /**
  * Check if the submitted entry is colliding/overlapping with an existing
  * entry in the pending recordings for the specified video stream or
@@ -330,7 +342,7 @@ newrec(const char *title, const char *filename, const time_t start,
         ptr->transcoding_profiles[0][REC_MAX_TPROFILE_LEN-1] = '\0';
     }
 
-    // This will be updated after a sucessfull insertrec()
+    // This will be updated after a successful insertrec()
     ptr->seqnbr = -1;
 
     // Secure that the string is 0 terminated in case it has been
@@ -360,14 +372,18 @@ newrec(const char *title, const char *filename, const time_t start,
 
     // Number: num = Number of recurrences
     // Note: If this is a negative number then instead it is the timestamp
-    // for the last date when this recurrance should stop
+    // for the last date when this recurrence should stop
     ptr->recurrence_num = recurrence_num;
 
-    // Mangling type: 0=Recurrence seq, 1=Date
+    // Mangling type.
     ptr->recurrence_mangling = recurrence_mangling;
 
-    // The initial number to use in the title mangling of a repeated squence
-    ptr->recurrence_start_number = 1;
+    // The initial number to use in the title mangling of a repeated sequence
+    ptr->recurrence_start_number = initial_recurrence_start_number;
+    
+    // Reset recurrence start number after it has been used
+    if( recurrence )
+        initial_recurrence_start_number = 1;
 
     return ptr;
 }

@@ -128,9 +128,9 @@
 #define CMD_MAILHIST 45
 #define CMD_LIST_FREQTABLE 46
 #define CMD_SET_REP_NAME_MANGLING 47
+#define CMD_SET_REP_START_NUMBER 48
 
-
-#define CMD_UNDEFINED 48
+#define CMD_UNDEFINED 49
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -211,6 +211,7 @@ _cmd_help(const char *cmd, int sockfd) {
             "  s    - print server status\n"\
             "  sm   - set default transcoding name mangling\n"\
             "  sp   - set transcoding profile for specified recording\n"\
+            "  ss   - set initial repeat series episode number\n"\
             "  st   - print profile statistics\n"\
 			"  t    - print server time\n"\
             "  tf   - transcode specified file\n"\
@@ -255,7 +256,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|lu|l|mlg|n|ot|o|q|rst|rh|rp|sm|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|lu|l|mlg|n|ot|o|q|rst|rh|rp|sm|sp|ss|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rh|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -359,6 +360,39 @@ _cmd_set_rep_name_mangling(const char *cmd, int sockfd) {
         _cmd_undefined(cmd,sockfd);
     }
 }
+
+static void
+_cmd_set_rep_start_number(const char *cmd, int sockfd) {
+    char msgbuff[256];
+    int err, ret;
+    char **field = NULL;
+
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Set initial episode start number for naming individual recordings in series\n"\
+                "ss <n> (<n> must be between 1 and 99)\n"
+                );
+        return;
+    }
+    
+    ret = matchcmd("^ss" _PR_S _PR_ID _PR_E, cmd, &field);
+    err = ret < 0;
+
+    if ( ! err && ret > 1 ) {
+        int snum = xatoi(field[1]);
+        if( snum < 1 || snum > 99 ) {
+            snprintf(msgbuff,255,"Start number %d is outside range [1,99]\n",snum);
+        } else {
+            initial_recurrence_start_number = snum;
+            snprintf(msgbuff,255,"Next episode start number set to %d\n",snum);
+        }        
+        _writef(sockfd,msgbuff);
+        matchcmd_free(&field);
+    } else {
+        _cmd_undefined(cmd,sockfd);
+    }
+}
+
 
 /**
  * Command: _cmd_delete
@@ -1158,8 +1192,6 @@ _cmd_add(const char *cmd, int sockfd) {
             strcat(filename, ".mpg");
             xstrtolower(filename);
 
-            /* TODO: Add this as config parameter */
-            // int repeat_name_mangle_type=1;
             entry = newrec(title, filename,
                            ts_start, ts_end,
                            channel,
@@ -3136,6 +3168,7 @@ cmdinit(void) {
     cmdtable[CMD_MAILHIST]          = _cmd_mail_history;
     cmdtable[CMD_LIST_FREQTABLE]    = _cmd_freqtables;
     cmdtable[CMD_SET_REP_NAME_MANGLING] = _cmd_set_rep_name_mangling;
+    cmdtable[CMD_SET_REP_START_NUMBER] = _cmd_set_rep_start_number;
 }
 
 /**
@@ -3195,6 +3228,7 @@ _getCmdPtr(const char *cmd) {
         {"rp", CMD_REFRESHPROFILE},
         {"sm", CMD_SET_REP_NAME_MANGLING},
         {"sp", CMD_SETPROFILE},
+        {"ss", CMD_SET_REP_START_NUMBER},
         {"st", CMD_STATISTICS},
         {"s",  CMD_STATUS},
         {"tf", CMD_TRANSCODEFILE},

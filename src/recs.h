@@ -132,7 +132,12 @@ struct excluded_items {
     unsigned excluded_items[1024];
 };
 
-
+/*
+ * The initial number for a recurrence series. This can be modified by the 'ss'
+ * command. This will then affect the next repeated recording and then be reset
+ * to 1
+ */
+extern int initial_recurrence_start_number;
 
 /**
  * The list with all planned recordings
@@ -150,6 +155,9 @@ extern unsigned *num_entries; //[MAX_VIDEO];
  * the position in this list that corresponds to the video card used.
  */
 extern struct recording_entry **ongoing_recs; //[MAX_VIDEO];
+
+void
+set_initial_recurrence_start_number(const int n);
 
 /**
  * Initialize memory and data structure to hold recordings

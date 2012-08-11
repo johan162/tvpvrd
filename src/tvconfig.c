@@ -209,6 +209,11 @@ int use_repeat_rec_basedir = 1;
 int default_repeat_name_mangle_type = 1;
 
 /*
+ * Decide if advanced recording controls (name mangling and start number) should be displayed
+ */
+int display_advanced_rec_control = 0;
+
+/*
  * Determine if we should use the mobile Web interface when a phone is detected
  */
 int use_mobile = 1;
@@ -377,6 +382,8 @@ read_inisettings(void) {
                                     iniparser_getint(dict, "config:weblogin_timeout", WEBLOGIN_TIMEOUT));
     weblogin_timeout *= 60; // Convert to seconds
 
+    display_advanced_rec_control = iniparser_getboolean(dict,"config:display_advanced_rec_control",DEFAULT_DISPLAY_ADVANCED_REC_CONTROL);
+    
     strncpy(password,
             iniparser_getstring(dict, "config:password", ""),
             31);

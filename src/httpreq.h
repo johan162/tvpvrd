@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+void
+init_web_cmds(void);
 
 void
 web_process_httprequest(const int socket, char *req);

@@ -658,6 +658,7 @@ _web_cmd_addrec(int socket, struct keypair_t *args, const size_t numargs, struct
     char *sd,*sh,*smin;
     char *eh,*emin;
     char *profile,*title,*submit;
+    char *startnum, *name_mangling;
     char cmdstr[255];
    
 #ifdef EXTRA_WEB_DEBUG
@@ -674,10 +675,20 @@ _web_cmd_addrec(int socket, struct keypair_t *args, const size_t numargs, struct
         -1 == get_assoc_value_s(args,numargs,"end_min",&emin) ||
         -1 == get_assoc_value_s(args,numargs,"profile",&profile) ||
         -1 == get_assoc_value_s(args,numargs,"title",&title) ||
-        -1 == get_assoc_value_s(args,numargs,"submit_addrec",&submit) ||
+        -1 == get_assoc_value_s(args,numargs,"submit_addrec",&submit) ||             
         strcmp(submit, "Add") ) {
         
         return -1;
+    }
+    
+    if( display_advanced_rec_control ) {
+          if( -1 == get_assoc_value_s(args,numargs,"startnum",&startnum) ||
+              -1 == get_assoc_value_s(args,numargs,"name_mangling",&name_mangling) ) {
+              return -1;
+          }
+    } else {
+        startnum = NULL;
+        name_mangling = NULL;
     }
 
     char tmpcmd[128];
@@ -705,7 +716,21 @@ _web_cmd_addrec(int socket, struct keypair_t *args, const size_t numargs, struct
 #ifdef EXTRA_WEB_DEBUG
     logmsg(LOG_DEBUG,"cmdstring=\"%s\"",cmdstr);
 #endif 
-
+    
+    if( display_advanced_rec_control ) {
+        int snum = xatoi(startnum);
+        if( snum > 0 && snum <= 30 ) {
+            set_initial_recurrence_start_number(snum);
+        } else {
+            return -1;
+        }
+        int nmt = xatoi(name_mangling);
+        if( nmt >= 0 && nmt <= 2 ) {
+            default_repeat_name_mangle_type = nmt;
+        } else {
+            return -1;
+        }
+    }
     web_main_page(socket, cmdstr, login_token, headers->ismobile);
     return 0;
         
@@ -879,20 +904,48 @@ struct web_cmds_t {
 // The array index for the login command
 #define LOGIN_CMDIDX 0
 
-struct web_cmds_t web_cmds[] = {
-    {"/","login",3,_web_cmd_login},
-    {"/","logout",0,_web_cmd_logout},
-    {"/","addrec",11,_web_cmd_addrec},
-    {"/","addqrec",6,_web_cmd_addqrec},
-    {"/","delrec",3,_web_cmd_delrec},
-    {"/","chwt",1,_web_cmd_chwt},
-    {"/","killrec",1,_web_cmd_killrec},
-    {"/","cmd",1,_web_cmd_command},
-    {"/","",0,_web_cmd_default},
+// Root directory, webname, number of arguments, function
+struct web_cmds_t *web_cmds;
+
+void
+init_web_cmds(void) {
     
-    /* Sentinel */
-    {"","",0,NULL}
-};
+    static struct web_cmds_t web_cmds_plain[] = {
+        {"/","login",3,_web_cmd_login},
+        {"/","logout",0,_web_cmd_logout},
+        {"/","addrec",11,_web_cmd_addrec},
+        {"/","addqrec",6,_web_cmd_addqrec},
+        {"/","delrec",3,_web_cmd_delrec},
+        {"/","chwt",1,_web_cmd_chwt},
+        {"/","killrec",1,_web_cmd_killrec},
+        {"/","cmd",1,_web_cmd_command},
+        {"/","",0,_web_cmd_default},
+
+        /* Sentinel */
+        {"","",0,NULL}    
+    };
+    
+    static struct web_cmds_t web_cmds_advanced[] = {
+        {"/","login",3,_web_cmd_login},
+        {"/","logout",0,_web_cmd_logout},
+        {"/","addrec",13,_web_cmd_addrec},
+        {"/","addqrec",6,_web_cmd_addqrec},
+        {"/","delrec",3,_web_cmd_delrec},
+        {"/","chwt",1,_web_cmd_chwt},
+        {"/","killrec",1,_web_cmd_killrec},
+        {"/","cmd",1,_web_cmd_command},
+        {"/","",0,_web_cmd_default},
+
+        /* Sentinel */
+        {"","",0,NULL}    
+    };
+    
+    if( display_advanced_rec_control ) {
+        web_cmds = web_cmds_advanced;
+    } else {
+        web_cmds = web_cmds_plain;
+    }
+}
 
 /**
  * Store the value of the named cookie in the val field

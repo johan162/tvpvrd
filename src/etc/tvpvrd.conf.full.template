@@ -70,6 +70,13 @@ port=9300
 enable_webinterface=no
 
 #----------------------------------------------------------------------------
+# DISPLAY_ADVANCED_REC_CONTROL boolean
+# Display advanced recording controls in the web-interface. This determines
+# if the "name mangling" and "start episode" controls should be displayed.
+#----------------------------------------------------------------------------
+display_advanced_rec_control=no
+
+#----------------------------------------------------------------------------
 # REQUIRE_WEB_PASSWORD boolean
 # Determines if the WEB interface require user to login
 #----------------------------------------------------------------------------
