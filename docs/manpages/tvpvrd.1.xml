@@ -1190,8 +1190,11 @@ channel = @134550</screen>
                             file</para>
                     </listitem>
                     <listitem>
-                        <para><emphasis
-                                role="bold">s</emphasis> - print server status</para>
+                        <para><emphasis role="bold">s</emphasis> - print server status</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis role="bold">sm</emphasis> - set default name mangling for
+                            series recording</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -2014,6 +2017,19 @@ Wed Jun 01 00:50 Once more       /mnt/omega/mm/pvr/mp4/once_more.mp4           t
                                 restart the server.</para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term>'<command>sm</command>
+                        <emphasis>n</emphasis>' - Set default name mangling type</term>
+                    <listitem>
+                        <para>Set default name mangling type for series recording</para>
+                        <para>Supported types:</para>
+                        <para>
+                            <screen>0 = Add date, e.g. "myrec_2012-11-22"
+1 = Number and total number of recordings, e.g. "myrec_02-12"
+2 = Add episode number 'Enn' to the end of the name usefull for "SxxEyy" style naming, e.g. "myrec_S11E12"</screen>
+                        </para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>sp</command>
                             <emphasis>nnn</emphasis>
