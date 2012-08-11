@@ -415,37 +415,43 @@ _insertrec(unsigned video, struct recording_entry* entry) {
 }
 
 /**
- * Handle names of repeating recordings
+ * Handle names of repeating recordings. Note that this is not the same as the filename the
+ * recording is stored under. This is only the name of the recording as shown in the list
+ * of recordings.
  */
 int 
-rec_name_mangling(struct recording_entry *entry, size_t num, char *namebuff, size_t maxlen) {
+rec_title_mangling(struct recording_entry *entry, size_t num, char *namebuff, size_t maxlen) {
     int sy, sm, sd, sh, smin, ssec;
     int ey, em, ed, eh, emin, esec;            
     fromtimestamp(entry->ts_start, &sy, &sm, &sd, &sh, &smin, &ssec);
     fromtimestamp(entry->ts_end, &ey, &em, &ed, &eh, &emin, &esec);    
     
-    // Name mangling for title
-    if ( 0 == entry->recurrence_mangling ) {
+    switch( entry->recurrence_mangling ) {
         
-        // Mangling == 0 Add date to each recording in series
-        snprintf(namebuff, maxlen, "%s %d-%02d-%02d %02d.%02d", entry->title, sy, sm, sd, sh, smin);
-        
-    } else if ( 1 == entry->recurrence_mangling ) {
-        
-        // Mangling == 1 Add (num/out_of) style to name
-        snprintf(namebuff, maxlen, "%s (%02d/%02d)", 
-                    entry->title,
-                    (int)num + entry->recurrence_start_number,
-                    entry->recurrence_num+entry->recurrence_start_number-1);
-        
-    } else if( 2 == entry->recurrence_mangling ) {
-        
-        // Mangling == 2 Add "E<num>" to title to facilitate EXXSYY style (e.g. "title_E01S05") style of naming
-        snprintf(namebuff, maxlen, "%sE%02d)", entry->title, (int)num + entry->recurrence_start_number);                
-        
-    } else {
-        logmsg(LOG_ERR,"Unknown name mangling type (%d) for recording '%s' on %d-%02d-%02d",entry->recurrence_mangling, entry->title,sy,sm,sd);
-        return -1;
+        case 0:
+            // Add date to each recording in series            
+            snprintf(namebuff, maxlen, "%s%s%d-%02d-%02d", entry->title, entry->recurrence_mangling_prefix, sy, sm, sd);
+            break;
+            
+        case 1:
+            // Add (num/out_of) style to name
+            snprintf(namebuff, maxlen, "%s%s%02d-%02d", 
+                     entry->title,entry->recurrence_mangling_prefix, 
+                     (int)num + entry->recurrence_start_number,
+                     entry->recurrence_num + entry->recurrence_start_number-1);            
+            break;
+
+        case 2:
+            // Add "E<num>" to title to facilitate EXXSYY style (e.g. "title_E01S05") style of naming
+            snprintf(namebuff, maxlen, "%sE%02d", entry->title, 
+                    (int)num + entry->recurrence_start_number);
+            break;
+
+        default:
+            logmsg(LOG_ERR,"Unknown name mangling type (%d) for recording '%s' on %d-%02d-%02d",
+                   entry->recurrence_mangling, entry->title,sy,sm,sd);
+            return -1;            
+            break;
     }
     return 0;
     
@@ -462,7 +468,7 @@ insertrec(unsigned video, struct recording_entry * entry, struct excluded_items 
     char *filetype;
     char *bname, *dname;
     char bnamecore[256];
-    char tmpbuff[512], tmpbuff2[512], bname_buffer[256], dname_buffer[256];
+    char titlebuff[512], filenamebuff[512], bname_buffer[256], dname_buffer[256];
     time_t ts_start, ts_end;
     int sy, sm, sd, sh, smin, ssec;
     int ey, em, ed, eh, emin, esec;            
@@ -522,13 +528,15 @@ insertrec(unsigned video, struct recording_entry * entry, struct excluded_items 
             
             if( !found ) {
 
-                (void)rec_name_mangling(entry,i,tmpbuff,sizeof(tmpbuff));
+                (void)rec_title_mangling(entry,i,titlebuff,sizeof(titlebuff));
 
                 // Name mangling of filename
-                snprintf(tmpbuff2, 512, "%s/%s%s%d-%02d-%02d%s",
-                        dname, bnamecore, entry->recurrence_mangling_prefix, sy, sm, sd, filetype);
+//                snprintf(filenamebuff, 512, "%s/%s%s%d-%02d-%02d%s",
+//                        dname, bnamecore, entry->recurrence_mangling_prefix, sy, sm, sd, filetype);
+                
+                snprintf(filenamebuff, 512, "%s/%s%s", dname, titlebuff, filetype);                
 
-                newentry = newrec(tmpbuff, tmpbuff2,
+                newentry = newrec(titlebuff, filenamebuff,
                         ts_start, ts_end,
                         entry->channel, entry->recurrence,
                         entry->recurrence_type,
@@ -555,7 +563,6 @@ insertrec(unsigned video, struct recording_entry * entry, struct excluded_items 
                         &ts_start, &ts_end,
                         &sy, &sm, &sd, &sh, &smin, &ssec,
                         &ey, &em, &ed, &eh, &emin, &esec) )  {
-                    logmsg(LOG_DEBUG,"increcdays(): failed!");
                     return 0;
                 }
                 

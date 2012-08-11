@@ -187,6 +187,12 @@ extern "C" {
 #define DEFAULT_USE_REPEAT_REC_BASEDIR 1
 
 /*
+ * DEFAULT_REPEAT_NAME_MANGLE_TYPE integer
+ * Select default type of name mangling for series recording
+ */    
+#define DEFAULT_REPEAT_NAME_MANGLE_TYPE 1    
+
+/*
  * MAX_CLIENTS integer
  * Max number of clients that are allowed to connect to us
  */
@@ -322,6 +328,11 @@ extern int use_profiledirectories ;
  * named by the basename of the recording
  */
 extern int use_repeat_rec_basedir ;
+
+/*
+ * Select default type of series recording title/filename name mangling
+ */
+extern int default_repeat_name_mangle_type ;
 
 /*
  * xawtv_channel_file string

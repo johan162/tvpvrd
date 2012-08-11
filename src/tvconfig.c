@@ -204,6 +204,11 @@ int use_profiledirectories = 1;
 int use_repeat_rec_basedir = 1;
 
 /*
+ * Default type of name mangling for recurring series
+ */
+int default_repeat_name_mangle_type = 1;
+
+/*
  * Determine if we should use the mobile Web interface when a phone is detected
  */
 int use_mobile = 1;
@@ -350,6 +355,9 @@ read_inisettings(void) {
 
     time_resolution     = (unsigned)validate(1,30,"time_resolution",
                                     iniparser_getint(dict, "config:time_resolution", TIME_RESOLUTION));
+    
+    default_repeat_name_mangle_type = validate(0,2,"default_repeat_name_mangle_type",
+                                    iniparser_getint(dict, "config:default_repeat_name_mangle_type", DEFAULT_REPEAT_NAME_MANGLE_TYPE));
 
     allow_profiles_adj_encoder = iniparser_getboolean(dict,"config:allow_profiles_adj_encoder",0);
 

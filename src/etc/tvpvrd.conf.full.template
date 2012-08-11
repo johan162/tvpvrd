@@ -164,6 +164,19 @@ use_profile_directories=no
 use_repeat_rec_basedir=no
 
 #----------------------------------------------------------------------------
+# DEFAULT_REPEAT_NAME_MANGLE_TYPE integer
+# Determine how individual recordings in a repeating series should be named.
+# Each recording have a suffix added that can be one of three types
+# 0 = Add date
+#     Example: "myrec_2011-12-22" (y-m-d)
+# 1 = Add number and total number of recordings in serie 
+#     Example: "myrec_06-12"
+# 2 = Add episode number
+#     Example: "myrec_E03"
+#----------------------------------------------------------------------------
+default_repeat_name_mangle_type=1
+
+#----------------------------------------------------------------------------
 # LOGFILE_NAME string
 # Name of logfile to use. The name can also be one of two special values
 # 1) "syslog" - Use system logger
