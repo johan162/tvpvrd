@@ -422,7 +422,7 @@ select.input_select_code#id_delselect_select {
 
 /* Input text controls */
 input.input_text {
-    width : 180px;
+    width : 200px;
 }
 
 /* Input submit buttons in forms */
@@ -473,7 +473,8 @@ div#be_hyphen {
 }
 
 /* Which input fields shoud start on a new line */
-div.input_container#id_start {
+div.input_container#id_station,
+div.input_container#id_title {
     clear:left;
 }
 
