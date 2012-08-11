@@ -396,10 +396,19 @@ select.input_select#id_rptcount {
     width:50px;
 }
 
-/* Format for selector with list of recordings to delete */
+/* Format for selector with list of recordings to delete on focus */
+select.input_select_code#id_delselect_select:focus {
+    width : 390px;
+    overflow: hidden;
+    font-family: fixed, monospace;
+    font-size: 10pt;
+    font-weight:bold;
+}
+
+/* Format for selector with list of recordings to delete out of focus */
 select.input_select_code#id_delselect_select {
-    width : 350px;
-    overflow: hiden;
+    width : 390px;
+    overflow: hidden;
 }
 
 /* Input text controls */
