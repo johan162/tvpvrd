@@ -127,9 +127,10 @@
 #define CMD_VIEWHIST 44
 #define CMD_MAILHIST 45
 #define CMD_LIST_FREQTABLE 46
+#define CMD_SET_REP_NAME_MANGLING 47
 
 
-#define CMD_UNDEFINED 47
+#define CMD_UNDEFINED 48
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -166,11 +167,11 @@ static ptrcmd _getCmdPtr(const char *cmd);
  * Command: _cmd_help
  * List all available commands and there syntax
  * @param cmd Command string
- * @param sockfd The socket to the client used for communciation
+ * @param sockfd The socket to the client used for communication
  */
 static void
 _cmd_help(const char *cmd, int sockfd) {
-    static char msgbuff_master[2048] =
+    static char msgbuff_master[3072] =
             "Commands:\n"\
 			"  a    - Add recording\n"\
 			"  ar   - Add repeated recording\n"\
@@ -208,6 +209,7 @@ _cmd_help(const char *cmd, int sockfd) {
             "  rhm  - mail history of previous transcodings\n"\
             "  rp   - refresh transcoding profiles from file\n"\
             "  s    - print server status\n"\
+            "  sm   - set default transcoding name mangling\n"\
             "  sp   - set transcoding profile for specified recording\n"\
             "  st   - print profile statistics\n"\
 			"  t    - print server time\n"\
@@ -253,7 +255,7 @@ _cmd_help(const char *cmd, int sockfd) {
     char *msgbuff;
     if( is_master_server ) {
         msgbuff = msgbuff_master;
-        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|lu|l|mlg|n|ot|o|q|rst|rh|rp|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
+        ret = matchcmd("^h[\\p{Z}]+(af|ar|a|df|dp|dr|d|h|i|ktf|kt|log|lc|lh|li|lmr|lm|lph|lp|lq|lr|ls|lu|l|mlg|n|ot|o|q|rst|rh|rp|sm|sp|st|s|tf|tl|td|t|u|vc|v|wt|x|z|!)$", cmd, &field);
     } else {
         msgbuff = msgbuff_slave;
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rh|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
@@ -301,7 +303,7 @@ _cmd_setprofile(const char *cmd, int sockfd) {
         _writef(sockfd,
                 "Set profile for specified recording.\n"\
                 "sp <id> <profile>\n"\
-                "  - <profile> Is the name of the profile to use. The profile must\n"
+                "  - <profile> Is the name of the profile to use. The profile must\n"\
                 "    exist in the current ini-file for the command to succeed.\n"
                 );
         return;
@@ -316,6 +318,41 @@ _cmd_setprofile(const char *cmd, int sockfd) {
         } else {
             snprintf(msgbuff,255,"Failed to set profile '%s' on recording %03d\n",field[2],xatoi(field[1]));
         }
+        _writef(sockfd,msgbuff);
+        matchcmd_free(&field);
+    } else {
+        _cmd_undefined(cmd,sockfd);
+    }
+}
+
+static void
+_cmd_set_rep_name_mangling(const char *cmd, int sockfd) {
+    char msgbuff[256];
+    int err, ret;
+    char **field = NULL;
+
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "Set name mangling for recordings in a serie.\n"\
+                "sm <type>\n"\
+                "  0 Add date , e.g. '2012-02-23'\n"\
+                "  1 Add record number and total number in series, e.g. '_01-11'\n"\
+                "  2 Add episode number, e.g. '_E01'\n"
+                );
+        return;
+    }
+    
+    ret = matchcmd("^sm" _PR_S _PR_ID _PR_E, cmd, &field);
+    err = ret < 0;
+
+    if ( ! err && ret > 1 ) {
+        int type = xatoi(field[1]);
+        if( type >= 0 && type <= 2 ) {
+            default_repeat_name_mangle_type = type;
+            snprintf(msgbuff,255,"Updated default name mangling to type == %d\n",type);            
+        } else {
+            snprintf(msgbuff,255,"Unknown name mangling type == %d\n",type);
+        }        
         _writef(sockfd,msgbuff);
         matchcmd_free(&field);
     } else {
@@ -1043,7 +1080,7 @@ _cmd_add(const char *cmd, int sockfd) {
         unsigned tmp;
         xstrtolower(channel);
 
-        // Check if this is a regular channel or a direct specifciation of a
+        // Check if this is a regular channel or a direct specification of a
         // video input on the card, i.e. in the form "_inp01"
 
         const size_t inp_len = strlen(INPUT_SOURCE_PREFIX);
@@ -1121,14 +1158,14 @@ _cmd_add(const char *cmd, int sockfd) {
             strcat(filename, ".mpg");
             xstrtolower(filename);
 
-            /*TODO: Add this as config parameter*/
-            int repeat_name_mangle_type=1;
+            /* TODO: Add this as config parameter */
+            // int repeat_name_mangle_type=1;
             entry = newrec(title, filename,
-                    ts_start, ts_end,
-                    channel,
-                    repeat_type > 0,
-                    repeat_type, repeat_nbr, repeat_name_mangle_type,
-                    profiles);
+                           ts_start, ts_end,
+                           channel,
+                           repeat_type > 0,
+                           repeat_type, repeat_nbr, default_repeat_name_mangle_type,
+                           profiles);
 
 
             ret = -1;
@@ -1276,6 +1313,7 @@ _cmd_list(const char *cmd, int sockfd) {
     
     matchcmd_free(&field);
     list_recs((size_t)n, 0, sockfd);
+    _writef(sockfd,"done.\n");
 }
 
 static void
@@ -1315,6 +1353,7 @@ _cmd_list_human(const char *cmd, int sockfd) {
 
     matchcmd_free(&field);
     list_recs(n, 3, sockfd);
+    _writef(sockfd,"done.\n");
 }
 
 /*
@@ -3096,6 +3135,7 @@ cmdinit(void) {
     cmdtable[CMD_VIEWHIST]          = _cmd_view_history;
     cmdtable[CMD_MAILHIST]          = _cmd_mail_history;
     cmdtable[CMD_LIST_FREQTABLE]    = _cmd_freqtables;
+    cmdtable[CMD_SET_REP_NAME_MANGLING] = _cmd_set_rep_name_mangling;
 }
 
 /**
@@ -3153,6 +3193,7 @@ _getCmdPtr(const char *cmd) {
         {"rhm",CMD_MAILHIST},
         {"rh", CMD_VIEWHIST},        
         {"rp", CMD_REFRESHPROFILE},
+        {"sm", CMD_SET_REP_NAME_MANGLING},
         {"sp", CMD_SETPROFILE},
         {"st", CMD_STATISTICS},
         {"s",  CMD_STATUS},

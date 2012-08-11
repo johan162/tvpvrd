@@ -280,7 +280,7 @@ waitread(int sock, char *buffer, int maxbufflen) {
 
     timerclear(&timeout);
     timeout.tv_sec = 0;
-    timeout.tv_usec = 500000;
+    timeout.tv_usec = 5000000;
 
     int ret = select(sock + 1, &read_fdset, NULL, NULL, &timeout);
     if (0 == ret) {
@@ -400,7 +400,6 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
     ssize_t nw = write(sock, tmpbuff, strlen(tmpbuff) + 1); // Include terminating 0
     if (nw != (ssize_t) strlen(tmpbuff) + 1) {
         return -7;
-        printf("-7\n");
     } else {
         int rc;
         if (multiline) {

@@ -458,7 +458,7 @@ increcdays(int recurrence_type,
 
 
         default:
-            logmsg(LOG_ERR, "Unknown recurrence_type (%d) specified for record.",recurrence_type);
+            logmsg(LOG_ERR, "increcdays() : FATAL Unknown recurrence_type (%d) specified for record.",recurrence_type);
             return -1;
             break;
     }
@@ -469,7 +469,7 @@ increcdays(int recurrence_type,
     if( *ts_start >= 0 ) {
         fromtimestamp(*ts_start, sy, sm, sd, sh, smin, ssec);
     } else {
-        logmsg(LOG_ERR,"increcdays() : FATAL Corrupt timeconversion. Cannot continue.");
+        logmsg(LOG_ERR,"increcdays() : FATAL Corrupt timeconversion ts_start < 0. Cannot continue.");
         (void)exit(EXIT_FAILURE);
         return -1;
     }
@@ -478,7 +478,7 @@ increcdays(int recurrence_type,
     if( *ts_end >= 0 ) {
         fromtimestamp(*ts_end, ey, em, ed, eh, emin, esec);
     } else {
-        logmsg(LOG_ERR,"increcdays() : FATAL Corrupt timeconversion. Cannot continue.");
+        logmsg(LOG_ERR,"increcdays() : FATAL Corrupt timeconversion ts_end < 0. Cannot continue.");
         (void)exit(EXIT_FAILURE);
         return -1;
     }

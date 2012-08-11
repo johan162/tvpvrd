@@ -1527,7 +1527,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                         // Transcoding usually takes hours so we don't bother waking up and check
                         // if we are done more often than once every couple of seconds. This
                         // might still seem like a short time but keep in mind that in the case the
-                        // user termintaes the transcoding process the server will not notice this
+                        // user terminates the transcoding process the server will not notice this
                         // until this check is made. Therefore we want this to be reasonable
                         // short as well. Ideally the wait4() should have a timeout argument in
                         // which case we would have been notified sooner.
@@ -1586,8 +1586,8 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                                 logmsg(LOG_NOTICE, "Transcoding process for file '%s' was terminated by signal=%d (possibly by user) after %02d:%02d:%02d h",
                                         short_filename, WTERMSIG(ret),rh,rm,rs);
 
-                                // If we dont signal a kill with -1 then a user stopped transcoding will have its
-                                // original files removed and we dont want that. The files are only kept if the transcode
+                                // If we don't signal a kill with -1 then a user stopped transcoding will have its
+                                // original files removed and we don't want that. The files are only kept if the transcode
                                 // process signals an error by returning -1
                                 return -1;
 /*
