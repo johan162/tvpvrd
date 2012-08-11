@@ -9,6 +9,7 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.2.1
 ------
 User visible changes:
+    - Made dropdown list in Web-UI in all themes for list of records to delete monospaced
     - Slightly altered the way recurring recordings are named in order to have the same
       name for both the title and file (necessary since some characters causes problems
       in file names.)
@@ -22,7 +23,7 @@ User visible changes:
       "Tue-Thu" (specified as '9' or 'i'). Updated docs with info about this.
 
 Bugs fixed:
-    - None.
+    - Misspelled 'hidden' keyword (duh!) in themes for delete dropdown.
 
 Internal changes:
     - Database format updated to version 3. This added the <excluded> list in the
