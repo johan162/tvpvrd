@@ -284,9 +284,9 @@ web_cmd_add(int sockd) {
     };    
     const size_t n_startnum = 30;
     static const struct skeysval_t name_mangling_list[] = {
-        {.key="0", .val="date (yyyy-mm-dd)"},
-        {.key="1", .val="sequence (&lt;nn&gt;-&lt;tot>)"},
-        {.key="2", .val="episode (E&lt;nn>)"}
+        {.key="0", .val="_yyyy-mm-dd"},
+        {.key="1", .val="_&lt;nn&gt; - &lt;max>"},
+        {.key="2", .val="_E&lt;nn>"}
     };
     const size_t n_name_mangling = 3;
     const char *station_list[128];
@@ -306,29 +306,27 @@ web_cmd_add(int sockd) {
      */
     _writef(sockd, "<form name=\"%s\" method=\"get\" action=\"addrec\">\n", "addrecording");
 
-    html_element_select(sockd, "Profile:", "profile", default_transcoding_profile, profile_list, n_profile, "id_profile");
-    html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_station");
     html_element_select_code(sockd, "Repeat:", "repeat", NULL, rpt_list, n_rpt,"id_rpttype");
     html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
     
     if( display_advanced_rec_control ) {
-        html_element_select_code(sockd, "Naming type:", "name_mangling", name_mangling_list[default_repeat_name_mangle_type].val, name_mangling_list, n_name_mangling,"id_name_mangling");
-        html_element_select(sockd, "Start num:", "startnum", NULL, startnum_list, n_startnum, "id_startnum");    
+        html_element_select_code(sockd, "Series naming:", "name_mangling", name_mangling_list[default_repeat_name_mangle_type].val, name_mangling_list, n_name_mangling,"id_name_mangling");
+        html_element_select(sockd, "Start:", "startnum", NULL, startnum_list, n_startnum, "id_startnum");    
     }
     
+    html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_station");    
     html_element_select_code(sockd, "Day:", "start_day", NULL, day_list, n_day, "id_start");
     
     html_element_select(sockd, "Start:", "start_hour", "18", hour_list, n_hour, "id_starthour");
     html_element_select(sockd, "&nbsp;", "start_min", NULL, min_list_start, n_min_start, NULL);
-    
-/*
-    _writef(sockd, "<div class=\"input_container\" id=\"be_hyphen\"><span class=\"be_hyphen\"> &rarr; </span></div>");
-*/
-    
+        
     html_element_select(sockd, "End:", "end_hour", "18", hour_list, n_hour, "id_endhour");
     html_element_select(sockd, "&nbsp;", "end_min", "59", min_list_end, n_min_end, NULL);
+    
+    html_element_select(sockd, "Profile:", "profile", default_transcoding_profile, profile_list, n_profile, "id_profile");
 
     html_element_input_text(sockd, "Title:", "title", "id_title");
+    
     html_element_submit(sockd, "submit_addrec", "Add", "id_addrec");
 
     _writef(sockd, "</form>\n");
