@@ -435,7 +435,7 @@ hist_listbuff(char *buff, size_t maxlen) {
         strncpy(filename,basename(history[i].filepath),sizeof(filename));
         filename[sizeof(filename)-1]='\0';
         
-        const int title_width=45;
+        const int title_width=35;
         strncpy(titlepadbuff,history[i].title,sizeof(titlepadbuff));
         titlepadbuff[title_width]='\0';
         if( -1 == xmbrpad(titlepadbuff,title_width,sizeof(titlepadbuff),' ') ) {
@@ -445,7 +445,7 @@ hist_listbuff(char *buff, size_t maxlen) {
             titlepadbuff[sizeof(titlepadbuff)-1]='\0';
         }
 
-        const int fname_width=50;
+        const int fname_width=40;
         strncpy(fnamepadbuff,filename,sizeof(fnamepadbuff));
         fnamepadbuff[fname_width]='\0';
         if( -1 == xmbrpad(fnamepadbuff,fname_width,sizeof(fnamepadbuff),' ') ) {
@@ -455,7 +455,6 @@ hist_listbuff(char *buff, size_t maxlen) {
             fnamepadbuff[sizeof(fnamepadbuff)-1]='\0';
         }
 
-        
         snprintf(line,sizeof(line),
          "%02u "
          "%s %s %02d %02d:%02d "

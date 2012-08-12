@@ -1,7 +1,7 @@
 /* =========================================================================
  * File:        RECS.C
  * Description: The recs.c module hold all functions to manipulate the
- *              list of current defined recordings. This is mainatained
+ *              list of current defined recordings. This is maintained
  *              as a vector for each video capture card which holds
  *              details on specific recordings.
  * Author:      Johan Persson (johan162@gmail.com)
@@ -618,6 +618,12 @@ getrectypestr(const int type, const int longformat, char *buffer, size_t maxlen)
     return -1;
 }
 
+#define TITLE_DISPLAY_LEN_S "35"
+#define TITLE_DISPLAY_LEN 35
+
+#define REP_TITLE_DISPLAY_LEN_S "30"
+#define REP_TITLE_DISPLAY_LEN 30
+
 
 /*
  * Fill the supplied buffer with a textual representation of a
@@ -642,7 +648,7 @@ dump_recordheader(int style, char *buffer, size_t bufflen) {
                 "%-11s"
                 "%-6s"
                 "%-6s"
-                "%-40s"
+                "%-" TITLE_DISPLAY_LEN_S "s"
                 "%-8s\n"                 
                 "%s\n",
                  server_program_name,server_version,ctime(&ts_tmp),
@@ -663,6 +669,8 @@ dump_recordheader(int style, char *buffer, size_t bufflen) {
 
     buffer[bufflen-1] = '\0';
 }
+
+
 
 /**
  * Fill the supplied buffer with a textual representation of the header for the list
@@ -705,7 +713,7 @@ dump_htmlrecordheader(char *buffer, size_t bufflen, struct css_record_style *rs,
                 "%-11s"
                 "%-6s"
                 "%-6s"
-                "%-43s"
+                "%-" TITLE_DISPLAY_LEN_S "s"
                 "%-8s"                    
                 "%-10s\n"          
                 "%s\n",
@@ -790,7 +798,7 @@ dump_htmlrecordrow(struct recording_entry* entry, char *buffer, size_t bufflen, 
         } else {
             char padbuff[255];
             strncpy(padbuff,entry->title,sizeof(padbuff));
-            xmbrpad(padbuff,43,sizeof(padbuff),' ');
+            xmbrpad(padbuff,TITLE_DISPLAY_LEN,sizeof(padbuff),' ');
             snprintf(buffer, bufflen, "%03zu "                                
                                   "%s %s %02d "
                                   "%02d:%02d "
@@ -831,7 +839,7 @@ dump_htmlrecordrow(struct recording_entry* entry, char *buffer, size_t bufflen, 
         } else {
             char padbuff[255];
             strncpy(padbuff,entry->recurrence_title,sizeof(padbuff));
-            xmbrpad(padbuff,25,sizeof(padbuff),' ');
+            xmbrpad(padbuff,REP_TITLE_DISPLAY_LEN,sizeof(padbuff),' ');
             
             snprintf(buffer, bufflen,"%03zu "
                                       "%s %s %02d "
@@ -896,7 +904,7 @@ dump_repeat_recordheader(char *buffer, size_t bufflen, struct css_record_style *
                 "%-6s"
                 "%-9s"
                 "%-8s"
-                "%-25s"
+                "%-" REP_TITLE_DISPLAY_LEN_S "s"
                 "%-8s"                
                 "%-10s\n"
                 "%s\n",
@@ -1238,7 +1246,7 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
     // One line short format
     char titlepadbuff[255];
     strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff));
-    if( -1 == xmbrpad(titlepadbuff,40,sizeof(titlepadbuff),' ') ) {
+    if( -1 == xmbrpad(titlepadbuff, TITLE_DISPLAY_LEN, sizeof(titlepadbuff),' ') ) {
         logmsg(LOG_ERR,"Cannot pad multibyte string. Check the locale setting in config file!");
         strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff)-2);
         strncat(titlepadbuff,"  ",sizeof(titlepadbuff)-1);
@@ -1296,13 +1304,13 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
                     entry->title,                    
                     entry->channel);
         } else if( sy==now_y && sm==now_m && sd==now_d+1 ) {
-            snprintf(buffer, bufflen, "tomorrow %02d:%02d-%02d:%02d \"%s\"   %s\n",
+            snprintf(buffer, bufflen, "tomorrow %02d:%02d-%02d:%02d \"%s\"  %s\n",
                     sh, smi,
                     eh,emi,
                     entry->title,                    
                     entry->channel);
         } else {
-            snprintf(buffer, bufflen, "%s %s %02d %02d:%02d-%02d:%02d \"%s\"   %s\n",
+            snprintf(buffer, bufflen, "%s %s %02d %02d:%02d-%02d:%02d \"%s\"  %s\n",
                     wday_name[result.tm_wday],
                     month_name[sm-1], sd,
                     sh, smi,

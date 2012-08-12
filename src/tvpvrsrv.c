@@ -113,7 +113,7 @@
 #include "vcard.h"
 #include "tvplog.h"
 #include "tvhistory.h"
-#include "httpreq.h"
+#include "tvwebcmd.h"
 
 /*
  * This structure mirrors the one found in /usr/include/asm/ucontext.h and is

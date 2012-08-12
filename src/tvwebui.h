@@ -1,5 +1,5 @@
 /* =========================================================================
- * File:        TVWEBCMD.H
+ * File:        TVWEBUI.H
  * Description: Handle the interface via a Web-browser
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
@@ -22,8 +22,8 @@
  */
 
 
-#ifndef TVWEBCMD_H
-#define	TVWEBCMD_H
+#ifndef TVWEBUI_H
+#define	TVWEBUI_H
 
 #ifdef	__cplusplus
 extern "C" {
