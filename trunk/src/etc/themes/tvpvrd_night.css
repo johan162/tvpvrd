@@ -461,7 +461,6 @@ input.input_submit {
 /* Indicate to user that button is about to receive input */
 input.input_submit:hover {
     cursor:pointer;
-    cursor:hand;
     text-shadow:0 0 0 #000;    
     color:#fff;
 }
@@ -473,7 +472,6 @@ input.input_submit:active {
     border: solid 1px #ddd;
     font-size:9pt;
     cursor:pointer;
-    cursor:hand;
 }
 
 /* Adjustment for submit buttons to make them right aligned */
