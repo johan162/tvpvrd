@@ -70,13 +70,6 @@ port=9300
 enable_webinterface=no
 
 #----------------------------------------------------------------------------
-# DISPLAY_ADVANCED_REC_CONTROL boolean
-# Display advanced recording controls in the web-interface. This determines
-# if the "name mangling" and "start episode" controls should be displayed.
-#----------------------------------------------------------------------------
-display_advanced_rec_control=no
-
-#----------------------------------------------------------------------------
 # REQUIRE_WEB_PASSWORD boolean
 # Determines if the WEB interface require user to login
 #----------------------------------------------------------------------------
@@ -702,6 +695,13 @@ web_autodisplay_transc=no
 # Should the quick recording command module be displayed in the web interface
 #----------------------------------------------------------------------------
 web_display_qadd=yes
+
+#----------------------------------------------------------------------------
+# DISPLAY_ADVANCED_REC_CONTROL boolean
+# Display advanced recording controls in the web-interface. This determines
+# if the "name mangling" and "start episode" controls should be displayed.
+#----------------------------------------------------------------------------
+web_display_advanced_rec_control=no
 
 #----------------------------------------------------------------------------
 # CSS Style for table with recordings included in the mail sent by the 'lm'

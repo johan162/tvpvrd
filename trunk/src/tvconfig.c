@@ -381,8 +381,6 @@ read_inisettings(void) {
     weblogin_timeout = validate(0,120,"weblogin_timeout",
                                     iniparser_getint(dict, "config:weblogin_timeout", WEBLOGIN_TIMEOUT));
     weblogin_timeout *= 60; // Convert to seconds
-
-    display_advanced_rec_control = iniparser_getboolean(dict,"config:display_advanced_rec_control",DEFAULT_DISPLAY_ADVANCED_REC_CONTROL);
     
     strncpy(password,
             iniparser_getstring(dict, "config:password", ""),
@@ -600,6 +598,8 @@ read_inisettings(void) {
     web_display_qadd = iniparser_getboolean(dict, "format:web_display_qadd", DEFAULT_THEME_SELECT);
     
     web_autodisplay_transc = iniparser_getboolean(dict, "format:web_autodisplay_transc", DEFAULT_AUTODISPLAY_TRANSC);
+    
+    display_advanced_rec_control = iniparser_getboolean(dict,"format:web_display_advanced_rec_control",DEFAULT_DISPLAY_ADVANCED_REC_CONTROL);    
     
     strncpy(tblcss_vborder_interior,
             iniparser_getstring(dict, "format:tblcss_vborder_interior", TBLCSS_VBORDER_INTERIOR),
