@@ -310,8 +310,8 @@ web_cmd_add(int sockd) {
     html_element_select(sockd, "Count:", "repeatcount", NULL, rptcount_list, n_rptcount, "id_rptcount");
     
     if( display_advanced_rec_control ) {
-        html_element_select_code(sockd, "Series naming:", "name_mangling", name_mangling_list[default_repeat_name_mangle_type].val, name_mangling_list, n_name_mangling,"id_name_mangling");
-        html_element_select(sockd, "Start:", "startnum", NULL, startnum_list, n_startnum, "id_startnum");    
+        html_element_select_code(sockd, "Series naming & start:", "name_mangling", name_mangling_list[default_repeat_name_mangle_type].val, name_mangling_list, n_name_mangling,"id_name_mangling");
+        html_element_select(sockd, "&nbsp;", "startnum", NULL, startnum_list, n_startnum, "id_startnum");    
     }
     
     html_element_select(sockd, "Station:", "channel", NULL, station_list, n_stations, "id_station");    
