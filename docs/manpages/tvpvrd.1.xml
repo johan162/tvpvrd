@@ -74,35 +74,6 @@
                 which is a subdirectory to the settings directory (normally
                     <filename>/etc/tvpvrd</filename>). Each setting in the profile is well
                 documented in the profiles. </para>
-            <para>The primary interface to the server is via a TCP/IP connection to the server
-                running '<emphasis>tvpvrd</emphasis>' via a dedicated port (by default 9300). The
-                server is controlled via a simple (but efficient) command language which allows
-                manipulation of future recordings and various other administrative tasks. All
-                commands are extensively described in the section 'Command language' below. </para>
-            <para>As an optional way there is also a native basic WEB-interface that allows a
-                limited number of commands such as basic adding of new recording, deleting existing
-                recordings, viewing status, showing upcoming recordings etc. The WEB-interface must
-                be enabled in the ini-file since it is by default disabled. The WEB interface is
-                accessed on port number (port+1) i.e one more than the port number specified for the
-                command interface. This means that by default the WEB-interface is available on port
-                9301. The WEB-interface can optionally require a separate login as specified in the
-                configuration file. </para>
-            <para>To access the WEB interface from a browser simple give the server address and port
-                number. For example to access the daemon on the server "<code>localhost</code>" with
-                the default port number use URL "<filename>http://localhost:9301</filename>". </para>
-            <para>The look and feel of the WEB-interface is entirely controlled by a CSS style sheet
-                stored in the configuration directory (usually specified as
-                    <filename>/etc</filename>). This is the same place as where the configuration
-                file is stored. This means it is straightforward to change the look and feel from
-                the default colors and layout.</para>
-            <para>The WEB interface will also automatically adapt when it detects that a mobile
-                phone browser is trying to access the interface to a format more suitable for the
-                smaller screen on mobile phones. By necessity this means that only a subset of the
-                full command set is available from the browser on a phone in order to keep the
-                interface simple. The detection is based on the header that the browser sends and
-                should detect most phones. However, it is possible that some browsers used on mobile
-                phone will not be detected as mobile browsers and then the normal WEB interface will
-                be used.</para>
             <para>The recordings specified are stored in a database which is a plain text file in
                 XML format using UTF-8 character encoding.</para>
             <para>Recorded and transcoded files are stored in a predefined directory structure. The
@@ -279,6 +250,73 @@
                 root).</para>
         </refsect1>
         <refsect1>
+            <title>Interfacing with the server</title>
+            <para>The primary interface to the server is via a TCP/IP connection to the server
+                running '<emphasis>tvpvrd</emphasis>' via a dedicated port (by default 9300). The
+                server is controlled via a simple (but efficient) command language which allows
+                manipulation of future recordings and various other administrative tasks. All
+                commands are extensively described in the section 'Command language' below. </para>
+            <para>The preferred way of interacting with the server on the command level is by using
+                the supplied utility shell '<application>tvpsh</application>'. This supports history
+                and full command line editing and is recommended over a plain
+                    '<application>telnet</application>' connections to the server.</para>
+            <para>As an optional way there is also a native basic WEB-interface that allows a
+                limited number of commands such as adding of new recording, deleting existing
+                recordings, viewing status, showing upcoming recordings etc. The WEB-inerface
+                contains enough controls and command to handle most day-to-day needs for a digital
+                VCR and it is anticipated that most users should use this interface as there main
+                port of accessing the server.</para>
+            <para>The WEB-interface must first be enabled in the config-file since it is by default
+                disabled. The WEB interface is accessed on port number (port+1) i.e one more than
+                the port number specified for the command interface. This means that by default the
+                WEB-interface is available on port 9301. The WEB-interface can optionally require a
+                separate login as specified in the configuration file. </para>
+            <para>To access the WEB interface from a browser simple give the server address and port
+                number. For example to access the daemon on the server "<code>localhost</code>" with
+                the default port number use URL "<filename>http://localhost:9301</filename>". </para>
+            <para>The look and feel (themes) of the WEB-interface is entirely controlled by a CSS
+                style sheet stored in the configuration directory (usually specified as
+                    <filename>/etc</filename>). This is the same place as where the configuration
+                file is stored. This means it is straightforward to change and adjust the look and
+                feel from the default colors and layout in the supplied themes. All that is
+                necessary is basic knowledge of CSS stylesheets.</para>
+            <para>It is also possible to control some functional aspects uin the WEB-UI such as what
+                controls are displayed in the Web UI by adjusting config file settings. Supported
+                settings are: </para>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para><literal>display_advanced_rec_control</literal>, This setting
+                            hides/displays two extra controls for how naming of repeated recordings
+                            are named.</para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>web_display_theme</literal>, If the theme switching control
+                            should be displayed.</para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>web_autodisplay_transc</literal>, If the transcoded
+                            information bar should be hidden if there are no ongoing
+                            transcodings.</para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>web_display_qadd</literal>, If the section for "Quick
+                            Recording", should be displayed in the Web-UI or not.</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>The WEB interface will also automatically adapt when it detects that a mobile
+                phone browser is trying to access the interface to a format more suitable for a
+                smaller screen. By necessity this means that only an even smaller subset of the
+                WEB-commands are available in the browser on a phone in order to keep the interface
+                simple. The detection is based on the header that the browser sends and should
+                detect most phones. However, it is possible that some browsers used on mobile phone
+                will not be detected as mobile browsers and then the normal WEB interface will be
+                used.</para>
+            <para>See the section "Connecting to the server" below for more detailed
+                examples.</para>
+        </refsect1>
+        <refsect1>
             <title>Automatic shutdown and startup of the server</title>
             <para>In the same way as a VCR (or a modern HD recorder) has the capability to shut down
                 and power on in time for recording the tvpvrd can do this with the server it is
@@ -294,7 +332,7 @@
                     daemon</title>
                 <para>To use this method it is first important to recognize that the daemon must be
                     running as user '<code>root</code>' in order to have the privilege to shut down
-                    the server.</para>
+                    the server. This is also the preferred method.</para>
                 <para>To enable this feature it must first be enabled in the configuration file
                     under the section <code>[shutdown]</code> . By default this feature is disabled.
                     There are then some basic parameters that should be checked according to
@@ -2518,33 +2556,8 @@ shutdown_script_name          : shutdown.sh
                             yyyy-mm-dd</para>
                     </listitem>
                     <listitem>
-                        <para>Not all international defined frequency maps are included. As of this
-                            writing the following maps is not yet defined in the distribution.<itemizedlist>
-                                <listitem>
-                                    <para>us-cable-hrc</para>
-                                </listitem>
-                                <listitem>
-                                    <para>us-cable-irc</para>
-                                </listitem>
-                                <listitem>
-                                    <para>japan-bcast</para>
-                                </listitem>
-                                <listitem>
-                                    <para>japan-cable</para>
-                                </listitem>
-                                <listitem>
-                                    <para>china-bcast</para>
-                                </listitem>
-                                <listitem>
-                                    <para>southafrica</para>
-                                </listitem>
-                                <listitem>
-                                    <para>argentina</para>
-                                </listitem>
-                                <listitem>
-                                    <para>australia-optus</para>
-                                </listitem>
-                            </itemizedlist></para>
+                        <para>Not all international defined frequency maps are included. Supportedc
+                            maps can be found by the "<command>lf</command>" command.</para>
                         <para>Frequency maps are a simple vector defining the frequency as an
                             integer and a string that defines the channel name. This is a compile
                             time setting and adding new maps will require recompilation of the
@@ -2562,8 +2575,8 @@ shutdown_script_name          : shutdown.sh
                             the HW bitrate used.</para>
                     </listitem>
                     <listitem>
-                        <para>All information and error messages are hard coded in English and
-                            cannot be easily localized.</para>
+                        <para>All information, error messages and loggings are hard coded in
+                            English.</para>
                     </listitem>
                     <listitem>
                         <para>The server assumes that all installed capture cards uses the same
