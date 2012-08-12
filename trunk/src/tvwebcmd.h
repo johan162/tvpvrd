@@ -2,7 +2,7 @@
  * File:        TVWEBCMD.H
  * Description: Handle the interface via a Web-browser
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: tvwebui.h 655 2012-03-31 20:56:59Z johan162 $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009,2010,2011,2012 Johan Persson
  *

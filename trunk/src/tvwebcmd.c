@@ -2,7 +2,7 @@
  * File:        HTTPREQ.C
  * Description: Handle the HTTP protocol
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id: httpreq.c 691 2012-08-11 20:12:21Z johan162 $
+ * SVN:         $Id$
  *
  * Copyright (C) 2009,2010,2011,2012 Johan Persson
  *
