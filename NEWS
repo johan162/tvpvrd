@@ -9,6 +9,7 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.3.0
 ------
 User visible changes:
+    - Minor change in listing layout for recordings
     - Smaller layout tweaking for Web-UI recording section to split in three rows
     - Added optional controls in the WEB-UI to make it possible to control name mangling
       and episode start number in series from the UI. By default these options are 
