@@ -1065,8 +1065,8 @@ channel = @134550</screen>
                                 role="bold">af</emphasis> - add recordings from file</para>
                     </listitem>
                     <listitem>
-                        <para><emphasis
-                                role="bold">ar</emphasis> - add new recurring recording</para>
+                        <para><emphasis role="bold">ar</emphasis> - add new repeating series
+                            recording</para>
                     </listitem>                    
                     <listitem>
                         <para><emphasis
@@ -1194,12 +1194,15 @@ channel = @134550</screen>
                     </listitem>
                     <listitem>
                         <para><emphasis role="bold">sm</emphasis> - set default name mangling for
-                            series recording</para>
+                            repeating series recording</para>
                     </listitem>
                     <listitem>
-                        <para><emphasis
-                                role="bold">sp</emphasis> - set transcoding profile for specified
-                            recording</para>
+                        <para><emphasis role="bold">sp</emphasis> - set transcoding profile for
+                            specified recording</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis role="bold">ss</emphasis> - set episode start number for
+                            repeating series recording</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1415,8 +1418,8 @@ a bbb1 21:00 21:29 lastnews @tlow</screen>
                     </listitem>
                 </varlistentry>
                     <varlistentry>
-                        <term>'<command>ar</command>' - <emphasis
-                                role="bold">Add recurring recording command</emphasis></term>
+                        <term>'<command>ar</command>' - <emphasis role="bold">Add repeating series
+                            recording command</emphasis></term>
                         <listitem>
                             <para>Add a new repeated recording . The syntax is identical to the
                                 normal add command with the exception of the first two arguments
