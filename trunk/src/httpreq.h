@@ -28,13 +28,57 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+    
+#define MAX_HTTP_HEADERS 25
+struct http_reqheaders {
+    char *Get;
+    char *Post;
+    char *Cookie;
+    char *IfModifiedSince;
+    char *UserAgent;
+    char *Host;
+    struct keypair_t headers[MAX_HTTP_HEADERS];
+    size_t num;
+    _Bool ismobile;
+};
+
+char *
+create_login_cookie(char *user, char *pwd);
+
+_Bool
+validate_login(char *user, char *pwd);
+
+int
+web_validate_login(struct http_reqheaders *headers, char *login_token);
 
 void
-init_web_cmds(void);
+sendback_file(int sockd, char *filename, time_t modifiedSince);
 
-void
-web_process_httprequest(const int socket, char *req);
+/**
+ * Parse the HTTP request from the browser and split it up in the header fields
+ * supplied.
+ * @param req
+ * @param headers
+ * @return 
+ */
+int
+web_parse_httpreq(char *req, struct http_reqheaders *headers);
 
+/**
+ * Parse a HTTP GET command
+ * @param str
+ * @param dir
+ * @param file
+ * @param args
+ * @param numargs
+ * @return -1 on failure, 0 on success
+ */
+int
+web_parse_httpget(char* str, 
+        char *dir, size_t maxdirlen, 
+        char *file, size_t maxfilelen, 
+        struct keypair_t args[], size_t maxargs, 
+        size_t *numargs);
 
 
 #ifdef	__cplusplus

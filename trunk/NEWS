@@ -6,7 +6,7 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.2.1
+4.3.0
 ------
 User visible changes:
     - Smaller layout tweaking for Web-UI recording section to split in three rows
@@ -36,6 +36,10 @@ Internal changes:
     - Database format updated to version 3. This added the <excluded> list in the
       repeat section to handle single excluded recordings in series (recurring recordings).
     - Some spelling cleanup.
+    - Refactored web-cmd handling in httpreq.c into tvwebcmd.c for ease of maintenance. The
+      original httpreq.c now deals with low level http protocol handling. This is is still
+      not completely clean, too much interdependencies so the next step is to really write
+      a more framework based micro-http server.
 
 
 4.2.0

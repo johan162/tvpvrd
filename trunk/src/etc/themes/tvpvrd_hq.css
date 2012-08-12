@@ -395,10 +395,13 @@ select.input_select_code#id_delselect_select {
     overflow: hidden;
 }
 
-
 /* Input text controls */
 input.input_text {
-    width : 200px;
+    width : 150px;
+}
+
+div.input_container#id_title input.input_text {
+    width : 250px;
 }
 
 /* Input submit buttons in forms */

@@ -1,5 +1,5 @@
 /* =========================================================================
- * File:        HTTPREQ.C
+ * File:        TVWEBCMD.C
  * Description: Handle the HTTP protocol
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$

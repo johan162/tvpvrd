@@ -16,11 +16,11 @@ SUBDIRS += shell
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c \
 vctrl.c tvwebui.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c \
 datetimeutil.c xstr.c rkey.c vcard.c tvplog.c tvhistory.c listhtml.c transcprofile.c \
-futils.c httpreq.c \
+futils.c httpreq.c tvwebcmd.c \
 datetimeutil.h pcretvmalloc.h freqmap.h  recs.h  stats.h  transc.h  tvcmd.h rkey.h \
 tvpvrd.h  tvxmldb.h  utils.h  vctrl.h tvwebui.h tvhtml.h lockfile.h build.h tvconfig.h tvshutdown.h \
 mailutil.h xstr.h vcard.h tvplog.h tvhistory.h listhtml.h transcprofile.h \
-futils.h httpreq.h
+futils.h httpreq.h tvwebcmd.h
 
 tvpvrd_LDFLAGS =  `xml2-config --libs`
 tvpvrd_LDFLAGS += -Xlinker --defsym -Xlinker "__BUILD_NUMBER=$$(cat $(BUILDNBR_FILE))"
