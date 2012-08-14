@@ -169,6 +169,24 @@ xstrtolower(char *s) {
     return 0;
 }
 
+/*
+ * Make a string a valid file name by replaceing all punctuation and space
+ * with specified character
+ */
+void
+xstrfilify(char *s, char replace) {
+    for (unsigned i = 0; i < strlen(s); i++) {
+        if (s[i] == ' ' || s[i] == '&' ||
+            s[i] == ':' || s[i] == '!' ||
+            s[i] == '#' || s[i] == '?' ||
+            s[i] == '/' || s[i] == '\\' ||
+            s[i] == '@' || s[i] == ',' ) {
+
+                s[i] = replace;
+        }
+    }    
+}
+
 /**
  * Cases insensitive string comparison
  * @param dir

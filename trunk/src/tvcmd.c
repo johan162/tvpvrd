@@ -499,12 +499,12 @@ _cmd_add(const char *cmd, int sockfd) {
     time_t now, ts_tmp, ts_start, ts_end;
     struct recording_entry *entry;
     char **field = (void *)NULL;
-    char *profiles[5];
+    char *profiles[REC_MAX_TPROFILES];
     static char *add_errstr[] = {
       "Unknown error",
       "Syntax error",
       "Recording can not be larger than 4 hours",
-      "End time can not be erlier than start time",
+      "End time can not be earlier than start time",
       "Start time is in the past",
       "No free video resource at specified time",
       "Unknown profile specified",
@@ -573,8 +573,8 @@ _cmd_add(const char *cmd, int sockfd) {
                 }
             }
             repeat_nbr = (unsigned)xatoi(field[2]);
-            snprintf(cmdbuff,255, "a %s", field[3]);
-            cmdbuff[255] = 0;
+            snprintf(cmdbuff,sizeof(cmdbuff)-1, "a %s", field[3]);
+            cmdbuff[sizeof(cmdbuff)-1] = 0;
             matchcmd_free(&field);
 
         }
@@ -644,8 +644,8 @@ _cmd_add(const char *cmd, int sockfd) {
 
                     logmsg(LOG_DEBUG,"repeat_nbr = %d",repeat_nbr);
 
-                    snprintf(cmdbuff,255, "a %s", field[5]);
-                    cmdbuff[255] = 0;
+                    snprintf(cmdbuff,sizeof(cmdbuff)-1, "a %s", field[5]);
+                    cmdbuff[sizeof(cmdbuff)-1] = 0;
 
                     matchcmd_free(&field);
 
@@ -656,7 +656,7 @@ _cmd_add(const char *cmd, int sockfd) {
         }
     }
     else {
-        strncpy(cmdbuff,cmd,255);
+        strncpy(cmdbuff,cmd,sizeof(cmdbuff)-1);
     }
 
     if (!err) {
@@ -711,7 +711,7 @@ _cmd_add(const char *cmd, int sockfd) {
 
             // This is simple.Channel is always in field 1
 
-            strncpy(channel, field[1], 64);
+            strncpy(channel, field[1], sizeof(channel)-1);
 
             // Now the boring analysis on where we can find the title
             *title = '\0';
@@ -719,7 +719,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 pos = 7;
                 if (*field[pos] != '@') {
                     // Ok this is not a profile
-                    strncpy(title, field[pos + 1], 128);
+                    strncpy(title, field[pos + 1], sizeof(title));
                     pos += 3;
                 }
 
@@ -741,14 +741,14 @@ _cmd_add(const char *cmd, int sockfd) {
                 }
 
                 if( strlen(title) == 0 ) {
-                    snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                    snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
                 }
             } else {
                 // The case with no title and no profiles
-                snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
             }
-            title[128-1] = '\0';
-            channel[64-1] = '\0';
+            title[sizeof(title)-1] = '\0';
+            channel[sizeof(channel)-1] = '\0';
 
             matchcmd_free(&field);
 
@@ -795,16 +795,16 @@ _cmd_add(const char *cmd, int sockfd) {
                     esec = 0;
                 pos++;
                 
-                strncpy(channel, field[1], 63);
-                channel[63] = '\0';
+                strncpy(channel, field[1], sizeof(channel)-1);
+                channel[sizeof(channel)-1] = '\0';
                 *title = '\0';
 
                 if (ret >= 13) {
                     pos = 12;
                     if (*field[pos] != '@') {
                         // Ok we have a title
-                        strncpy(title, field[pos + 1], 127);
-                        title[127] = '\0';
+                        strncpy(title, field[pos + 1], sizeof(title)-1);
+                        title[sizeof(title)-1] = '\0';
                         pos += 3;
                     }
 
@@ -826,11 +826,11 @@ _cmd_add(const char *cmd, int sockfd) {
                     }
 
                     if( strlen(title) == 0 ) {
-                        snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                        snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
                     } 
                 } else {
                     // The case with no title and no profiles
-                    snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                    snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
                 }
 
                 if (eh < sh) {
@@ -893,7 +893,7 @@ _cmd_add(const char *cmd, int sockfd) {
                     if( repeat_with_enddate ) {
 
                        // Find out how many repeats are required to reach the end date
-                        // from todays date. If a startdate is given then this will
+                        // from todays date. If a start date is given then this will
                         // be recalculated below in the case for 'a'
                         time_t t1time = totimestamp(sy,sm,sd,0,0,0);
 
@@ -949,16 +949,16 @@ _cmd_add(const char *cmd, int sockfd) {
                             esec = 0;
                         pos++;
 
-                        strncpy(channel, field[1], 63);
-                        channel[63] = '\0';
+                        strncpy(channel, field[1], sizeof(channel)-1);
+                        channel[sizeof(channel)-1] = '\0';
                         *title = '\0';
 
                         if (ret >= 18) {
                             pos = 17;
                             if (*field[pos] != '@') {
                                 // Ok we have a title
-                                strncpy(title, field[pos + 1], 127);
-                                title[127] = '\0';
+                                strncpy(title, field[pos + 1], sizeof(title)-1);
+                                title[sizeof(title)-1] = '\0';
                                 pos += 3;
                             }
 
@@ -980,11 +980,11 @@ _cmd_add(const char *cmd, int sockfd) {
                             }
 
                             if( strlen(title) == 0 ) {
-                                snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                                snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
                             }
                         } else {
                             // The case with no title and no profiles
-                            snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                            snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
                         }
 
                         if (eh < sh) {
@@ -1050,16 +1050,16 @@ _cmd_add(const char *cmd, int sockfd) {
                             ts_end = totimestamp(ey, em, ed, eh, emin, esec);
                             fromtimestamp(ts_end,&ey,&em,&ed,&eh,&emin,&esec);
 
-                            strncpy(channel, field[1], 63);
-                            channel[63] = '\0';
+                            strncpy(channel, field[1], sizeof(channel)-1);
+                            channel[sizeof(channel)-1] = '\0';
                             *title = '\0';
 
                             if (ret >= 13) {
                                 pos = 12;
                                 if (*field[pos] != '@') {
                                     // Ok we have a title
-                                    strncpy(title, field[pos + 1], 127);
-                                    title[127] = '\0';
+                                    strncpy(title, field[pos + 1], sizeof(title)-1);
+                                    title[sizeof(title)-1] = '\0';
                                     pos += 3;
                                 }
 
@@ -1081,11 +1081,11 @@ _cmd_add(const char *cmd, int sockfd) {
                                 }
 
                                 if( strlen(title) == 0 ) {
-                                    snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                                    snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
                                 }
                             } else {
                                 // The case with no title and no profiles
-                                snprintf(title,128,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
+                                snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
                             }
 
                             if (eh < sh) {
@@ -1177,20 +1177,10 @@ _cmd_add(const char *cmd, int sockfd) {
 
             // Create filename from title replacing punctuation and space chars with "_"
             // TODO: This is not multi-byte character safe !
-            strncpy(filename, title,123);
-            filename[123-1] = '\0';
-            for (unsigned i = 0; i < strlen(filename); i++) {
-                if (filename[i] == ' ' || filename[i] == '&' ||
-                    filename[i] == ':' || filename[i] == '!' ||
-                    filename[i] == '#' || filename[i] == '?' ||
-                    filename[i] == '/' || filename[i] == '\\' ||
-                    filename[i] == '@' || filename[i] == ',' ) {
-
-                    filename[i] = '_';
-                }
-            }
+            strncpy(filename, title,sizeof(filename)-1);
+            filename[sizeof(filename)-1] = '\0';
+            xstrfilify(filename, '_');
             strcat(filename, ".mpg");
-            //xstrtolower(filename);
 
             entry = newrec(title, filename,
                            ts_start, ts_end,
@@ -1219,7 +1209,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 freerec(entry);
                 err = 5;
             } else {
-                dump_recordid((unsigned)ret, 1, 0, 0, msgbuff, 2047);
+                dump_recordid((unsigned)ret, 1, 0, 0, msgbuff, sizeof(msgbuff)-1);
             }
         }
     }
@@ -1231,21 +1221,15 @@ _cmd_add(const char *cmd, int sockfd) {
         // Synchronize the DB file with the added recordings
         char logmsgbuff[256];
         if (writeXMLFile(xmldbfile) >= 0 ) {
-            snprintf(logmsgbuff, 255,"Database successfully updated '%s' after add command", xmldbfile);
-            logmsgbuff[255] = 0 ;
+            snprintf(logmsgbuff, sizeof(logmsgbuff)-1,"Database successfully updated '%s' after add command", xmldbfile);
+            logmsgbuff[sizeof(logmsgbuff)-1] = 0 ;
             logmsg(LOG_INFO,logmsgbuff);
         } else {
-            snprintf(logmsgbuff, 255,"Failed to update database '%s' after add command", xmldbfile);
-            logmsgbuff[255] = 0 ;
+            snprintf(logmsgbuff, sizeof(logmsgbuff)-1,"Failed to update database '%s' after add command", xmldbfile);
+            logmsgbuff[sizeof(logmsgbuff)-1] = 0 ;
             logmsg(LOG_ERR,logmsgbuff);
         }
     }
-
-    /*
-    if( field != (void *)NULL ) {
-        pcre_free_substring_list((const char **)field);
-    }
-    */
 
     for(int i=0; i < REC_MAX_TPROFILES; i++) {
         free(profiles[i]);
