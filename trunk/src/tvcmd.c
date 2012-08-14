@@ -1190,7 +1190,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 }
             }
             strcat(filename, ".mpg");
-            xstrtolower(filename);
+            //xstrtolower(filename);
 
             entry = newrec(title, filename,
                            ts_start, ts_end,
