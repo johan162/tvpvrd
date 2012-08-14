@@ -98,6 +98,15 @@ void
 xstrtolower(char *s);
 
 /**
+ * Replace all non filename safe character in a string with the specified
+ * character. The replacement is done in place.
+ * @param s
+ * @param replace
+ */
+void
+xstrfilify(char *s, char replace);
+
+/**
  * Extract substring to buffer
  * @param to     Buffer to write the extracted string to
  * @param maxlen Maximum length of buffer
