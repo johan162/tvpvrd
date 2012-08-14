@@ -9,6 +9,7 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.3.0
 ------
 User visible changes:
+    - Filenames are no longer automatically converted to lower case
     - Minor change in listing layout for recordings
     - Smaller layout tweaking for Web-UI recording section to split in three rows
     - Added optional controls in the WEB-UI to make it possible to control name mangling
