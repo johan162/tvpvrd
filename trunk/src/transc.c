@@ -1454,9 +1454,9 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
             logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, short_filename);
 
-            create_ffmpeg_cmdline(short_filename, profile, destfile, 128, cmd_ffmpeg, 512);
+            create_ffmpeg_cmdline(short_filename, profile, destfile, sizeof(destfile)-1, cmd_ffmpeg, sizeof(cmd_ffmpeg)-1);
 
-            snprintf(cmdbuff, 1023, "cd %s;%s", workingdir, cmd_ffmpeg);
+            snprintf(cmdbuff, sizeof(cmdbuff)-1, "cd %s;%s", workingdir, cmd_ffmpeg);
 
 #ifdef DEBUG_SIMULATE
 
@@ -1623,9 +1623,9 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
             // Move MP4 file
             if( use_profiledirectories ) {
-                snprintf(tmpbuff3, 255, "%s/mp4/%s", basedatadir, profile->name);
+                snprintf(tmpbuff3, sizeof(tmpbuff3)-1, "%s/mp4/%s", basedatadir, profile->name);
             } else {
-                snprintf(tmpbuff3, 255, "%s/mp4", basedatadir);
+                snprintf(tmpbuff3, sizeof(tmpbuff3)-1, "%s/mp4", basedatadir);
             }                        
 
             strncpy(rectitle,recurrence_title,255);
@@ -1634,21 +1634,21 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
             if( use_repeat_rec_basedir && *rectitle) {
                 logmsg(LOG_DEBUG,"Using basedir '%s' for recurring recording",rectitle);
                 if( 0 == chkcreatedir(tmpbuff3,rectitle) ) {
-                    snprintf(tmpbuff2,255,"%s/%s",tmpbuff3,rectitle);
-                    strncpy(tmpbuff3,tmpbuff2,255);
-                    tmpbuff3[255] = '\0';
+                    snprintf(tmpbuff2, sizeof(tmpbuff2)-1,"%s/%s",tmpbuff3,rectitle);
+                    strncpy(tmpbuff3,tmpbuff2,sizeof(tmpbuff3)-1);
+                    tmpbuff3[sizeof(tmpbuff3)-1] = '\0';
                 } else {
                     logmsg(LOG_ERR,"Failed to create recurring recording");
                 }
             }
             
-            snprintf(tmpbuff,255,"%s/%s",tmpbuff3, destfile);
+            snprintf(tmpbuff,sizeof(tmpbuff)-1,"%s/%s",tmpbuff3, destfile);
 
-            tmpbuff[255] = '\0';
-            snprintf(tmpbuff2, 255, "%s/%s", workingdir, destfile);
+            tmpbuff[sizeof(tmpbuff)-1] = '\0';
+            snprintf(tmpbuff2, sizeof(tmpbuff2)-1, "%s/%s", workingdir, destfile);
             
             tmpbuff2[255] = '\0';
-            int ret = mv_and_rename(tmpbuff2, tmpbuff, updatedfilename, 256);
+            int ret = mv_and_rename(tmpbuff2, tmpbuff, updatedfilename, sizeof(tmpbuff2)-1);
             if (ret) {
                 logmsg(LOG_ERR, "Could not move '%s' to '%s'", tmpbuff2, updatedfilename);
                 return -1;
@@ -1671,14 +1671,14 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                 if (use_posttransc_processing) {
                     logmsg(LOG_DEBUG, "Post transcoding processing enabled.");
                     char posttransc_fullname[128];
-                    snprintf(posttransc_fullname, 128, "%s/tvpvrd/shellscript/%s", CONFDIR, posttransc_script);
+                    snprintf(posttransc_fullname, sizeof(posttransc_fullname)-1, "%s/tvpvrd/shellscript/%s", CONFDIR, posttransc_script);
                     int csfd = open(posttransc_fullname, O_RDONLY);
                     if (csfd == -1) {
                         logmsg(LOG_WARNING, "Cannot open post transcoding script '%s' ( %d : %s )",
                                 posttransc_fullname, errno, strerror(errno));
                     } else {
                         char cmd[255];
-                        snprintf(cmd, 255, "%s -f \"%s\" -l %u > /dev/null 2>&1", posttransc_fullname, updatedfilename, *filesize);
+                        snprintf(cmd, sizeof(cmd)-1, "%s -f \"%s\" -l %u > /dev/null 2>&1", posttransc_fullname, updatedfilename, *filesize);
                         logmsg(LOG_DEBUG, "Running post transcoding script '%s'", cmd);
                         int rc = system(cmd);
                         if (rc == -1 || WEXITSTATUS(rc)) {
@@ -1702,11 +1702,11 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     // Include system load average in mail
                     float l1,l5,l15;
                     getsysload(&l1,&l5,&l15);
-                    snprintf(str_buff,256,"%.1f",l1);
+                    snprintf(str_buff,sizeof(str_buff)-1,"%.1f",l1);
                     add_keypair(keys,maxkeys,"SL1",str_buff,&ki);
-                    snprintf(str_buff,256,"%.1f",l5);
+                    snprintf(str_buff,sizeof(str_buff)-1,"%.1f",l5);
                     add_keypair(keys,maxkeys,"SL5",str_buff,&ki);
-                    snprintf(str_buff,256,"%.1f",l15);
+                    snprintf(str_buff,sizeof(str_buff)-1,"%.1f",l15);
                     add_keypair(keys,maxkeys,"SL15",str_buff,&ki);
 
                     // Get full current time to include in mail
@@ -1739,7 +1739,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     if( 0 == get_diskspace(basedatadir,ds_fs,ds_size,ds_used,ds_avail,&ds_use) ) {
                         add_keypair(keys,maxkeys,"DISK_SIZE",ds_size,&ki);
                         add_keypair(keys,maxkeys,"DISK_USED",ds_used,&ki);
-                        snprintf(str_buff,1023,"%d",ds_use);
+                        snprintf(str_buff,sizeof(str_buff)-1,"%d",ds_use);
                         add_keypair(keys,maxkeys,"DISK_PERCENT_USED",str_buff,&ki);
                     }
 
@@ -1752,7 +1752,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     add_keypair(keys,maxkeys,"DIRNAME",dirname(tmpbuff),&ki);
 
                     char subjectbuff[256];
-                    snprintf(subjectbuff,255,"Transcoding %s done",short_filename);
+                    snprintf(subjectbuff,sizeof(subjectbuff)-1,"Transcoding %s done",short_filename);
                     subjectbuff[255] = '\0';
 
                     if( -1 == send_mail_template(subjectbuff, daemon_email_from, send_mailaddress,"mail_transcend", keys, ki) ) {
