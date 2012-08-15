@@ -144,7 +144,7 @@ use_transcoding=yes
 # VIDEO_BITRATE integer [100,1500]
 # Average video bitrate in kbps
 #----------------------------------------------------------------------------
-video_bitrate=800
+video_bitrate=700
 
 #----------------------------------------------------------------------------
 # VCODEC string
@@ -159,6 +159,10 @@ vcodec=libx264
 # choose must exist in your installation. The chosen preset can make a huge
 # difference in encoding time. If this is left empty no preset will be added
 # in the command line. This implies that the built in default will be used.
+#
+# **Note: For newer version of ffmpeg the libx264 vcodec uses that codecs
+# internal preset, tune and profile and the vpre settings should NOT be
+# used. Kept only for backward compatibility
 #----------------------------------------------------------------------------
 vpre=
 
@@ -170,10 +174,14 @@ vpre=
 # choose must exist in your installation. If this is left empty no preset will 
 # be added in the command line. This implies that the built in default will be used.
 #
-# Some versions of ffmpeg includes a profile called "fast_firstpass" which can 
+# Older versions of ffmpeg includes a profile called "fast_firstpass" which can 
 # be used since the firstpass is only used to gather statistics and a lot of
 # overhead work is not needed. However make sure that your installation includes
 # this preset. Presets are usually store in /usr/share/ffmpeg/
+#
+# **Note: For newer version of ffmpeg the libx264 vcodec uses that codecs
+# internal preset, tune and profile and the vpre1 settings should NOT be
+# used. Kept only for backward compatibility
 #----------------------------------------------------------------------------
 # vpre1="fast_firstpass"
 
@@ -225,8 +233,9 @@ video_size=
 #----------------------------------------------------------------------------
 # EXTRA_OPTIONS string
 # Any additional options to give to ffmpeg (see ffmpeg(1))
+# **Note: These settings are optimized for the libx264 video codec
 #----------------------------------------------------------------------------
-extra_options=-strict experimental
+extra_options=-strict experimental -preset fast -tune film -profile main
 
 #----------------------------------------------------------------------------
 # FILE_EXTENSION string

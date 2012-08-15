@@ -355,6 +355,8 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
     // Setup string for default x264 ffmpeg preset. Since the preset seems to change with each release
     // of ffmpeg the default preset has changed to the empty string. When it is the empty string no -vpre
     // option should be included on the command line. 
+    
+    // FIXME: The vpre should be deprecated!
     char vpre_buffer[128];
     if( 0 == strlen(profile->vpre) ) {
         vpre_buffer[0] = '\0';
