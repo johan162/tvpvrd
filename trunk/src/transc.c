@@ -1710,9 +1710,14 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     str_buff[strnlen(str_buff,n_str_buff-1)-1] = 0; // Remove trailing newline
                     add_keypair(keys,maxkeys,"TIME",str_buff,&ki);
 
+                    // Transcoding time
                     snprintf(str_buff,n_str_buff-1,"%02d:%02d",rh,rm);
                     add_keypair(keys,maxkeys,"TRANSCTIME",str_buff,&ki);
 
+                    // Add file size (in MB)
+                    snprintf(str_buff,n_str_buff-1,"%.1f",*filesize / 1024.0 / 1024.0);
+                    add_keypair(keys,maxkeys,"FILESIZE",str_buff,&ki);                    
+                    
                     // Include the server name in the mail
                     gethostname(str_buff,80);
                     str_buff[n_str_buff-1] = '\0';

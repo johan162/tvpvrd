@@ -108,8 +108,8 @@ qprint_encode_word(char * const in, char * const out, size_t maxlen) {
     pout += strlen(out);
     while (*pin && n > 0) {
         if (*pin == '\n' || *pin == '\r') {
-            // We silently ignore linefeeds in input since th Q format of quoted priontable
-            // Should just be used for workd encoding
+            // We silently ignore linefeeds in input since the Q format of quoted printable
+            // Should just be used for word encoding
             pin++;
             continue;
         } else if (*pin == 32) {
@@ -117,7 +117,7 @@ qprint_encode_word(char * const in, char * const out, size_t maxlen) {
             *pout++ = '_';
             pin++;
             n--;
-        } else if (*pin == '=' || *pin == '?' || *pin < 32) {
+        } else if (*pin == '_' || *pin == '=' || *pin == '?' || *pin < 32) {
             if (n < 3) {
                 return -1;
             }

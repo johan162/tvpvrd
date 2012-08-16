@@ -72,7 +72,7 @@ escape_quotes(char *tostr, const char *fromstr, size_t maxlen, unsigned remove_n
  * @return 0 on success, -1 on failure
  */
 int
-send_mail(const char * subject, const char * from, const char *to, const char *message) {
+send_mail(const char *subject, const char *from, const char *to, const char *message) {
     const size_t blen=20*1024;
     char *buffer = calloc(blen,sizeof(char));
 
@@ -144,7 +144,7 @@ get_fext(char *filename,char *fext,size_t maxlen) {
  */
 
 int
-send_mail_template(char * subject, char * from, char *to,
+send_mail_template(char *subject, char *from, char *to,
                    char *templatename, struct keypairs keys[], size_t nkeys) {
 
     char *buffer=NULL, *buffer2=NULL;
