@@ -40,6 +40,7 @@ Bugs fixed:
       required in order to use the "aac" audio encoder.
 
 Internal changes:
+    - Minor tweaking of the way the command line for ffmpeg is built
     - Database format updated to version 3. This added the <excluded> list in the
       repeat section to handle single excluded recordings in series (recurring recordings).
     - Some spelling cleanup.
