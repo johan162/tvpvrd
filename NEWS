@@ -9,6 +9,8 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.3.0
 ------
 User visible changes:
+    - Added filesize information about transcoded file in mail template that is sent at 
+      transcoding end.
     - The "-vpre" and "-vpre1" options has been removed from all the transcoding profiles
       for use with ffmpeg since they are not support in modern version of ffmpeg
     - Updated default profile setting files to make use of the newer options for libx264
@@ -39,8 +41,9 @@ User visible changes:
 
 Bugs fixed:
     - Misspelled 'hidden' keyword (duh!) in themes for delete dropdown.
-    - The thigh profile hadn't the ffmpeg option "-strict experiemntal" added which is
-      required in order to use the "aac" audio encoder.
+    - The thigh profile hadn't the ffmpeg option "-strict experimental" added which is
+      required in order to use the "aac" audio encoder with ffmpeg.
+    - Fixed so quoted printable encoding handles "_" correctly and not interpretated as space
 
 Internal changes:
     - Minor tweaking of the way the command line for ffmpeg is built
