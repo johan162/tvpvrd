@@ -353,88 +353,81 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
     strncat(destfile, profile->file_extension,destsize-1);
     
     // Setup string for default x264 ffmpeg preset. Since the preset seems to change with each release
-    // of ffmpeg the default preset has changed to the empty string. When it is the empty string no -vpre
-    // option should be included on the command line. 
+    // of ffmpeg the default preset has changed to the empty string. 
     
-    // FIXME: The vpre should be deprecated!
-    char vpre_buffer[128];
-    if( 0 == strlen(profile->vpre) ) {
-        vpre_buffer[0] = '\0';
-    } else {
-        snprintf(vpre_buffer,sizeof(vpre_buffer)-1,"-vpre %s",profile->vpre);
-    }
-
     // For single pass encoding we only need to run ffmpeg once. For two pass encoding we call ffmpeg twice    
     if (profile->pass == 1) {
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -report -y -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
+                    "%s -report -y -i %s -threads 0 " 
+                    " -acodec %s -ab %dk "                    
+                    " -vcodec %s -b:v %dk "
                     " -s %s"
                     "  %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
-                    profile->acodec, profile->audio_bitrate,
+                    profile->acodec, profile->audio_bitrate,                    
+                    profile->vcodec, profile->video_bitrate, 
                     profile->size,
                     profile->extra_ffmpeg_options,
                     destfile, ffmpeg_logfile);
 
         } else {
             snprintf(cmd, size,
-                    "%s -report -y -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
+                    "%s -report -y -i %s -threads 0 " 
+                    " -acodec %s -ab %dk "                    
+                    " -vcodec %s -b:v %dk " 
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,                     
                     profile->extra_ffmpeg_options,
                     destfile,ffmpeg_logfile);
         }
         
     } else {
         // Two pass encoding
-        
-        char vpre1_buffer[128];
-        if( 0 == strlen(profile->vpre1) ) {
-            vpre1_buffer[0] = '\0';
-        } else {
-            snprintf(vpre1_buffer,sizeof(vpre1_buffer)-1,"-vpre %s",profile->vpre1);
-        }                
 
+        // Removed "-v 0" in second pass
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -y -report -i %s -threads 0 -pass 1 -vcodec %s %s -b:v %dk "
+                    "%s -y -report -i %s -threads 0 -pass 1 " 
+                    " -vcodec %s -b:v %dk "
                     " -an "
                     " -s %s "
                     " -f rawvideo  %s "
                     "/dev/null > /dev/null 2>&1 && "
-                    "%s -y -report -v 0 -i %s -threads 0 -pass 2 -vcodec %s %s -b:v %dk "
+                    "%s -y -report -i %s -threads 0 -pass 2 " 
                     "-acodec %s -ab %dk "
+                    " -vcodec %s -b:v %dk "                    
                     " -s %s "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, vpre1_buffer, profile->video_bitrate, 
+                    profile->vcodec, profile->video_bitrate, 
                     profile->size,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
-                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
-                    profile->acodec, profile->audio_bitrate,
+                    profile->acodec, profile->audio_bitrate,                    
+                    profile->vcodec, profile->video_bitrate, 
                     profile->size,
                     profile->extra_ffmpeg_options,
                     destfile,ffmpeg_logfile);
         } else {
             snprintf(cmd, size,
-                    "%s -y -report -i %s -threads 0 -pass 1 -vcodec %s %s -b:v %dk "
+                    "%s -y -report -i %s -threads 0 -pass 1 " 
+                    "-vcodec %s -b:v %dk "
                     " -an "
                     " -f rawvideo %s "
                     "/dev/null > /dev/null 2>&1 && "
-                    "%s -y -report -i %s -threads 0 -pass 2 -vcodec %s %s -b:v %dk "
-                    "-acodec %s -ab %dk "
+                    "%s -y -report -i %s -threads 0 -pass 2 "
+                    "-acodec %s -ab %dk "                    
+                    "-vcodec %s -b:v %dk "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, vpre1_buffer, profile->video_bitrate,
+                    profile->vcodec, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
-                    profile->vcodec, vpre_buffer, profile->video_bitrate, 
-                    profile->acodec, profile->audio_bitrate,
+                    profile->acodec, profile->audio_bitrate,                    
+                    profile->vcodec, profile->video_bitrate, 
                     profile->extra_ffmpeg_options,
                     destfile,ffmpeg_logfile);           
         }

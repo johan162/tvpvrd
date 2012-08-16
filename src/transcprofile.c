@@ -182,14 +182,6 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     buffer[bufsize-1] = '\0';
     entry->video_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_bitrate",
                                     iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_BITRATE));
-
-    /*
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":video_peak_bitrate",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    entry->video_peak_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_peak_bitrate",
-                                         iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_PEAK_BITRATE));
-        */
     
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":audio_bitrate",bufsize-1-strlen(buffer));
@@ -210,22 +202,6 @@ _read_transcoding_profile(char *filename,unsigned idx) {
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VIDEO_SIZE),
             31);
     entry->size[31] = '\0';
-
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":vpre",bufsize-1-strlen(buffer)-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    strncpy(entry->vpre,
-            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VPRE),
-            31);
-    entry->vpre[31] = '\0';
-
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":vpre1",bufsize-1-strlen(buffer)-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    strncpy(entry->vpre1,
-            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VPRE1),
-            31);
-    entry->vpre1[31] = '\0';    
     
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":acodec",bufsize-1-strlen(buffer));
@@ -321,7 +297,6 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "%-22s: %d\n"           /* use_transcodings */
     "%-22s: %d\n"           /* video_bitrate */
     "%-22s: %s\n"           /* vcodec */
-    "%-22s: %s\n"           /* vpre */
     "%-22s: %d\n"           /* pass */
     "%-22s: %s\n"           /* acodec */
     "%-22s: %d\n"           /* audio_bitrate */
@@ -342,7 +317,6 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "use_transcoding", profile->use_transcoding,
     "video_bitrate", profile->video_bitrate,
     "vcodec",profile->vcodec,
-    "vpre",profile->vpre,
     "pass",profile->pass,
     "acodec", profile->acodec,
     "audio_bitrate",profile->audio_bitrate,
