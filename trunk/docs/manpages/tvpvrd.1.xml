@@ -1084,6 +1084,37 @@ channel = @134550</screen>
                 daemon.</para>
         </refsect1>
         <refsect1>
+            <title>Recording repeating series by seasons using "SnnEmm" naming</title>
+            <para>A common use case is to record a, say weekly, recurring series that continues for
+                several seasons. One way of naming each episode in such a series is by giving the
+                core series name a suffix of "<literal>SnnEmm</literal>" where
+                    "<literal>nn</literal>" is the season number and "<literal>mm</literal>" is the
+                episode number. </para>
+            <para>Starting with version 4.3.0 <application>tvpvrd</application> make this type of
+                naming schema easier with the existing repeating recording command
+                    ("<command>ar</command>"). </para>
+            <para>The way to handle this is to first specify that the name mangling for each
+                recording in the series should add "<literal>Emm</literal>" to the core name. By
+                default the episode number starts at "01". This is done by the
+                    "<command>sm</command>" command as "<command>sm 2</command>". The correct season
+                number "<literal>Snn</literal>" is manually included when the name of the series is
+                given. </para>
+            <para>If the recording of the series is started in the middle of the season the starting
+                episode number can be specified with the "<command>ss</command>" command.</para>
+            <para><emphasis role="bold">Example</emphasis></para>
+            <para>To record the second series "Nature" starting with episode 5 the following
+                commands would be given:</para>
+            <para>
+                <screen>sm 2
+ss 5
+ar w 20 tv1 tue 21:00 21:56 Nature S02</screen>
+            </para>
+            <para>This will in the end create recordings that are named
+                "Nature_S02E05","Nature_S02E06", and so on.</para>
+            <para>These types of recording can also be done from the Web-interface (perhaps easier
+                since there is no need to remember the exact command sequence).</para>
+        </refsect1>
+        <refsect1>
             <title>Commands (in alphabetic order)</title>
             <para>The following is a list and detailed explanation of the commands that are
                 recognized by the server. Commands are specified by 1 to 3 letters followed by any
