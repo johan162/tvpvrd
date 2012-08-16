@@ -19,15 +19,16 @@ User visible changes:
       and episode start number in series from the UI. By default these options are 
       disabled to keep the WEB-UI the same as before. To enable these controls set 
       the config file setting "display_advanced_rec_control" to true
-    - Added 'ss' "Set start series number" command to set the initial episode number in the
-      automatic naming of individual recordings in a series.
+    - Added commands:
+        + Added 'ss' "Set start series number" command to set the initial episode number in the
+          automatic naming of individual recordings in a series.
+        + Added 'sm' command to make it possible to specify default name mangling of series
+          recording.
     - Made dropdown list in Web-UI in all themes for list of records to delete monospaced
     - Slightly altered the way recurring recordings are named in order to have the same
       name for both the title and file (necessary since some characters causes problems
       in file names.)
     - Added config setting 'default_repeat_name_mangling'
-    - Added 'sm' command to make it possible to specify default name mangling of series
-      recording.
     - Added possibility to delete individual recordings in a recurring series. This also
       means that the DB schema has been updated to version 3 in order to record which
       individual recordings in a series should be excluded.
