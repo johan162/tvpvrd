@@ -67,12 +67,6 @@ extern "C" {
 #define DEFAULT_PROFILE_VIDEO_BITRATE 600
 
 /*
- * DEFAULT_PROFILE_VIDEO_PEAK_BITRATE integer
- * Default video peak bitrate in kbps
- */
-#define DEFAULT_PROFILE_VIDEO_PEAK_BITRATE  800
-
-/*
  * DEFAULT_PROFILE_AUDIO_BITRATE integer
  * Default audio bitrate in kbps
  */
@@ -96,24 +90,12 @@ extern "C" {
 #define DEFAULT_PROFILE_VIDEO_SIZE ""
 
 /*
- * DEFAULT_CROP_TOP integer
- * DEFAULT_CROP_BOTTOM integer
- * DEFAULT_CROP_LEFT integer
- * DEFAULT_CROP_RIGHT integer
- * Default cropping size for video if nothing else specified
- */
-#define DEFAULT_PROFILE_CROP_TOP 0
-#define DEFAULT_PROFILE_CROP_BOTTOM 0
-#define DEFAULT_PROFILE_CROP_LEFT 0
-#define DEFAULT_PROFILE_CROP_RIGHT 0
-
-/*
  * DEFAULT_PROFILE_AUDIO_CODEC string
  * If left empty ffmpeg will default to using the aac encoder.
  * Any other installed libraries can be used. For example to use the
  * lame mp3 encoder use "libmp3lame" as value
  */
-#define DEFAULT_PROFILE_ACODEC ""
+#define DEFAULT_PROFILE_ACODEC "aac"
 
 /*
  * DEFAULT_PROFILE_FILE_EXTENSION string
@@ -126,7 +108,7 @@ extern "C" {
  * This option string is added to the end of the ffmpeg command
  * just before the output file is specified
  */
-#define DEFAULT_PROFILE_EXTRA_FFMPEG_OPTIONS ""
+#define DEFAULT_PROFILE_EXTRA_FFMPEG_OPTIONS "-strict experimental"
 
 // The name of the sections in an ini file for a profile
 #define FFMPEG_SECTION "ffmpeg"
@@ -155,7 +137,7 @@ extern "C" {
  *  "3qmp4" = 480,352
  *   "half" = 360,288
  */
-#define DEFAULT_VIDEO_FRAME_SIZE "3qmp4"
+#define DEFAULT_VIDEO_FRAME_SIZE "vga"
 
 /*
  * Deafult audio sampling freq

@@ -207,7 +207,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     strncat(buffer,":acodec",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->acodec,
-            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VCODEC),
+            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_ACODEC),
             31);
     entry->acodec[31] = '\0';
 
@@ -234,7 +234,6 @@ _read_transcoding_profile(char *filename,unsigned idx) {
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_EXTRA_FFMPEG_OPTIONS),
             255);
     entry->extra_ffmpeg_options[255] = '\0';
-    logmsg(LOG_DEBUG,"    [%s] ffmpeg_extra_options: %s",entry->name,entry->extra_ffmpeg_options);  
     
     strncpy(entry->filename,filename,255);
     entry->filename[255] = '\0';
