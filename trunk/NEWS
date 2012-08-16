@@ -9,6 +9,8 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.3.0
 ------
 User visible changes:
+    - The "-vpre" and "-vpre1" options has been removed from all the transcoding profiles
+      for use with ffmpeg since they are not support in modern version of ffmpeg
     - Updated default profile setting files to make use of the newer options for libx264
       now supported by ffmpeg (actually its been supported for a while). The tlow profile
       is now really fast with surprisingly good quality.
