@@ -1098,12 +1098,15 @@ channel = @134550</screen>
                 default the episode number starts at "01". This is done by the
                     "<command>sm</command>" command as "<command>sm 2</command>". The correct season
                 number "<literal>Snn</literal>" is manually included when the name of the series is
-                given. </para>
+                given. The default name mangling to be used by the server is also specified in the
+                configuration file so if this is already set to "2" then there is no need to give
+                this command. By default in the distribution the name mangling is set to add the
+                date as a suffix to each recordings name.</para>
             <para>If the recording of the series is started in the middle of the season the starting
                 episode number can be specified with the "<command>ss</command>" command.</para>
             <para><emphasis role="bold">Example</emphasis></para>
-            <para>To record the second series "Nature" starting with episode 5 the following
-                commands would be given:</para>
+            <para>To record the second season of a program called "Nature" starting with episode 5
+                the following commands would have to be given:</para>
             <para>
                 <screen>sm 2
 ss 5
@@ -1111,8 +1114,8 @@ ar w 20 tv1 tue 21:00 21:56 Nature S02</screen>
             </para>
             <para>This will in the end create recordings that are named
                 "Nature_S02E05","Nature_S02E06", and so on.</para>
-            <para>These types of recording can also be done from the Web-interface (perhaps easier
-                since there is no need to remember the exact command sequence).</para>
+            <para>These types of recording can also be done from the Web-interface (perhaps even
+                easier since there is no need to remember the exact command sequence).</para>
         </refsect1>
         <refsect1>
             <title>Commands (in alphabetic order)</title>
