@@ -368,9 +368,9 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
     if (profile->pass == 1) {
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
+                    "%s -report -y -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
                     " -s %s"
-                    "  %s -y %s > %s 2>&1",
+                    "  %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
@@ -380,8 +380,8 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 
         } else {
             snprintf(cmd, size,
-                    "%s -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
-                    " %s -y %s > %s 2>&1",
+                    "%s -report -y -i %s -threads 0 -vcodec %s %s -b:v %dk -acodec %s -ab %dk "
+                    " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre_buffer, profile->video_bitrate, 
                     profile->acodec, profile->audio_bitrate,
@@ -399,17 +399,17 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
             snprintf(vpre1_buffer,sizeof(vpre1_buffer)-1,"-vpre %s",profile->vpre1);
         }                
 
-     if( strlen(profile->size) > 0 ) {
+        if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
+                    "%s -y -report -i %s -threads 0 -pass 1 -vcodec %s %s -b:v %dk "
                     " -an "
                     " -s %s "
-                    " -f rawvideo -y %s "
-                    "/dev/null > /dev/null 2>&1; "
-                    "%s -v 0 -i %s -threads 0 -pass 2 -vcodec %s %s -b %dk "
+                    " -f rawvideo  %s "
+                    "/dev/null > /dev/null 2>&1 && "
+                    "%s -y -report -v 0 -i %s -threads 0 -pass 2 -vcodec %s %s -b:v %dk "
                     "-acodec %s -ab %dk "
                     " -s %s "
-                    " %s -y %s > %s 2>&1",
+                    " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre1_buffer, profile->video_bitrate, 
                     profile->size,
@@ -422,13 +422,13 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                     destfile,ffmpeg_logfile);
         } else {
             snprintf(cmd, size,
-                    "%s -i %s -threads 0 -pass 1 -vcodec %s %s -b %dk "
+                    "%s -y -report -i %s -threads 0 -pass 1 -vcodec %s %s -b:v %dk "
                     " -an "
-                    " -f rawvideo -y %s "
-                    "/dev/null > /dev/null 2>&1; "
-                    "%s -i %s -threads 0 -pass 2 -vcodec %s %s -b %dk "
+                    " -f rawvideo %s "
+                    "/dev/null > /dev/null 2>&1 && "
+                    "%s -y -report -i %s -threads 0 -pass 2 -vcodec %s %s -b:v %dk "
                     "-acodec %s -ab %dk "
-                    " %s -y %s > %s 2>&1",
+                    " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, vpre1_buffer, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
@@ -698,8 +698,8 @@ _transcode_file(void *arg) {
                 if (WIFEXITED(ret)) {
                     transcoding_done = (WEXITSTATUS(ret) == 0);
                     if (transcoding_done) {
-                        if (runningtime < 30) {
-                             logmsg(LOG_NOTICE, "Transcoding process finished in less than 30s for file '%s'. This most likely indicates a problem",
+                        if (runningtime < 15) {
+                             logmsg(LOG_NOTICE, "Transcoding process finished in less than 15s for file '%s'. This most likely indicates a problem",
                                         basename(filename));
 
                         } else {
