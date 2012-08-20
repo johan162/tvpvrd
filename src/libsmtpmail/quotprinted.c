@@ -91,7 +91,7 @@ _chk_softlinebreak(char **pout, size_t *n, size_t *w) {
  * @param in INput string to be encoded
  * @param out Outpput string in Q-encoded format
  * @param maxlen Maxbuffer len
- * @return -1 on failuer, 0 on success
+ * @return -1 on failure, 0 on success
  */
 int
 qprint_encode_word(char * const in, char * const out, size_t maxlen) {
@@ -175,7 +175,7 @@ qprint_encode_word(char * const in, char * const out, size_t maxlen) {
  * @param in INput string to be encoded
  * @param out Outpput string in Q-encoded format
  * @param maxlen Maxbuffer len
- * @return -1 on failuer, 0 on success
+ * @return -1 on failure, 0 on success
  */
 int
 qprint_encode(char * const in, char * const out, size_t maxlen) {
