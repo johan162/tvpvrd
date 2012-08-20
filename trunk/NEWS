@@ -11,45 +11,63 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 User visible changes:
     - Added filesize information about transcoded file in mail template that is sent at 
       transcoding end.
+
     - The "-vpre" and "-vpre1" options has been removed from all the transcoding profiles
-      for use with ffmpeg since they are not support in modern version of ffmpeg
+      for use with ffmpeg since they are not support in newer versions of ffmpeg
+
     - Updated default profile setting files to make use of the newer options for libx264
       now supported by ffmpeg (actually its been supported for a while). The tlow profile
       is now really fast with surprisingly good quality.
+
     - Filenames are no longer automatically converted to lower case
+
     - Minor change in listing layout for recordings
+
     - Smaller layout tweaking for Web-UI recording section to split in three rows
+
     - Added optional controls in the WEB-UI to make it possible to control name mangling
       and episode start number in series from the UI. By default these options are 
       disabled to keep the WEB-UI the same as before. To enable these controls set 
       the config file setting "display_advanced_rec_control" to true
-    - Added commands:
+
+    - Added two commands:
         + Added 'ss' "Set start series number" command to set the initial episode number in the
           automatic naming of individual recordings in a series.
         + Added 'sm' command to make it possible to specify default name mangling of series
           recording.
+
     - Made dropdown list in Web-UI in all themes for list of records to delete monospaced
+      for better user experience.
+
     - Slightly altered the way recurring recordings are named in order to have the same
       name for both the title and file (necessary since some characters causes problems
       in file names.)
+
     - Added config setting 'default_repeat_name_mangling'
+
     - Added possibility to delete individual recordings in a recurring series. This also
       means that the DB schema has been updated to version 3 in order to record which
       individual recordings in a series should be excluded.
+
     - Added two new repeat types "Wed-Fri" (specified as '8' or 'e')  and 
       "Tue-Thu" (specified as '9' or 'i'). Updated docs with info about this.
 
 Bugs fixed:
     - Misspelled 'hidden' keyword (duh!) in themes for delete dropdown.
+
     - The thigh profile hadn't the ffmpeg option "-strict experimental" added which is
       required in order to use the "aac" audio encoder with ffmpeg.
+
     - Fixed so quoted printable encoding handles "_" correctly and not interpretated as space
 
 Internal changes:
     - Minor tweaking of the way the command line for ffmpeg is built
+
     - Database format updated to version 3. This added the <excluded> list in the
       repeat section to handle single excluded recordings in series (recurring recordings).
+
     - Some spelling cleanup.
+
     - Refactored web-cmd handling in httpreq.c into tvwebcmd.c for ease of maintenance. The
       original httpreq.c now deals with low level http protocol handling. This is is still
       not completely clean, too much interdependencies so the next step is to really write
