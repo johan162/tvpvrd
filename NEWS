@@ -6,7 +6,19 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.3.0
+4.3.1
+------
+User visible changes:
+    - None
+
+Bugs fixed:
+    - None
+
+Internal changes:
+    - None
+
+
+4.3.0 (22 aug 2012)
 ------
 User visible changes:
     - Added filesize information about transcoded file in mail template that is sent at 
@@ -74,7 +86,7 @@ Internal changes:
       a more framework based micro-http server.
 
 
-4.2.0
+4.2.0 (8 aug 2012)
 ------
 User visible changes:
     - Make it possible to specify direct frequencies in the 'xawtvrc' file and not 
@@ -101,7 +113,7 @@ Internal changes:
     - None.
 
 
-4.1.1
+4.1.1 (1 may 2012)
 ------
 User visible changes:
     - Added frequency tables for: "argentina", "australia-optus", "china-bcast", "japan-bcast", 
@@ -115,7 +127,7 @@ Internal changes:
     - None
 
 
-4.1.0
+4.1.0 (22 apr 2012)
 -----
 User visible changes:
     - Added "favicon.ico" that will show up in browser bookmarks when using Web-interface
@@ -140,7 +152,7 @@ Internal changes:
     - Some minor (X)HTML changes to make generated HTML be fully standards compliant
 
 
-4.0.2
+4.0.2 (27 mar 2012)
 ------
 User visible changes:
     - None
@@ -152,7 +164,7 @@ Internal changes:
     - None
 
 
-v4.0.1
+v4.0.1 (27 mar 2012)
 ------
 User visible changes:
     - Theme for mobile phone now uses much larger fonts
@@ -166,7 +178,7 @@ Internal changes:
     - None
 
 
-v4.0.0
+v4.0.0 (24 mar 2012)
 ------
 User visible changes:
     - New structure for mobile phone version of Web-UI
