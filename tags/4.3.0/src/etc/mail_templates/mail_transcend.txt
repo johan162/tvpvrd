@@ -1,0 +1,19 @@
+Transcoding of "[FILENAME]" using profile "@[PROFILE]" done.
+
+Server: [SERVERNAME]
+Time: [TIME]
+
+Moved file to: "[DIRNAME]"
+Transcoding time: [TRANSCTIME] (hour:min)
+Filesize: [FILESIZE] MB
+System load: [SL1] [SL5] [SL15]
+Disk usage: [DISK_USED] out of [DISK_SIZE] (=[DISK_PERCENT_USED]%)
+
+Ongoing transcodings:
+[ONGOINGTRANS]
+
+Waiting transcodings:
+[WAITTRANS]
+
+Next immediate recordings:
+[NEXTRECS]

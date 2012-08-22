@@ -1,0 +1,330 @@
+############################################################################
+# About this file (tvpvrd.conf.simplified.template)
+#
+# This is the simplified template config file for tvpvrd. It only contain
+# the most common settings and the settings most likely needing user change
+# (like login name and password settings). For the full range of all
+# available config settings please use tvpvrd.conf.simplified.template
+#
+# How to use this file:
+# Copy this template to a file "tvpvrd.conf" and then make the necessary
+# changes according to your server setup.
+#
+# There are four major sections in this file, they are:
+#
+# config:     General settings for the server
+# encoder:    Setting for the TV Capture card HW MP2 encoder
+# ffmpeg:     General setting for the ffmpeg based transcoding to .mp4 files
+# shutdown:   Settings to manage the automatic shutdown of the server in
+#             between recordings
+#             
+# --------------------------------------------------------------------------
+#
+# Copyright (C) 2009,2010,2011 Johan Persson
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+############################################################################
+
+############################################################################
+# config - General settings
+############################################################################
+
+[config]
+#----------------------------------------------------------------------------
+# PORT integer
+# Default TCP/IP port where the server will listen for incoming connections
+# The port number must be unique for this server. If any other applications
+# currently running is using this port an error message will be printed
+# during server startup and the server will be terminated.
+#----------------------------------------------------------------------------
+port=9300
+
+#----------------------------------------------------------------------------
+# REQUIRE_WEB_PASSWORD boolean
+# Determines if the WEB interface require user to login
+#----------------------------------------------------------------------------
+require_web_password=yes
+
+#----------------------------------------------------------------------------
+# WEB_USER string
+# WEB_PASSWORD string
+# The login details (if enabled) for the WEB interface
+#----------------------------------------------------------------------------
+web_user=xxxxx
+web_password=
+
+#----------------------------------------------------------------------------
+# DATADIR string
+# Base directory for storing all the data procuded and used by the server. 
+# The file structure under the base directory is defined as:
+#
+# datadir
+# |-- mp2                           // Saved original MP2 files
+# |-- mp4                           // Contains a subfolder for each
+# |   |-- high                      // defined transcoding profile
+# |   |-- low
+# |   |-- mobile
+# |   |-- normal
+# |   `-- wnormal
+# |-- stats                         // Contains a statistics for each
+# |   |-- high.stats                // defined profile
+# |   |-- low.stats
+# |   |-- mobile.stats
+# |   |-- normal.stats
+# |   `-- wnormal.stats
+# |-- vtmp                          // Contains a subdirectory for each
+# |   |-- vid0                      // available video card
+# |   `-- vid1
+# |   |-- ...
+# `-- xmldb
+#     `-- tvpvrd_db.xml             // The XML DB of all recording
+#
+# Legend:
+# 
+# mp2   - The original mp2 encoded files from the video cards
+# vtmp  - Temporary files created during recording and transcoding
+# mp4   - The transcoded mp4 files per defined profile
+# xmldb - The XML DB file (+backups) are stored in this directory
+# stats - Transcoding statistics
+#
+#----------------------------------------------------------------------------
+datadir=/data/pvr/
+
+#----------------------------------------------------------------------------
+# TRANSCODING_TMPDIR string
+# Temporary directory used when transcoding files. When the the server
+# is running as a client it is useful to have this point to a local
+# directory on the server and not the shared data directory pointed
+# to by 'datadir' to avoid unnecessary network traffic
+#----------------------------------------------------------------------------
+transcoding_tmpdir=/data/pvr/vtmp
+
+#----------------------------------------------------------------------------
+# LOGFILE_NAME string
+# Name of logfile to use. The name can also be one of two special values
+# 1) "syslog" - Use system logger
+# 2) "stdout" - Use stdout - this is not valid if tvpvrd is run as a daemon 
+#----------------------------------------------------------------------------
+logfile_name=/tmp/tvpvrd.log
+
+#----------------------------------------------------------------------------
+# USERNAME string
+# What user should the server be running under in case it is started
+# as a daemon by root. For security reason the server should not be running
+# as the root user.
+# Note: The user must exist in the system and be a member of the video
+# group since this is normally required to access the video device.
+# To create a new (system) user, (i.e. a user without a login shell)
+# the "adduser" command can be used, for example
+#    $>adduser --system -G video tvpvrd
+# The new user will belong to the default primary group, normally "users"
+#----------------------------------------------------------------------------
+username=xxxxx
+
+#----------------------------------------------------------------------------
+# REQUIRE_PASSWORD boolean
+# Should a password be required to login to the server on the TVP/IP port
+#----------------------------------------------------------------------------
+require_password=no
+
+#----------------------------------------------------------------------------
+# PASSWORD string
+# Password needed to connect to the server
+#----------------------------------------------------------------------------
+password=xxxxx
+
+#----------------------------------------------------------------------------
+# FREQUENCY_MAP string
+# Specify what geographic frequency map should be used. Possible options are
+# "europe-west"
+# "europe-east"
+# "france"
+# "ireland"
+# "italy"
+# "australia"
+# "newzealand"
+# "us-bcast"
+# "us-cable"
+#----------------------------------------------------------------------------
+frequency_map=europe-west
+
+#----------------------------------------------------------------------------
+# MAX_ENTRIES integer
+# Maximum number of pending recordings per video stream.
+#----------------------------------------------------------------------------
+max_entries=1024
+
+#----------------------------------------------------------------------------
+# MAX_VIDEO integer
+# The number of video cards that can be used  by the server.
+# This is usually the same as the number of TV-Cards available. The number
+# can never be higher than the number of physically available coders but it
+# can be less to tell the server to only use some of the available coders.
+# The program will also validate the available cards. If the number here
+# is higher than the number of found cards in the system the server will
+# given an error during startup and then terminate.
+# If the number is set to 0 then the server will automatically determine
+# the maximum number of cards and use all. In practice very few motherboards
+# have sockets from more than two videocards on the PCI-Express slot
+#----------------------------------------------------------------------------
+max_video=0
+
+#----------------------------------------------------------------------------
+# VIDEO_DEVICE_BASENAME string
+# Basename for video device. This is almost without exception /dev/video
+# Each tuner will then be access as /dev/video0, /dev/video1 etc.
+# This device should be the device providing the MPEG2 output from the card.
+# See also the related setting ENCODER_DEVICE below
+#----------------------------------------------------------------------------
+video_device_basename=/dev/video
+
+#----------------------------------------------------------------------------
+# RECORDING_TIMEHOUR integer
+# RECORDING_TIMEMIN integer
+# Default recording time (hour and minutes) if not specified otherwise
+#----------------------------------------------------------------------------
+recording_timehour=0
+recording_timemin=59
+
+#----------------------------------------------------------------------------
+# XAWTV_STATION_FILE string
+# The station file is a mapping between the officially named
+# frequency channels and the common name of the stations. When
+# specifying a frequency it is much easier to use, for example,
+# "BBC1" than the official channel name e.g. "SE13".
+# This file is in the same format as the
+# xawtv station file so if you already have such a station file
+# it can be reused here as well. For historic reasons the old
+# place under /etc/X11 is the default here. Feel free to change if your
+# setup is different.
+#----------------------------------------------------------------------------
+xawtv_station_file=/etc/X11/xawtvrc
+
+#----------------------------------------------------------------------------
+# LOCALE_NAME string
+# Specify the locale that should be used when running the daemon. If the
+# daemon is started from a boot script (the most common way) then this will 
+# most likely set the locale to "POSIX" which doesn't allow UTF8 characters.
+# This can cause problem when sending mail from the daemon in case the
+# recorded titles have UTF8 extended characters.
+# Most modern system uses UTF8 as default for normal user interaction. 
+# If you are unsure what locale you are running run "locale" from your
+# console and use the value listed for LC_CTYPE or LC_ALL in this setting.
+# Run "locale -a" to see a list of supported locales on your server.
+#----------------------------------------------------------------------------
+locale_name=en_US.UTF8
+
+############################################################################
+# mail - Settings for daemon email sending
+############################################################################
+[mail]
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ON_TRANSCODE_END boolean
+# Send a mail notification whenever a transcoding have finished
+#----------------------------------------------------------------------------
+sendmail_on_transcode_end=no
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ON_SHUTDOWN boolean
+# Should we send short status mail on server shutdown. The email address
+# used is the one specified above in 'sendmail_address'
+#----------------------------------------------------------------------------
+sendmail_on_shutdown=no
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ON_ERROR boolean
+# Determine if all sever error messages also should be sent to a specified
+# mail address (see sendmail_address)
+#----------------------------------------------------------------------------
+sendmail_on_error=no
+
+#----------------------------------------------------------------------------
+# SENDMAIL_ADDRESS string
+# Mail address to use when sending notification of errors and transcode finished
+#----------------------------------------------------------------------------
+sendmail_address=root@localhost
+
+#----------------------------------------------------------------------------
+# DAEMON_EMAIL_FROM string
+# The from address used in the email sent from the daemon. If this is left
+# empty the address will default to the address of the user the daemon is
+# running as. NOTE: this must usually be a valid domain address since many
+# email relays refuse to forward mails from bogus domains. Hence it is
+# normally not possible to specify the "localhost" as domain here.
+#----------------------------------------------------------------------------
+daemon_email_from=
+
+#----------------------------------------------------------------------------
+# SMTP_USE boolean
+# Use the specified SMTP server to send mail instead of the system mail
+# command. If you want to use HTML formatted mail you MUST use an SMTP
+# server.
+#----------------------------------------------------------------------------
+smtp_use=no
+
+#----------------------------------------------------------------------------
+# SMTP_SERVER string
+# SMTP server to use
+#----------------------------------------------------------------------------
+smtp_server=localhost
+
+#----------------------------------------------------------------------------
+# SMTP_USER string
+# User name for login on the smtp server
+#----------------------------------------------------------------------------
+smtp_user=
+
+#----------------------------------------------------------------------------
+# SMTP_PWD string
+# Password for login on the smtp server
+#----------------------------------------------------------------------------
+smtp_pwd=
+
+#----------------------------------------------------------------------------
+# USE_HTML boolean
+# Use HTML mail when sending mail with templates when available. Note
+# to use HTML mail you must have a valid SMTP server configured! You
+# cannot send HTMl mail through the "mail" command line.
+#----------------------------------------------------------------------------
+use_html=no
+
+############################################################################
+# ffmpeg - General settings for transcoding
+############################################################################
+
+[ffmpeg]
+
+#----------------------------------------------------------------------------
+# FFMPEG_BIN
+# Command to execute ffmpeg
+#----------------------------------------------------------------------------
+ffmpeg_bin=/usr/bin/ffmpeg
+
+#----------------------------------------------------------------------------
+# DEFAULT_TRANSCODING_PROFIL string
+# The profile that all new recodings will use as primary profile
+#----------------------------------------------------------------------------
+default_transcoding_profile=tnormal
+
+
+############################################################################
+# shutdown - Settings for automatic server shutdown
+# This makes it possible to have the server automatically shutdown until
+# it is time for the next recording
+############################################################################
+
+[shutdown]
+#----------------------------------------------------------------------------
+# ENABLE boolean
+# USe automatic shutdown or not
+#----------------------------------------------------------------------------
+enable=no
+
+# EOF - End of ini file
