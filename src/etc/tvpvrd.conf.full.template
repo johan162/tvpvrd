@@ -674,7 +674,7 @@ script_name=shutdown.sh
 # WEB_THEME string
 # Default theme to use for Web-interface. 
 #----------------------------------------------------------------------------
-web_theme=metal
+web_theme=night
 
 #----------------------------------------------------------------------------
 # WEB_DISPLAY_THEME boolean
