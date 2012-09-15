@@ -118,7 +118,7 @@ xioctl(int fd, unsigned long request, void * arg) {
 /**
  * Video Device Control: _vctrl_openvideo
  * Open the specified video. The video parameter is a small unsigned (normally in the range 0-4)
- * and specifies the number of the card which is normall accessed trhough the /dev/video0,
+ * and specifies the number of the card which is normally accessed trough the /dev/video0,
  * /dev/video1 etc. device
  * The function does a number of sanity checks to try to determine that the video device
  * really exists.
@@ -228,7 +228,7 @@ _vctrl_closevideo(int fd) {
  * the array supplied have room for 32 v4l2_input structures
  * @param fd Identifier for video card
  * @param nbrinputs Number of inputs found on this card
- * @param vinput A pointer ot an array of structs defining each input
+ * @param vinput A pointer to an array of structs defining each input
  * @return 0 on success, -1 on failure
  */
 int
@@ -274,7 +274,7 @@ _vctrl_size(int set, int fd, int *width, int *height) {
             vfmt.fmt.pix.width = *width;
             vfmt.fmt.pix.height = *height;
             if (xioctl(fd, VIDIOC_S_FMT, &vfmt) == -1) {
-                logmsg(LOG_ERR, "(VIDIOC_S_FMT) Cannot set video format. (%d : %s)", errno, strerror(errno));
+                    logmsg(LOG_ERR, "(VIDIOC_S_FMT) Cannot set video format. (%d : %s)", errno, strerror(errno));
                 return errno;
             }
         } else {
@@ -326,7 +326,7 @@ _vctrl_video_input(const int set, const int fd, int *idx) {
 int
 _vctrl_tuner(const int set, const int fd,  struct v4l2_tuner *vtun) {
     if( set ) {
-        logmsg(LOG_ERR, "_vctrl_tuner does not support VCTRL_SET.");
+        logmsg(LOG_ERR, "_vctrl_tuner() does not support VCTRL_SET.");
         return -1;
     }
     if (xioctl(fd, VIDIOC_G_TUNER, vtun) == -1) {
@@ -467,7 +467,7 @@ _vctrl_get_cardinfo(int fd, char **driver, char **card, char **version, unsigned
 /**
  * Video Device Control: _vctrl_vidcontrol_tostr
  * Internal helper function. Implements a "toStr" method for a specific control and puts
- * a string representation of the control in the supplied buffr "buff" with maximum 
+ * a string representation of the control in the supplied buffer "buff" with maximum 
  * length "size". in general the supplied buffer should be at least 128 bytes to get
  * all information from controls.
  */
@@ -512,7 +512,7 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
 
 /**
  * Video Device Control: _vctrl_getcontrols
- * Read all the supported constrols from the card and store them in the
+ * Read all the supported controls from the card and store them in the
  * supplied array of maximum size "size"
  * @return The number of controls found, -1 on error
  */
@@ -610,7 +610,7 @@ _vctrl_get_controlvaluebyname(const char *name,int *val,int *type,struct vidcont
 }
 
 /**
- * Get the extended controls. Mpst likely this is the HW controls
+ * Get the extended controls. Most likely this is the HW controls
  * that will adjust the HW MPEG2 controls.
  * @param fd
  * @param id
@@ -757,7 +757,7 @@ _vctrl_get_cropcap(int fd, struct v4l2_cropcap *vcrop) {
 
 /* --------------------------------------------------------------------------------------------------------
  * The following set of set_/get_ functions are user level functions that can be called directly
- * to set/get the sepcified values for the video card. 
+ * to set/get the specified values for the video card. 
  * --------------------------------------------------------------------------------------------------------
  */
 
@@ -821,9 +821,9 @@ video_get_controlbyid(int fd, int id, int *val) {
 }
 
 /**
- * Return an array of strings with the name of all the avaialble inputs for
+ * Return an array of strings with the name of all the available inputs for
  * the specified video card. It is the calling routines responsibility to make sure
- * that the array can hold upt to 32 pointers to strings
+ * that the array can hold up to 32 pointers to strings
  * @param fd Identifier for video card
  * @param nbrinputs Number of input found on this card
  * @param buf Buffer with pointers to string describing each input
@@ -886,7 +886,7 @@ video_set_input_source(const int fd, int idx) {
  * set the wanted bitrate fro the MP2 HW encoder
  * Both the normal and peak values must be specified, The values are
  * specified in BITS and normally have a value between 1,000,000 - 8,000,000
- * As aguide the peak bitrate should be ~500,000 higher for good quality
+ * As a guide the peak bitrate should be ~500,000 higher for good quality
  *
  * Note: The driver doesn't allow a bitrate to be set higher than the peak
  * bitrate nor does it allow the peak bit rate to be set lower than the current
@@ -963,7 +963,7 @@ video_get_video_bitrate(int fd, unsigned *bitrate, unsigned *peak_bitrate) {
 
 /*
  * Specify the audio parameter used by the MP2 HW encoder. Both the sampling
- * and bitrate must be specifed using one of the following symbolic defines
+ * and bitrate must be specified using one of the following symbolic defines
  * 
  * Sampling rates:
  * V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 	44.1 kHz
@@ -1089,7 +1089,7 @@ video_set_channel(const int fd, char *ch) {
 
 /*
  * Get the current channel from the TV card
- * @return 0 on suceess, -1 on failure
+ * @return 0 on success, -1 on failure
  */
 int
 video_get_channel(const int fd, char *ch, size_t size) {
@@ -1097,7 +1097,7 @@ video_get_channel(const int fd, char *ch, size_t size) {
 }
 
 /*
- * Set the output size ffrom the MP2 HW encoder using one
+ * Set the output size from the MP2 HW encoder using one
  * of the predefined sizes (See named_sizes)
  * 
  * Example:
