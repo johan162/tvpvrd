@@ -5,12 +5,12 @@
  *              video.
  *
  *              All functions named "_vctrl_" are functions that directly
- *              interfaces the video device via ioctl() calls. They can be 
+ *              interfaces the video device via ioctl() calls. They can be
  *              called directly by a client but there are better higher
  *              leve "user" fuinctions more suitable to be called directly.
  *              See documentation for v4l2 for details on the ioctl()
  *              parameters used.
- *              
+ *
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
@@ -94,7 +94,7 @@ static struct vidcontrol vidcontrols[32];
 /**
  * Special version of ioctl() that can handle an interrupt in the middle
  * of a call
- * @return 0 on successs, -1 otherwise 
+ * @return 0 on successs, -1 otherwise
  */
 static int
 xioctl(int fd, unsigned long request, void * arg) {
@@ -111,7 +111,7 @@ xioctl(int fd, unsigned long request, void * arg) {
  * The following section defines a number of "_vctrl_" functions. These are the lowest level
  * video interfacing functions which calls ioctl() diectly. They are not in general meant
  * to be used by a client. For this there are higher abstraction functions that doesn't
- * require that the structure of the V4L2 internal data structures is known to the caller.  
+ * require that the structure of the V4L2 internal data structures is known to the caller.
  * -------------------------------------------------------------------------------------------
  */
 
@@ -171,7 +171,7 @@ _vctrl_openvideo(unsigned int video, unsigned int tuner) {
 }
 
 /**
- * Determine the number of installed video cards by trying to open 
+ * Determine the number of installed video cards by trying to open
  * the first five, one by one
  * @return Number of video cards found
  */
@@ -200,7 +200,7 @@ _vctrl_getnumcards(void) {
 /**
  * Video Device Control: _vctrl_close
  * Close the specified video descriptor
- * 
+ *
  */
 int
 _vctrl_closevideo(int fd) {
@@ -258,7 +258,7 @@ _vctrl_enuminput(int fd, int *nbrinputs, struct v4l2_input *vinput[]) {
  * Get/Set the output size from the video MP2 encoder. A number of common
  * sizes are specified in the named_sizes array.
  * By default the card will use (for PAL B/G/I) 720x576
- * 
+ *
  */
 int
 _vctrl_size(int set, int fd, int *width, int *height) {
@@ -292,7 +292,7 @@ _vctrl_size(int set, int fd, int *width, int *height) {
  * @param set
  * @param fd
  * @param index
- * @return 
+ * @return
  */
 int
 _vctrl_video_input(const int set, const int fd, int *idx) {
@@ -312,7 +312,7 @@ _vctrl_video_input(const int set, const int fd, int *idx) {
             logmsg(LOG_ERR, "(VIDIOC_G_INPUT) Cannot get video input (fd=%d). (%d : %s)",
                    fd, errno, strerror(errno));
             return -1;
-        }        
+        }
     }
     return 0;
 }
@@ -374,7 +374,7 @@ _vctrl_gettunerinfo(const int fd, double *frequnits,
  * When the function is called to set the channel the size parameter is not used. This
  * is only meant to give the maximum buffer size of the ch buffer to limit how long
  * string is written when the function is called to get the channel.
- * 
+ *
  * Example:
   * _vctrl_channel(VCTR_SET,fd,"SE8",0);
  * char ch[16];
@@ -467,7 +467,7 @@ _vctrl_get_cardinfo(int fd, char **driver, char **card, char **version, unsigned
 /**
  * Video Device Control: _vctrl_vidcontrol_tostr
  * Internal helper function. Implements a "toStr" method for a specific control and puts
- * a string representation of the control in the supplied buffer "buff" with maximum 
+ * a string representation of the control in the supplied buffer "buff" with maximum
  * length "size". in general the supplied buffer should be at least 128 bytes to get
  * all information from controls.
  */
@@ -592,7 +592,7 @@ _vctrl_getcontrols(int fd, struct vidcontrol vctl[], size_t size) {
 /**
  * Video Device Control: _vctrl_get_controlvaluebyname
  * Get the values of a control by specifying the control by it's user friendly name
- * 
+ *
  */
 int
 _vctrl_get_controlvaluebyname(const char *name,int *val,int *type,struct vidcontrol controls[],int size) {
@@ -616,7 +616,7 @@ _vctrl_get_controlvaluebyname(const char *name,int *val,int *type,struct vidcont
  * @param id
  * @param ctrl_class
  * @param val
- * @return 
+ * @return
  */
 int
 _vctrl_get_ext_controlvalue(int fd, unsigned id, unsigned ctrl_class, int *val) {
@@ -668,7 +668,7 @@ _vctrl_set_ext_controlvalue(int fd, unsigned id, unsigned ctrl_class, int val) {
             CLEAR(ctrls);
             ctl.id = id;
             ctl.value = val;
-            ctrls.ctrl_class = V4L2_CTRL_CLASS_MPEG;
+            ctrls.ctrl_class = ctrl_class;
             ctrls.count = 1;
             ctrls.controls = &ctl;
             if (0 == xioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls)) {
@@ -707,7 +707,7 @@ _vctrl_get_controlvalue(int fd, unsigned id, int *val) {
 /**
  * Video Device Control: _vctrl_set_controlvalue
  * Set the value of a control specified by its id
- * 
+ *
  */
 int
 _vctrl_set_controlvalue(int fd, unsigned id, int val) {
@@ -727,12 +727,12 @@ _vctrl_set_controlvalue(int fd, unsigned id, int val) {
             if( 0 == xioctl(fd, VIDIOC_S_CTRL, &ctl) ) {
                 return 0;
             } else {
-                logmsg(LOG_ERR, "(VIDIOC_S_CTRL) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+                logmsg(LOG_ERR, "(VIDIOC_S_CTRL) Cannot set value (%d) to control with id=%d (%d : %s)", val, ctl.id, errno, strerror(errno));
                 return errno;
             }
 
         } else {
-            logmsg(LOG_ERR, "(VIDIOC_S_CTRL) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+            logmsg(LOG_ERR, "(VIDIOC_S_CTRL) Cannot set value (%d) to control with id=%d (%d : %s)", val, ctl.id, errno, strerror(errno));
             return errno;
         }
     }
@@ -757,11 +757,11 @@ _vctrl_get_cropcap(int fd, struct v4l2_cropcap *vcrop) {
 
 /* --------------------------------------------------------------------------------------------------------
  * The following set of set_/get_ functions are user level functions that can be called directly
- * to set/get the specified values for the video card. 
+ * to set/get the specified values for the video card.
  * --------------------------------------------------------------------------------------------------------
  */
 
-/* 
+/*
  * Open and close video functions
  */
 int video_open(unsigned int video, unsigned int tuner) {
@@ -810,14 +810,14 @@ video_get_ext_controlbyid(int fd, int id, int *val) {
 
 int
 video_set_controlbyid(int fd, int id, int val) {
-    return _vctrl_set_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
-    //return _vctrl_set_controlvalue(fd, id, val);
+    //return _vctrl_set_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
+    return _vctrl_set_controlvalue(fd, id, val);
 }
 
 int
 video_get_controlbyid(int fd, int id, int *val) {
-    return _vctrl_get_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
-    //return _vctrl_get_controlvalue(fd, id, val);
+    //return _vctrl_get_ext_controlvalue(fd, id, V4L2_CTRL_ID2CLASS(id), val);
+    return _vctrl_get_controlvalue(fd, id, val);
 }
 
 /**
@@ -964,20 +964,20 @@ video_get_video_bitrate(int fd, unsigned *bitrate, unsigned *peak_bitrate) {
 /*
  * Specify the audio parameter used by the MP2 HW encoder. Both the sampling
  * and bitrate must be specified using one of the following symbolic defines
- * 
+ *
  * Sampling rates:
  * V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 	44.1 kHz
  * V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000 	48 kHz
  * V4L2_MPEG_AUDIO_SAMPLING_FREQ_32000 	32 kHz
- * 
+ *
  * Bitrates:
  * V4L2_MPEG_AUDIO_L2_BITRATE_192K 	192 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_224K 	224 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_256K 	256 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_320K 	320 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_384K 	384 kbit/s
- * 
- * @return -1 on error, 0 on success 
+ *
+ * @return -1 on error, 0 on success
  */
 int
 video_set_audio_bitrate(int fd, unsigned sampling, unsigned bitrate) {
@@ -1014,13 +1014,13 @@ video_get_audio_bitrate(int fd, unsigned *sampling, unsigned *bitrate) {
 /*
  * Set the video aspect for the M2 HW encoder. The aspect should be one of the
  * following defines
- * 
+ *
  * Aspect:
  * V4L2_MPEG_VIDEO_ASPECT_1x1
  * V4L2_MPEG_VIDEO_ASPECT_4x3
  * V4L2_MPEG_VIDEO_ASPECT_16x9
- * V4L2_MPEG_VIDEO_ASPECT_221x100 
- * 
+ * V4L2_MPEG_VIDEO_ASPECT_221x100
+ *
  * @return -1 on fail, 0 on success
  */
 int
@@ -1032,6 +1032,118 @@ video_set_video_aspect(int fd, unsigned aspect) {
     }
     return 0;
 }
+
+/* Translate normalized value in range -50,50 to actual value range*/
+int
+_denorm(int normval,int min,int max,int step) {
+    const int v = floor((normval+50.0)/100.0*(max-min)+min);
+    const int vv = floor((double)v/step)*step;
+    logmsg(LOG_DEBUG,"norm=%d [%d,%d]: denormalized value v=%d, adjusted vv=%d",normval,min,max,v,vv);
+    return vv;
+}
+
+int
+video_set_brightness(int fd, unsigned brightness_value) {
+
+    const int ctrl_val = _denorm(brightness_value,0,255,1);
+    logmsg(LOG_DEBUG,"Brightness control value=%d",ctrl_val);
+    int ret = video_set_controlbyid(fd, V4L2_CID_BRIGHTNESS,ctrl_val);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set video brightness fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int
+video_set_contrast(int fd, unsigned contrast_value) {
+    const int ctrl_val = _denorm(contrast_value,0,127,1);
+    logmsg(LOG_DEBUG,"Contrast control value=%d",ctrl_val);
+    int ret = video_set_controlbyid(fd, V4L2_CID_CONTRAST, ctrl_val);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set video contrast fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int
+video_set_saturation(int fd, unsigned saturation_value) {
+    const int ctrl_val = _denorm(saturation_value,0,127,1);
+    logmsg(LOG_DEBUG,"Saturation control value=%d",ctrl_val);
+
+    int ret = video_set_controlbyid(fd, V4L2_CID_SATURATION, ctrl_val);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int
+video_set_hue(int fd, unsigned hue_value) {
+    const int ctrl_val = _denorm(hue_value,-128,127,1);
+    logmsg(LOG_DEBUG,"Hue control value=%d",ctrl_val);
+
+    int ret = video_set_controlbyid(fd, V4L2_CID_HUE, ctrl_val);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int
+video_set_audio_treble(int fd, unsigned treble_value) {
+    const int ctrl_val = _denorm(treble_value,0,65535,655);
+    logmsg(LOG_DEBUG,"Treble control value=%d",ctrl_val);
+
+    int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_TREBLE, ctrl_val);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int
+video_set_audio_bass(int fd, unsigned bass_value) {
+    const int ctrl_val = _denorm(bass_value,0,65535,655);
+    logmsg(LOG_DEBUG,"Bass control value=%d",ctrl_val);
+
+    int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_BASS, ctrl_val);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int
+video_set_audio_volume(int fd, unsigned volume_value) {
+    const int ctrl_val = _denorm(volume_value,0,65535,655);
+    logmsg(LOG_DEBUG,"Volume control value=%d",ctrl_val);
+
+    int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_VOLUME, ctrl_val);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int
+video_set_audio_loudness(int fd, unsigned loudness_flag) {
+    int ret = video_set_ext_controlbyid(fd, V4L2_CID_AUDIO_LOUDNESS, loudness_flag?1:0);
+    if( ret != 0 ) {
+        logmsg(LOG_ERR,"Can not set audio loudness flag fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+
+
 
 /*
  * Set the video channel. The cannel name is either one of the predefined name for
@@ -1099,7 +1211,7 @@ video_get_channel(const int fd, char *ch, size_t size) {
 /*
  * Set the output size from the MP2 HW encoder using one
  * of the predefined sizes (See named_sizes)
- * 
+ *
  * Example:
  * set_named_size(fd,"qvga");
  */
@@ -1123,7 +1235,7 @@ video_set_named_size(int fd, const char *name) {
  * If the width height corresponds to a predefined size
  * set the buf to point to a statically allocated sting
  * with the predefined name.
- * @return 0 On success, -1 on failure 
+ * @return 0 On success, -1 on failure
  */
 int
 video_get_sizename(int width,int height,char **buf) {
@@ -1158,7 +1270,7 @@ video_get_wh_fromname(int *width, int *height, char *name) {
  * @param drvflag  Include driver name and version in output
  * @param buffer
  * @param maxlen
- * @return 
+ * @return
  */
 int
 video_get_cardinfo(unsigned video, _Bool drvflag, char *buffer, size_t maxlen) {

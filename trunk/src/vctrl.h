@@ -229,6 +229,81 @@ int
 video_set_video_aspect(int fd, unsigned aspect);
 
 /**
+ * Adjust image brightness (or more correctly blackness), 
+ * Value is in range [-50,50] 
+ * 
+ * @param fd
+ * @param brightness_value
+ * @return 
+ */
+int
+video_set_brightness(int fd, unsigned brightness_value);
+
+/**
+ * Adjust image contrast, Value is in range [-50,50]
+ * @param fd
+ * @param contrast_value
+ * @return 
+ */
+int
+video_set_contrast(int fd, unsigned contrast_value);
+
+/**
+ * Adjust image saturation, Value is in range [-50,50]
+ * @param fd
+ * @param saturation_value
+ * @return 
+ */
+int
+video_set_saturation(int fd, unsigned saturation_value);
+
+/**
+ * Adjust image hue, Value is in range [-50,50]
+ * @param fd
+ * @param hue_value
+ * @return 
+ */
+int
+video_set_hue(int fd, unsigned hue_value);
+
+/**
+ * Adjust audio treble, Value is in range [-50,50]
+ * @param fd
+ * @param treble_value
+ * @return 
+ */
+int
+video_set_audio_treble(int fd, unsigned treble_value);
+
+/**
+ * Adjust audio bass, Value is in range [-50,50]
+ * @param fd
+ * @param bass_value
+ * @return 
+ */
+int
+video_set_audio_bass(int fd, unsigned bass_value);
+
+/**
+ * Adjust volume, Value is in range [0,100]
+ * @param fd
+ * @param volume_value
+ * @return 
+ */
+int
+video_set_audio_volume(int fd, unsigned volume_value);
+
+/**
+ * 
+ * @param fd
+ * @param loudness_flag
+ * @return 
+ */
+int
+video_set_audio_loudness(int fd, unsigned loudness_flag);
+
+
+/**
  * Set the video channel
  * @param fd
  * @param ch
@@ -337,7 +412,7 @@ _vctrl_vidcontrol_tostr(struct vidcontrol *vctl, char *buff, int size, int longf
 
 /**
  * Video Device Control: _vctrl_getcontrols
- * Read all the supported constrols from the card and store them in the
+ * Read all the supported controls from the card and store them in the
  * supplied array of maximum size "size"
  * @return The number of controls found, -1 on error
  */

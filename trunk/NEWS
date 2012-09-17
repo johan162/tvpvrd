@@ -9,19 +9,21 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 4.3.1
 ------
 User visible changes:
-    - None
+    - Added 'ic' command to allow the adjusting of video parameters (saturation,
+      contrast, hue and brightness) in the video stream. Each card can be individually
+      tuned.
 
 Bugs fixed:
     - None
 
 Internal changes:
-    - None
+    - Spell checking in code
 
 
 4.3.0 (22 aug 2012)
 ------
 User visible changes:
-    - Added filesize information about transcoded file in mail template that is sent at 
+    - Added filesize information about transcoded file in mail template that is sent at
       transcoding end.
 
     - The "-vpre" and "-vpre1" options has been removed from all the transcoding profiles
@@ -38,8 +40,8 @@ User visible changes:
     - Smaller layout tweaking for Web-UI recording section to split in three rows
 
     - Added optional controls in the WEB-UI to make it possible to control name mangling
-      and episode start number in series from the UI. By default these options are 
-      disabled to keep the WEB-UI the same as before. To enable these controls set 
+      and episode start number in series from the UI. By default these options are
+      disabled to keep the WEB-UI the same as before. To enable these controls set
       the config file setting "display_advanced_rec_control" to true
 
     - Added two commands:
@@ -61,7 +63,7 @@ User visible changes:
       means that the DB schema has been updated to version 3 in order to record which
       individual recordings in a series should be excluded.
 
-    - Added two new repeat types "Wed-Fri" (specified as '8' or 'e')  and 
+    - Added two new repeat types "Wed-Fri" (specified as '8' or 'e')  and
       "Tue-Thu" (specified as '9' or 'i'). Updated docs with info about this.
 
 Bugs fixed:
@@ -89,23 +91,23 @@ Internal changes:
 4.2.0 (8 aug 2012)
 ------
 User visible changes:
-    - Make it possible to specify direct frequencies in the 'xawtvrc' file and not 
-      indirectly vi channel names and the official frequency maps. 
-      A direct frequency is specified as number prefixed with a '@' character. 
+    - Make it possible to specify direct frequencies in the 'xawtvrc' file and not
+      indirectly vi channel names and the official frequency maps.
+      A direct frequency is specified as number prefixed with a '@' character.
       This could be used in the cases where a cable company is naughty and
       doesn't follow the officially agreed upon channel names and frequencies. This will
-      then make it possible to manually add tweaked channels. The frequency number 
+      then make it possible to manually add tweaked channels. The frequency number
       is specified in kHz.
     - Added command "lf" - list frequency tables
     - Some parameter changes in profiles tnormal, tlow and thigh profiles to better
       fit with latest versions of ffmpeg (v0.11). Make "aac" audio encoding the default
-      in the transcoding profiles. 
+      in the transcoding profiles.
     - ffmpeg "-v" option has been removed from the call to ffmpeg
     - When verbose logging is enabled the ffmpeg output will be stored in log file
       in the temporary encoding directory.
 
 Bugs fixed:
-    - Options for "extra ffmpeg options" had name mismatch in default profile vs what the 
+    - Options for "extra ffmpeg options" had name mismatch in default profile vs what the
       program was looking for. It is now called "extra_options" in the ffmpeg section of the
       profile file.
 
@@ -116,7 +118,7 @@ Internal changes:
 4.1.1 (1 may 2012)
 ------
 User visible changes:
-    - Added frequency tables for: "argentina", "australia-optus", "china-bcast", "japan-bcast", 
+    - Added frequency tables for: "argentina", "australia-optus", "china-bcast", "japan-bcast",
       "japan-cable", "southafrica", "us-cable-hrc" and "us-cable-irc"
     - Updated manual page to reflect the added frequency tables
 
@@ -171,7 +173,7 @@ User visible changes:
 
 Bugs fixed:
     - Critical error that repeated recordings had dates/times not updated due to
-      brainfart when refactoring.      
+      brainfart when refactoring.
     - Could call an unnecessary PCRE memory free in 'o' command
 
 Internal changes:
@@ -190,12 +192,12 @@ User visible changes:
     - Add setting web_autodisplay_transc to optionally hide transcoding information
       if there are no ongoing transcodings.
     - Add setting to select if "Quick Recording" should be displayed in Web-UI
-    - Distribution now has extended support for theming of the Web-UI. Distribution 
-      ships with five different CSS themes for the web-interface.      
+    - Distribution now has extended support for theming of the Web-UI. Distribution
+      ships with five different CSS themes for the web-interface.
     - Add optional selector for theme in the Web-UI
     - Directory structure for the config directory changed to make it cleaner
       with a separate "virtual" web-root among other things.
-    - The 'o' (query ongoing recording) command now takes an optional card number as 
+    - The 'o' (query ongoing recording) command now takes an optional card number as
       argument.
     - Increased history default length to 99
     - Removed Web-menu for detailed driver settings (this is an advanced
@@ -205,7 +207,7 @@ User visible changes:
 
 Bugs fixed:
     - Handling of multibyte (utf-8) strings was not properly handled by the printf()
-      function in calculating the field width. This meant that columns in the 
+      function in calculating the field width. This meant that columns in the
       output was not always correctly aligned depending on the actual content of the
       strings.
 
@@ -213,14 +215,14 @@ Internal changes:
     - The micro web server now behaves more like a real webserver in serving
       static files. The server is now more general but still targeted to tvpvrd
       due to the handling of commands.
-    - Multibyte strings for titles are now calculated separately with help of 
+    - Multibyte strings for titles are now calculated separately with help of
       wide-char routines.
     - Refactored transcoding and utility modules by breaking them up to be more logically
       coherent and easier to maintain.
     - Refactored server shutdown handling
     - Various minor code cleanup, spelling errors, more consistent use of siezeof() etc.
     - Don't log errors if the startup/shutdown scripts doesn't exist
-    
+
 
 v3.3.5
 ------
@@ -235,7 +237,7 @@ User visible changes:
     - Added nice HTML formatting when sending history in mail
 
 Bugs fixed:
-    - Problem with timeout in the 'rhm' (Mail history command) command due to missing 
+    - Problem with timeout in the 'rhm' (Mail history command) command due to missing
       newline.
 
 Internal changes:
@@ -248,7 +250,7 @@ User visible changes:
     - Added check at startup that all specified channels in the station/channel alias
       file (e.g. xawtv) really exists in the frequency map used. Give a fatal error in
       case of error.
-    - "List all" now uses the same format for the listing as as "List single" and 
+    - "List all" now uses the same format for the listing as as "List single" and
       "List repeat" commands. (This has bother my esthetic side for a long time!)
 
 Bugs fixed:
@@ -266,13 +268,13 @@ User visible changes:
 
 Bugs fixed:
     - Fixed a wrong "No recordings" text at end of listing of single recordings in
-      one circumstance (when only one recording exists). 
+      one circumstance (when only one recording exists).
 
 Internal changes:
     - Read startup script before XML database is read.
     - Adjusted some modules startup order to be able to get log printout even earlier
       in startup phase.
-    - Add a longer delay (sleep) in startup if the daemon detect it is started at the 
+    - Add a longer delay (sleep) in startup if the daemon detect it is started at the
       same time as the server is powered on to allow all fs remote mounts to finish safely
       before the daemon tries to access the file system.
 
@@ -282,8 +284,8 @@ v3.3.2
 User visible changes:
     - Added vpre1 setting in profile to control the preset used in the first pass
       of a two pass encoding.
-    - Changed drop down in Web-GUI for specifying day from "Today" to "Auto" which 
-      better reflects how it actually works. 
+    - Changed drop down in Web-GUI for specifying day from "Today" to "Auto" which
+      better reflects how it actually works.
 
 Bugs fixed:
     - None.
@@ -296,7 +298,7 @@ Internal changes:
 v3.3.1
 ------
 User visible changes:
-    - None 
+    - None
 
 Bugs fixed:
     - AMD64 build issue with warning in printf() format string
@@ -321,7 +323,7 @@ User visible changes:
       v3.2.1 if you are using older versions of ffmpeg.
 
 Bugs fixed:
-    - None 
+    - None
 
 Internal changes:
     - Added additional error check to catch the case when a remote file server
@@ -331,7 +333,7 @@ Internal changes:
 v3.2.1
 ------
 User visible changes:
-    - None 
+    - None
 
 Bugs fixed:
     - Fixed critical segfault crash in shutdown check when the recording queue happened to be empty.
@@ -343,8 +345,8 @@ Internal changes:
 v3.2.0
 ------
 User visible changes:
-    - Added history keeping for last N recordings with commands to view. 
-      Command 'rh' (recorded history)  
+    - Added history keeping for last N recordings with commands to view.
+      Command 'rh' (recorded history)
 
 Bugs fixed:
     - A harmless but un-necessary '/' in filepaths was removed
@@ -355,7 +357,7 @@ Internal changes:
 v3.1.3
 ------
 User visible changes:
-    - None. 
+    - None.
 
 Bugs fixed:
     - None.
@@ -374,7 +376,7 @@ User visible changes:
       as the tuner input. Used to connect a cable box with a set frequency/channel to the
       TV-card and changing channels with an IR sender on the cable box instead of the
       tuner in the TV-card.
-    - Improved the manual page on how to handle an external cable box with IR-sender 
+    - Improved the manual page on how to handle an external cable box with IR-sender
       using the external channel switching.
 
 Bugs fixed:
@@ -383,7 +385,7 @@ Bugs fixed:
 Internal changes:
     - Fixed compiler warning about set but not used variable
     - Code security review. Make sure all string concatenation are explicitely limited.
-    - Add full path for killproc/startproc in the SysV init.d scripts 
+    - Add full path for killproc/startproc in the SysV init.d scripts
     - Updated OpenSuSE RPM Spec file
 
 
@@ -423,9 +425,9 @@ Bugs fixed:
 Internal changes:
     - Refactored logging routines to it's own source file
     - Each command output now ends with a "\r\n" sequence to indicated end of command output
-    - Make code compile clean even with -Wshadow flag added. The code now compiles clean 
-      with gcc flags: 
-        -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wshadow -Wformat=2  
+    - Make code compile clean even with -Wshadow flag added. The code now compiles clean
+      with gcc flags:
+        -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Wextra -Wshadow -Wformat=2
 
 v3.0.6
 ------
@@ -463,7 +465,7 @@ User visible changes:
 
 Bugs fixed:
     - Fixed a bug whereby if a recurring recording had the new type Tue-Fri (7) it gave an error
-      when the server was restarted and claimed it was an unrecognized recurring type. This was a 
+      when the server was restarted and claimed it was an unrecognized recurring type. This was a
       false alarm since the range check had not been updated to reflect this new type.
 
 Internal changes:
@@ -691,14 +693,14 @@ v2.1.0-beta
 
 Added new options "external_switch" to the configuration file to allow
 external channel switching on a cable box. Enabling this feature will
-make the card always read the input from the input source "external_input" 
-specified in the configuration file. 
+make the card always read the input from the input source "external_input"
+specified in the configuration file.
 
-Channel switching is then made by  the daemon by calling the "switchchannel.sh" 
-script in the tvpvrd configuration directory, This script is provided as 
-a template that must be updated to correspond to the actual setup to change 
-channel. The channel switching is normally made by send an IR beam to the 
-cable box. This is done by the LIRC subsystem which must be installed and 
+Channel switching is then made by  the daemon by calling the "switchchannel.sh"
+script in the tvpvrd configuration directory, This script is provided as
+a template that must be updated to correspond to the actual setup to change
+channel. The channel switching is normally made by send an IR beam to the
+cable box. This is done by the LIRC subsystem which must be installed and
 configured.
 
 It is entirely up to the end user of this to configure and install any and
@@ -710,7 +712,7 @@ The channel switching script then calls "irsend" with appropriate commands
 depending on which channel should be used. It is up to th end user to adjust
 the included "switchchannel.sh.template" file and rename it to "switchchannel.sh"
 
-Since I don't have access to a cable box this will remain in beta until I 
+Since I don't have access to a cable box this will remain in beta until I
 have received user confirmation that this works as intended.
 
 v2.0.1
@@ -756,5 +758,5 @@ run the power daemon, configure and compile and the run the 'install.sh' script 
 (The install.sh is found in the tvpowerd directory)
 
 For more details see ChangeLog
-    
+
 
