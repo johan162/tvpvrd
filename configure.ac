@@ -3,16 +3,18 @@
 # Autoconf script
 # Use autoreconf to rebuild the build environment
 # ===============================================================================
-AC_PREREQ([2.65])
+AC_PREREQ([2.69])
 AC_INIT([tvpvrd],[4.3.1],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010-2012])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-xz silent-rules])
 AM_SILENT_RULES
+AM_PROG_AR
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_CONFIG_HEADER([src/config.h])
 AC_CONFIG_FILES([
+
 Makefile
 src/Makefile
 src/tvpowerd/Makefile

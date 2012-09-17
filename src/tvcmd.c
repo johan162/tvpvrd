@@ -129,8 +129,9 @@
 #define CMD_LIST_FREQTABLE 46
 #define CMD_SET_REP_NAME_MANGLING 47
 #define CMD_SET_REP_START_NUMBER 48
+#define CMD_SET_IMAGE_CONTROLS 49
 
-#define CMD_UNDEFINED 49
+#define CMD_UNDEFINED 50
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -173,18 +174,19 @@ static void
 _cmd_help(const char *cmd, int sockfd) {
     static char msgbuff_master[3072] =
             "Commands:\n"\
-			"  a    - Add recording\n"\
-			"  ar   - Add repeated recording\n"\
+	    "  a    - Add recording\n"\
+	    "  ar   - Add repeated recording\n"\
             "  af   - Add recording from list in file\n"\
-			"  d    - delete single recording\n"\
+	    "  d    - delete single recording\n"\
             "  df   - display total and used diskspace\n"
             "  dp   - display all settings for specified profile\n"\
-			"  dr   - delete all repeated recording\n"\
-			"  h    - help\n"\
-			"  i    - print detailed information on recording\n"\
+	    "  dr   - delete all repeated recording\n"\
+	    "  h    - help\n"\
+            "  i    - print detailed information on recording\n"\
+            "  ic   - adjust image controls (hue,sat,contrast,brightness)\n"\
             "  kt   - kill all ongoing transcoding(s)\n"\
             "  ktf  - set/unset kill transcoding flag at shutdown\n"\
-			"  l    - list of recordings\n"\
+	    "  l    - list of recordings\n"\
             "  lc   - list all controls for the capture card\n"\
             "  lf   - list predefined frequency tables\n"\
             "  lh   - list of recordings, human format\n"\
@@ -200,10 +202,10 @@ _cmd_help(const char *cmd, int sockfd) {
             "  lph  - list all profiles with HTML links\n"\
             "  lq n - list queued transcodings\n"\
             "  mlg  - mail logfile as attachment\n"\
-			"  n    - list the immediate next recording on each video\n"\
-			"  o    - list the ongoing recording(s)\n"\
+	    "  n    - list the immediate next recording on each video\n"\
+	    "  o    - list the ongoing recording(s)\n"\
             "  ot   - list the ongoing transcoding(s)\n"\
-			"  q    - quick recording\n"\
+	    "  q    - quick recording\n"\
             "  rst  - reset all statistics\n"\
             "  rh   - view history of previous transcodings\n"\
             "  rhm  - mail history of previous transcodings\n"\
@@ -213,15 +215,15 @@ _cmd_help(const char *cmd, int sockfd) {
             "  sp   - set transcoding profile for specified recording\n"\
             "  ss   - set initial repeat series episode number\n"\
             "  st   - print profile statistics\n"\
-			"  t    - print server time\n"\
+	    "  t    - print server time\n"\
             "  tf   - transcode specified file\n"\
             "  tl   - read list of videos to transcode from file\n"\
             "  td   - transcode all videos in directory\n"\
-			"  u    - force update of database with recordings\n"\
-    		"  v    - print version\n"\
+	    "  u    - force update of database with recordings\n"\
+    	    "  v    - print version\n"\
             "  vc <n> - print information on TV-Card <n>\n"\
             "  wt   - list waiting transcodings\n"\
-			"  x    - view database (in XML format) with recordings\n"\
+	    "  x    - view database (in XML format) with recordings\n"\
             "  z    - display all settings from ini-file\n"\
             "  ! <n>  - cancel ongoing recording\n"\
             "Type h <cmd> for syntax of each command\n";
@@ -262,7 +264,7 @@ _cmd_help(const char *cmd, int sockfd) {
         ret = matchcmd("^h[\\p{Z}]+(dp|h|ktf|kt|log|lp|lq|ot|rst|rh|rp|st|s|tf|tl|td|t|v|wt|z)$", cmd, &field);
     }
     if( ret > 0 ) {
-        (_getCmdPtr(field[1]))(cmd,sockfd);        
+        (_getCmdPtr(field[1]))(cmd,sockfd);
         matchcmd_free(&field);
     }
     else {
@@ -309,7 +311,7 @@ _cmd_setprofile(const char *cmd, int sockfd) {
                 );
         return;
     }
-    
+
     ret = matchcmd("^sp" _PR_S _PR_ID _PR_S _PR_AN _PR_E, cmd, &field);
     err = ret < 0;
 
@@ -342,7 +344,7 @@ _cmd_set_rep_name_mangling(const char *cmd, int sockfd) {
                 );
         return;
     }
-    
+
     ret = matchcmd("^sm" _PR_S _PR_ID _PR_E, cmd, &field);
     err = ret < 0;
 
@@ -350,10 +352,10 @@ _cmd_set_rep_name_mangling(const char *cmd, int sockfd) {
         int type = xatoi(field[1]);
         if( type >= 0 && type <= 2 ) {
             default_repeat_name_mangle_type = type;
-            snprintf(msgbuff,255,"Updated default name mangling to type == %d\n",type);            
+            snprintf(msgbuff,255,"Updated default name mangling to type == %d\n",type);
         } else {
             snprintf(msgbuff,255,"Unknown name mangling type == %d\n",type);
-        }        
+        }
         _writef(sockfd,msgbuff);
         matchcmd_free(&field);
     } else {
@@ -374,7 +376,7 @@ _cmd_set_rep_start_number(const char *cmd, int sockfd) {
                 );
         return;
     }
-    
+
     ret = matchcmd("^ss" _PR_S _PR_ID _PR_E, cmd, &field);
     err = ret < 0;
 
@@ -385,7 +387,7 @@ _cmd_set_rep_start_number(const char *cmd, int sockfd) {
         } else {
             initial_recurrence_start_number = snum;
             snprintf(msgbuff,255,"Next episode start number set to %d\n",snum);
-        }        
+        }
         _writef(sockfd,msgbuff);
         matchcmd_free(&field);
     } else {
@@ -596,7 +598,7 @@ _cmd_add(const char *cmd, int sockfd) {
                         case 't': repeat_type = 6; break;
                         case 'n': repeat_type = 7; break;
                         case 'e': repeat_type = 8; break;
-                        case 'i': repeat_type = 9; break;                        
+                        case 'i': repeat_type = 9; break;
                     }
                 }
 
@@ -612,7 +614,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 int day = xatoi(field[4]);
 
                 logmsg(LOG_DEBUG,"year=%d, month=%d, day=%d",year,month,day);
-                
+
                 end_repeat_time = totimestamp(year,month,day,23,59,59);
 
                 // Find out how many repeats are required to reach the end date
@@ -652,7 +654,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 }
             } else {
                 err = 1;
-            }            
+            }
         }
     }
     else {
@@ -692,7 +694,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 ssec = 0 ;
             }
             pos++;
-            
+
             ts_start = totimestamp(sy, sm, sd, sh, smin, ssec);
 
             eh = sh + defaultDurationHour;
@@ -794,7 +796,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 else
                     esec = 0;
                 pos++;
-                
+
                 strncpy(channel, field[1], sizeof(channel)-1);
                 channel[sizeof(channel)-1] = '\0';
                 *title = '\0';
@@ -827,7 +829,7 @@ _cmd_add(const char *cmd, int sockfd) {
 
                     if( strlen(title) == 0 ) {
                         snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
-                    } 
+                    }
                 } else {
                     // The case with no title and no profiles
                     snprintf(title,sizeof(title)-1,"%s_%d%02d%02d_%02d%02d",channel,sy,sm,sd,sh,smin);
@@ -1135,7 +1137,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 sprintf(msgbuff, "Specified video input source '%s' is not recognized.\n", channel);
                 logmsg(LOG_ERR, "Specified video input source '%s' is not recognized.", channel);
                 err = 1;
-                
+
             }
 
         } else {
@@ -1198,7 +1200,7 @@ _cmd_add(const char *cmd, int sockfd) {
                 ret = insertrec((unsigned)input_card, entry, NULL);
 
             } else {
-                
+
                 // Take the first video stream available
                 for (size_t video = 0; video < max_video && (-1 == ret); video++) {
                     ret = insertrec(video, entry, NULL);
@@ -1326,7 +1328,7 @@ _cmd_list(const char *cmd, int sockfd) {
         return;
 
     }
-    
+
     matchcmd_free(&field);
     list_recs((size_t)n, 0, sockfd);
     _writef(sockfd,"done.\n");
@@ -1444,7 +1446,7 @@ _cmd_maillist_html(const char *cmd, int sockfd) {
 
 /*
  * Send mail with repeating recordings
- 
+
 static void
 _cmd_maillistrep_html(const char *cmd, int sockfd) {
     char **field = (void *)NULL;
@@ -1565,7 +1567,7 @@ _cmd_maillist_recsingle(const char *cmd, int sockfd) {
 
     listhtml_repeatrecsbuff(buffer_html, maxlen, n, 0); // Get list of repeating recs i HTML format
     listhtml_recsbuff(buffer, maxlen ,n ,0, TRUE, TRUE); // Get list of single recordings in HTML format
-    
+
     strncat(buffer_html,"\n<p>&nbsp;</p>\n",maxlen-1-strlen(buffer_html));
     strncat(buffer_html,buffer,maxlen-1-strlen(buffer_html));
     free(buffer);
@@ -1767,6 +1769,94 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
 }
 
 /**
+ * Command: _cmd_set_image_controls
+ *
+ * Syntax:
+ * ic s VIDEO VAL Set Saturation
+ * ic c VIDEO VAL Set Contrast
+ * ic h VIDEO VAL Set Hue
+ * ic b VIDEO VAL Set Brightness
+ */
+static void
+_cmd_set_image_controls(const char *cmd, int sockfd) {
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "ic <video> <s|c|h|b> <value>  - Set image control saturation, contrast, hue, brightness .\n"
+                 );
+        return;
+    }
+    char **field=(void *)NULL;
+    int ret = matchcmd("^ic" _PR_S _PR_VIDEO _PR_S "(s|h|c|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
+    unsigned video = 0;
+    int control_value = -100;
+    char *ctrl=NULL;
+
+    if( ret == 4 ) {
+        video = (unsigned)xatoi(field[1]);
+        control_value = xatoi(field[3]);
+        ctrl=field[2];
+    } else {
+        // Check if video is omitted and in that case set the values for all video cards
+        ret = matchcmd("^ic" _PR_S "(s|h|c|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
+        if( ret == 3 ) {
+            control_value = xatoi(field[2]);
+            ctrl=field[1];
+        } else {
+            _cmd_syntaxerror(cmd, sockfd);
+        }
+    }
+    if( ctrl ) {
+        int fd = video_open(video,TRUE);
+        if( -1 == fd ) {
+            _writef(sockfd,"Unable to open driver for video card = %d\n",video);
+            logmsg(LOG_ERR,"Unable to open driver for video card = %d\n",video);
+            return;
+        }
+        switch( ctrl[0] ) {
+            case 's':
+                if( -1 == video_set_saturation(fd,control_value) ) {
+                    _writef(sockfd,"Could NOT adjust saturation on video=%d\n",video);
+                    logmsg(LOG_ERR,"Could NOT adjust saturation on video=%d\n",video);
+                } else {
+                    _writef(sockfd,"'saturation' adjusted to val=%d on video=%d\n",control_value,video);
+                }
+                break;
+            case 'c':
+                if( -1 == video_set_contrast(fd,control_value) ) {
+                    _writef(sockfd,"Could NOT adjust contrast on video=%d\n",video);
+                    logmsg(LOG_ERR,"Could NOT adjust contrast on video=%d\n",video);
+                } else {
+                    _writef(sockfd,"'contrast' adjusted to val=%d on video=%d\n",control_value,video);
+                }
+
+                break;
+            case 'h':
+                if( -1 == video_set_hue(fd,control_value) ) {
+                    _writef(sockfd,"Could NOT adjust hue on video=%d\n",video);
+                    logmsg(LOG_ERR,"Could NOT adjust hue on video=%d\n",video);
+                } else {
+                    _writef(sockfd,"'hue' adjusted to val=%d on video=%d\n",control_value,video);
+                }
+
+                break;
+            case 'b':
+                if( -1 == video_set_brightness(fd,control_value) ) {
+                    _writef(sockfd,"Could NOT adjust brightness on video=%d\n",video);
+                    logmsg(LOG_ERR,"Could NOT adjust brightness on video=%d\n",video);
+                } else {
+                    _writef(sockfd,"'brightness' adjusted to val=%d on video=%d\n",control_value,video);
+                }
+                break;
+            default:
+                logmsg(LOG_ERR,"Unknown control for image adjust (shouldn't happen!)");
+                break;
+        }
+        video_close(fd);
+    }
+    matchcmd_free(&field);
+}
+
+/**
  * Command: _cmd_list_video_controls
  * List all settings for the capture card specified
  * Syntax:
@@ -1875,7 +1965,7 @@ _cmd_freqtables(const char *cmd, int sockfd) {
                 );
         return;
     }
-    
+
     if (0 == getfreqmaplist(list, maxnum) ) {
         size_t i=0;
         snprintf(msgbuff,sizeof(msgbuff),"\n");
@@ -1884,12 +1974,12 @@ _cmd_freqtables(const char *cmd, int sockfd) {
             snprintf(tmpbuff,sizeof(tmpbuff),"%02zu %s\n",i+1,list[i]);
             strcat(msgbuff,tmpbuff);
             ++i;
-        }        
+        }
     } else {
         snprintf(msgbuff,sizeof(msgbuff),"No frequency tables found!\n");
     }
-    
-    
+
+
 
     _writef(sockfd, msgbuff);
 }
@@ -1958,7 +2048,7 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
 
     char **field=(void *)NULL;
     int ret = matchcmd("^o" _PR_S _PR_VIDEO _PR_E, cmd, &field);
-    
+
     if( 2 == ret ) {
         unsigned video = (unsigned)xatoi(field[1]);
         if( video < max_video ) {
@@ -1967,13 +2057,13 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
             strncat(msgbuff, tmpbuff, left);
             left -= strlen(tmpbuff);
           } else {
-            strncpy(msgbuff,"Free.\n",sizeof(msgbuff)-1);	  
+            strncpy(msgbuff,"Free.\n",sizeof(msgbuff)-1);
 	  }
 	} else {
-	  snprintf(msgbuff,sizeof(msgbuff),"Video card number outside range [0,%d]\n",max_video-1);		
+	  snprintf(msgbuff,sizeof(msgbuff),"Video card number outside range [0,%d]\n",max_video-1);
 	}
-        matchcmd_free(&field);        
-        
+        matchcmd_free(&field);
+
     } else {
         // No video was specified so list all
        for (unsigned i = 0; i < (unsigned)max_video; i++) {
@@ -1990,7 +2080,7 @@ _cmd_ongoingrec(const char *cmd, int sockfd) {
     }
 
     _writef(sockfd, msgbuff);
-    
+
 }
 
 /**
@@ -2019,10 +2109,10 @@ _cmd_status(const char *cmd, int sockfd) {
     int sday = sh / 24 ;
     int smin = (ts_tmp - sh * 3600) / 60;
     sh = sh - sday*24;
-    
+
     float avg1, avg5, avg15;
     getsysload(&avg1, &avg5, &avg15);
-    
+
     int totaluptime,totalidletime;
     getuptime(&totaluptime, &totalidletime);
     int uh = totaluptime / 3600;
@@ -2059,7 +2149,7 @@ _cmd_status(const char *cmd, int sockfd) {
     strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1);
     oldlocale[sizeof(oldlocale)-1] = '\0';
     setlocale(LC_ALL,"C");
-    
+
     if( verbose_log >= 3 ) {
 
         snprintf(msgbuff,511,
@@ -2088,7 +2178,7 @@ _cmd_status(const char *cmd, int sockfd) {
                 );
 
     } else {
-        
+
         snprintf(msgbuff,511,
                 "%-16s: %s"
                 "%-16s: %s"
@@ -2277,7 +2367,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "web_password",web_password,
             "weblogin_timeout",weblogin_timeout,
 
-            "username",username, 
+            "username",username,
             "xmldbfile_name",xmldbfile,
             "max_video",max_video,
             "max_entries",max_entries,
@@ -2304,7 +2394,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "shutdown_min_uptime",shutdown_min_uptime,
             "shutdown_pre_startup_time",shutdown_pre_startup_time,
             "shutdown_script_name",shutdown_script
-             
+
             );
 }
 
@@ -2419,13 +2509,13 @@ _cmd_version(const char *cmd, int sockfd) {
                 );
         return;
     }
-    _writef(sockfd, 
+    _writef(sockfd,
             "%s %s [%s] (build: %lu.%lu)"
 #ifdef DEBUG_SIMULATE
                         "\n *** DEBUG BUILD *** WILL NOT RECORD REAL VIDEO STREAMS. THIS iS ONLY A DEBUG BUILD.\n"
 #endif
 
-            "\n",server_program_name,server_version,            
+            "\n",server_program_name,server_version,
             is_master_server ? "master" : "client",
             (unsigned long)&__BUILD_DATE,(unsigned long)&__BUILD_NUMBER);
 }
@@ -2489,11 +2579,11 @@ _cmd_cardinfo(const char *cmd, int sockfd) {
     }
     char **field=(void *)NULL;
     int ret = matchcmd("^vc" _PR_S _PR_VIDEO _PR_E, cmd, &field);
-    
+
     if( ret == 2 ) {
         unsigned video = (unsigned)xatoi(field[1]);
         char buffer[255];
-        
+
         if( 0==video_get_cardinfo(video, TRUE, buffer, sizeof(buffer)) ) {
             _writef(sockfd, "%s\n",buffer);
         } else {
@@ -2742,7 +2832,7 @@ _cmd_killtranscoding(const char *cmd, int sockfd) {
             _writef(sockfd,"All ongoing transcodings killed.\n");
         }
     }
-    
+
     matchcmd_free(&field);
 }
 
@@ -2762,7 +2852,7 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
                 );
         return;
     }
-    
+
     int ret = matchcmd("^tf" _PR_S _PR_FILEPATH _PR_SO _PR_PROFN _PR_E, cmd, &field);
     if( ret > 0 ) {
 
@@ -2784,11 +2874,11 @@ _cmd_transcodefile(const char *cmd, int sockfd) {
             strncpy(profile,default_transcoding_profile,31);
         }
         profile[31] = '\0';
-        
+
         (void)transcode_file(field[1], profile);
 
         _writef(sockfd,"Ok. Transcoding of '%s' using profile '%s' queued.\n",basename(field[1]),profile);
-        
+
         matchcmd_free(&field);
 
     } else {
@@ -2959,8 +3049,8 @@ _cmd_show_last_log(const char *cmd, int sockfd) {
     } else {
 
         _cmd_syntaxerror(cmd, sockfd);
-        return;        
-        
+        return;
+
     }
 
     unsigned len = 1024*(n+1);
@@ -3036,7 +3126,7 @@ _cmd_list_profiles_htmllinks(const char *cmd, int sockfd) {
     }
     list_profile_names_htmllinks(buff,n_buff);
     buff[n_buff-1] = '\0';
-    
+
     // This is a bit of a kludge. Normally we HTML encode all output but in
     // this special case we really want to have the HTML proper interpretation
     // so we turn off the HTML encoding by resetting the global falg which controls
@@ -3069,7 +3159,7 @@ _cmd_view_history(const char *cmd, int sockfd) {
                 "Return a list of previous N transcodings\n"
                 );
         return;
-    }   
+    }
     hist_list(sockfd);
 }
 
@@ -3080,7 +3170,7 @@ _cmd_mail_history(const char *cmd, int sockfd) {
                 "Mail a list of history\n"
                 );
         return;
-    }   
+    }
     if( -1 == hist_mail() ) {
         _writef(sockfd,"Could NOT send mail. Unknown error.\n");
     } else {
@@ -3152,7 +3242,8 @@ cmdinit(void) {
     cmdtable[CMD_MAILHIST]          = _cmd_mail_history;
     cmdtable[CMD_LIST_FREQTABLE]    = _cmd_freqtables;
     cmdtable[CMD_SET_REP_NAME_MANGLING] = _cmd_set_rep_name_mangling;
-    cmdtable[CMD_SET_REP_START_NUMBER] = _cmd_set_rep_start_number;
+    cmdtable[CMD_SET_REP_START_NUMBER]  = _cmd_set_rep_start_number;
+    cmdtable[CMD_SET_IMAGE_CONTROLS]    = _cmd_set_image_controls;
 }
 
 /**
@@ -3182,6 +3273,7 @@ _getCmdPtr(const char *cmd) {
         {"dr", CMD_DELETE},
         {"d",  CMD_DELETE},
         {"h",  CMD_HELP},
+        {"ic", CMD_SET_IMAGE_CONTROLS},
         {"i",  CMD_INFO},
         {"ktf",CMD_KILLTRANSCODING},
         {"kt", CMD_KILLTRANSCODING},
@@ -3208,7 +3300,7 @@ _getCmdPtr(const char *cmd) {
         {"q",  CMD_QUICKRECORDING},
         {"rst",CMD_RESETSTATS},
         {"rhm",CMD_MAILHIST},
-        {"rh", CMD_VIEWHIST},        
+        {"rh", CMD_VIEWHIST},
         {"rp", CMD_REFRESHPROFILE},
         {"sm", CMD_SET_REP_NAME_MANGLING},
         {"sp", CMD_SETPROFILE},
@@ -3262,7 +3354,7 @@ _getCmdPtr(const char *cmd) {
         cmdfunc = cmdfunc_slave;
         cmdlen = sizeof (cmdfunc_slave) / sizeof(struct cmd_entry);
     }
-    
+
     int i = 0;
     int inhelp=0;
 
@@ -3282,7 +3374,7 @@ _getCmdPtr(const char *cmd) {
 
     if( inhelp )
         cmd -= 2;
-    
+
     if (i < cmdlen) {
         return cmdtable[cmdfunc[i].cmd_idx];
     } else {
@@ -3307,7 +3399,7 @@ cmdinterp(char *cmd, int sockfd) {
     }
     (_getCmdPtr(cmd))(cmd,sockfd);
     _writef(sockfd,"\r\n"); // Add \r\n as an indication that the output from the command is finished
-    
+
 }
 
 

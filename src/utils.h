@@ -380,6 +380,7 @@ waitreadn(int sock, char *buffer, int maxbufflen);
 #define _PR_DATE "(" _PR_RELDATE "|" _PR_FULLDATE ")"
 
 #define _PR_VIDEO "([0-5])"
+#define _PR_50_VAL "(-?[0-4]?[0-9]|-?50)"
 #define _PR_DURATION "(0?[0-3]):([0-5][0-9])"
 #define _PR_CHANNEL "([\\p{L}_][\\p{L}\\p{N}\\p{P}\\+]*)"
 

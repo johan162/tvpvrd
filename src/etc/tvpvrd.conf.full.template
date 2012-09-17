@@ -726,4 +726,42 @@ tblcss_fontfamily         = "monospace"
 tblcss_table              = "width:700px;"
 tblcss_date               = "font-size:small;font-style:italic;margin-bottom:1px;color:#404040;"
 
+############################################################################
+# cardcontrols - Card Controls
+# Allows the adjusting of default values for volume, hue, brightness etc
+# The settings are applied to all cards
+############################################################################
+[cardcontrols]
+
+#----------------------------------------------------------------------------
+# Image adjustments
+# Values can be in range [-50, 50]
+# At card initialization all controls are set to neutral 0
+# Note: Most of the time the default setting of 0 is a sensible setting but
+# depending on your local conditions you might prefer a change.
+# Note: If the card does not support these controls they are simply ignored
+#----------------------------------------------------------------------------
+brightness = 0
+saturation = 0
+contrast   = 0 
+hue        = 0 
+
+#----------------------------------------------------------------------------
+# Color of sound adjustments
+# Values can be in range [-50, 50]
+# At card initialization all controls are set to neutral 0
+# Note: If the card does not support these controls they are simply ignored
+# (For example Hauppauge 150 supports them but 350 does not)
+#----------------------------------------------------------------------------
+balance   = 0
+bass      = 0
+treble    = 0 
+
+#----------------------------------------------------------------------------
+# Volume
+# Values can be in range [0,100]
+# At card initialization the volume is set to 85
+#----------------------------------------------------------------------------
+volume    = 85
+
 # EOF - End of ini file
