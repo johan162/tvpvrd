@@ -130,8 +130,9 @@
 #define CMD_SET_REP_NAME_MANGLING 47
 #define CMD_SET_REP_START_NUMBER 48
 #define CMD_SET_IMAGE_CONTROLS 49
+#define CMD_SET_AUDIO_CONTROLS 50
 
-#define CMD_UNDEFINED 50
+#define CMD_UNDEFINED 51
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -174,19 +175,19 @@ static void
 _cmd_help(const char *cmd, int sockfd) {
     static char msgbuff_master[3072] =
             "Commands:\n"\
-	    "  a    - Add recording\n"\
-	    "  ar   - Add repeated recording\n"\
+            "  a    - Add recording\n"\
+            "  ar   - Add repeated recording\n"\
             "  af   - Add recording from list in file\n"\
-	    "  d    - delete single recording\n"\
+            "  d    - delete single recording\n"\
             "  df   - display total and used diskspace\n"
             "  dp   - display all settings for specified profile\n"\
-	    "  dr   - delete all repeated recording\n"\
-	    "  h    - help\n"\
+            "  dr   - delete all repeated recording\n"\
+            "  h    - help\n"\
             "  i    - print detailed information on recording\n"\
             "  ic   - adjust image controls (hue,sat,contrast,brightness)\n"\
             "  kt   - kill all ongoing transcoding(s)\n"\
             "  ktf  - set/unset kill transcoding flag at shutdown\n"\
-	    "  l    - list of recordings\n"\
+            "  l    - list of recordings\n"\
             "  lc   - list all controls for the capture card\n"\
             "  lf   - list predefined frequency tables\n"\
             "  lh   - list of recordings, human format\n"\
@@ -202,10 +203,10 @@ _cmd_help(const char *cmd, int sockfd) {
             "  lph  - list all profiles with HTML links\n"\
             "  lq n - list queued transcodings\n"\
             "  mlg  - mail logfile as attachment\n"\
-	    "  n    - list the immediate next recording on each video\n"\
-	    "  o    - list the ongoing recording(s)\n"\
+            "  n    - list the immediate next recording on each video\n"\
+            "  o    - list the ongoing recording(s)\n"\
             "  ot   - list the ongoing transcoding(s)\n"\
-	    "  q    - quick recording\n"\
+            "  q    - quick recording\n"\
             "  rst  - reset all statistics\n"\
             "  rh   - view history of previous transcodings\n"\
             "  rhm  - mail history of previous transcodings\n"\
@@ -215,15 +216,15 @@ _cmd_help(const char *cmd, int sockfd) {
             "  sp   - set transcoding profile for specified recording\n"\
             "  ss   - set initial repeat series episode number\n"\
             "  st   - print profile statistics\n"\
-	    "  t    - print server time\n"\
+            "  t    - print server time\n"\
             "  tf   - transcode specified file\n"\
             "  tl   - read list of videos to transcode from file\n"\
             "  td   - transcode all videos in directory\n"\
-	    "  u    - force update of database with recordings\n"\
+            "  u    - force update of database with recordings\n"\
     	    "  v    - print version\n"\
             "  vc <n> - print information on TV-Card <n>\n"\
             "  wt   - list waiting transcodings\n"\
-	    "  x    - view database (in XML format) with recordings\n"\
+            "  x    - view database (in XML format) with recordings\n"\
             "  z    - display all settings from ini-file\n"\
             "  ! <n>  - cancel ongoing recording\n"\
             "Type h <cmd> for syntax of each command\n";
@@ -1769,6 +1770,97 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
 }
 
 /**
+ * Command: _cmd_set_audio_controls
+ *
+ * Syntax:
+ * ac v VIDEO VAL Set volume
+ * ac t VIDEO VAL Set treble
+ * ac b VIDEO VAL Set bass
+  */
+static void
+_cmd_set_audio_controls(const char *cmd, int sockfd) {
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "ac <video> <v|t|b> <value>  - Set audio control volume, treble, bass .\n"
+                 );
+        return;
+    }
+    char **field=(void *)NULL;
+    int ret = matchcmd("^ac" _PR_S _PR_VIDEO _PR_S "(v|t|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
+    unsigned video = 0;
+    int control_value = -100;
+    char *ctrl=NULL;
+
+    if( ret == 4 ) {
+        video = (unsigned)xatoi(field[1]);
+        control_value = xatoi(field[3]);
+        ctrl=field[2];
+    } else {
+        // Check if video is omitted and in that case set the values for all video cards
+        ret = matchcmd("^ac" _PR_S "(v|t|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
+        if( ret == 3 ) {
+            video = 100; // High dummy value used a flag
+            control_value = xatoi(field[2]);
+            ctrl=field[1];
+        } else {
+            _cmd_syntaxerror(cmd, sockfd);
+        }
+    }
+
+    if( ctrl ) {
+        unsigned minv=0,maxv=max_video;
+        if( 100 != video ) {
+            minv=video;maxv=video+1;
+        }
+        for( unsigned idx_video=minv; idx_video < maxv; ++idx_video ) {
+            int fd = video_open(idx_video, TRUE);
+            if (-1 == fd) {
+                _writef(sockfd, "Unable to open driver for video card = %d\n", idx_video);
+                logmsg(LOG_ERR, "Unable to open driver for video card = %d\n", idx_video);
+                return;
+            }
+
+            switch (ctrl[0]) {
+                // FIXME Volume controls have a different range!!
+                case 'v':
+                    if (-1 == video_set_audio_volume(fd, control_value)) {
+                        _writef(sockfd, "Could NOT adjust volume on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust volume on video=%d\n", idx_video);
+                    } else {
+                        _writef(sockfd, "'volume' adjusted to val=%d on video=%d\n", control_value, idx_video);
+                    }
+                    break;
+                case 't':
+                    if (-1 == video_set_audio_treble(fd, control_value)) {
+                        _writef(sockfd, "Could NOT adjust treble on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust treble on video=%d\n", idx_video);
+                    } else {
+                        _writef(sockfd, "'treble' adjusted to val=%d on video=%d\n", control_value, idx_video);
+                    }
+
+                    break;
+                case 'b':
+                    if (-1 == video_set_audio_bass(fd, control_value)) {
+                        _writef(sockfd, "Could NOT adjust bass on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust bass on video=%d\n", idx_video);
+                    } else {
+                        _writef(sockfd, "'bass' adjusted to val=%d on video=%d\n", control_value, idx_video);
+                    }
+
+                    break;
+                default:
+                    logmsg(LOG_ERR, "Unknown control for image adjust (shouldn't happen!)");
+                    break;
+            }
+            video_close(fd);
+
+
+        }
+    }
+    matchcmd_free(&field);
+}
+
+/**
  * Command: _cmd_set_image_controls
  *
  * Syntax:
@@ -1803,7 +1895,6 @@ _cmd_set_image_controls(const char *cmd, int sockfd) {
             control_value = xatoi(field[2]);
             ctrl=field[1];
         } else {
-            logmsg(LOG_DEBUG,"ret=%d",ret);
             _cmd_syntaxerror(cmd, sockfd);
         }
     }
@@ -3252,6 +3343,7 @@ cmdinit(void) {
     cmdtable[CMD_SET_REP_NAME_MANGLING] = _cmd_set_rep_name_mangling;
     cmdtable[CMD_SET_REP_START_NUMBER]  = _cmd_set_rep_start_number;
     cmdtable[CMD_SET_IMAGE_CONTROLS]    = _cmd_set_image_controls;
+    cmdtable[CMD_SET_AUDIO_CONTROLS]    = _cmd_set_audio_controls;
 }
 
 /**
@@ -3273,6 +3365,7 @@ _getCmdPtr(const char *cmd) {
     // value. It is then up to the command handler to verify the
     // rest of the command string.
     static struct cmd_entry cmdfunc_master[] = {
+        {"ac", CMD_SET_AUDIO_CONTROLS},
         {"af", CMD_ADD_FROMFILE},
         {"ar", CMD_ADD},
         {"a",  CMD_ADD},
