@@ -1036,7 +1036,7 @@ video_set_video_aspect(int fd, unsigned aspect) {
 /* Translate normalized value in range -50,50 to actual value range*/
 int
 _denorm(int normval,int min,int max,int step) {
-    const int v = floor((normval+50.0)/100.0*(max-min)+min);
+    const int v = round((normval+50.0)/100.0*(max-min))+min;
     const int vv = floor((double)v/step)*step;
     logmsg(LOG_DEBUG,"norm=%d [%d,%d]: denormalized value v=%d, adjusted vv=%d",normval,min,max,v,vv);
     return vv;
@@ -1046,7 +1046,7 @@ int
 video_set_brightness(int fd, unsigned brightness_value) {
 
     const int ctrl_val = _denorm(brightness_value,0,255,1);
-    logmsg(LOG_DEBUG,"Brightness control value=%d",ctrl_val);
+    logmsg(LOG_DEBUG,"Brightness control set to value=%d",ctrl_val);
     int ret = video_set_controlbyid(fd, V4L2_CID_BRIGHTNESS,ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video brightness fd=%d ( %d : %s )",fd,errno, strerror(errno));
@@ -1058,7 +1058,7 @@ video_set_brightness(int fd, unsigned brightness_value) {
 int
 video_set_contrast(int fd, unsigned contrast_value) {
     const int ctrl_val = _denorm(contrast_value,0,127,1);
-    logmsg(LOG_DEBUG,"Contrast control value=%d",ctrl_val);
+    logmsg(LOG_DEBUG,"Contrast control set to value=%d",ctrl_val);
     int ret = video_set_controlbyid(fd, V4L2_CID_CONTRAST, ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video contrast fd=%d ( %d : %s )",fd,errno, strerror(errno));
@@ -1070,7 +1070,7 @@ video_set_contrast(int fd, unsigned contrast_value) {
 int
 video_set_saturation(int fd, unsigned saturation_value) {
     const int ctrl_val = _denorm(saturation_value,0,127,1);
-    logmsg(LOG_DEBUG,"Saturation control value=%d",ctrl_val);
+    logmsg(LOG_DEBUG,"Saturation control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_SATURATION, ctrl_val);
     if( ret != 0 ) {
@@ -1083,7 +1083,7 @@ video_set_saturation(int fd, unsigned saturation_value) {
 int
 video_set_hue(int fd, unsigned hue_value) {
     const int ctrl_val = _denorm(hue_value,-128,127,1);
-    logmsg(LOG_DEBUG,"Hue control value=%d",ctrl_val);
+    logmsg(LOG_DEBUG,"Hue control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_HUE, ctrl_val);
     if( ret != 0 ) {
@@ -1096,7 +1096,7 @@ video_set_hue(int fd, unsigned hue_value) {
 int
 video_set_audio_treble(int fd, unsigned treble_value) {
     const int ctrl_val = _denorm(treble_value,0,65535,655);
-    logmsg(LOG_DEBUG,"Treble control value=%d",ctrl_val);
+    logmsg(LOG_DEBUG,"Treble control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_TREBLE, ctrl_val);
     if( ret != 0 ) {
@@ -1109,7 +1109,7 @@ video_set_audio_treble(int fd, unsigned treble_value) {
 int
 video_set_audio_bass(int fd, unsigned bass_value) {
     const int ctrl_val = _denorm(bass_value,0,65535,655);
-    logmsg(LOG_DEBUG,"Bass control value=%d",ctrl_val);
+    logmsg(LOG_DEBUG,"Bass control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_BASS, ctrl_val);
     if( ret != 0 ) {
@@ -1122,7 +1122,7 @@ video_set_audio_bass(int fd, unsigned bass_value) {
 int
 video_set_audio_volume(int fd, unsigned volume_value) {
     const int ctrl_val = _denorm(volume_value,0,65535,655);
-    logmsg(LOG_DEBUG,"Volume control value=%d",ctrl_val);
+    logmsg(LOG_DEBUG,"Volume control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_VOLUME, ctrl_val);
     if( ret != 0 ) {
