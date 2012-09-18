@@ -3,7 +3,6 @@
 # Automake build script
 #
 # ===============================================================================
-
 EXTRA_DIST = 10tvpvrd README ivtv.config
 
 install-data-local:

@@ -24,6 +24,7 @@ src/libsmtpmail/Makefile
 src/libiniparser/Makefile
 src/shell/Makefile
 scripts/Makefile
+scripts/pm/Makefile
 docs/Makefile
 docs/manpages/Makefile
 ])

@@ -1799,59 +1799,67 @@ _cmd_set_image_controls(const char *cmd, int sockfd) {
         // Check if video is omitted and in that case set the values for all video cards
         ret = matchcmd("^ic" _PR_S "(s|h|c|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
         if( ret == 3 ) {
+            video = 100; // High dummy value used a flag
             control_value = xatoi(field[2]);
             ctrl=field[1];
         } else {
+            logmsg(LOG_DEBUG,"ret=%d",ret);
             _cmd_syntaxerror(cmd, sockfd);
         }
     }
     if( ctrl ) {
-        int fd = video_open(video,TRUE);
-        if( -1 == fd ) {
-            _writef(sockfd,"Unable to open driver for video card = %d\n",video);
-            logmsg(LOG_ERR,"Unable to open driver for video card = %d\n",video);
-            return;
+        unsigned minv=0,maxv=max_video;
+        if( 100 != video ) {
+            minv=video;maxv=video+1;
         }
-        switch( ctrl[0] ) {
-            case 's':
-                if( -1 == video_set_saturation(fd,control_value) ) {
-                    _writef(sockfd,"Could NOT adjust saturation on video=%d\n",video);
-                    logmsg(LOG_ERR,"Could NOT adjust saturation on video=%d\n",video);
-                } else {
-                    _writef(sockfd,"'saturation' adjusted to val=%d on video=%d\n",control_value,video);
-                }
-                break;
-            case 'c':
-                if( -1 == video_set_contrast(fd,control_value) ) {
-                    _writef(sockfd,"Could NOT adjust contrast on video=%d\n",video);
-                    logmsg(LOG_ERR,"Could NOT adjust contrast on video=%d\n",video);
-                } else {
-                    _writef(sockfd,"'contrast' adjusted to val=%d on video=%d\n",control_value,video);
-                }
+        for( unsigned idx_video=minv; idx_video < maxv; ++idx_video ) {
+            int fd = video_open(idx_video, TRUE);
+            if (-1 == fd) {
+                _writef(sockfd, "Unable to open driver for video card = %d\n", idx_video);
+                logmsg(LOG_ERR, "Unable to open driver for video card = %d\n", idx_video);
+                return;
+            }
+            switch (ctrl[0]) {
+                case 's':
+                    if (-1 == video_set_saturation(fd, control_value)) {
+                        _writef(sockfd, "Could NOT adjust saturation on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust saturation on video=%d\n", idx_video);
+                    } else {
+                        _writef(sockfd, "'saturation' adjusted to val=%d on video=%d\n", control_value, idx_video);
+                    }
+                    break;
+                case 'c':
+                    if (-1 == video_set_contrast(fd, control_value)) {
+                        _writef(sockfd, "Could NOT adjust contrast on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust contrast on video=%d\n", idx_video);
+                    } else {
+                        _writef(sockfd, "'contrast' adjusted to val=%d on video=%d\n", control_value, idx_video);
+                    }
 
-                break;
-            case 'h':
-                if( -1 == video_set_hue(fd,control_value) ) {
-                    _writef(sockfd,"Could NOT adjust hue on video=%d\n",video);
-                    logmsg(LOG_ERR,"Could NOT adjust hue on video=%d\n",video);
-                } else {
-                    _writef(sockfd,"'hue' adjusted to val=%d on video=%d\n",control_value,video);
-                }
+                    break;
+                case 'h':
+                    if (-1 == video_set_hue(fd, control_value)) {
+                        _writef(sockfd, "Could NOT adjust hue on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust hue on video=%d\n", idx_video);
+                    } else {
+                        _writef(sockfd, "'hue' adjusted to val=%d on video=%d\n", control_value, idx_video);
+                    }
 
-                break;
-            case 'b':
-                if( -1 == video_set_brightness(fd,control_value) ) {
-                    _writef(sockfd,"Could NOT adjust brightness on video=%d\n",video);
-                    logmsg(LOG_ERR,"Could NOT adjust brightness on video=%d\n",video);
-                } else {
-                    _writef(sockfd,"'brightness' adjusted to val=%d on video=%d\n",control_value,video);
-                }
-                break;
-            default:
-                logmsg(LOG_ERR,"Unknown control for image adjust (shouldn't happen!)");
-                break;
+                    break;
+                case 'b':
+                    if (-1 == video_set_brightness(fd, control_value)) {
+                        _writef(sockfd, "Could NOT adjust brightness on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust brightness on video=%d\n", idx_video);
+                    } else {
+                        _writef(sockfd, "'brightness' adjusted to val=%d on video=%d\n", control_value, idx_video);
+                    }
+                    break;
+                default:
+                    logmsg(LOG_ERR, "Unknown control for image adjust (shouldn't happen!)");
+                    break;
+            }
+            video_close(fd);
         }
-        video_close(fd);
     }
     matchcmd_free(&field);
 }
