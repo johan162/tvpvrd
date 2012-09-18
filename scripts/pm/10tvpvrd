@@ -1,0 +1,15 @@
+#!/bin/sh
+
+. $PM_UTILS_LIBDIR/functions
+
+case $1 in
+    hibernate|suspend)
+        /etc/init.d/tvpvrd stop
+        ;;
+    thaw|resume)
+        /etc/init.d/tvpvrd start
+        ;;
+    *)  
+        ;;
+esac
+
