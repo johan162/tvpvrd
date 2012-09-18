@@ -1035,7 +1035,7 @@ video_set_video_aspect(int fd, unsigned aspect) {
 
 /* Translate normalized value in range -50,50 to actual value range*/
 int
-_denorm(int normval,int min,int max,int step) {
+_denorm(const int normval, const int min, const int max, const int step) {
     const int v = round((normval+50.0)/100.0*(max-min))+min;
     const int vv = floor((double)v/step)*step;
     logmsg(LOG_DEBUG,"norm=%d [%d,%d]: denormalized value v=%d, adjusted vv=%d",normval,min,max,v,vv);
@@ -1043,8 +1043,14 @@ _denorm(int normval,int min,int max,int step) {
 }
 
 int
-video_set_brightness(int fd, unsigned brightness_value) {
+_chk50val(int val) {
+    return ( val < -50 || val > 50 ) ? -1 : 0;
+}
 
+// Brightness accepts range [-50,50]
+int
+video_set_brightness(int fd, const int brightness_value) {
+    if( -1 == _chk50val(brightness_value) ) return -1;
     const int ctrl_val = _denorm(brightness_value,0,255,1);
     logmsg(LOG_DEBUG,"Brightness control set to value=%d",ctrl_val);
     int ret = video_set_controlbyid(fd, V4L2_CID_BRIGHTNESS,ctrl_val);
@@ -1055,8 +1061,10 @@ video_set_brightness(int fd, unsigned brightness_value) {
     return 0;
 }
 
+// Contrast accepts range [-50,50]
 int
-video_set_contrast(int fd, unsigned contrast_value) {
+video_set_contrast(int fd, const int contrast_value) {
+    if( -1 == _chk50val(contrast_value) ) return -1;
     const int ctrl_val = _denorm(contrast_value,0,127,1);
     logmsg(LOG_DEBUG,"Contrast control set to value=%d",ctrl_val);
     int ret = video_set_controlbyid(fd, V4L2_CID_CONTRAST, ctrl_val);
@@ -1067,8 +1075,10 @@ video_set_contrast(int fd, unsigned contrast_value) {
     return 0;
 }
 
+// Saturation accepts range [-50,50]
 int
-video_set_saturation(int fd, unsigned saturation_value) {
+video_set_saturation(int fd, const int saturation_value) {
+    if( -1 == _chk50val(saturation_value) ) return -1;
     const int ctrl_val = _denorm(saturation_value,0,127,1);
     logmsg(LOG_DEBUG,"Saturation control set to value=%d",ctrl_val);
 
@@ -1080,8 +1090,10 @@ video_set_saturation(int fd, unsigned saturation_value) {
     return 0;
 }
 
+// Hue accepts range [-50,50]
 int
-video_set_hue(int fd, unsigned hue_value) {
+video_set_hue(int fd, const int hue_value) {
+    if( -1 == _chk50val(hue_value) ) return -1;
     const int ctrl_val = _denorm(hue_value,-128,127,1);
     logmsg(LOG_DEBUG,"Hue control set to value=%d",ctrl_val);
 
@@ -1093,8 +1105,10 @@ video_set_hue(int fd, unsigned hue_value) {
     return 0;
 }
 
+// Treble accepts range [-50,50]
 int
-video_set_audio_treble(int fd, unsigned treble_value) {
+video_set_audio_treble(int fd, const int treble_value) {
+    if( -1 == _chk50val(treble_value) ) return -1;
     const int ctrl_val = _denorm(treble_value,0,65535,655);
     logmsg(LOG_DEBUG,"Treble control set to value=%d",ctrl_val);
 
@@ -1106,27 +1120,31 @@ video_set_audio_treble(int fd, unsigned treble_value) {
     return 0;
 }
 
+// Bass accepts range [-50,50]
 int
-video_set_audio_bass(int fd, unsigned bass_value) {
+video_set_audio_bass(int fd, const int bass_value) {
+    if( -1 == _chk50val(bass_value) ) return -1;
     const int ctrl_val = _denorm(bass_value,0,65535,655);
     logmsg(LOG_DEBUG,"Bass control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_BASS, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        logmsg(LOG_ERR,"Can not set audio bass fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
     }
     return 0;
 }
 
+// Volume accepts range [0,100]
 int
-video_set_audio_volume(int fd, unsigned volume_value) {
-    const int ctrl_val = _denorm(volume_value,0,65535,655);
+video_set_audio_volume(int fd, const unsigned volume_value) {
+    if( volume_value > 100 ) return -1;
+    const int ctrl_val = volume_value * 655;
     logmsg(LOG_DEBUG,"Volume control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_VOLUME, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        logmsg(LOG_ERR,"Can not set audio volume fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
     }
     return 0;

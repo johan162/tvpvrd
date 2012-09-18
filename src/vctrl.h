@@ -31,11 +31,11 @@
 extern "C" {
 #endif
 
-	
+
 /*
- * The first argument ot a number of _vctrl functions and 
+ * The first argument ot a number of _vctrl functions and
  * determines if the should set / or get specific parameters
- */	
+ */
 #define VCTRL_GET 0
 #define VCTRL_SET 1
 
@@ -183,22 +183,22 @@ video_get_video_bitrate(int fd, unsigned *bitrate, unsigned *peak_bitrate);
 /**
  * Specify the audio parameter used bu the MP2 HW encoder. Both the sampling
  * and bitrate must be specifed using one of the following symbolic defines
- * 
+ *
  * Sampling rates:
  * V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 	44.1 kHz
  * V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000 	48 kHz
  * V4L2_MPEG_AUDIO_SAMPLING_FREQ_32000 	32 kHz
- * 
+ *
  * Bitrates:
  * V4L2_MPEG_AUDIO_L2_BITRATE_192K 	192 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_224K 	224 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_256K 	256 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_320K 	320 kbit/s
  * V4L2_MPEG_AUDIO_L2_BITRATE_384K 	384 kbit/s
- * 
+ *
  * @param sampling
  * @param bitrate
- * @return -1 on error, 0 on success 
+ * @return -1 on error, 0 on success
  */
 int
 video_set_audio_bitrate(int fd, unsigned sampling, unsigned bitrate);
@@ -216,88 +216,88 @@ video_get_audio_bitrate(int fd, unsigned *sampling, unsigned *bitrate);
 /*
  * Set the video aspect for the M2 HW encoder. The aspect should be one of the
  * following defines
- * 
+ *
  * Aspect:
  * V4L2_MPEG_VIDEO_ASPECT_1x1
  * V4L2_MPEG_VIDEO_ASPECT_4x3
  * V4L2_MPEG_VIDEO_ASPECT_16x9
- * V4L2_MPEG_VIDEO_ASPECT_221x100 
- * 
+ * V4L2_MPEG_VIDEO_ASPECT_221x100
+ *
  * @return -1 on fail, 0 on success
  */
 int
 video_set_video_aspect(int fd, unsigned aspect);
 
 /**
- * Adjust image brightness (or more correctly blackness), 
- * Value is in range [-50,50] 
- * 
+ * Adjust image brightness (or more correctly blackness),
+ * Value is in range [-50,50]
+ *
  * @param fd
  * @param brightness_value
- * @return 
+ * @return
  */
 int
-video_set_brightness(int fd, unsigned brightness_value);
+video_set_brightness(int fd, const int brightness_value);
 
 /**
  * Adjust image contrast, Value is in range [-50,50]
  * @param fd
  * @param contrast_value
- * @return 
+ * @return
  */
 int
-video_set_contrast(int fd, unsigned contrast_value);
+video_set_contrast(int fd, const int contrast_value);
 
 /**
  * Adjust image saturation, Value is in range [-50,50]
  * @param fd
  * @param saturation_value
- * @return 
+ * @return
  */
 int
-video_set_saturation(int fd, unsigned saturation_value);
+video_set_saturation(int fd, const int saturation_value);
 
 /**
  * Adjust image hue, Value is in range [-50,50]
  * @param fd
  * @param hue_value
- * @return 
+ * @return
  */
 int
-video_set_hue(int fd, unsigned hue_value);
+video_set_hue(int fd, const int hue_value);
 
 /**
  * Adjust audio treble, Value is in range [-50,50]
  * @param fd
  * @param treble_value
- * @return 
+ * @return
  */
 int
-video_set_audio_treble(int fd, unsigned treble_value);
+video_set_audio_treble(int fd, const int treble_value);
 
 /**
  * Adjust audio bass, Value is in range [-50,50]
  * @param fd
  * @param bass_value
- * @return 
+ * @return
  */
 int
-video_set_audio_bass(int fd, unsigned bass_value);
+video_set_audio_bass(int fd, const int bass_value);
 
 /**
  * Adjust volume, Value is in range [0,100]
  * @param fd
  * @param volume_value
- * @return 
+ * @return
  */
 int
 video_set_audio_volume(int fd, unsigned volume_value);
 
 /**
- * 
+ *
  * @param fd
  * @param loudness_flag
- * @return 
+ * @return
  */
 int
 video_set_audio_loudness(int fd, unsigned loudness_flag);
@@ -326,7 +326,7 @@ video_get_channel(const int fd, char *ch, size_t size);
 /**
  * Set the output size ffrom the MP2 HW encoder using one
  * of the predefined sizes (See named_sizes)
- * 
+ *
  * Example:
  * set_named_size(fd,"qvga");
  * @param fd
@@ -394,7 +394,7 @@ video_set_input_source(const int fd, int index);
  * @param drvflag  Include driver name and version in output
  * @param buffer
  * @param maxlen
- * @return 
+ * @return
  */
 int
 video_get_cardinfo(unsigned video, _Bool drvflag, char *buffer, size_t maxlen);
@@ -449,7 +449,7 @@ _vctrl_get_cardinfo(int fd, char **driver, char **card,
                     char **version, unsigned int *capflags);
 
 /**
- * Determine the number of installed video cards by trying to open 
+ * Determine the number of installed video cards by trying to open
  * the first five, one by one
  * @return Number of video cards found
  */
