@@ -131,8 +131,9 @@
 #define CMD_SET_REP_START_NUMBER 48
 #define CMD_SET_IMAGE_CONTROLS 49
 #define CMD_SET_AUDIO_CONTROLS 50
+#define CMD_SET_VOLUME 51
 
-#define CMD_UNDEFINED 51
+#define CMD_UNDEFINED 52
 
 #define MAX_COMMANDS (CMD_UNDEFINED+1)
 
@@ -176,6 +177,7 @@ _cmd_help(const char *cmd, int sockfd) {
     static char msgbuff_master[3072] =
             "Commands:\n"\
             "  a    - Add recording\n"\
+            "  ac <n> - adjust audio controls (treble,bass)\n"\
             "  ar   - Add repeated recording\n"\
             "  af   - Add recording from list in file\n"\
             "  d    - delete single recording\n"\
@@ -184,7 +186,7 @@ _cmd_help(const char *cmd, int sockfd) {
             "  dr   - delete all repeated recording\n"\
             "  h    - help\n"\
             "  i    - print detailed information on recording\n"\
-            "  ic   - adjust image controls (hue,sat,contrast,brightness)\n"\
+            "  ic <n> - adjust image controls (hue,sat,contrast,brightness)\n"\
             "  kt   - kill all ongoing transcoding(s)\n"\
             "  ktf  - set/unset kill transcoding flag at shutdown\n"\
             "  l    - list of recordings\n"\
@@ -222,6 +224,7 @@ _cmd_help(const char *cmd, int sockfd) {
             "  td   - transcode all videos in directory\n"\
             "  u    - force update of database with recordings\n"\
     	    "  v    - print version\n"\
+            "  va <n> - volume adkjust on card\n"\
             "  vc <n> - print information on TV-Card <n>\n"\
             "  wt   - list waiting transcodings\n"\
             "  x    - view database (in XML format) with recordings\n"\
@@ -1769,11 +1772,73 @@ _cmd_list_video_inputs(const char *cmd, int sockfd) {
     matchcmd_free(&field);
 }
 
+
+/**
+ * Command: _cmd_set_volume
+ *
+ * Syntax:
+ * va [VIDEO] VAL
+ */
+static void
+_cmd_set_volume(const char *cmd, int sockfd) {
+    if (cmd[0] == 'h') {
+        _writef(sockfd,
+                "va <video> [0,100] - Set audio volume.\n"
+                 );
+        return;
+    }
+    char **field=(void *)NULL;
+    int ret = matchcmd("^va" _PR_S _PR_VIDEO _PR_S _PR_100_VAL _PR_E, cmd, &field);
+    unsigned video = 0;
+    int control_value = -100;
+
+    if( ret == 3 ) {
+        video = (unsigned)xatoi(field[1]);
+        control_value = xatoi(field[2]);
+    } else {
+        // Check if video is omitted and in that case set the values for all video cards
+        ret = matchcmd("^va" _PR_S _PR_100_VAL _PR_E, cmd, &field);
+        if( ret == 2 ) {
+            video = 100; // High dummy value used a flag
+            control_value = xatoi(field[2]);
+        } else {
+            _cmd_syntaxerror(cmd, sockfd);
+        }
+    }
+
+    if( control_value >= 0 ) {
+        unsigned minv=0,maxv=max_video;
+        if( 100 != video ) {
+            minv=video;maxv=video+1;
+        }
+        for( unsigned idx_video=minv; idx_video < maxv; ++idx_video ) {
+            int fd = video_open(idx_video, TRUE);
+            if (-1 == fd) {
+                _writef(sockfd, "Unable to open driver for video card = %d\n", idx_video);
+                logmsg(LOG_ERR, "Unable to open driver for video card = %d", idx_video);
+                return;
+            }
+
+            if (-1 == video_set_audio_volume(fd, control_value)) {
+                _writef(sockfd, "Could NOT adjust volume on video=%d\n", idx_video);
+                logmsg(LOG_ERR, "Could NOT adjust volume on video=%d", idx_video);
+            } else {
+                _writef(sockfd, "'volume' adjusted to val=%d on video=%d\n", control_value, idx_video);
+            }
+
+            video_close(fd);
+
+        }
+    }
+    matchcmd_free(&field);
+}
+
+
+
 /**
  * Command: _cmd_set_audio_controls
  *
  * Syntax:
- * ac v VIDEO VAL Set volume
  * ac t VIDEO VAL Set treble
  * ac b VIDEO VAL Set bass
   */
@@ -1781,12 +1846,12 @@ static void
 _cmd_set_audio_controls(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "ac <video> <v|t|b> <value>  - Set audio control volume, treble, bass .\n"
+                "ac <video> <v|t|b> [-50,50]  - Set audio control  (treble, bass) .\n"
                  );
         return;
     }
     char **field=(void *)NULL;
-    int ret = matchcmd("^ac" _PR_S _PR_VIDEO _PR_S "(v|t|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
+    int ret = matchcmd("^ac" _PR_S _PR_VIDEO _PR_S "(t|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
     unsigned video = 0;
     int control_value = -100;
     char *ctrl=NULL;
@@ -1797,7 +1862,7 @@ _cmd_set_audio_controls(const char *cmd, int sockfd) {
         ctrl=field[2];
     } else {
         // Check if video is omitted and in that case set the values for all video cards
-        ret = matchcmd("^ac" _PR_S "(v|t|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
+        ret = matchcmd("^ac" _PR_S "(t|b)" _PR_S _PR_50_VAL _PR_E, cmd, &field);
         if( ret == 3 ) {
             video = 100; // High dummy value used a flag
             control_value = xatoi(field[2]);
@@ -1821,15 +1886,6 @@ _cmd_set_audio_controls(const char *cmd, int sockfd) {
             }
 
             switch (ctrl[0]) {
-                // FIXME Volume controls have a different range!!
-                case 'v':
-                    if (-1 == video_set_audio_volume(fd, control_value)) {
-                        _writef(sockfd, "Could NOT adjust volume on video=%d\n", idx_video);
-                        logmsg(LOG_ERR, "Could NOT adjust volume on video=%d\n", idx_video);
-                    } else {
-                        _writef(sockfd, "'volume' adjusted to val=%d on video=%d\n", control_value, idx_video);
-                    }
-                    break;
                 case 't':
                     if (-1 == video_set_audio_treble(fd, control_value)) {
                         _writef(sockfd, "Could NOT adjust treble on video=%d\n", idx_video);
@@ -1873,7 +1929,7 @@ static void
 _cmd_set_image_controls(const char *cmd, int sockfd) {
     if (cmd[0] == 'h') {
         _writef(sockfd,
-                "ic <video> <s|c|h|b> <value>  - Set image control saturation, contrast, hue, brightness .\n"
+                "ic <video> <s|c|h|b> [-50,50]  - Set image control (saturation, contrast, hue, brightness).\n"
                  );
         return;
     }
@@ -1907,14 +1963,14 @@ _cmd_set_image_controls(const char *cmd, int sockfd) {
             int fd = video_open(idx_video, TRUE);
             if (-1 == fd) {
                 _writef(sockfd, "Unable to open driver for video card = %d\n", idx_video);
-                logmsg(LOG_ERR, "Unable to open driver for video card = %d\n", idx_video);
+                logmsg(LOG_ERR, "Unable to open driver for video card = %d", idx_video);
                 return;
             }
             switch (ctrl[0]) {
                 case 's':
                     if (-1 == video_set_saturation(fd, control_value)) {
                         _writef(sockfd, "Could NOT adjust saturation on video=%d\n", idx_video);
-                        logmsg(LOG_ERR, "Could NOT adjust saturation on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust saturation on video=%d", idx_video);
                     } else {
                         _writef(sockfd, "'saturation' adjusted to val=%d on video=%d\n", control_value, idx_video);
                     }
@@ -1922,7 +1978,7 @@ _cmd_set_image_controls(const char *cmd, int sockfd) {
                 case 'c':
                     if (-1 == video_set_contrast(fd, control_value)) {
                         _writef(sockfd, "Could NOT adjust contrast on video=%d\n", idx_video);
-                        logmsg(LOG_ERR, "Could NOT adjust contrast on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust contrast on video=%d", idx_video);
                     } else {
                         _writef(sockfd, "'contrast' adjusted to val=%d on video=%d\n", control_value, idx_video);
                     }
@@ -1931,7 +1987,7 @@ _cmd_set_image_controls(const char *cmd, int sockfd) {
                 case 'h':
                     if (-1 == video_set_hue(fd, control_value)) {
                         _writef(sockfd, "Could NOT adjust hue on video=%d\n", idx_video);
-                        logmsg(LOG_ERR, "Could NOT adjust hue on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust hue on video=%d", idx_video);
                     } else {
                         _writef(sockfd, "'hue' adjusted to val=%d on video=%d\n", control_value, idx_video);
                     }
@@ -1940,7 +1996,7 @@ _cmd_set_image_controls(const char *cmd, int sockfd) {
                 case 'b':
                     if (-1 == video_set_brightness(fd, control_value)) {
                         _writef(sockfd, "Could NOT adjust brightness on video=%d\n", idx_video);
-                        logmsg(LOG_ERR, "Could NOT adjust brightness on video=%d\n", idx_video);
+                        logmsg(LOG_ERR, "Could NOT adjust brightness on video=%d", idx_video);
                     } else {
                         _writef(sockfd, "'brightness' adjusted to val=%d on video=%d\n", control_value, idx_video);
                     }
@@ -3344,6 +3400,7 @@ cmdinit(void) {
     cmdtable[CMD_SET_REP_START_NUMBER]  = _cmd_set_rep_start_number;
     cmdtable[CMD_SET_IMAGE_CONTROLS]    = _cmd_set_image_controls;
     cmdtable[CMD_SET_AUDIO_CONTROLS]    = _cmd_set_audio_controls;
+    cmdtable[CMD_SET_VOLUME]            = _cmd_set_volume;
 }
 
 /**
@@ -3412,6 +3469,7 @@ _getCmdPtr(const char *cmd) {
         {"tl", CMD_TRANSCODEFILELIST},
         {"t",  CMD_TIME},
         {"u",  CMD_UPDATEXMLFILE},
+        {"va", CMD_SET_VOLUME},
         {"vc", CMD_CARDINFO},
         {"v",  CMD_VERSION},
         {"wt", CMD_LISTWAITINGTRANSC},
