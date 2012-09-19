@@ -11,18 +11,20 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 User visible changes:
     - Added config scripts to allow ivtv driver to work well with suspend/hibernate
       function. The ivtv kernel module is not power aware and hence must be unloaded
-      before a power event. This change adds pm-util confi scripts which will
+      before a power event. This change adds pm-util config scripts which will
       load/unload the driver properly as well as having the daemon reinitialize the
       HW when the system is woken up again.
-    - Added 'ic' command to allow the adjusting of video parameters (saturation,
+    - Added 'ic' command to allow the adjusting the image parameters (saturation,
       contrast, hue and brightness) in the video stream. Each card can be individually
       tuned.
+    - Added 'ac' command to allow adjusting of audio controls (bass and treble)
+    - Added 'va' command to allow volume adjusting
 
 Bugs fixed:
     - None
 
 Internal changes:
-    - Spell checking in code
+    - Some spell checking in code comments
     - Updated build environment to automake 1.12.1 and autoconfig 2.69
 
 

@@ -192,7 +192,7 @@ getwsetsize(int pid, int *size, char *unit, int *threads);
  * URL encode into a allocated buffer
  * Note: Calling function is responsible to free returned string
  * @param str
- * @return 
+ * @return
  */
 char *
 url_encode(char *str);
@@ -201,7 +201,7 @@ url_encode(char *str);
  * URL decode a into a allocated buffer
  * Note: Calling function is responsible to free returned string
  * @param str
- * @return 
+ * @return
  */
 char *
 url_decode(char *str);
@@ -219,9 +219,9 @@ url_decode_inplace(char *str,size_t maxlen);
  * @param decode
  * @param maxlen
  * @param str
- * @return 
+ * @return
  */
-int 
+int
 url_decode_buff(char *decode, size_t maxlen, char *str);
 
 char *
@@ -249,7 +249,7 @@ get_assoc_value(char *value, size_t maxlen, char *key, char *list[], size_t list
  * @param maxlen
  * @param key
  * @param v
- * @return 
+ * @return
  */
 int
 get_assoc_value_s(struct keypair_t kv[],size_t maxlen,char *key,char **v);
@@ -260,7 +260,7 @@ get_assoc_value_s(struct keypair_t kv[],size_t maxlen,char *key,char **v);
  * @param maxlen
  * @param key
  * @param v
- * @return 
+ * @return
  */
 int
 get_assoc_value_i(struct keypair_t kv[],size_t maxlen,char *key,int *v);
@@ -380,7 +380,8 @@ waitreadn(int sock, char *buffer, int maxbufflen);
 #define _PR_DATE "(" _PR_RELDATE "|" _PR_FULLDATE ")"
 
 #define _PR_VIDEO "([0-5])"
-#define _PR_50_VAL "(-?[0-4]?[0-9]|-?50)"
+#define _PR_50_VAL "(-?[0-4]?[0-9]|-?50)" // [-50,50]
+#define _PR_100_VAL "(100|[0-9]?[0-9])" // [0,100]
 #define _PR_DURATION "(0?[0-3]):([0-5][0-9])"
 #define _PR_CHANNEL "([\\p{L}_][\\p{L}\\p{N}\\p{P}\\+]*)"
 
