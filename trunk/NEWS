@@ -6,7 +6,7 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.3.1
+4.4.0
 ------
 User visible changes:
     - Added config scripts to allow ivtv driver to work well with suspend/hibernate
@@ -19,13 +19,17 @@ User visible changes:
       tuned.
     - Added 'ac' command to allow adjusting of audio controls (bass and treble)
     - Added 'va' command to allow volume adjusting
+    - Added settings in config file to adjust image and audio user controls default
+      value (contrast,sat,hue,brightness,treble,bass,volume) The same settings are
+      applied to all installed cards.
 
 Bugs fixed:
-    - None
+    - None (no bugs reported or detected)
 
 Internal changes:
     - Some spell checking in code comments
-    - Updated build environment to automake 1.12.1 and autoconfig 2.69
+    - Updated build environment to use automake 1.12.1 and autoconfig 2.69
+
 
 
 4.3.0 (22 aug 2012)

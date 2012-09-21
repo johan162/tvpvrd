@@ -115,7 +115,7 @@ extern "C" {
  * Theme for the Web-interface
  */
 #define DEFAULT_WEB_THEME "night"
-    
+
 /*
  * DEFAULT_THEME_SELECT boolean
  * Should theme selection dropdown box be displayed on Web-interface
@@ -127,15 +127,15 @@ extern "C" {
  * Should the web interface display the quick recording command module
  */
 #define DEFAULT_DISPLAY_WEB_QADD 1
-    
+
 #define DEFAULT_AUTODISPLAY_TRANSC 0
-    
+
 /*
  * DEFAULT_DISPLAY_ADVANCED_REC_CONTROL boolean
  * Decide if the advanced recording controls should be displayed in the WEB-UI
- */    
+ */
 #define DEFAULT_DISPLAY_ADVANCED_REC_CONTROL 0
-    
+
 /*
  * Note: All the defines for general settings are read from an inifile
  * If the ini file is missing some values then the defines below will be used
@@ -195,14 +195,14 @@ extern "C" {
 /*
  * DEFAULT_REPEAT_NAME_MANGLE_TYPE integer
  * Select default type of name mangling for series recording
- */    
-#define DEFAULT_REPEAT_NAME_MANGLE_TYPE 1    
+ */
+#define DEFAULT_REPEAT_NAME_MANGLE_TYPE 1
 
 /*
  * MAX_CLIENTS integer
  * Max number of clients that are allowed to connect to us
  */
-#define MAX_CLIENTS 2
+#define MAX_CLIENTS 5
 
 /*
  * CLIENT_IDLE_TIME integer
@@ -271,7 +271,7 @@ extern "C" {
  * Maximum length of frequency map name string
  */
 #define MAX_FMAPNAME_LENGTH    32
-    
+
 /*
  * TUNER_INPUT_INDEX integer
  * This is the input index for the tuner on the capture card. A tuner card
@@ -649,6 +649,31 @@ extern char tblcss_header_fontfamily[];
 extern char tblcss_fontfamily[];
 extern char tblcss_table[];
 extern char tblcss_date[];
+
+
+/*
+ * Card controls. Default settings. Note that all cards do not support the treble and bass
+ * controls. If the card doesn't support them they will just be ignored
+ *
+ */
+
+#define DEFAULT_IMAGE_BRIGHTNESS 0
+#define DEFAULT_IMAGE_CONTRAST 0
+#define DEFAULT_IMAGE_HUE 0
+#define DEFAULT_IMAGE_SATURATION 0
+#define DEFAULT_AUDIO_TREBLE 0
+#define DEFAULT_AUDIO_BASS 0
+#define DEFAULT_AUDIO_VOLUME 85
+#define DEFAULT_AUDIO_LOUDNESS 1
+
+extern int card_image_brightness;
+extern int card_image_contrast;
+extern int card_image_hue;
+extern int card_image_saturation;
+extern int card_audio_treble;
+extern int card_audio_bass;
+extern int card_audio_volume;
+extern int card_audio_loudness;
 
 #ifdef	__cplusplus
 }
