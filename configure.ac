@@ -132,7 +132,7 @@ AC_FUNC_FORK
 AC_FUNC_MKTIME
 
 # ===============================================================================
-# Check for standard Unix types that we use. This is almost unnecessary since this 
+# Check for standard Unix types that we use. This is almost unnecessary since this
 # should be available in all sane systems
 # ===============================================================================
 AC_TYPE_UID_T
@@ -153,7 +153,7 @@ AC_CHECK_FUNCS([atexit bzero floor getcwd inet_ntoa memset mkdir rmdir select so
 # includes pre-built versions of the man pages. However a package maintainer that wants to modify or
 # rebuild the man pages will need to have a full Docbook 5 setup.
 # ===============================================================================
-AC_DEFUN([AC_CHECK_XSLDOCBOOK],[ 
+AC_DEFUN([AC_CHECK_XSLDOCBOOK],[
 DOCBOOK_XSL=
 if test ! -f /etc/xml/catalog; then
         for i in /usr/share/sgml/docbook/stylesheet/xsl/nwalsh /usr/share/sgml/docbook/xsl-stylesheets /usr/share/xml/docbook/stylesheet/nwalsh/current
@@ -186,15 +186,15 @@ fi
 
 AM_CONDITIONAL(have_xsltproc, test "$XSLTPROC_WORKS" = "yes")
 
-AC_CHECK_PROG(JAVAFOP,fop,fop,no)
-AM_CONDITIONAL(have_javafop, test $JAVAFOP = fop)
+AC_CHECK_PROG(JAVAFOP,fop,yes,no)
+AM_CONDITIONAL(have_javafop, test $JAVAFOP = yes)
 
 AC_SUBST(DOCBOOK_XSL)
 ])
 
 # ===============================================================================
 # MACRO AC_CHECK_FFMPEG
-# The following macro checks for a working version of the ffmpeg program. 
+# The following macro checks for a working version of the ffmpeg program.
 # ===============================================================================
 AC_DEFUN([AC_CHECK_FFMPEG],[
   AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
@@ -213,6 +213,22 @@ else
                     AC_MSG_RESULT([no])
 fi
 AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
+])
+
+# ===============================================================================
+# MACRO AC_CHECK_PMTOOLS
+# Determine if the system uses pm-tools to control power management. In that
+# case the install script will put come scripts to remove the ivtv driver from
+# the kernel and shut down tvpvrd before hibernatoin and sleep.
+# ===============================================================================
+AC_DEFUN([AC_CHECK_PMTOOLS],[
+AC_MSG_CHECKING([if system uses pm-tools])
+if test -d /etc/pm/sleep.d; then
+                    AC_MSG_RESULT([yes])
+else
+                    AC_MSG_RESULT([no])
+fi
+AM_CONDITIONAL(have_pmtools, test -d /etc/pm/sleep.d)
 ])
 
 # ===============================================================================
@@ -241,6 +257,7 @@ AC_DEFINE_UNQUOTED([LOGIN_COOKIE_SEED],"${cookie_seed}",[Cookie seed for WEB-log
 AC_CHECK_DEBINIFILES
 AC_CHECK_XSLDOCBOOK
 AC_CHECK_FFMPEG
+AC_CHECK_PMTOOLS
 
 # ===============================================================================
 # Output all generated files
@@ -251,11 +268,14 @@ AC_OUTPUT
 # Finally give some information to the user about the configuration setup
 # ===============================================================================
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
-AC_MSG_NOTICE([INSTALLATION SUMMARY])
-    AC_MSG_NOTICE([Basic system configuration is ok.])
+AC_MSG_NOTICE([INSTALLATION SUMMARY - Basic system configuration is ok.])
 if test "x${have_iniparser_h}" = xno; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([  - Will use built-in iniparser library.])
+fi
+if test -d /etc/pm/sleep.d ; then
+   AC_MSG_NOTICE([ ])
+   AC_MSG_NOTICE([  - Will install pm-util hooks to unload ivtv driver.])
 fi
 if test "x${have_readline_h}" = xno; then
    AC_MSG_NOTICE([ ])
@@ -270,33 +290,41 @@ if test ! "$HAVE_FFMPEGBIN" ; then
    AC_MSG_NOTICE([assume that when ffmpeg is used it is reasonable new and supports new style arguments.])
 else
    AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([Even though you have ffmpeg there might be still problem using it depending if you have])
-   AC_MSG_NOTICE([the x264 (mpeg4) encoder properly installed. Please check the full tvpvrd log to see the])
-   AC_MSG_NOTICE([exact command line used to invoke ffmpeg. Try that manually and resolve any missing])
-   AC_MSG_NOTICE([dependencies until you can manually run the ffmpeg command])
+   AC_MSG_NOTICE([  - 'ffmpeg' command installed. ])
+   AC_MSG_NOTICE([ ])
+   AC_MSG_NOTICE([Even though you have ffmpeg there might be still problem using it depending])
+   AC_MSG_NOTICE([if you have the x264 (mpeg4) encoder properly installed. Please check the ])
+   AC_MSG_NOTICE([full tvpvrd log in case of errors to see the exact command line used to invoke])
+   AC_MSG_NOTICE([ffmpeg. Try that manually and resolve any missing dependencies until you can ])
+   AC_MSG_NOTICE([manually run the ffmpeg command.])
 fi
-        
+
 AC_MSG_NOTICE([ ])
 
 if  test "$XSLTPROC_WORKS" = "yes"; then
+    AC_MSG_NOTICE([  - Found Docbook5 and 'xsltproc'.])
+    AC_MSG_NOTICE([ ])
     if test "$JAVAFOP" = "no"; then
-        AC_MSG_NOTICE([In addition the man page can be rebuilt in both html and Unix man format])
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([The man page can be rebuilt in both html and Unix man format])
         AC_MSG_NOTICE([but the man page can NOT not be rebuild in PDF format. Please install 'fop'])
         AC_MSG_NOTICE([if you want to modify the man page and create a new PDF version])
         AC_MSG_NOTICE([ ])
         AC_MSG_NOTICE([Pre-built versions of the man pages are included in the distribution ])
         AC_MSG_NOTICE([and the install will use these.])
     else
-        AC_MSG_NOTICE([In addition the man pages can be rebuilt in both html, Unix man format, and])
-        AC_MSG_NOTICE([most likely in PDF format.])
+        AC_MSG_NOTICE([  - Found 'fop' processor.])
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([The man pages can be rebuilt in both html, Unix man format, and])
+        AC_MSG_NOTICE([in PDF format (using 'fop').])
         AC_MSG_NOTICE([ ])
         AC_MSG_NOTICE([In case you get any complains when building PDF files about missing hyphenation])
-        AC_MSG_NOTICE([please see: http://offo.sourceforge.net/hyphenation/binary/installation.html ]) 
+        AC_MSG_NOTICE([please see: http://offo.sourceforge.net/hyphenation/binary/installation.html ])
         AC_MSG_NOTICE([ ])
     fi
 else
-    AC_MSG_NOTICE([However, man pages can not be rebuilt with current system configuration.])
-    AC_MSG_NOTICE([System needs to have DocBook5 and xsltproc installed to do this.])
+    AC_MSG_NOTICE([Documentation (man pages) can NOT be rebuilt with current system configuration.])
+    AC_MSG_NOTICE([System needs to have 'DocBook5' together with 'xsltproc' installed to do this.])
     AC_MSG_NOTICE([Pre-built versions of the man pages will be installed. So this is not an issue ])
     AC_MSG_NOTICE([unless you want to modify the included man page])
 fi
