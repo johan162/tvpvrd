@@ -319,6 +319,8 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 int
 setup_audio_image_controls(const int fd) {
 
+    // These controls should always be available on all cards so
+    // give error if there are some troubles.
     if( -1 == video_set_brightness(fd,card_image_brightness) ||
         -1 == video_set_saturation(fd,card_image_saturation) ||
         -1 == video_set_contrast(fd,card_image_contrast) ||
@@ -329,7 +331,9 @@ setup_audio_image_controls(const int fd) {
     // these controls.
     (void)video_set_audio_bass(fd,card_audio_bass);
     (void)video_set_audio_treble(fd,card_audio_treble);
+    (void)video_set_audio_loudness(fd,card_audio_loudness);
 
+    // All cards should support volume
     if( -1 == video_set_audio_volume(fd,card_audio_volume) )
         return -1;
 
