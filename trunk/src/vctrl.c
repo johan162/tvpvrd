@@ -1052,11 +1052,13 @@ int
 video_set_brightness(int fd, const int brightness_value) {
     if( -1 == _chk50val(brightness_value) ) return -1;
     const int ctrl_val = _denorm(brightness_value,0,255,1);
-    logmsg(LOG_DEBUG,"Brightness control set to value=%d",ctrl_val);
+
     int ret = video_set_controlbyid(fd, V4L2_CID_BRIGHTNESS,ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video brightness fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Brightness control set to value=%d",ctrl_val);
     }
     return 0;
 }
@@ -1066,11 +1068,13 @@ int
 video_set_contrast(int fd, const int contrast_value) {
     if( -1 == _chk50val(contrast_value) ) return -1;
     const int ctrl_val = _denorm(contrast_value,0,127,1);
-    logmsg(LOG_DEBUG,"Contrast control set to value=%d",ctrl_val);
+
     int ret = video_set_controlbyid(fd, V4L2_CID_CONTRAST, ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video contrast fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Contrast control set to value=%d",ctrl_val);
     }
     return 0;
 }
@@ -1080,12 +1084,13 @@ int
 video_set_saturation(int fd, const int saturation_value) {
     if( -1 == _chk50val(saturation_value) ) return -1;
     const int ctrl_val = _denorm(saturation_value,0,127,1);
-    logmsg(LOG_DEBUG,"Saturation control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_SATURATION, ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Saturation control set to value=%d",ctrl_val);
     }
     return 0;
 }
@@ -1095,13 +1100,15 @@ int
 video_set_hue(int fd, const int hue_value) {
     if( -1 == _chk50val(hue_value) ) return -1;
     const int ctrl_val = _denorm(hue_value,-128,127,1);
-    logmsg(LOG_DEBUG,"Hue control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_HUE, ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Hue control set to value=%d",ctrl_val);
     }
+
     return 0;
 }
 
@@ -1110,12 +1117,13 @@ int
 video_set_audio_treble(int fd, const int treble_value) {
     if( -1 == _chk50val(treble_value) ) return -1;
     const int ctrl_val = _denorm(treble_value,0,65535,655);
-    logmsg(LOG_DEBUG,"Treble control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_TREBLE, ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Treble control set to value=%d",ctrl_val);
     }
     return 0;
 }
@@ -1125,12 +1133,13 @@ int
 video_set_audio_bass(int fd, const int bass_value) {
     if( -1 == _chk50val(bass_value) ) return -1;
     const int ctrl_val = _denorm(bass_value,0,65535,655);
-    logmsg(LOG_DEBUG,"Bass control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_BASS, ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set audio bass fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Bass control set to value=%d",ctrl_val);
     }
     return 0;
 }
@@ -1140,12 +1149,13 @@ int
 video_set_audio_volume(int fd, const unsigned volume_value) {
     if( volume_value > 100 ) return -1;
     const int ctrl_val = volume_value * 655;
-    logmsg(LOG_DEBUG,"Volume control set to value=%d",ctrl_val);
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_VOLUME, ctrl_val);
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set audio volume fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Volume control set to value=%d",ctrl_val);
     }
     return 0;
 }
@@ -1156,11 +1166,11 @@ video_set_audio_loudness(int fd, unsigned loudness_flag) {
     if( ret != 0 ) {
         logmsg(LOG_ERR,"Can not set audio loudness flag fd=%d ( %d : %s )",fd,errno, strerror(errno));
         return -1;
+    } else {
+        logmsg(LOG_INFO,"Loudness flag set to value=%d",loudness_flag?1:0);
     }
     return 0;
 }
-
-
 
 
 /*
