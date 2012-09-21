@@ -262,6 +262,19 @@ char tblcss_fontfamily[MAX_TBLCSS_SIZE];
 char tblcss_table[MAX_TBLCSS_SIZE];
 char tblcss_date[MAX_TBLCSS_SIZE];
 
+/*
+ * Card controls for audio and video image adjusts
+ */
+ int card_image_brightness;
+ int card_image_contrast;
+ int card_image_hue;
+ int card_image_saturation;
+ int card_audio_treble;
+ int card_audio_bass;
+ int card_audio_volume;
+ int card_audio_loudness;
+
+
 /**
  * Setup the dictionary file (ini-file) name. Check if it is specified on
  * the command line otherwise check common locations.
@@ -303,12 +316,12 @@ void
 read_inisettings(void) {
 
 
-	
-    char oldlocale[64]; 
-    strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1); 
-    oldlocale[sizeof(oldlocale)-1] = '\0'; 
+
+    char oldlocale[64];
+    strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1);
+    oldlocale[sizeof(oldlocale)-1] = '\0';
     setlocale(LC_ALL,"C");
-    
+
     /*--------------------------------------------------------------------------
      * CONFIG Section
      *--------------------------------------------------------------------------
@@ -330,14 +343,14 @@ read_inisettings(void) {
             iniparser_getstring(dict, "config:external_switch_script", DEFAULT_EXTERNAL_SWITCH_SCRIPT),
             sizeof(external_switch_script)-1);
     external_switch_script[sizeof(external_switch_script)-1] = '\0';
-    
+
     strncpy(external_tuner_station,
             iniparser_getstring(dict, "config:external_tuner_station", ""),
             sizeof(external_tuner_station)-1);
     external_tuner_station[sizeof(external_tuner_station)-1] = '\0';
-        
 
-    
+
+
 
     max_entries         = (unsigned)validate(1,4096,"max_entries",
                                    iniparser_getint(dict, "config:max_entries", MAX_ENTRIES));
@@ -360,7 +373,7 @@ read_inisettings(void) {
 
     time_resolution     = (unsigned)validate(1,30,"time_resolution",
                                     iniparser_getint(dict, "config:time_resolution", TIME_RESOLUTION));
-    
+
     default_repeat_name_mangle_type = validate(0,2,"default_repeat_name_mangle_type",
                                     iniparser_getint(dict, "config:default_repeat_name_mangle_type", DEFAULT_REPEAT_NAME_MANGLE_TYPE));
 
@@ -381,7 +394,7 @@ read_inisettings(void) {
     weblogin_timeout = validate(0,120,"weblogin_timeout",
                                     iniparser_getint(dict, "config:weblogin_timeout", WEBLOGIN_TIMEOUT));
     weblogin_timeout *= 60; // Convert to seconds
-    
+
     strncpy(password,
             iniparser_getstring(dict, "config:password", ""),
             31);
@@ -410,7 +423,7 @@ read_inisettings(void) {
                     "FATAL error. "
                     "Could not correctly parse station/channel alias file '%s'. Please check that all channel name exists in the specified frequency map.",xawtv_channel_file);
             exit(EXIT_FAILURE);
-        }        
+        }
     }
 
     strncpy(datadir,
@@ -579,7 +592,7 @@ read_inisettings(void) {
 
     shutdown_pre_startup_time = validate(60,600,"pre_startup_time",
                                  iniparser_getint(dict, "shutdown:pre_startup_time", DEFAULT_SHUTDOWN_PRE_STARTUP_TIME));
-    
+
     shutdown_min_uptime = validate(3*60,7200,"shutdown_min_uptime",
                                  iniparser_getint(dict, "shutdown:min_uptime", DEFAULT_SHUTDOWN_MIN_UPTIME));
 
@@ -592,15 +605,15 @@ read_inisettings(void) {
     strncpy(web_theme,
             iniparser_getstring(dict, "format:web_theme", DEFAULT_WEB_THEME),
             sizeof(web_theme)-1);
-    
+
     disp_theme_select = iniparser_getboolean(dict, "format:web_display_theme", DEFAULT_THEME_SELECT);
-    
+
     web_display_qadd = iniparser_getboolean(dict, "format:web_display_qadd", DEFAULT_THEME_SELECT);
-    
+
     web_autodisplay_transc = iniparser_getboolean(dict, "format:web_autodisplay_transc", DEFAULT_AUTODISPLAY_TRANSC);
-    
-    display_advanced_rec_control = iniparser_getboolean(dict,"format:web_display_advanced_rec_control",DEFAULT_DISPLAY_ADVANCED_REC_CONTROL);    
-    
+
+    display_advanced_rec_control = iniparser_getboolean(dict,"format:web_display_advanced_rec_control",DEFAULT_DISPLAY_ADVANCED_REC_CONTROL);
+
     strncpy(tblcss_vborder_interior,
             iniparser_getstring(dict, "format:tblcss_vborder_interior", TBLCSS_VBORDER_INTERIOR),
             MAX_TBLCSS_SIZE-1);
@@ -655,6 +668,34 @@ read_inisettings(void) {
             iniparser_getstring(dict, "format:tblcss_header_fontfamily", TBLCSS_HEADER_FONTFAMILY),
             MAX_TBLCSS_SIZE-1);
     tblcss_header_fontfamily[MAX_TBLCSS_SIZE-1] = '\0';
+
+    /*--------------------------------------------------------------------------
+     * Card control section
+     *--------------------------------------------------------------------------
+     */
+
+    card_image_contrast = validate(-50,50,"image_contrast",
+                                 iniparser_getint(dict, "cardcontrols:image_contrast", DEFAULT_IMAGE_CONTRAST));
+
+    card_image_brightness = validate(-50,50,"image_brightness",
+                                 iniparser_getint(dict, "cardcontrols:image_brightness", DEFAULT_IMAGE_BRIGHTNESS));
+
+    card_image_hue = validate(-50,50,"image_hue",
+                                 iniparser_getint(dict, "cardcontrols:image_hue", DEFAULT_IMAGE_HUE));
+
+    card_image_saturation = validate(-50,50,"image_saturation",
+                                 iniparser_getint(dict, "cardcontrols:image_saturation", DEFAULT_IMAGE_SATURATION));
+
+    card_audio_bass = validate(-50,50,"audio_bass",
+                                 iniparser_getint(dict, "cardcontrols:audio_bass", DEFAULT_AUDIO_BASS));
+
+    card_audio_treble = validate(-50,50,"audio_treble",
+                                 iniparser_getint(dict, "cardcontrols:audio_treble", DEFAULT_AUDIO_TREBLE));
+
+    card_audio_volume = validate(0,100,"audio_volume",
+                                 iniparser_getint(dict, "cardcontrols:audio_volume", DEFAULT_AUDIO_VOLUME));
+
+    card_audio_loudness = iniparser_getboolean(dict, "cardcontrols:audio_loudness", DEFAULT_AUDIO_LOUDNESS);
 
 
     /*--------------------------------------------------------------------------

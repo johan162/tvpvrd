@@ -176,21 +176,21 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 
 #ifndef DEBUG_SIMULATE
         video_set_input_source(fdtuner,external_input);
-        
+
         // If the external input is the tuner input we must set the tuning
         // as well which should have been provided in the config file by the
         // end user.
         if( external_input == tuner_input_index ) {
-            
+
             logmsg(LOG_DEBUG,"setup_video(): Using external tuner input and setting external_tuner_station.");
-            
+
             // Check if user actually provided a tuning, error otherwise
             if( 0 == strnlen(external_tuner_station,15) ) {
                 logmsg(LOG_CRIT,"FATAL: external_tuner_station not specified in config file");
                 video_close(fdtuner);
                 return -1;
             }
-            
+
             // Try to set the correct channel to listen on
             int ret = video_set_channel(fdtuner, external_tuner_station);
             int i=2;
@@ -198,8 +198,8 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
                 usleep((unsigned)(500*(3-i)));
                 ret = video_set_channel(fdtuner, external_tuner_station);
                 i--;
-            }      
-            
+            }
+
             if( ret == -1 ) {
                 logmsg(LOG_CRIT,"FATAL: Cannot set tuner to external channel ( %d : %s )",errno,strerror(errno));
                 video_close(fd);
@@ -208,17 +208,17 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
                 }
 
                 return -1;
-            }            
+            }
 
         } else {
-            
+
            if( 0 != strnlen(external_tuner_station,15) ) {
                 logmsg(LOG_WARNING,"Warning: Using external switching with external_tuner_station specified but external input does not correspond to the tuner.");
-           }            
-            
+           }
+
         }
-        
-        
+
+
 #endif
         char csname[128];
         snprintf(csname,128,"%s/tvpvrd/shellscript/%s",CONFDIR,external_switch_script);
@@ -312,6 +312,32 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 }
 
 /**
+ * Setup the image and audio controls for the specified video card
+ * @param fd
+ * @return
+ */
+int
+setup_audio_image_controls(const int fd) {
+
+    if( -1 == video_set_brightness(fd,card_image_brightness) ||
+        -1 == video_set_saturation(fd,card_image_saturation) ||
+        -1 == video_set_contrast(fd,card_image_contrast) ||
+        -1 == video_set_hue(fd,card_image_hue) )
+        return -1;
+
+    // Ignore errors for audio controls. There are cards that do not support
+    // these controls.
+    (void)video_set_audio_bass(fd,card_audio_bass);
+    (void)video_set_audio_treble(fd,card_audio_treble);
+
+    if( -1 == video_set_audio_volume(fd,card_audio_volume) )
+        return -1;
+
+    return 0;
+
+}
+
+/**
  * Set the initial parameters for the TV-card so we know that they exist
  * and have a known state in case the profiles are not allowed to change
  * HW parameters.
@@ -321,6 +347,7 @@ setup_capture_cards(void) {
 
     // If each profile is allowed to set the HW encoding parameters then we
     // do not need to do anything here.
+    // Otherwise we use the default profile values as defaults on all cards
     if( !allow_profiles_adj_encoder ) {
         struct transcoding_profile_entry *profile;
         get_transcoding_profile(default_transcoding_profile,&profile);
@@ -333,6 +360,21 @@ setup_capture_cards(void) {
                 logmsg(LOG_ERR,"Fatal error. Cannot initialize HW capture card(s) ( %d : %s )", errno, strerror(errno));
                 _exit(EXIT_FAILURE);
             }
+        }
+    }
+
+    // For all cards we also initialize the image and audio control values to the
+    // values specified in the config file. For now this is just specified once for all
+    // cards and profiles.
+    // FIXME: The image and audio controls should be settable individually in each profile
+    for(unsigned video=0; video < max_video; video++) {
+        int fd = video_open(video,FALSE);
+        int ret = setup_audio_image_controls(fd);
+        video_close(fd);
+        if( -1 == ret ) {
+            // We can ignore errors here. Usually it means that one or more controls
+            // was not supported by the specific card.
+            logmsg(LOG_ERR,"Cannot set HW capture card(s) audio/image controls ( %d : %s )", errno, strerror(errno));
         }
     }
 }

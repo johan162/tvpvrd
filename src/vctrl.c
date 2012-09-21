@@ -1,13 +1,13 @@
 /* =========================================================================
  * File:        VCTRL.C
- * Description: Collection of functions fo interface the video device
+ * Description: Collection of functions to interface the video device
  *              For example setting the encoded bitrate for both audio and
  *              video.
  *
  *              All functions named "_vctrl_" are functions that directly
  *              interfaces the video device via ioctl() calls. They can be
  *              called directly by a client but there are better higher
- *              leve "user" fuinctions more suitable to be called directly.
+ *              level "user" functions more suitable to be called directly.
  *              See documentation for v4l2 for details on the ioctl()
  *              parameters used.
  *
@@ -1038,7 +1038,7 @@ int
 _denorm(const int normval, const int min, const int max, const int step) {
     const int v = round((normval+50.0)/100.0*(max-min))+min;
     const int vv = floor((double)v/step)*step;
-    logmsg(LOG_DEBUG,"norm=%d [%d,%d]: denormalized value v=%d, adjusted vv=%d",normval,min,max,v,vv);
+    //logmsg(LOG_DEBUG,"norm=%d [%d,%d]: denormalized value v=%d, adjusted vv=%d",normval,min,max,v,vv);
     return vv;
 }
 

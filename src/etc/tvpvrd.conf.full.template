@@ -46,7 +46,7 @@
 # slave server must have access to the masters server data catalogue.
 # The slave assumes that the master data catalogue is mounted on the
 # specified dirctory (see DATADIR) this should point to the same
-# directory as DATADIR on the master but as seen from the slave, 
+# directory as DATADIR on the master but as seen from the slave,
 # for example /mnt/master/data/pvr or similar if a NFS file mount is used
 # on the slave to view the master file system
 #----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ max_clients=10
 
 #----------------------------------------------------------------------------
 # DATADIR string
-# Base directory for storing all the data procuded and used by the server. 
+# Base directory for storing all the data procuded and used by the server.
 # The file structure under the base directory is defined as:
 #
 # datadir
@@ -126,7 +126,7 @@ max_clients=10
 #     `-- tvpvrd_db.xml             // The XML DB of all recording
 #
 # Legend:
-# 
+#
 # mp2   - The original mp2 encoded files from the video cards
 # vtmp  - Temporary files created during recording and transcoding
 # mp4   - The transcoded mp4 files per defined profile
@@ -169,7 +169,7 @@ use_repeat_rec_basedir=no
 # Each recording have a suffix added that can be one of three types
 # 0 = Add date
 #     Example: "myrec_2011-12-22" (y-m-d)
-# 1 = Add number and total number of recordings in serie 
+# 1 = Add number and total number of recordings in serie
 #     Example: "myrec_06-12"
 # 2 = Add episode number
 #     Example: "myrec_E03"
@@ -180,7 +180,7 @@ default_repeat_name_mangle_type=1
 # LOGFILE_NAME string
 # Name of logfile to use. The name can also be one of two special values
 # 1) "syslog" - Use system logger
-# 2) "stdout" - Use stdout - this is not valid if tvpvrd is run as a daemon 
+# 2) "stdout" - Use stdout - this is not valid if tvpvrd is run as a daemon
 #----------------------------------------------------------------------------
 logfile_name=/tmp/tvpvrd.log
 
@@ -243,7 +243,7 @@ password=xxxxx
 frequency_map=europe-west
 
 #----------------------------------------------------------------------------
-# XMLDBFILE_NAME string 
+# XMLDBFILE_NAME string
 # Name of file where the XML database of recordings are stored.
 # Note: This file will always be stored under the "xmldb" directory.
 #----------------------------------------------------------------------------
@@ -349,7 +349,7 @@ video_device_basename=/dev/video
 # when there are many short recordings. Setting this parameter to "no"
 # will cause the profiles to not be allowed to adjust the HW paramaters.
 # Instead the HW parameters will be set in the startup of the server to
-# the HW encoder parameters in the default profile, normally "normal". 
+# the HW encoder parameters in the default profile, normally "normal".
 # Unless youi experience problems leave this setting to "yes"
 #----------------------------------------------------------------------------
 allow_profiles_adj_encoder=yes
@@ -385,11 +385,11 @@ xawtv_station_file=/etc/X11/xawtvrc
 #----------------------------------------------------------------------------
 # LOCALE_NAME string
 # Specify the locale that should be used when running the daemon. If the
-# daemon is started from a boot script (the most common way) then this will 
+# daemon is started from a boot script (the most common way) then this will
 # most likely set the locale to "POSIX" which doesn't allow UTF8 characters.
 # This can cause problem when sending mail from the daemon in case the
 # recorded titles have UTF8 extended characters.
-# Most modern system uses UTF8 as default for normal user interaction. 
+# Most modern system uses UTF8 as default for normal user interaction.
 # If you are unsure what locale you are running run "locale" from your
 # console and use the value listed for LC_CTYPE or LC_ALL in this setting.
 # Run "locale -a" to see a list of supported locales on your server.
@@ -421,9 +421,9 @@ external_input=1
 #----------------------------------------------------------------------------
 # EXTERNAL_TUNER_STATION string
 # When an external cable box is connected to the tuner input on a fixed
-# channel/station this settings specifies which channel to use. It is 
+# channel/station this settings specifies which channel to use. It is
 # important to understand that when the external_switch setting is enabled
-# the tuner will always listen on this specified channel. 
+# the tuner will always listen on this specified channel.
 # The value here is assumed to be the human readable station name (not the
 # technical channel number) so this name must be defined in the xawtvrc file
 # so it corresponds to the proper channel.
@@ -577,7 +577,7 @@ ffmpeg_bin=/usr/bin/ffmpeg
 # The maximum setting for this should <= 2*<number of CPU cores> in server.
 # There is really no point in setting this too high since transcoding
 # is *very* CPU intensive and there is negative impact of multitasking too
-# many transcoding jobs at once. 
+# many transcoding jobs at once.
 #----------------------------------------------------------------------------
 max_load_for_transcoding=4
 
@@ -627,7 +627,7 @@ max_5load=0.5
 #----------------------------------------------------------------------------
 # IGNORE_USERS boolean
 # Determine if shutdown should be initiated even if there are logged in
-# users on the server 
+# users on the server
 #----------------------------------------------------------------------------
 ignore_users=no
 
@@ -672,7 +672,7 @@ script_name=shutdown.sh
 [format]
 #----------------------------------------------------------------------------
 # WEB_THEME string
-# Default theme to use for Web-interface. 
+# Default theme to use for Web-interface.
 #----------------------------------------------------------------------------
 web_theme=night
 
@@ -734,34 +734,40 @@ tblcss_date               = "font-size:small;font-style:italic;margin-bottom:1px
 [cardcontrols]
 
 #----------------------------------------------------------------------------
-# Image adjustments
+# Image adjustments integer
 # Values can be in range [-50, 50]
 # At card initialization all controls are set to neutral 0
 # Note: Most of the time the default setting of 0 is a sensible setting but
 # depending on your local conditions you might prefer a change.
 # Note: If the card does not support these controls they are simply ignored
 #----------------------------------------------------------------------------
-brightness = 0
-saturation = 0
-contrast   = 0 
-hue        = 0 
+image_brightness = 0
+image_saturation = 0
+image_contrast   = 0
+image_hue        = 0
 
 #----------------------------------------------------------------------------
-# Color of sound adjustments
+# Color of sound adjustments integer
 # Values can be in range [-50, 50]
 # At card initialization all controls are set to neutral 0
 # Note: If the card does not support these controls they are simply ignored
 # (For example Hauppauge 150 supports them but 350 does not)
 #----------------------------------------------------------------------------
-balance   = 0
-bass      = 0
-treble    = 0 
+audio_balance   = 0
+audio_bass      = 0
+audio_treble    = 0
+
+#----------------------------------------------------------------------------
+# Loudness boolean
+# Enable/disable loudness on card when the card supports this control
+#----------------------------------------------------------------------------
+audio_loudness  = yes
 
 #----------------------------------------------------------------------------
 # Volume
 # Values can be in range [0,100]
 # At card initialization the volume is set to 85
 #----------------------------------------------------------------------------
-volume    = 85
+audio_volume = 85
 
 # EOF - End of ini file
