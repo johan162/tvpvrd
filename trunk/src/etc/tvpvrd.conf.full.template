@@ -753,7 +753,6 @@ image_hue        = 0
 # Note: If the card does not support these controls they are simply ignored
 # (For example Hauppauge 150 supports them but 350 does not)
 #----------------------------------------------------------------------------
-audio_balance   = 0
 audio_bass      = 0
 audio_treble    = 0
 
