@@ -6,7 +6,7 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.4.0
+4.4.0 (23 sep 2012)
 ------
 User visible changes:
     - Added config scripts to allow ivtv driver to work well with suspend/hibernate
@@ -14,11 +14,15 @@ User visible changes:
       before a power event. This change adds pm-util config scripts which will
       load/unload the driver properly as well as having the daemon reinitialize the
       HW when the system is woken up again.
+
     - Added 'ic' command to allow the adjusting the image parameters (saturation,
       contrast, hue and brightness) in the video stream. Each card can be individually
       tuned.
+
     - Added 'ac' command to allow adjusting of audio controls (bass and treble)
+
     - Added 'va' command to allow volume adjusting
+
     - Added settings in config file to adjust image and audio user controls default
       value (contrast,sat,hue,brightness,treble,bass,volume) The same settings are
       applied to all installed cards.
@@ -28,6 +32,7 @@ Bugs fixed:
 
 Internal changes:
     - Some spell checking in code comments
+
     - Updated build environment to use automake 1.12.1 and autoconfig 2.69
 
 
