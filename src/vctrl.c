@@ -674,12 +674,20 @@ _vctrl_set_ext_controlvalue(int fd, unsigned id, unsigned ctrl_class, int val) {
             if (0 == xioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls)) {
                 return 0;
             } else {
-                logmsg(LOG_ERR, "(VIDIOC_S_EXT_CTRLS) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+                if( errno != EINVAL ) {
+                    logmsg(LOG_DEBUG, "(VIDIOC_S_EXT_CTRLS) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+                } else {
+                    logmsg(LOG_DEBUG, "(VIDIOC_S_EXT_CTRLSL) Control with id=%d not supported for device opened with fd=%d (%d : %s)", id, fd, errno, strerror(errno));
+                }
                 return errno;
             }
 
         } else {
-            logmsg(LOG_ERR, "(VIDIOC_S_EXT_CTRLSL) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+            if( errno != EINVAL ) {
+                logmsg(LOG_DEBUG, "(VIDIOC_S_EXT_CTRLSL) Cannot set value (%d) to control (id=%d) %d : %s", val, ctl.id, errno, strerror(errno));
+            } else {
+                logmsg(LOG_DEBUG, "(VIDIOC_S_EXT_CTRLSL) Control with id=%d not supported for device opened with fd=%d (%d : %s)", id, fd, errno, strerror(errno));
+            }
             return errno;
         }
     }
@@ -727,12 +735,20 @@ _vctrl_set_controlvalue(int fd, unsigned id, int val) {
             if( 0 == xioctl(fd, VIDIOC_S_CTRL, &ctl) ) {
                 return 0;
             } else {
-                logmsg(LOG_ERR, "(VIDIOC_S_CTRL) Cannot set value (%d) to control with id=%d (%d : %s)", val, ctl.id, errno, strerror(errno));
+                if( errno != EINVAL ) {
+                    logmsg(LOG_DEBUG, "(VIDIOC_S_CTRL) Cannot set value (%d) to control with id=%d (%d : %s)", val, ctl.id, errno, strerror(errno));
+                } else {
+                    logmsg(LOG_DEBUG, "(VIDIOC_S_CTRL) Control with id=%d not supported for device opened with fd=%d (%d : %s)", id, fd, errno, strerror(errno));
+                }
                 return errno;
             }
 
         } else {
-            logmsg(LOG_ERR, "(VIDIOC_S_CTRL) Cannot set value (%d) to control with id=%d (%d : %s)", val, ctl.id, errno, strerror(errno));
+            if( errno != EINVAL ) {
+                logmsg(LOG_DEBUG, "(VIDIOC_S_CTRL) Cannot set value (%d) to control with id=%d (%d : %s)", val, ctl.id, errno, strerror(errno));
+            } else {
+                logmsg(LOG_DEBUG, "(VIDIOC_S_CTRL) Control with id=%d not supported for device opened with fd=%d (%d : %s)", id, fd, errno, strerror(errno));
+            }
             return errno;
         }
     }
@@ -1055,7 +1071,11 @@ video_set_brightness(int fd, const int brightness_value) {
 
     int ret = video_set_controlbyid(fd, V4L2_CID_BRIGHTNESS,ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set video brightness fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set video brightness fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Brightness control not supported for card opened with fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Brightness control set to value=%d",ctrl_val);
@@ -1071,7 +1091,11 @@ video_set_contrast(int fd, const int contrast_value) {
 
     int ret = video_set_controlbyid(fd, V4L2_CID_CONTRAST, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set video contrast fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set video contrast fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Contrast control not supported for card opened with fd=%d",fd);
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Contrast control set to value=%d",ctrl_val);
@@ -1087,7 +1111,11 @@ video_set_saturation(int fd, const int saturation_value) {
 
     int ret = video_set_controlbyid(fd, V4L2_CID_SATURATION, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Saturation control not supported for card opened with fd=%d",fd);
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Saturation control set to value=%d",ctrl_val);
@@ -1103,7 +1131,11 @@ video_set_hue(int fd, const int hue_value) {
 
     int ret = video_set_controlbyid(fd, V4L2_CID_HUE, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set video saturation fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Hue control not supported for card opened with fd=%d",fd);
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Hue control set to value=%d",ctrl_val);
@@ -1120,7 +1152,11 @@ video_set_audio_treble(int fd, const int treble_value) {
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_TREBLE, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set audio treble fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Treble audio control not supported for card opened with fd=%d",fd);
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Treble control set to value=%d",ctrl_val);
@@ -1136,7 +1172,11 @@ video_set_audio_bass(int fd, const int bass_value) {
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_BASS, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set audio bass fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set audio bass fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Bass audio control not supported for card opened with fd=%d",fd);
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Bass control set to value=%d",ctrl_val);
@@ -1152,7 +1192,11 @@ video_set_audio_volume(int fd, const unsigned volume_value) {
 
     int ret = video_set_controlbyid(fd, V4L2_CID_AUDIO_VOLUME, ctrl_val);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set audio volume fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set audio volume fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Volume control not supported for card opened with fd=%d",fd);
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Volume control set to value=%d",ctrl_val);
@@ -1164,7 +1208,11 @@ int
 video_set_audio_loudness(int fd, unsigned loudness_flag) {
     int ret = video_set_ext_controlbyid(fd, V4L2_CID_AUDIO_LOUDNESS, loudness_flag?1:0);
     if( ret != 0 ) {
-        logmsg(LOG_ERR,"Can not set audio loudness flag fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        if( errno != EINVAL ) {
+            logmsg(LOG_ERR,"Can not set audio loudness flag fd=%d ( %d : %s )",fd,errno, strerror(errno));
+        } else {
+            logmsg(LOG_WARNING,"Loudness control not supported for card opened with fd=%d",fd);
+        }
         return -1;
     } else {
         logmsg(LOG_INFO,"Loudness flag set to value=%d",loudness_flag?1:0);
