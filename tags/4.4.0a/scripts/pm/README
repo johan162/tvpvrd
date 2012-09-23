@@ -1,0 +1,25 @@
+# $Id$
+This directory contains helper system scripts for OpenSuSE to support suspend and hibernation.
+
+10tvpvrd
+---------
+This is a script that when installed in either /etc/pm/sleep.d (or /usr/lib/pm/sleep.d) sill shut
+down tvpvrd at the time of the suspend/hibernate command and start the daemon when the computer
+resumes after the suspend/hibernation event.
+
+The reason for doing this is that the drivers for ivtv has to be removed from the kernel before
+the suspend operation and reloaded at startup. This puts the HW in the default settings and having
+the daemon restart is the easiest way to reinitialize all values.
+
+ivtv.config
+------------
+This file should really be a part of the ivtv package but isn't. It will force the power management
+subsystem (pm-utils et.al) to unload the driver before the suspend operation and then properly
+reload it when the system is restarted.
+
+This script should be store in /etc/pm/config.d/ (or /usr/lib/pm/config.d)
+
+The installation will properly install these script in the usr/lib/pm/* location since this is the
+peroper place for packages to store there config files. The /etc/pm/* should be used for local
+manual modifications.
+
