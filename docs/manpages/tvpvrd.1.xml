@@ -1129,8 +1129,11 @@ ar w 20 tv1 tue 21:00 21:56 Nature S02</screen>
             <para>
                 <itemizedlist>
                     <listitem>
-                        <para><emphasis
-                                role="bold">a</emphasis> - add new recording command</para>
+                        <para><emphasis role="bold">a</emphasis> - add new recording command</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis role="bold">ac</emphasis> - adjust audio controls
+                            (treble,bass)</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1159,8 +1162,11 @@ ar w 20 tv1 tue 21:00 21:56 Nature S02</screen>
                                 role="bold">dr</emphasis> - delete all repeated recording </para>
                     </listitem>
                     <listitem>
-                        <para><emphasis
-                                role="bold">h</emphasis> - help</para>
+                        <para><emphasis role="bold">h</emphasis> - help</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis role="bold">ic</emphasis> - Set image controls
+                            (saturation,hue,brightness,contrast)</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1303,8 +1309,10 @@ ar w 20 tv1 tue 21:00 21:56 Nature S02</screen>
                             recordings</para>
                     </listitem>
                     <listitem>
-                        <para><emphasis
-                                role="bold">v</emphasis> - print version</para>
+                        <para><emphasis role="bold">v</emphasis> - print version</para>
+                    </listitem>
+                    <listitem>
+                        <para><emphasis role="bold">va</emphasis> - adjust volume</para>
                     </listitem>
                     <listitem>
                         <para><emphasis
@@ -1460,6 +1468,21 @@ ar w 20 tv1 tue 21:00 21:56 Nature S02</screen>
                             </para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term><command>ac</command>
+                        <emphasis>[&lt;video-card>] &lt;b|t> &lt;val></emphasis> - <emphasis
+                            role="bold">Adjust audio controls</emphasis></term>
+                    <listitem>
+                        <para>Adjust audio controls 'treble' and 'bass'. The value range is [-50,50]
+                            where 0 being the "neutral" value. If the video card number is omitted
+                            the value will be set for all available cards.</para>
+                        <para><emphasis role="bold">Example:</emphasis></para>
+                        <para>
+                            <screen>ac 0 b 20 
+ac b 20</screen>
+                        </para>
+                    </listitem>
+                </varlistentry>
                 <varlistentry>
                     <term>'<command>af</command>
                         <emphasis
@@ -1646,6 +1669,22 @@ file_extension        : .mp4</screen>
                             <para>Print a summary of all commands available.</para>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term><command>ic</command>
+                        <emphasis>[&lt;video-card>] &lt;s|c|h|b> &lt;val></emphasis> - <emphasis
+                            role="bold">Adjust video image controls</emphasis></term>
+                    <listitem>
+                        <para>Adjust image controls 'saturation', 'contrast', 'hue', 'brightness'.
+                            The value range is [-50,50] with 0 being the 'neutral' value. If the
+                            video card number is omitted the value will be set for all available
+                            cards.</para>
+                        <para><emphasis role="bold">Example:</emphasis></para>
+                        <para>
+                            <screen>ic 0 c 10
+ic 0 b -20</screen>
+                        </para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>kt</command>' <emphasis
                             role="italic">n</emphasis> - <emphasis
@@ -1669,7 +1708,7 @@ file_extension        : .mp4</screen>
                                 server is killed. By setting this flag to 'n' (No) the transcoding
                                 processes will be allowed to keep running after the server is
                                 stopped.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>ktf n
 killflag=n</screen>
                         </listitem>
@@ -1690,7 +1729,7 @@ killflag=n</screen>
                             <para>
                                 <screen>&lt;id#> &lt;station/channel name> &lt;start-date> &lt;start-time> &lt;end-time> &lt;title> &lt;profile></screen>
                             </para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>[160|tv4    |2010-03-09|21:00|21:59|House (16/20)                 |@normal]
 [135|kanal5 |2010-03-11|21:00|21:59|Criminal minds (16/20)        |@normal]
 [038|kanal5 |2010-03-11|22:00|22:59|Fringe (17/20)                |@normal]
@@ -1705,7 +1744,7 @@ killflag=n</screen>
                             tables</emphasis></term>
                     <listitem>
                         <para>List all defined frequency tables.</para>
-                        <para>Output example:</para>
+                        <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>01 europe-west
 02 europe-east
 03 france
@@ -1732,7 +1771,7 @@ killflag=n</screen>
                     <listitem>
                         <para>This is the same command as 'l' but with the output shortened and ore
                             easily read by humans</para>
-                        <para>Output example:</para>
+                        <para><emphasis role="bold">Output example:</emphasis></para>
                         <screen>Fri Oct 01 21:00-21:55 disc     Mountains
 Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                     </listitem>
@@ -1784,7 +1823,7 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                             shown in parenthesis in front of the textual name of the input. The type
                             is either "tuner" or "camera". If no card is specified then information
                             on all installed card will be listed.</para>
-                        <para>Output example:</para>
+                        <para><emphasis role="bold">Output example:</emphasis></para>
                         
                             <screen>Hauppauge WinTV PVR-350 
 00 :*(tuner) Tuner 1 
@@ -1803,7 +1842,7 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                             <para>Print a list of all defined transcoding profiles numbered one per
                             line(use '<command>dp</command>' command to display details of a
                             specified profile)</para>
-                        <para>Output example:</para>
+                        <para><emphasis role="bold">Output example:</emphasis></para>
                         <screen>#01 : mobile
 #02 : low
 #03 : cropnormal
@@ -1822,7 +1861,7 @@ Fri Oct 01 22:05-23:15 bbc1     Changes</screen>
                                 channel names. When defining the frequency for a recording either
                                 the defined station name or channel (frequency) name can be
                                 used.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>SE11: kanal5
   57: kanal8
  S36: kanal9
@@ -1866,7 +1905,7 @@ SE14: tv4+
                                 is little real reason to add more than one lists at a time since a
                                 list with, say 20 full length movie video files, can easily take up
                                 more than two days to transcode.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             
                                 <screen>       Filelist: #01                                
           Total: 17 videos in list                  
@@ -1926,7 +1965,7 @@ Not processed:
                             the repeating recordings will be the date for the next recording. See
                             also '<command>lmr</command>' command which will mail a HTML version of
                             these tables.</para>
-                        <para>Output example:</para>
+                        <para><emphasis role="bold">Output example:</emphasis></para>
                         <para>
                             <screen>Generated by: tvpvrd 3.0.5, Thu Mar 10 19:44:39 2011
 =======================================================================================
@@ -1959,7 +1998,7 @@ Generated by: tvpvrd 3.0.5, Thu Mar 10 19:44:39 2011
                             <para>List the immediate next recording(s) scheduled for the available
                                 video card(s). The first number in parenthesis is how long time
                                 until the recording will start.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>(01:37) : [002|tv3    |2009-11-20|18:00|18:59|NCIS_18 (02/20)               |@normal]
 (52:37) : [143|tv4    |2009-11-22|21:00|22:00|Shooter 1                     |@normal]</screen>
                         </listitem>
@@ -1971,7 +2010,7 @@ Generated by: tvpvrd 3.0.5, Thu Mar 10 19:44:39 2011
                             <para>List all ongoing recording in ordinary list format for all video
                                 cards. If no recordings are ongoing the output will show
                                 "None"</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>Video #0: [175|tv1    |2009-11-20|16:26|16:27|tv1_20091120_1626             |@normal]
 Video #1: None.</screen>
                         </listitem>
@@ -1986,7 +2025,7 @@ Video #1: None.</screen>
                             </para>
                             <para>The start time identifies when the transcoding was started and
                                 duration shows for how long the transcoding has been running.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]</screen>
                         </listitem>
                     </varlistentry>
@@ -1997,7 +2036,7 @@ Video #1: None.</screen>
                             <para>List all ongoing transcoding in long format which includes the
                                 detailed 'ffmpeg' command used which is printed on the second
                                 line.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>[#00|16:27|(00:00)|tv1_20091120_1626.mpg              |normal]
 (cmd: /usr/bin/ffmpeg -v 0 -i tv1_20091120_1626.mpg -threads 0 
 -vcodec libx264 -vpre normal -b 700k -bt 1000k  -croptop 8 -cropbottom 8 
@@ -2143,7 +2182,7 @@ Wed Jun 01 00:50 Once more       /mnt/omega/mm/pvr/mp4/once_more.mp4           t
                                 current server load, current server time, allocated virtual memory,
                                 number of running threads in the server and finally a list of
                                 clients currently connected to the server.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>Current time    : Sun Oct 10 09:48:24 2010
 tvpvrd started  : Fri Oct  8 08:53:00 2010
 tvpvrd uptime   : 02 days 00 hours 55 min
@@ -2165,7 +2204,7 @@ Clients         : #01: 192.168.0.31, Sun Oct 10 09:48:24 2010</screen>
                             transcoding can be used to predict how long time a transcoding will
                             take. However since it is highly dependent on the load on the server it
                             can be difficult to accurately predict the needed transcoding time. </para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>profile_name            : 'normal'
 transcoding_speed       : 44 s transcoded / min
 mp2size_1min            : 27.5 Mb/min
@@ -2250,7 +2289,7 @@ total_mp4files          : 31</screen>
                         <listitem>
                             <para>Print current time and date on the server where 'tvpvrd' is
                                 running</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>Fri Nov 20 15:51:20 2009</screen>
                         </listitem>
                     </varlistentry>
@@ -2273,7 +2312,7 @@ total_mp4files          : 31</screen>
                                 During the transcoding a symbolic link is created in the temporary
                                 directory which makes it in theory possible to have the original
                                 file on another file system.</para>
-                            <para>Example</para>
+                            <para><emphasis role="bold">Example:</emphasis></para>
                             <para>
                                 <screen>tf /data/pvr/mp2/normal/oldreccording.mpg @high</screen>
                             </para>
@@ -2300,7 +2339,7 @@ total_mp4files          : 31</screen>
                                             filepath is identified by having the first character on
                                             the row being a ':' (colon) character.</para>
                                     
-                            <para>Example input file:</para>
+                            <para><emphasis role="bold">Example input file:</emphasis></para>
                             
                                 <programlisting>:/data/pvr/mp2/normal
 svu_001.mpg
@@ -2367,11 +2406,26 @@ WildThings.mpg </programlisting>
                             <para>Print program version and name as well as the build date. The
                                 following lines will give information on how the server was
                                 compiled.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>tvpvrd 1.1.2 [client] (Jan 26 2010)
 Compiled with Large File Support (files > 2GB).</screen>
                         </listitem>
                     </varlistentry>
+                <varlistentry>
+                    <term><command>va</command>
+                        <emphasis>[&lt;video-card>] value</emphasis>- <emphasis role="bold">Adjust
+                            volume</emphasis></term>
+                    <listitem>
+                        <para>Adjust volume on video card. Valid volume is in the range [0,100]. If
+                            the video card number is omitted the value will be set for all available
+                            cards.</para>
+                        <para><emphasis role="bold">Example:</emphasis></para>
+                        <para>
+                            <screen>va 0 85
+va 50</screen>
+                        </para>
+                    </listitem>
+                </varlistentry>
                     <varlistentry>
                         <term>'<command>vc</command>
                                 [<emphasis>0</emphasis>|<emphasis>1</emphasis>|<emphasis>2</emphasis>|<emphasis>3</emphasis>|<emphasis>4</emphasis>]'
@@ -2382,7 +2436,7 @@ Compiled with Large File Support (files > 2GB).</screen>
                                 command will print information of all available cards if no specific
                                 card number is specified. The information shown is the name of the
                                 card, driver and driver version.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>Card 00: Hauppauge WinTV PVR-350, driver=ivtv v1.4.1
 Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
                         </listitem>
@@ -2406,7 +2460,7 @@ Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
                             <para><emphasis
                                     role="bold">Note:</emphasis> There is no guarantee that the
                                 files will be transcoded in the order indicated by the list.. </para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>[#01|21:37|(00:04)|news_at_eight.mpg                          |@tnormal]
 [#02|21:38|(00:03)|commander.mpg                              |@tnormal]</screen>                           
                         </listitem>
@@ -2427,7 +2481,7 @@ Card 01: Hauppauge WinTV PVR-150, driver=ivtv v1.4.1</screen>
                         <listitem>
                             <para>This will list all settings made in the ini-file as well as the
                                 location of the used ini file.</para>
-                            <para>Output example:</para>
+                            <para><emphasis role="bold">Output example:</emphasis></para>
                             <screen>datadir                       : /data/pvr                    
 use_profile_directories       : 0
 use_repeat_rec_basedir        : 1                            
