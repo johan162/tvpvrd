@@ -465,9 +465,9 @@ web_dispatch_httpget_staticfile(const int socket, char *path, char *filename, st
     if ( NULL == headers->IfModifiedSince || NULL == strptime(headers->IfModifiedSince, "%a, %d %b %Y %T %Z", &tm_date)) {
 #ifdef EXTRA_WEB_DEBUG            
         logmsg(LOG_DEBUG, "No IF-Modified-Since headers or failed to parse it");
-#endif            
-        // Set the date a month back to force a resend of the file in case the header can not be parsed.
-        sendback_file(socket, fullfilename, time(NULL) - 3600 * 24 * 30);
+#endif
+        // Set the file date ten years back to force a resend of the file in case the header can not be parsed.
+        sendback_file(socket, fullfilename, time(NULL) - 3600 * 24 * 30 * 12 * 10);
     } else {
 
 #ifdef EXTRA_WEB_DEBUG
