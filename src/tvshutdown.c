@@ -108,9 +108,9 @@ get_num_users(void) {
         char *reply = calloc(1,len);
         if( NULL == reply ) {
             logmsg(LOG_ERR, "get_num_users() : Cannot allocate memory.");
-            return -1;            
+            return -1;
         }
-        
+
         int nr = fread(reply, sizeof(char), len, fp);
         if( nr > 0 ) {
             // Get rid of final '\n'
@@ -130,10 +130,10 @@ get_num_users(void) {
 
 void
 do_shutdown(void) {
-   
+
     char cmd[256];
     snprintf(cmd, sizeof(cmd)-1, "%s/tvpvrd/shellscript/%s", CONFDIR, shutdown_script);
-    if ( 0 == access(cmd, F_OK) ) {            
+    if ( 0 == access(cmd, F_OK) ) {
         snprintf(cmd, sizeof (cmd) - 1, "%s/tvpvrd/shellscript/%s -t %d", CONFDIR, shutdown_script, shutdown_time_delay);
         logmsg(LOG_DEBUG, "Executing shutdown script: '%s'", cmd);
         int ret = system(cmd);
@@ -145,7 +145,7 @@ do_shutdown(void) {
             }
         }
     }
-    
+
     snprintf(cmd, 255, "touch %s/%s", datadir, DEFAULT_AUTOSHUTDOWN_INDICATOR);
     int ret = system(cmd);
     if (-1 == ret || WEXITSTATUS(ret)) {
@@ -209,19 +209,19 @@ check_for_shutdown(void) {
     }
 
     // Now we need to find the next closest recording among all video cards
-    // to know when to wake up    
+    // to know when to wake up
     struct recording_entry *nextrec;
     int nextrec_video;
     time_t nextrec_ts;
-    
+
     pthread_mutex_lock(&recs_mutex);
     (void)get_nextsched_rec(&nextrec, &nextrec_video, &nextrec_ts);
     pthread_mutex_unlock(&recs_mutex);
-    
+
     // We need the current time to compare against
     time_t now = time(NULL);
 
-    // After this loop 'nextrec' holds the timestamp for the next recording assuming 
+    // After this loop 'nextrec' holds the timestamp for the next recording assuming
     // nextrec_video > -1. If nextrec_video==-1 then there are no future recordings
     // scheduled at all.
     // This is an abnormal case since we would then go to sleep forever and never
@@ -230,7 +230,7 @@ check_for_shutdown(void) {
     if( (time_t)0 == nextrec_ts ) {
         nextrec_ts = now + 365*24*3600;
     }
-   
+
     // Before shutting down we need to also check that shutting us down will allow
     // us to be turned off for at least as long as the minimum shutdown time
     if( nextrec_ts - now > shutdown_min_time+(time_t)shutdown_pre_startup_time ) {
@@ -241,10 +241,10 @@ check_for_shutdown(void) {
 
         //logmsg(LOG_DEBUG,"Delta time to next recording %d min (minimum time is %d min)",(nextrec-now)/60,(shutdown_min_time+(time_t)shutdown_pre_startup_time)/60);
         //logmsg(LOG_DEBUG,"(shutdown_min_time=%d sec, shutdown_pre_startup_time=%d sec)",shutdown_min_time,shutdown_pre_startup_time);
-        
+
         float avg1, avg5, avg15;
         getsysload(&avg1, &avg5, &avg15);
-	logmsg(LOG_DEBUG,"avg5=%f shutdow_max_5load=%f",avg5,shutdown_max_5load);
+        // logmsg(LOG_DEBUG,"avg5=%f shutdow_max_5load=%f",avg5,shutdown_max_5load);
         if( avg5 < shutdown_max_5load &&
             get_num_ongoing_transcodings() == 0 &&
             get_num_ongoing_recordings() == 0 ) {
@@ -323,7 +323,7 @@ check_for_shutdown(void) {
 
                 do_shutdown();
             }
-            
+
         } else {
             logmsg(LOG_DEBUG,"Aborting automatic shutdown. One or more of the conditions not fulfilled.");
         }
