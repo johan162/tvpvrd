@@ -6,6 +6,21 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+
+
+4.4.1 (26 apr 2013)
+------
+User visible changes:
+    - None.
+
+Bugs fixed:
+    - In rare occasions the CSS file was not sent back when the local browser cache was
+      clean and no "IF-Modified-Since" header was found.
+
+Internal changes:
+    - None.
+
+
 4.4.0 (23 sep 2012)
 ------
 User visible changes:
