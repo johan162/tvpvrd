@@ -1,6 +1,6 @@
 /* =========================================================================
  * File:        TRANSC.C
- * Description: Module to handle transcoding 
+ * Description: Module to handle transcoding
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
@@ -36,6 +36,7 @@
 #include <dirent.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/resource.h>
 #include <math.h>
 #include <syslog.h>
 #include <errno.h>
@@ -87,7 +88,7 @@ check_ffmpeg_bin(void) {
  * @return
  */
 int
-record_ongoingtranscoding(char *workingdir,char *short_filename,char *cmd_ffmpeg, 
+record_ongoingtranscoding(char *workingdir,char *short_filename,char *cmd_ffmpeg,
                           struct transcoding_profile_entry *profile, pid_t pid) {
     size_t i;
     for(i=0; i < max_ongoing_transcoding && ongoing_transcodings[i]; i++)
@@ -170,7 +171,7 @@ list_ongoing_transcodings(char *obuff, size_t size, int show_ffmpegcmd) {
                 snprintf(tmpbuff, 511, "[#%02d|%02d:%02d|(%02d:%02d)|%-35.35s|@%s]\n(cmd: %s)\n",
                          (int)i,
                          h, min,
-                         rh,rmin,						 
+                         rh,rmin,
                          ongoing_transcodings[i]->filename,
                          ongoing_transcodings[i]->profile->name,
                          ongoing_transcodings[i]->cmd);
@@ -180,7 +181,7 @@ list_ongoing_transcodings(char *obuff, size_t size, int show_ffmpegcmd) {
                          h, min,
                          rh,rmin,
                          ongoing_transcodings[i]->filename,
-                         ongoing_transcodings[i]->profile->name);               
+                         ongoing_transcodings[i]->profile->name);
             }
             tmpbuff[511] = '\0';
             if (strlen(tmpbuff) < size) {
@@ -219,7 +220,7 @@ wait_to_transcode(char *filename) {
                filename, avg5, max_load_for_transcoding);
     }
 
-    while (avg5 > max_load_for_transcoding && 
+    while (avg5 > max_load_for_transcoding &&
            (max_waiting_time_to_transcode==0 || waiting_time < (unsigned)max_waiting_time_to_transcode)) {
         sleep(backoff_time);
         waiting_time += backoff_time;
@@ -232,7 +233,7 @@ wait_to_transcode(char *filename) {
                    filename, avg5, max_load_for_transcoding,waiting_time/60);
             logcnt=0;
         }
-        
+
     }
     return waiting_time < (unsigned)max_waiting_time_to_transcode || max_waiting_time_to_transcode==0 ? 0 : -1;
 }
@@ -341,7 +342,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
                filename);
         return -1;
     }
-    
+
     char ffmpeg_logfile[80];
     if( verbose_log >= 3 ) {
         strncpy(ffmpeg_logfile,"ffmpeg.log",sizeof(ffmpeg_logfile)-1);
@@ -351,85 +352,85 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
 
     destfile[l] = '\0';
     strncat(destfile, profile->file_extension,destsize-1);
-    
+
     // Setup string for default x264 ffmpeg preset. Since the preset seems to change with each release
-    // of ffmpeg the default preset has changed to the empty string. 
-    
-    // For single pass encoding we only need to run ffmpeg once. For two pass encoding we call ffmpeg twice    
+    // of ffmpeg the default preset has changed to the empty string.
+
+    // For single pass encoding we only need to run ffmpeg once. For two pass encoding we call ffmpeg twice
     if (profile->pass == 1) {
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -report -y -i %s -threads 0 " 
-                    " -acodec %s -ab %dk "                    
+                    "%s -report -y -i %s -threads 0 "
+                    " -acodec %s -ab %dk "
                     " -vcodec %s -b:v %dk "
                     " -s %s"
                     "  %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
-                    profile->acodec, profile->audio_bitrate,                    
-                    profile->vcodec, profile->video_bitrate, 
+                    profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,
                     profile->size,
                     profile->extra_ffmpeg_options,
                     destfile, ffmpeg_logfile);
 
         } else {
             snprintf(cmd, size,
-                    "%s -report -y -i %s -threads 0 " 
-                    " -acodec %s -ab %dk "                    
-                    " -vcodec %s -b:v %dk " 
+                    "%s -report -y -i %s -threads 0 "
+                    " -acodec %s -ab %dk "
+                    " -vcodec %s -b:v %dk "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,                     
+                    profile->vcodec, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
                     destfile,ffmpeg_logfile);
         }
-        
+
     } else {
         // Two pass encoding
 
         // Removed "-v 0" in second pass
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
-                    "%s -y -report -i %s -threads 0 -pass 1 " 
+                    "%s -y -report -i %s -threads 0 -pass 1 "
                     " -vcodec %s -b:v %dk "
                     " -an "
                     " -s %s "
                     " -f rawvideo  %s "
                     "/dev/null > /dev/null 2>&1 && "
-                    "%s -y -report -i %s -threads 0 -pass 2 " 
+                    "%s -y -report -i %s -threads 0 -pass 2 "
                     "-acodec %s -ab %dk "
-                    " -vcodec %s -b:v %dk "                    
+                    " -vcodec %s -b:v %dk "
                     " -s %s "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate, 
+                    profile->vcodec, profile->video_bitrate,
                     profile->size,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
-                    profile->acodec, profile->audio_bitrate,                    
-                    profile->vcodec, profile->video_bitrate, 
+                    profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,
                     profile->size,
                     profile->extra_ffmpeg_options,
                     destfile,ffmpeg_logfile);
         } else {
             snprintf(cmd, size,
-                    "%s -y -report -i %s -threads 0 -pass 1 " 
+                    "%s -y -report -i %s -threads 0 -pass 1 "
                     "-vcodec %s -b:v %dk "
                     " -an "
                     " -f rawvideo %s "
                     "/dev/null > /dev/null 2>&1 && "
                     "%s -y -report -i %s -threads 0 -pass 2 "
-                    "-acodec %s -ab %dk "                    
+                    "-acodec %s -ab %dk "
                     "-vcodec %s -b:v %dk "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
                     ffmpeg_bin, filename,
-                    profile->acodec, profile->audio_bitrate,                    
-                    profile->vcodec, profile->video_bitrate, 
+                    profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,
                     profile->extra_ffmpeg_options,
-                    destfile,ffmpeg_logfile);           
+                    destfile,ffmpeg_logfile);
         }
     }
 
@@ -627,7 +628,7 @@ _transcode_file(void *arg) {
 
         pthread_exit(NULL);
         return (void *) 0;
-        
+
     } else {
 
         // In parent which will be watching the ffmpeg command execution
@@ -770,7 +771,7 @@ _transcode_file(void *arg) {
     pthread_mutex_lock(&filetransc_mutex);
     nfiletransc_threads--;
     pthread_mutex_unlock(&filetransc_mutex);
-    
+
     pthread_exit(NULL);
     return (void *) 0;
 }
@@ -1064,7 +1065,7 @@ get_queued_transc_filelists_info(int num,char *buffer,size_t len,int incfiles) {
  * @return
  */
 void *
-_transcode_filelist(void *arg) {   
+_transcode_filelist(void *arg) {
     struct transc_filelistparam *param = (struct transc_filelistparam *) arg;
     int idx=0;
     char buffer[512] = {'\0'};
@@ -1097,7 +1098,7 @@ _transcode_filelist(void *arg) {
     }
 
     buffer[511] = '\0';
-    
+
     // Loop through all the filenames and transcode them one, by one
     while( *buffer != '\0' ) {
         logmsg(LOG_INFO, "Submitting '%s' for transcoding using @%s",buffer,param->profilename);
@@ -1132,7 +1133,7 @@ _transcode_filelist(void *arg) {
     }
 
     dequeue_filelist(param);
-    
+
     idx=0;
     while(idx < MAX_FILELIST_ENTRIES && *param->filelist[idx]) {
         free(param->filelist[idx++]);
@@ -1167,7 +1168,7 @@ _transcode_filelist(void *arg) {
  */
 int
 transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
-    
+
     struct transc_filelistparam *param = calloc(1,sizeof(struct transc_filelistparam));
 
     // Since these are used ina thread that will exist longer than this and parent
@@ -1212,7 +1213,7 @@ transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
     } else {
         logmsg(LOG_INFO, "Created thread for transcoding of file list");
     }
-    
+
     return 0;
 }
 
@@ -1314,11 +1315,11 @@ read_transcode_filelist(char *filename, char *profilename) {
     if( -1 == read_filenamelist(filename,filenamelist,MAX_FILELIST_ENTRIES) ) {
         return -1;
     }
-    
+
     if( -1 == transcode_filelist(dirpath,filenamelist,profilename) ) {
         return -1;
-    }   
-    
+    }
+
     logmsg(LOG_INFO,"Videos from list file '%s' queued to transcoding.",filename);
     return 0;
 }
@@ -1409,9 +1410,9 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
     CLEAR(*transcode_time);
     int rh, rm, rs;
 
-    // Keep track of the possible new filename we created in case of collision   
+    // Keep track of the possible new filename we created in case of collision
     *updatedfilename = '\0';
-    
+
     // We do not start transcoding if the recording was aborted
     // If the bitrate is set to < 10kbps then this indicates that no
     // transcoding should be done. We just move the MP2 file to the mp2 directory
@@ -1621,7 +1622,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                 snprintf(tmpbuff3, sizeof(tmpbuff3)-1, "%s/mp4/%s", basedatadir, profile->name);
             } else {
                 snprintf(tmpbuff3, sizeof(tmpbuff3)-1, "%s/mp4", basedatadir);
-            }                        
+            }
 
             strncpy(rectitle,recurrence_title,255);
             rectitle[255] = '\0';
@@ -1636,12 +1637,12 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     logmsg(LOG_ERR,"Failed to create recurring recording");
                 }
             }
-            
+
             snprintf(tmpbuff,sizeof(tmpbuff)-1,"%s/%s",tmpbuff3, destfile);
 
             tmpbuff[sizeof(tmpbuff)-1] = '\0';
             snprintf(tmpbuff2, sizeof(tmpbuff2)-1, "%s/%s", workingdir, destfile);
-            
+
             tmpbuff2[255] = '\0';
             int ret = mv_and_rename(tmpbuff2, tmpbuff, updatedfilename, sizeof(tmpbuff2)-1);
             if (ret) {
@@ -1683,7 +1684,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                         }
                     }
                 }
-               
+
 
                 // The complete transcoding and file relocation has been successful. Now check
                 // if we should send a mail with this happy news!
@@ -1716,8 +1717,8 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
                     // Add file size (in MB)
                     snprintf(str_buff,n_str_buff-1,"%.1f",*filesize / 1024.0 / 1024.0);
-                    add_keypair(keys,maxkeys,"FILESIZE",str_buff,&ki);                    
-                    
+                    add_keypair(keys,maxkeys,"FILESIZE",str_buff,&ki);
+
                     // Include the server name in the mail
                     gethostname(str_buff,80);
                     str_buff[n_str_buff-1] = '\0';
