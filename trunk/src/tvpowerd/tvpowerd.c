@@ -460,7 +460,7 @@ read_inisettings(void) {
     /*--------------------------------------------------------------------------
      * CONFIG Section
      *--------------------------------------------------------------------------
-     */    
+     */
 
     send_mail_on_error = iniparser_getboolean(dict,"config:sendmail_on_error",SENDMAIL_ON_ERROR);
 
@@ -598,10 +598,15 @@ chkswitchuser(void) {
                    username,errno,strerror(errno));
                 exit(EXIT_FAILURE);
             }
-            setgid(pwe->pw_gid);
-            setuid(pwe->pw_uid);
-            logmsg(LOG_DEBUG,"Changing user,uid to '%s',%d",pwe->pw_name,pwe->pw_uid);
- 
+            if( -1 == setgid(pwe->pw_gid) || -1 == setuid(pwe->pw_uid) ) {
+                logmsg(LOG_ERR,"Cannot set gid and/or uid. (%d : %s) **",
+                   errno,strerror(errno));
+                exit(EXIT_FAILURE);
+
+            } else {
+                logmsg(LOG_DEBUG,"Changing user,uid to '%s',%d",pwe->pw_name,pwe->pw_uid);
+            }
+
         } else {
             logmsg(LOG_INFO,"The server is running as user 'root'.");
         }
@@ -614,7 +619,7 @@ chkswitchuser(void) {
         logmsg(LOG_ERR,"FATAL: Can not set PR_SET_DUMPABLE");
         exit(EXIT_FAILURE);
     }
-    
+
 }
 
 /*
@@ -685,7 +690,7 @@ void startdaemon(void) {
     int ret2 = dup(i);
     if( -1 == ret1 || -1 == ret2 ) {
         syslog(LOG_ERR, "Cannot start daemon and set descriptors 0,1,2 to /dev/null.");
-        exit(EXIT_FAILURE);    
+        exit(EXIT_FAILURE);
     }
     logmsg(LOG_DEBUG,"Reopened descriptors 0,1,2 => '/dev/null'");
 }
@@ -700,7 +705,7 @@ void startdaemon(void) {
  * @return
  */
 int
-tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {   
+tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
     char buffer[1024];
     struct addrinfo hints;
     struct addrinfo *servinfo; // will point to the results
@@ -753,7 +758,7 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
     // logmsg(LOG_DEBUG,"Trying to send tvpvr command '%s' to '%s'",cmd,server_ip);
     char tmpbuff[128];
     snprintf(tmpbuff,127,"%s\r\n",cmd);
-    
+
     ssize_t nw = write(sock,tmpbuff,strlen(tmpbuff)+1); // Include terminating 0
     if( nw != (ssize_t)strlen(tmpbuff)+1 ) {
         logmsg(LOG_CRIT,"Failed to write to socket.");
@@ -853,7 +858,7 @@ remote_server_load(float *avg1load,float *avg5load,float *avg15load) {
                     "([0-9]+\\.[0-9]+), "
                     "([0-9]+\\.[0-9]+), "
                     "([0-9]+\\.[0-9]+)";
-    
+
     regex_t preg;
     int rc = regcomp(&preg,pattern,REG_EXTENDED);
     if( rc ) {
@@ -982,9 +987,9 @@ int
 wakeup_remote_server(void) {
     char command[512], reply[128];
     char cmd[32];
-    
+
     logmsg(LOG_INFO,"Waking up remote server with MAC address '%s'.",target_mac_address);
-    
+
     if( wakelan(target_mac_address,target_broadcast_address, target_port) ) {
         logmsg(LOG_ERR,"Cannot wake up target server!");
         return 1;
@@ -1031,7 +1036,7 @@ wakeup_remote_server(void) {
     }
 
     logmsg(LOG_DEBUG,"Remote server is up and running.");
-    
+
     // Finally run optional startup post-script
     char scriptfile[256], buffer[512];
     snprintf(scriptfile,255,"%s/tvpowerd/post-startup.sh",CONFDIR);
@@ -1112,7 +1117,7 @@ setup_sighandlers(void) {
 }
 
 /**
- * Verify that the specified remote server have a tvpvrd daemon running 
+ * Verify that the specified remote server have a tvpvrd daemon running
  * @return 0 if tvpvrd is running
  */
 int
@@ -1186,7 +1191,7 @@ refresh_recordings(void) {
     char *buffer = calloc(buffsize,sizeof(char));
     char *line = calloc(linesize,sizeof(char));
     char *msgbuff = calloc(linesize,sizeof(char));
-    static char prevmsgbuff[512] = {'\0'}; 
+    static char prevmsgbuff[512] = {'\0'};
     int ret=0;
 
     numrecs = 0 ;
@@ -1230,7 +1235,7 @@ refresh_recordings(void) {
 
     return ret;
 #endif
-    
+
 }
 
 /*
@@ -1288,7 +1293,7 @@ server_refresh_time = 1;
 
                 // Find out how long to next recording (in seconds)
                 if( ! refresh_recordings() && ! time_nextrecording(&ts, &title) ) {
-      
+
                     int ongoing=1;
                     remote_recording(&ongoing);
 
@@ -1320,7 +1325,7 @@ server_refresh_time = 1;
                                         return;
                                     }
                                 }
-                                
+
         #endif
                                 // Now check that the server really is powered down by trying to execute a
                                 // command on the server
@@ -1378,7 +1383,7 @@ server_refresh_time = 1;
 
                                         // The user can force a restart of the recording server by placing a file
                                         // with name "start_tvp" in the tmp dir
-                                        int tstfd = open( "/tmp/start_tvp", O_RDONLY);                                        
+                                        int tstfd = open( "/tmp/start_tvp", O_RDONLY);
                                         if( tstfd >= 0 ) {
                                             close(tstfd);
                                             logmsg(LOG_INFO,"Found start_tvp. Starting server ...");
