@@ -36,7 +36,7 @@ endif
 
 EXTRA_DIST = etc/README etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template \
 etc/themes/tvpvrd_mobile.css \
-etc/themes/tvpvrd_plain.css etc/themes/tvpvrd_metal.css etc/themes/tvpvrd_hq.css \
+etc/themes/tvpvrd_plain.css etc/themes/tvpvrd_metal.css etc/themes/tvpvrd_hq.css etc/themes/tvpvrd_night.css etc/themes/tvpvrd_deep.css \
 etc/img/logout_button.jpg \
 etc/img/bg_metal.jpg etc/img/bgcmd_metal_off.jpg etc/img/bgcmd_metal_on.jpg \
 etc/img/bgtbar_deep.jpg \
