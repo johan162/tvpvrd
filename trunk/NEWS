@@ -6,8 +6,19 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.4.3 (12 sep 2013)
+-----
+User visible changes:
+    - Missing CSS style sheets for themes "night" and "deep" ar now included in distribution
+
+Bugs fixed:
+    - The build scripts did not install the two themes "night" and "deep"
+
+Internal changes:
+    - Updated build scripts
+
+
 4.4.2 (21 aug 2013)
-------
 ------
 User visible changes:
     - None.
@@ -16,7 +27,7 @@ Bugs fixed:
     - None.
 
 Internal changes:
-    - c
+    - Upgrade to clean compile on gcc 4.7.2 for use with OpenSuSE 12.3
 
 
 4.4.1 (26 apr 2013)
