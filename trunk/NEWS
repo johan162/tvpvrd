@@ -6,6 +6,18 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.4.4
+-----
+User visible changes:
+    -
+
+Bugs fixed:
+    -
+
+Internal changes:
+    - Added check to abort if no video cards where found
+
+
 4.4.3 (12 sep 2013)
 -----
 User visible changes:

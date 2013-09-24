@@ -451,6 +451,10 @@ read_inisettings(void) {
         max_video = 1;
 #else
         max_video = (unsigned)_vctrl_getnumcards();
+        if( 0==max_video ) {
+            logmsg(LOG_CRIT,"No video cards found. Aborting.");
+            exit(EXIT_FAILURE);
+        }
 #endif
     }
 
