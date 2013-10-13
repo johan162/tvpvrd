@@ -46,6 +46,11 @@
 #define RTC_WAKEUP_DEVICE "/sys/class/rtc/rtc0/wakealarm"
 #define RTC_STATUS_DEVICE "/proc/driver/rtc"
 
+/**
+ * Set the real time clock alarm on the server to wake up at a later time
+ * @param alarmtime
+ * @return 0 on success , -1 on failure
+ */
 int
 set_rtc_alarm(time_t alarmtime) {
     // The alarmtime must be in UTC time since the bios clock is
@@ -81,6 +86,10 @@ set_rtc_alarm(time_t alarmtime) {
     return 0;
 }
 
+/**
+ * Extract the number of ongoing recordings
+ * @return The number of recordings in progress
+ */
 int
 get_num_ongoing_recordings(void) {
     int cnt=0;
@@ -92,6 +101,10 @@ get_num_ongoing_recordings(void) {
     return cnt;
 }
 
+/**
+ * Get the number of users logged in to the machine
+ * @return Number of logged in users
+ */
 int
 get_num_users(void) {
     char cmd[256];
@@ -128,6 +141,9 @@ get_num_users(void) {
     }
 }
 
+/**
+ * Do the real shutdown of the server by executing a the shutdown shell script
+ */
 void
 do_shutdown(void) {
 
@@ -146,6 +162,8 @@ do_shutdown(void) {
         }
     }
 
+    // To let the daemon know that the server was automatically shut down we add an indicator
+    // file (empty) in the data directory
     snprintf(cmd, 255, "touch %s/%s", datadir, DEFAULT_AUTOSHUTDOWN_INDICATOR);
     int ret = system(cmd);
     if (-1 == ret || WEXITSTATUS(ret)) {
@@ -169,7 +187,7 @@ do_shutdown(void) {
     logmsg(LOG_DEBUG, "rc=%d for shutdown() command.", ret);
 
     // Now wait for the SIGHUP signal we will receive when the server goes down
-    sleep(75);
+    sleep(30);
 
     // We are out of luck. Nothing else to do!
     logmsg(LOG_CRIT, "Unable to shutdown server!!");
