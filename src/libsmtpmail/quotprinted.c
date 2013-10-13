@@ -36,7 +36,7 @@ static int
 _chk_softlinebreak(char **pout, size_t *n, size_t *w) {
 
     if( *w==LINE_WIDTH-1 ) {
-        // We need to insert a soft linebreak
+        // We need to insert a soft line break
         if( **pout == 32 ) {
             if( *n <  6) return -1;
 
@@ -89,8 +89,8 @@ _chk_softlinebreak(char **pout, size_t *n, size_t *w) {
  * subject line in mail. See RFC 2047 for details.
  * Note: This version will ignore any '\n' and '\r' characters in the input string
  * @param in INput string to be encoded
- * @param out Outpput string in Q-encoded format
- * @param maxlen Maxbuffer len
+ * @param out Output string in Q-encoded format
+ * @param maxlen Max buffer length
  * @return -1 on failure, 0 on success
  */
 int
@@ -173,8 +173,8 @@ qprint_encode_word(char * const in, char * const out, size_t maxlen) {
  * subject line in mail. See RFC 2047 for details.
  * Note: This version will ignore any '\n' and '\r' characters in the input string
  * @param in INput string to be encoded
- * @param out Outpput string in Q-encoded format
- * @param maxlen Maxbuffer len
+ * @param out Output string in Q-encoded format
+ * @param maxlen Max buffer length
  * @return -1 on failure, 0 on success
  */
 int
