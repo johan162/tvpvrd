@@ -135,7 +135,7 @@ char server_version[] = PACKAGE_VERSION; // This define gets set by the config p
 char server_program_name[32] = {0};
 
 // Time delay (in sec) before the daemon really starts doing stuff if
-// the dameon is started within 3 minutes of the machine power
+// the daemon is started within 3 minutes of the machine power
 // on. This might seem a really odd thing to have but it has one
 // really useful purpose. On older machines where the bios clock
 // is not correctly updated by the ntpd daemon at shutdown it
@@ -150,11 +150,11 @@ char server_program_name[32] = {0};
 // to correct the machine time.
 //
 // Of course this delay is only really necessary when the
-// daaemon is started up just after the server has been powered on. So
+// daemon is started up just after the server has been powered on. So
 // this delay only kicks in if the daemon is started within 3 minutes of the
 // machine power on. This can also be adjusted as an argument when starting
 // the daemon (-t)
-int tdelay=30;
+int tdelay=20;
 
 // The video buffer (used when reading the video stream from the capture card)
 // One buffer for each video card. We support up to 4 simultaneous cards
@@ -251,6 +251,10 @@ int dokilltranscodings = 1;
  */
 char locale_name[255];
 
+/*
+ * Setup to handle program start up argument in both short and long format for use with the
+ * getopt() library function.
+ */
 static const char short_options [] = "d:f:hi:l:p:vx:V:st:";
 static const struct option long_options [] = {
     { "daemon",  required_argument,     NULL, 'd'},
@@ -310,7 +314,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'h':
                 fprintf(stdout,
-                        "'%s' (C) 2009,2010,2011,2012 Johan Persson, (johan162@gmail.com) \n"
+                        "'%s' (C) 2009-2013 Johan Persson, (johan162@gmail.com) \n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 #ifdef DEBUG_SIMULATE
@@ -343,7 +347,7 @@ parsecmdline(int argc, char **argv) {
 #ifdef DEBUG_SIMULATE
                         " *** DEBUG BUILD. WILL NOT RECORD REAL VIDEO STREAMS *** \n"
 #endif
-                        "Copyright (C) 2009,2010,2011,2012 Johan Persson (johan162@gmail.com)\n"
+                        "Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
                 exit(EXIT_SUCCESS);
@@ -594,12 +598,12 @@ void startdaemon(void) {
     }
 
     // Get access to files written by the daemon
-    // This is not quite necessay since we explicetly set
+    // This is not quite necessary since we explicitly set
     // the file attributes on the database and the log file
     // when they are created.
     umask(0);
 
-    // Create a session ID so the child isn't treated as an orpphan
+    // Create a session ID so the child isn't treated as an orphan
     pid_t sid = setsid();
     if( sid < 0 ) {
 	syslog(LOG_ERR, "Cannot fork daemon and create session ID.");
@@ -740,7 +744,7 @@ chkswitchuser(void) {
         }
     }
 
-    // After a possible setuid() and setgrp() the dumapable flag is reset which means
+    // After a possible setuid() and setgrp() the "dumpable" flag is reset which means
     // that no core is dumped in case of a SIGSEGV signal. We want a coredump in case
     // of a memory overwrite so we make sure this is allowed
     if( -1 == prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) ) {
@@ -768,7 +772,7 @@ exithandler(void) {
 }
 
 /**
- * Check that the directory structure for the stored recordigs are in place. In case
+ * Check that the directory structure for the stored recordings are in place. In case
  * a directory is missing it is created.
  */
 void
@@ -797,7 +801,7 @@ chkdirstructure(void) {
     }
 
     // Create the profile directories under mp4/mp2 if user has enabled
-    // profile subdirectory hierachy
+    // profile subdirectory hierarchy
     if( use_profiledirectories ) {
         struct transcoding_profile_entry **profiles;
         unsigned nprof = get_transcoding_profile_list(&profiles);
@@ -976,7 +980,7 @@ startrec(void *arg) {
                 // via a select() call. We only wait for the descriptor associated with this capture
                 // card. If there is no error and the call wasn't interrupted (EINTR) we go ahead
                 // and read as much data as the card wants to give us. Normally this is a whole number of
-                // frames. The data read is normnally in the ange ~8k to ~80k in size.
+                // frames. The data read is normally in the range ~8k to ~80k in size.
                 // ---------------------------------------------------------------------------------------
 
                 ret = select (vh + 1, &fds, NULL, NULL, &tv);
@@ -1168,8 +1172,9 @@ startrec(void *arg) {
  * This is the main thread that runs forever checking the list of recordings and kicks
  * of a recording thread when it is time for the recording to start.
  * This thread is started at the beginning of the server and run until the server
- * is shut down. It will loop and check every 'time_resolution' second if a queued
+ * is shut down. It will loop and check every 'time_resolution second if a queued
  * recoding is due to be started. There is no argument passed to this thread.
+ * The argument is only a dummy argument needed to fit the pthread() thread prototype.
  */
 void *
 chkrec(void *arg) {
@@ -1291,14 +1296,15 @@ chkrec(void *arg) {
         sleep(time_resolution);
     }
 
-    // Trick to shut up the compiler warning aboutunused argument
+    // Trick to shut up the compiler warning about unused argument
     arg = (void *)0;
     return arg;
 }
 
 /*
  * This is the main function that gets started for each client that
- * connects to us. It is run as its own thread
+ * connects to us. It is run as its own thread.
+ * The passed argument is the socket the client connected on.
  */
 void *
 clientsrv(void *arg) {
@@ -1505,10 +1511,10 @@ webclientsrv(void *arg) {
     // loosing 8MB for each created thread
     pthread_detach(pthread_self());
 
-    // First we need to find out what the index the socket that we will used
+    // First we need to find out what the index the socket that we will use
     // have in the array of all open sockets. This is necessary since we use the same
     // index to keep track of a lot of information about this connection. You can view the
-    // idnex as a unique key for this connection.
+    // index as a unique key for this connection.
     i = 0;
     while (i < max_clients && client_socket[i] != my_socket)
         i++;
@@ -1698,7 +1704,7 @@ startupsrv(void) {
             ret = select(sockd + 1, &read_fdset, NULL, NULL, &timeout);
         }
 
-        if( ret == 0 ) {
+        if( 0 == ret ) {
             // Timeout, so take the opportunity to check if we received a
             // signal telling us to quit. We don't care about what signal. Since the signal
 	    // handler is only allowing signals that we consider stopping signals)
@@ -1990,7 +1996,7 @@ main(int argc, char *argv[]) {
 
     // We want to block all signals apart from the OS system signals
     // that indicates a serious error in the program (like a segmentation
-    // violation or a /very unlikely bus error). We also allow SIGQUIT
+    // violation or a very unlikely bus error). We also allow SIGQUIT
     // as a mean to force a coredump in a different way.
     sigfillset( &signal_set );
     sigdelset( &signal_set , SIGSEGV);
@@ -2121,8 +2127,8 @@ main(int argc, char *argv[]) {
 
     // We don't bother freeing globals since some data structures are checked by running
     // threads and we might get sigfaults if the thread is trying to check a deleted memory structure.
-    // All dynamic memory will be returned when proram exis anyway. To do this properly we would
-    // have to send cancellations to all threads and wait for eaxch of them to give up.
+    // All dynamic memory will be returned when program exits anyway. To do this properly we would
+    // have to send cancellations to all threads and wait for each of them to give up.
     // free_globs();
     exit(EXIT_SUCCESS);
 }

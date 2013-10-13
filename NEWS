@@ -6,16 +6,21 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.4.4
+4.4.4 (xxx yyy 2013)
 -----
 User visible changes:
-    -
+    - The builtin SMTP library (to send mail from the daemon) now also supports 
+      authentication to the SMTP server via AUTH PLAIN (before only AUTH LOGIN was
+      supported). This is useful as many SASL providers use PLAIN instead of LOGIN as
+      the method of choice. 
+
+    - Added runtime check to abort if no video cards where found (or has broken)
 
 Bugs fixed:
-    -
+    - None (there are currently no known bugs)
 
 Internal changes:
-    - Added check to abort if no video cards where found
+    - Some minor code cleanup and some spell check
 
 
 4.4.3 (12 sep 2013)
