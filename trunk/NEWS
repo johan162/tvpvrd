@@ -6,7 +6,7 @@ $Id$
 Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.4.4 (xxx yyy 2013)
+4.4.4 (13 oct 2013)
 -----
 User visible changes:
     - The builtin SMTP library (to send mail from the daemon) now also supports 
