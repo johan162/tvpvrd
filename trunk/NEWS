@@ -10,9 +10,14 @@ Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
 -----
 User visible changes:
     - The builtin SMTP library (to send mail from the daemon) now also supports 
-      authentication to the SMTP server via AUTH PLAIN (before only AUTH LOGIN was
-      supported). This is useful as many SASL providers use PLAIN instead of LOGIN as
-      the method of choice. 
+      authentication to the SMTP server via AUTH PLAIN in addition to AUTH LOGIN. 
+      Since both PLAIN and LOGIN methods are sending the user/pwd as (almost) 
+      plain text there might be security implications. This support library does
+      not support SMTPS (encrypted SMTP) and probably never will  (this is a video
+      program not a complete mail client). It is therefore recommended to use a 
+      local SMTP server.
+
+    - Added config option to specify alternative SMTP port
 
     - Added runtime check to abort if no video cards where found (or has broken)
 

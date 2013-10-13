@@ -1098,14 +1098,26 @@ smtp_server_support(struct smtp_handle *handle, size_t feature) {
  * @param server_ip Server IP och fully qualified name
  * @param user User name to login to with server
  * @param pwd Password
+ * @param port Optional port for SMTP service
  * @return -1 on failure , 0 on success
  */
 struct smtp_handle *
-smtp_setup(char *server_ip, char *user, char *pwd) {
+smtp_setup(char *server_ip, char *user, char *pwd, int port) {
 
     srand(time(NULL));
-
-    struct smtp_handle *handle = _smtp_connect(server_ip, "smtp");
+    struct smtp_handle *handle;
+    
+    if( port <= 0 ) {
+        // Use system standard port number
+         handle = _smtp_connect(server_ip, "smtp");
+    } else {
+        char numbuff[8];
+        if( port > 1023 ) {
+            return NULL;
+        }
+        sprintf(numbuff,"%d",port);
+        handle = _smtp_connect(server_ip, numbuff);
+    }
 
     if ( NULL != handle ) {
         char hname[255];
@@ -1218,6 +1230,7 @@ smtp_cleanup(struct smtp_handle **handle) {
 
 /**
  * Utility function to send basic HTML or plain message through the specified SMTP server
+ * on standard port.
  * @param server
  * @param user
  * @param pwd
@@ -1235,7 +1248,7 @@ smtp_simple_sendmail(char *server, char *user, char *pwd,
                      char * from, char *to, char *cc,
                      char *message, unsigned isHTML) {
     struct smtp_handle *handle;
-    if ((handle = smtp_setup(server, user, pwd))) {
+    if ((handle = smtp_setup(server, user, pwd, -1))) {
         if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_TO, to)) {
             if( cc && *cc ) {
                 if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_CC, cc)) {
@@ -1267,7 +1280,7 @@ smtp_simple_sendmail_with_fileattachment(char *server, char *user, char *pwd,
                      char *message, unsigned isHTML,
                      char *filename, int contenttype, int encoding) {
     struct smtp_handle *handle;
-    if ((handle = smtp_setup(server, user, pwd))) {
+    if ((handle = smtp_setup(server, user, pwd, -1))) {
         if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_TO, to)) {
             if( cc && *cc ) {
                 if (-1 != smtp_add_rcpt(handle, SMTP_RCPT_CC, cc)) {
