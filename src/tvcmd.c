@@ -2458,6 +2458,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "%-30s: %d\n"
             "%-30s: %d\n"
             "%-30s: %s\n"
+            "%-30s: %d\n"
             "%-30s: %s\n"
 
             "%-30s: %d\n"
@@ -2512,6 +2513,7 @@ _cmd_getSettings(const char *cmd, int sockfd) {
             "smtp_use",smtp_use,
             "use_html",use_html_mail,
             "smtp_server",smtp_server,
+            "smtp_port",smtp_port,
             "smtp_user",smtp_user,
 
             "daemonize",daemonize,

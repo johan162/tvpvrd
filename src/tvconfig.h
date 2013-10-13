@@ -473,7 +473,10 @@ extern char smtp_user[] ;
 // Name of SMTP password
 extern char smtp_pwd[] ;
 
-// Name of loclae to use (used to set LC_ALL)
+// Alternative SMTP port
+extern int smtp_port ;
+
+// Name of locale to use (used to set LC_ALL)
 extern char locale_name[];
 
 // Should we allow connection to the WEB-interface?

@@ -539,6 +539,14 @@ smtp_use=no
 smtp_server=localhost
 
 #----------------------------------------------------------------------------
+# SMTP_PORT int [-1, 1023]
+# Alternative port for SMTP server. Use -1 to use system standard port.
+# NOTE: The implementation does not support encrypted SMTP connections so
+# just changing to the standard SMTPS port will NOT work!
+#----------------------------------------------------------------------------
+smtp_port=-1
+
+#----------------------------------------------------------------------------
 # SMTP_USER string
 # User name for login on the smtp server
 #----------------------------------------------------------------------------

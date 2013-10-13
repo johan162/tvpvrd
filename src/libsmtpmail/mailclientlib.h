@@ -225,10 +225,11 @@ smtp_server_support(struct smtp_handle *handle, size_t feature);
  * @param server_ip Server IP och fully qualified name
  * @param user User name to login to with server
  * @param pwd Password
+ * @param port Optional port number. Use -1 to use server defined standard
  * @return NULL on failure, handle to mail object if success
  */
 struct smtp_handle *
-smtp_setup(char *server_ip, char *user, char *pwd);
+smtp_setup(char *server_ip, char *user, char *pwd, int port);
 
 /**
  * This is the opposite to smtp_setup. This will cleanup all used memrot by the

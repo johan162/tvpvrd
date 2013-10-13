@@ -230,6 +230,7 @@ int smtp_use ;
 char smtp_server[64] ;
 char smtp_user[64] ;
 char smtp_pwd[64] ;
+int smtp_port ;
 
 /*
  * Shutdown controls
@@ -521,14 +522,20 @@ read_inisettings(void) {
             iniparser_getstring(dict, "mail:smtp_server", ""),
             63);
     smtp_server[63] = '\0';
+    
     strncpy(smtp_user,
             iniparser_getstring(dict, "mail:smtp_user", ""),
             63);
     smtp_user[63] = '\0';
+    
     strncpy(smtp_pwd,
             iniparser_getstring(dict, "mail:smtp_pwd", ""),
             63);
     smtp_pwd[63] = '\0';
+    
+    smtp_port = validate(-1,1023,"smtp_port",
+                         iniparser_getint(dict, "mail:smtp_port",-1));    
+    
 
     /*--------------------------------------------------------------------------
      * FFMPEG Section

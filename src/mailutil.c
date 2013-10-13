@@ -187,16 +187,16 @@ send_mail_template(char *subject, char *from, char *to,
         } 
     }
 
-    struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
+    struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd,smtp_port);
     if( handle == NULL ) {
-        logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
+        logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s] on port %d",smtp_server,smtp_user,smtp_pwd,smtp_port);
         free(buffer);
         if( buffer2 )
             free(buffer2);
         return -1;
     }
 
-    logmsg(LOG_DEBUG,"Connected to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
+    logmsg(LOG_DEBUG,"Connected to SMTP server (%s) with credentials [%s:%s] on port %d",smtp_server,smtp_user,smtp_pwd,smtp_port);
     rc = smtp_add_rcpt(handle,SMTP_RCPT_TO,to);
     if( -1 == rc ) {
         logmsg(LOG_ERR,"Could NOT add To: '%s'",to); 
@@ -247,18 +247,18 @@ sendmail_helper(char *subject,char *buffer_plain,char *buffer_html) {
     int rc;
     if( !smtp_use || !use_html_mail) {
 
-        logmsg(LOG_DEBUG,"Sendmail_helper via mail system command.");
+        logmsg(LOG_DEBUG,"Sendmail_helper: Using system mail command.");
         rc = send_mail(subject, daemon_email_from, send_mailaddress, buffer_plain);
 
     } else {
         
-        logmsg(LOG_DEBUG,"Sendmail_helper via SMTP system command.");
-        struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd);
+        logmsg(LOG_DEBUG,"Sendmail_helper: Using SMTP server");
+        struct smtp_handle *handle = smtp_setup(smtp_server,smtp_user,smtp_pwd,smtp_port);
         if( handle == NULL ) {
-            logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s]",smtp_server,smtp_user,smtp_pwd);
+            logmsg(LOG_ERR,"Could NOT connect to SMTP server (%s) with credentials [%s:%s] on port %d",smtp_server,smtp_user,smtp_pwd,smtp_port);
             return -1;
         }
-        logmsg(LOG_DEBUG,"Sendmail_helper: Connected to SMTP server '%s'",smtp_server);
+        logmsg(LOG_DEBUG,"Sendmail_helper: Connected to SMTP server '%s' (on port %d)",smtp_server,smtp_port);
         
         if( -1 == smtp_add_html(handle, buffer_html, buffer_plain) ) {
             logmsg(LOG_ERR,"Could NOT add content in mail");
