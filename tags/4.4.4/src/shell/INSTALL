@@ -1,0 +1,76 @@
+=======================================================================================
+INSTALL FILE FOR PACKAGE : 'TVPSH'
+An interactive shell for the tvpvrd daemon
+$Id$
+
+Copyright (C) 2010,2011 Johan Persson (johan162@gmail.com)
+=======================================================================================
+
+INSTALL file for tvpsh - A basic shell replacement to interact with the daemon
+
+This program normally gets installed under "/usr/bin/tvpsh"
+
+Installing the shell
+-----------------------------
+Type
+make
+sudo make install
+
+This will install the binary shell in the directory specified when the build
+was configured. Normally /usr/bin/tvpsh
+
+Running the shell is then just a matter of running the shell from the command
+line as
+
+$> tvpsh
+
+
+Steps to install this as a user login shell
+----------------------------------------------------
+
+This will allow connection to the daemon directly with (for example) ssh.
+
+1. Add the the shell as one of the allowed user interactive shells in /etc/shells
+2. Create a new user. How this is done depends on your system. Most systems now aday
+   have some kind of administrative GUI that will allow you to add a user, password
+   and the loginshell to be used for that user.
+
+   If you want to do this manually the following steps my guide you. We assume that
+   the user name you want to create is "pvr"
+
+   2.0 Switch to root user
+
+   2.1 Add the following line to /etc/passwd
+
+       pvr:x:0:0:tvpvrd shell user:/home/pvr:/usr/bin/tvpshell
+
+       (Here we assume that you name your user "pvr"). Save "/etc/passwd"
+
+   2.2 Update the password by calling
+
+       $> passwd pvr
+
+       and type your new password when questioned
+
+   2.3 If your system uses a shadow password file (most system does) now type
+
+       $> pwconv
+
+       This will take out the password from the /etc/passwd file and move it to /etc/shadow
+
+   2.4. Create an empty home directory (this will of course not be used but must
+        exist for the Unix login to work)
+
+        $> mkdir /home/pvr
+
+   2.5. Verify that the shell exists in /usr/bin/tvpsh
+
+   2.6. You should now be able to login to the server by issuing (for example) the command
+
+        $> ssh pvr@<server>
+
+        where <server> must be replace by the name/ip-number of your server.
+
+
+
+
