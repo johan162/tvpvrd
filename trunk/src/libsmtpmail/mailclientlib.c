@@ -238,7 +238,6 @@ _free_smtp_handle(struct smtp_handle **handle) {
     *handle = NULL;
 }
 
-
 /**
  * Convert a reply from the SMTP server into separate status codes and strings
  * and put each reply in the array structure.
@@ -271,7 +270,7 @@ _smtp_split_reply(char *buffer, struct smtp_reply *reply_list[], size_t maxlen) 
         } else {
             return -1;
         }
-        lastline = *pbuff++ == ' ';
+        lastline = (*pbuff++ == ' ');
 
         size_t n = N;
         char *preply = reply;
@@ -301,7 +300,12 @@ _smtp_split_reply(char *buffer, struct smtp_reply *reply_list[], size_t maxlen) 
 
     return idx;
 }
-
+/**
+ * Open a connection to the SMTP server (no authentication is done at this stage)
+ * @param server_ip
+ * @param service
+ * @return 
+ */
 static struct smtp_handle *
 _smtp_connect(char *server_ip, char *service) {
     int status;
@@ -331,7 +335,7 @@ _smtp_connect(char *server_ip, char *service) {
 
     ssize_t n;
     char *buffer = calloc(1, 2048);
-    if ((n = recv(sock, buffer, 1023, 0)) == -1) {
+    if ((n = recv(sock, buffer, 2048, 0)) == -1) {
         shutdown(sock, SHUT_RDWR);
         close(sock);
         return NULL;
@@ -343,7 +347,7 @@ _smtp_connect(char *server_ip, char *service) {
         _free_smtplist(reply_list, N);
         return NULL;
     }
-
+    
     struct smtp_handle *handle = calloc(1, sizeof (struct smtp_handle));
     handle->sfd = sock;
     handle->cap[0] = reply_list[0];
@@ -402,9 +406,9 @@ _smtp_send_command(struct smtp_handle *handle, char *cmd, char *arg, struct smtp
  * some minimum sanity check (with emphasis on minimum)
  *
  * @param mailaddr Original mail address
- * @param name Extrade human readable part
+ * @param name Extracted human readable part
  * @param maxnlen Maximum buffer length for name
- * @param addr Extracted mail adress
+ * @param addr Extracted mail address
  * @param maxalen Maximum buffer length for address
  * @return 0 on success, -1 on failure (illegal mail address)
  */
@@ -463,8 +467,8 @@ _smtp_normalize_mailaddr(char *mailaddr, char *name, size_t maxnlen, char *addr,
 }
 
 /**
- * Send command to SMTP server and check thta it responds with the expected
- * stytaus code
+ * Send command to SMTP server and check that it responds with the expected
+ * status code
  * @param handle
  * @param cmd
  * @param arg
@@ -556,7 +560,7 @@ smtp_dump_handle(struct smtp_handle * handle, FILE *fp) {
 }
 
 /**
- * Add a receipent of the mail. Use this to add either To, Cc or Bcc
+ * Add a recipient of the mail. Use this to add either To, Cc or Bcc
  * @param handle
  * @param type
  * @param rcpt
@@ -647,7 +651,7 @@ smtp_add_plain(struct smtp_handle *handle, char *buffer) {
  * mails.
  * @param handle
  * @param buffer HTML text
- * @param altbuffer Optional plai version of HTML text
+ * @param altbuffer Optional plain version of HTML text
  * @return 0 on success, -1 on failure
  */
 int
@@ -788,7 +792,7 @@ smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigne
 int
 smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, char *cid) {
 
-    // Determine contenttype based on file name extension
+    // Determine content type based on file name extension
     size_t n=strlen(filename)-1,cnt=0;
     char ebuff[5];
     while( cnt < 5 && n > 0 && filename[n] != '.' ) {
@@ -835,7 +839,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
     // logmsg(LOG_DEBUG, "smtp_sendmail(handle,\"%s\",\"%s\")",from,subject);
 
     if( ! handle->to_concatenated || *handle->to_concatenated == '\0') {
-        // Must have at least one receipients before we can send
+        // Must have at least one recipients before we can send
         return -1;
     }
 
@@ -1072,7 +1076,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
  * Check what feature the SMTP server supports
  * @param handle
  * @param feature to check for
- * @return 1 if feature is supoprted, 0 if not and -1 if feature is an invalid argument
+ * @return 1 if feature is supported, 0 if not and -1 if feature is an invalid argument
  */
 int
 smtp_server_support(struct smtp_handle *handle, size_t feature) {
@@ -1089,7 +1093,7 @@ smtp_server_support(struct smtp_handle *handle, size_t feature) {
 }
 
 /**
- * Initialize a new connecttion to the SMTP server. The code assumed that the
+ * Initialize a new connection to the SMTP server. The code assumed that the
  * SMTP server can use plain text login if it requires login
  * @param server_ip Server IP och fully qualified name
  * @param user User name to login to with server
@@ -1103,7 +1107,7 @@ smtp_setup(char *server_ip, char *user, char *pwd) {
 
     struct smtp_handle *handle = _smtp_connect(server_ip, "smtp");
 
-    if (handle != NULL) {
+    if ( NULL != handle ) {
         char hname[255];
         int rc = gethostname(hname, 255);
         if (-1 == rc) {
@@ -1111,37 +1115,85 @@ smtp_setup(char *server_ip, char *user, char *pwd) {
             return NULL;
         }
         ssize_t num = _smtp_send_command(handle, "EHLO ", hname, &handle->cap[1], 63);
-
+              
         if (num > 0) {
             handle->capidx += num;
             handle->useragent = strdup(SMTP_USER_AGENT);
             handle->mimeversion = strdup("1.0");
 
             if( strlen(user)>0 && strlen(pwd)>0 ) {
-                char b64user[255];
-                char b64pwd[255];
-                base64encode(user, strlen(user), b64user, 255);
-                base64encode(pwd, strlen(pwd), b64pwd, 255);
-                // Now login
-                char *login = "auth login";
-                struct smtp_reply * r[1];
-                num = _smtp_send_command(handle, login, "", r, 1);
-                if (num > 0 && r[0]->status == 334) {
-                    _free_smtplist(r, 1);
-                    num = _smtp_send_command(handle, b64user, "", r, 1);
+                char b64user[128];
+                char b64pwd[128];
+                char b64userpwdforplain[255], userpwdforplain[255];
+                
+                base64encode(user, strlen(user), b64user, 128);
+                base64encode(pwd, strlen(pwd), b64pwd, 128);
+                
+                CLEAR(userpwdforplain);
+                strcpy(userpwdforplain,user);
+                strcpy(userpwdforplain+strlen(user)+1,user);
+                strcpy(userpwdforplain+2*strlen(user)+2,pwd);
+                base64encode(userpwdforplain, 2*strlen(user)+strlen(pwd)+2, b64userpwdforplain, 255);
+                
+                // Check which authentication method(s) the server supports. We can select
+                // between PLAIN and LOGIN. If both methods are supported we prefer PLAIN
+                
+                size_t idx=0;
+                _Bool capPlain=FALSE, capLogin=FALSE;
+                while( idx < handle->capidx ) {
+                    if( strstr(handle->cap[idx]->str,"AUTH ") ) {                    
+                        capPlain = (NULL != strstr(handle->cap[idx]->str,"PLAIN"));
+                        capLogin = (NULL != strstr(handle->cap[idx]->str,"LOGIN"));
+                    }
+                    idx++;
+                }
+                
+                if( capPlain ) {
+                    //syslog(LOG_DEBUG,"Using PLAIN authentication");
+                    char *login = "auth plain";
+                    struct smtp_reply * r[1];
+                    num = _smtp_send_command(handle, login, "", r, 1);
                     if (num > 0 && r[0]->status == 334) {
                         _free_smtplist(r, 1);
-                        num = _smtp_send_command(handle, b64pwd, "", r, 1);
+                        // Send PLAIN base64 encoded version of "<user>\0<user>\0<pwd>"
+                        num = _smtp_send_command(handle, b64userpwdforplain, "", r, 1);
                         if (num > 0 && r[0]->status != 235) {
                             _free_smtplist(r, 1);
                             _free_smtp_handle(&handle);
+                            //syslog(LOG_ERR,"SMTPD Authentication PLAIN failed");
                             return NULL;
-                        }
+                        } 
                         _free_smtplist(r, 1);
+                    }                                        
+                } else if ( capLogin ) {
+                    // Send login command              
+                    //syslog(LOG_DEBUG,"Using LOGIN authentication");
+                    char *login = "auth login";
+                    struct smtp_reply * r[1];
+                    num = _smtp_send_command(handle, login, "", r, 1);
+                    if (num > 0 && r[0]->status == 334) {
+                        _free_smtplist(r, 1);
+
+                        // Send base64 encoded user
+                        num = _smtp_send_command(handle, b64user, "", r, 1);
+                        if (num > 0 && r[0]->status == 334) {
+                            _free_smtplist(r, 1);
+
+                            // Send base64 encoded pwd
+                            num = _smtp_send_command(handle, b64pwd, "", r, 1);
+                            if (num > 0 && r[0]->status != 235) {
+                                _free_smtplist(r, 1);
+                                _free_smtp_handle(&handle);
+                                //syslog(LOG_ERR,"SMTPD Authentication LOGIN failed");
+                                return NULL;
+                            } 
+                            _free_smtplist(r, 1);
+                        }
                     }
+                } else {
+                    return NULL; // No supported login method
                 }
             }
-
         } else {
             smtp_cleanup(&handle);
         }

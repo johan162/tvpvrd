@@ -3,7 +3,7 @@
  * Description: Routines for doing base64 encoding and decoding. See
  *              RFC3548 for details (http://www.ietf.org/rfc/rfc3548.txt)
  *              Note: These routines are not necessarily written to achive
- *              maximum speed but rather maximum clarity to aviod nasty
+ *              maximum speed but rather maximum clarity to avoid nasty
  *              off by one bugs.
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
