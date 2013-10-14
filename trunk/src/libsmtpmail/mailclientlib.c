@@ -42,6 +42,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <poll.h>
+
 #include "mailclientlib.h"
 #include "base64ed.h"
 #include "quotprinted.h"
@@ -300,11 +302,46 @@ _smtp_split_reply(char *buffer, struct smtp_reply *reply_list[], size_t maxlen) 
 
     return idx;
 }
+
+
+/**
+ * Read from socket with timeout
+ * @param sfd Filedescriptor to read
+ * @param buffer Buffer to store result 
+ * @param maxlen Maximum length of buffer
+ * @return 0 on success, -1 on timeout, -2 on error
+ */
+int
+_read_sock_timeout(const int sfd, char * const buffer, const size_t maxlen) {
+    const int timeout_msecs = 5000; // 5s timeout
+    const int num_fd = 1;
+    struct pollfd fds;
+    fds.fd = sfd;
+    fds.events = POLLIN | POLLPRI;
+    
+    int ret = poll(&fds, num_fd, timeout_msecs);
+    
+    if( 0 == ret )
+        return -1; // Timeout
+    if( ret < 0 )
+        return -2; // Other error
+    
+    ssize_t n;
+    if(fds.revents & POLLIN || fds.revents & POLLPRI) {
+        if ((n = recv(sfd, buffer, maxlen, 0)) == -1) {
+            return -2;
+        }
+        buffer[n] = '\0';
+     }
+    
+    return 0;
+}
+
 /**
  * Open a connection to the SMTP server (no authentication is done at this stage)
  * @param server_ip
  * @param service
- * @return 
+ * @return NULL on failure, pointer to smtp_handle otherwise
  */
 static struct smtp_handle *
 _smtp_connect(char *server_ip, char *service) {
@@ -333,15 +370,16 @@ _smtp_connect(char *server_ip, char *service) {
     }
     freeaddrinfo(servinfo);
 
-    ssize_t n;
-    char *buffer = calloc(1, 2048);
-    if ((n = recv(sock, buffer, 2048, 0)) == -1) {
+    
+    const size_t maxlen=2048;
+    char *buffer = calloc(1, maxlen);
+    
+    if( _read_sock_timeout(sock, buffer, maxlen) ) {
         shutdown(sock, SHUT_RDWR);
         close(sock);
-        return NULL;
+        return NULL;        
     }
-    buffer[n] = '\0';
-
+    
     ssize_t num = _smtp_split_reply(buffer, reply_list, N);
     if (1 != num) {
         _free_smtplist(reply_list, N);
@@ -369,6 +407,7 @@ _smtp_connect(char *server_ip, char *service) {
 static ssize_t
 _smtp_send_command(struct smtp_handle *handle, char *cmd, char *arg, struct smtp_reply *reply_list[], size_t N) {
     char tmpbuff[255];
+    
     if (arg == NULL || *arg == '\0') {
         snprintf(tmpbuff, 255, "%s\r\n", cmd);
     } else {
@@ -376,15 +415,14 @@ _smtp_send_command(struct smtp_handle *handle, char *cmd, char *arg, struct smtp
     }
     ssize_t nw = send(handle->sfd, tmpbuff, strlen(tmpbuff), 0);
 
-    if (nw != (ssize_t) strlen(tmpbuff)) {
+    if (nw != (ssize_t) strnlen(tmpbuff,255)) {
         printf("Error writing to socket (%s)", strerror(errno));
     } else {
-        ssize_t n;
-        char *buffer = calloc(1, 2048);
-        if ((n = recv(handle->sfd, buffer, 2048, 0)) == -1) {
+        const ssize_t maxlen=2048;        
+        char *buffer = calloc(1, maxlen);
+        
+        if( _read_sock_timeout(handle->sfd, buffer, maxlen) )
             return -1;
-        }
-        buffer[n] = '\0';
 
         ssize_t num = _smtp_split_reply(buffer, reply_list, N);
 
