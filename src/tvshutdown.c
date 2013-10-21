@@ -148,6 +148,7 @@ void
 do_shutdown(void) {
 
     char cmd[256];
+    logmsg(LOG_DEBUG, "Starting shutdown. Checking for shutdown script ...");
     snprintf(cmd, sizeof(cmd)-1, "%s/tvpvrd/shellscript/%s", CONFDIR, shutdown_script);
     if ( 0 == access(cmd, F_OK) ) {
         snprintf(cmd, sizeof (cmd) - 1, "%s/tvpvrd/shellscript/%s -t %d", CONFDIR, shutdown_script, shutdown_time_delay);
@@ -160,6 +161,8 @@ do_shutdown(void) {
                 logmsg(LOG_ERR, "Could not execute shutdown script");
             }
         }
+    } else {
+        logmsg(LOG_DEBUG, "Cannot access shutdown script: '%s'", cmd);
     }
 
     // To let the daemon know that the server was automatically shut down we add an indicator
@@ -233,7 +236,7 @@ check_for_shutdown(void) {
     time_t nextrec_ts;
 
     pthread_mutex_lock(&recs_mutex);
-    (void)get_nextsched_rec(&nextrec, &nextrec_video, &nextrec_ts);
+    int ret=get_nextsched_rec(&nextrec, &nextrec_video, &nextrec_ts);
     pthread_mutex_unlock(&recs_mutex);
 
     // We need the current time to compare against
@@ -243,10 +246,11 @@ check_for_shutdown(void) {
     // nextrec_video > -1. If nextrec_video==-1 then there are no future recordings
     // scheduled at all.
     // This is an abnormal case since we would then go to sleep forever and never
-    // wake up again. To handle this we set the next recording arbitrarily to 1 year
-    // in the future from the current time
-    if( (time_t)0 == nextrec_ts ) {
-        nextrec_ts = now + 365*24*3600;
+    // wake up again. We handle this by aborting the shutdown if there are no more
+    // recordings to be made.
+    if( -1==ret || (time_t)0 == nextrec_ts || NULL == nextrec ) {
+        logmsg(LOG_DEBUG,"Automatic shutdown aborted since there are no future recordings to wake up to.");
+        return;
     }
 
     // Before shutting down we need to also check that shutting us down will allow
@@ -276,12 +280,14 @@ check_for_shutdown(void) {
                 logmsg(LOG_DEBUG,"Initiating automatic shutdown");
 
                 if( shutdown_send_mail ) {
+                    logmsg(LOG_DEBUG,"Preparing to send shutdown mail ...");
                     char subj[255];
                     char timebuff[255],timebuff_now[255],timebuff_rec_st[255],timebuff_rec_en[255];
                     char *body = calloc(1,2048);
                     char *rtc_status = calloc(1,2048);
                     char hname[255];
                     if( 0 == gethostname(hname,255) ) {
+                        logmsg(LOG_DEBUG,"Hostname is %s...",hname);
                         size_t const maxkeys=16;
                         struct keypairs *keys = new_keypairlist(maxkeys);
                         size_t ki = 0 ;
@@ -291,12 +297,10 @@ check_for_shutdown(void) {
                         ctime_r(&now,timebuff_now);
                         if( timebuff_now[strlen(timebuff_now)-1] == '\n')
                             timebuff_now[strlen(timebuff_now)-1]='\0'; // Remove trailing "\n"
-
                         ctime_r(&nextrec_ts,timebuff);
                         if( timebuff[strlen(timebuff)-1] == '\n')
                             timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
-                        snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);
-
+                        snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);                        
                         localtime_r(&nextrec_ts,&tm_start);
                         localtime_r(&nextrec->ts_end,&tm_end);
                         strftime(timebuff_rec_st,255,"%H:%M",&tm_start);
@@ -311,6 +315,7 @@ check_for_shutdown(void) {
                         add_keypair(keys,maxkeys,"NEXTREC_CHANNEL",nextrec->channel,&ki);
 
                         if( verbose_log >= 4 ) {
+                            logmsg(LOG_DEBUG,"Opening RTC_DEVICE ...");
                             int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
                             if( -1 == read(stfd,rtc_status,2048) ) {
                                 logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",errno,strerror(errno));
@@ -321,7 +326,8 @@ check_for_shutdown(void) {
                         } else {
                             add_keypair(keys,maxkeys,"RTC_STATUS","",&ki);
                         }
-
+                        
+                        logmsg(LOG_DEBUG,"Sending shutdown mail ...");
                         if( -1 == send_mail_template(subj, daemon_email_from, send_mailaddress, "mail_shutdown", keys, ki) ) {
                             logmsg(LOG_ERR,"Failed to send mail using template \"mail_shutdown\"");
                         } else {

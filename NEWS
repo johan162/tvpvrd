@@ -12,11 +12,14 @@ User visible changes:
     - None
 
 Bugs fixed:
-    - None (there are currently no known bugs)
+    - For the case where there are no more future recording the automatic shutdown
+      did not work correctly when the mail-on-shutdown was enabled due to an empty
+      next recording timestamp.
 
 Internal changes:
-    - Added timeout handling when receiving reply from SMTP server to avoid getting
-      stuck reading a reply that never comes.
+    - Added more robust handling of poor SMTP servers by adding timeout handling when 
+      receiving reply from SMTP server to avoid getting stuck waiting for a reply that 
+      never comes
 
 
 4.4.4 (13 oct 2013)
