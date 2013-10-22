@@ -614,9 +614,16 @@ default_transcoding_profile=normal
 [shutdown]
 #----------------------------------------------------------------------------
 # ENABLE boolean
-# USe automatic shutdown or not
+# Use automatic shutdown or not
 #----------------------------------------------------------------------------
 enable=no
+
+#----------------------------------------------------------------------------
+# NO_MORE_RECORDINGS boolean
+# Should the server shutdown even when there are no more scheduled recordings
+# which means that no wakeup time is set
+#----------------------------------------------------------------------------
+no_more_recordings=yes
 
 #----------------------------------------------------------------------------
 # MIN_TIME integer

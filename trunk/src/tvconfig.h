@@ -587,6 +587,7 @@ extern int use_mobile;
 #define DEFAULT_SHUTDOWN_MIN_UPTIME 15*60
 #define DEFAULT_SHUTDOWN_SENDMAIL 0
 #define DEFAULT_SHUTDOWN_PRE_STARTUP_TIME 180
+#define DEFAULT_SHUTDOWN_NO_RECORDINGS 1
 
 extern time_t shutdown_min_time ;
 extern char shutdown_script[128] ;
@@ -599,6 +600,7 @@ extern unsigned shutdown_send_mail ;
 extern unsigned shutdown_pre_startup_time ;
 
 extern char daemon_email_from[] ;
+extern unsigned shutdown_no_recordings ;
 
 /**
  * Setup the dictionary file (ini-file) name. Check if it is specified on

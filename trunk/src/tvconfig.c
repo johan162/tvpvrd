@@ -245,6 +245,7 @@ unsigned shutdown_time_delay = 0 ;
 unsigned shutdown_min_uptime = 0;
 unsigned shutdown_send_mail ;
 unsigned shutdown_pre_startup_time ;
+unsigned shutdown_no_recordings = 1;
 
 /*
  * Formats for HTML recording table in mail ('lm' command)
@@ -590,6 +591,8 @@ read_inisettings(void) {
     datadir[127] = '\0';
 
     shutdown_enable = iniparser_getboolean(dict, "shutdown:enable", DEFAULT_SHUTDOWN_ENABLE);
+    
+    shutdown_no_recordings = iniparser_getboolean(dict, "shutdown:no_more_recordings", DEFAULT_SHUTDOWN_NO_RECORDINGS);
 
     shutdown_min_time = validate(120,7200,"shutdown_min_time",
                                  iniparser_getint(dict, "shutdown:min_time", DEFAULT_SHUTDOWN_MIN_TIME));
