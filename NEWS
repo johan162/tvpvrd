@@ -3,13 +3,14 @@ NEWS FILE FOR PACKAGE : 'TVPVRD'
 'tvpvrd' = TV Personal Video Recorder Daemon
 $Id$
 
-Copyright (C) 2009-2012 Johan Persson (johan162@gmail.com)
+Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
 4.4.5 (xx yyy 2013)
 -----
 User visible changes:
-    - None
+    - Added optional configuration whether the to do the automatic shutdown
+      after the last recording when there are no more scheduled future recordings.
 
 Bugs fixed:
     - For the case where there are no more future recording the automatic shutdown
@@ -19,7 +20,8 @@ Bugs fixed:
 Internal changes:
     - Added more robust handling of poor SMTP servers by adding timeout handling when 
       receiving reply from SMTP server to avoid getting stuck waiting for a reply that 
-      never comes
+      never comes.
+    - Some minor refactoring in the shutdown module.
 
 
 4.4.4 (13 oct 2013)

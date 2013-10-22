@@ -190,11 +190,105 @@ do_shutdown(void) {
     logmsg(LOG_DEBUG, "rc=%d for shutdown() command.", ret);
 
     // Now wait for the SIGHUP signal we will receive when the server goes down
-    sleep(30);
+    sleep(80);
 
     // We are out of luck. Nothing else to do!
     logmsg(LOG_CRIT, "Unable to shutdown server!!");
 
+}
+
+void
+send_shutdown_mail(struct recording_entry *nextrec, time_t nextrec_ts) {
+
+    if (shutdown_send_mail) {
+
+        logmsg(LOG_DEBUG, "Preparing to send shutdown mail ...");
+        const size_t BUFFLEN = 255;
+        const size_t BUFFLEN_LONG = 2048;
+        char subj[BUFFLEN], timebuff[BUFFLEN], timebuff_now[BUFFLEN], timebuff_rec_st[BUFFLEN], 
+             timebuff_rec_en[BUFFLEN],hname[BUFFLEN];
+        char *body = calloc(1, BUFFLEN_LONG);
+
+        time_t now = time(NULL);
+        ctime_r(&now, timebuff_now);
+        if ('\n' == timebuff_now[strlen(timebuff_now) - 1])
+            timebuff_now[strlen(timebuff_now) - 1] = '\0'; // Remove trailing "\n"
+
+        if (gethostname(hname, BUFFLEN)) {
+            logmsg(LOG_ERR, "Cannot read hostname for shutdown email.");
+            strcpy(hname, "UNKNOWN");
+        }
+
+        size_t const maxkeys = 16;
+        struct keypairs *keys = new_keypairlist(maxkeys);
+        size_t ki = 0;
+
+        if (nextrec && nextrec_ts) {
+            char *rtc_status = calloc(1, BUFFLEN_LONG);
+            struct tm tm_start, tm_end;
+            CLEAR(tm_start);
+            CLEAR(tm_end);
+
+            ctime_r(&nextrec_ts, timebuff);
+            if (timebuff[strlen(timebuff) - 1] == '\n')
+                timebuff[strlen(timebuff) - 1] = '\0'; // Remove trailing "\n"
+            snprintf(subj, BUFFLEN, "TVPVRD: Server %s shutdown until %s", hname, timebuff);
+
+            // The recording is not actually started until after the startup time
+            nextrec_ts += shutdown_pre_startup_time;
+
+            localtime_r(&nextrec_ts, &tm_start);
+            localtime_r(&nextrec->ts_end, &tm_end);
+            strftime(timebuff_rec_st, BUFFLEN, "%H:%M", &tm_start);
+            strftime(timebuff_rec_en, BUFFLEN, "%H:%M", &tm_end);
+
+            add_keypair(keys, maxkeys, "SERVER", hname, &ki);
+            add_keypair(keys, maxkeys, "WAKEUPTIME", timebuff, &ki);
+            add_keypair(keys, maxkeys, "TIME", timebuff_now, &ki);
+            add_keypair(keys, maxkeys, "NEXTREC", nextrec->title, &ki);
+            add_keypair(keys, maxkeys, "NEXTRECTIME_START", timebuff_rec_st, &ki);
+            add_keypair(keys, maxkeys, "NEXTRECTIME_END", timebuff_rec_en, &ki);
+            add_keypair(keys, maxkeys, "NEXTREC_CHANNEL", nextrec->channel, &ki);
+
+            if (nextrec && verbose_log >= 4) {
+                logmsg(LOG_DEBUG, "Opening RTC_DEVICE ...");
+                int stfd = open(RTC_STATUS_DEVICE, O_RDONLY);
+                if (-1 == read(stfd, rtc_status, BUFFLEN_LONG)) {
+                    logmsg(LOG_ERR, "Cannot read RTC status ( %d : %s)", errno, strerror(errno));
+                    *rtc_status = '\0';
+                }
+                close(stfd);
+                add_keypair(keys, maxkeys, "RTC_STATUS", rtc_status, &ki);
+            } else if (nextrec) {
+                add_keypair(keys, maxkeys, "RTC_STATUS", "", &ki);
+            }
+            free(rtc_status);
+
+        } else {
+            snprintf(subj, BUFFLEN, "TVPVRD: Server %s shutdown. No more scheduled recordings.", hname);
+            add_keypair(keys, maxkeys, "SERVER", hname, &ki);
+            add_keypair(keys, maxkeys, "WAKEUPTIME", "(none set)", &ki);
+            add_keypair(keys, maxkeys, "TIME", timebuff_now, &ki);
+            add_keypair(keys, maxkeys, "NEXTREC", "", &ki);
+            add_keypair(keys, maxkeys, "NEXTRECTIME_START", "", &ki);
+            add_keypair(keys, maxkeys, "NEXTRECTIME_END", "", &ki);
+            add_keypair(keys, maxkeys, "NEXTREC_CHANNEL", "", &ki);
+            add_keypair(keys, maxkeys, "RTC_STATUS", "", &ki);
+        }
+
+        logmsg(LOG_DEBUG, "Sending shutdown mail ...");
+        if (-1 == send_mail_template(subj, daemon_email_from, send_mailaddress, "mail_shutdown", keys, ki)) {
+            logmsg(LOG_ERR, "Failed to send mail using template \"mail_shutdown\"");
+        } else {
+            logmsg(LOG_DEBUG, "Successfully sent mail using template \"mail_shutdown\"!");
+        }
+
+        free_keypairlist(keys, ki);
+        sleep(5); // Make sure the email gets sent before we take down the server
+
+
+        free(body);
+    }
 }
 
 void
@@ -248,14 +342,14 @@ check_for_shutdown(void) {
     // This is an abnormal case since we would then go to sleep forever and never
     // wake up again. We handle this by aborting the shutdown if there are no more
     // recordings to be made.
-    if( -1==ret || (time_t)0 == nextrec_ts || NULL == nextrec ) {
-        logmsg(LOG_DEBUG,"Automatic shutdown aborted since there are no future recordings to wake up to.");
+    if( !shutdown_no_recordings && (-1==ret || (time_t)0 == nextrec_ts || NULL == nextrec) ) {
+        logmsg(LOG_DEBUG,"Automatic shutdown aborted. No future scheduled recordings.");
         return;
     }
 
     // Before shutting down we need to also check that shutting us down will allow
     // us to be turned off for at least as long as the minimum shutdown time
-    if( nextrec_ts - now > shutdown_min_time+(time_t)shutdown_pre_startup_time ) {
+    if( 0==nextrec_ts || (nextrec_ts - now > shutdown_min_time+(time_t)shutdown_pre_startup_time) ) {
         // Yes we could potentially shutdown. Now check that
         // 1) No ongoing recordings
         // 2) No ongoing transcodings
@@ -266,88 +360,24 @@ check_for_shutdown(void) {
 
         float avg1, avg5, avg15;
         getsysload(&avg1, &avg5, &avg15);
-        // logmsg(LOG_DEBUG,"avg5=%f shutdow_max_5load=%f",avg5,shutdown_max_5load);
         if( avg5 < shutdown_max_5load &&
             get_num_ongoing_transcodings() == 0 &&
             get_num_ongoing_recordings() == 0 ) {
 
-            // Set RTC alarm so we will wake up a bit before the recording time
-            nextrec_ts -= shutdown_pre_startup_time;
-            if( -1 == set_rtc_alarm(nextrec_ts) ) {
-                logmsg(LOG_ERR,"Automatic shutdown disabled since the wakeup alarm cannot be set.");
-            } else {
-
-                logmsg(LOG_DEBUG,"Initiating automatic shutdown");
-
-                if( shutdown_send_mail ) {
-                    logmsg(LOG_DEBUG,"Preparing to send shutdown mail ...");
-                    char subj[255];
-                    char timebuff[255],timebuff_now[255],timebuff_rec_st[255],timebuff_rec_en[255];
-                    char *body = calloc(1,2048);
-                    char *rtc_status = calloc(1,2048);
-                    char hname[255];
-                    if( 0 == gethostname(hname,255) ) {
-                        logmsg(LOG_DEBUG,"Hostname is %s...",hname);
-                        size_t const maxkeys=16;
-                        struct keypairs *keys = new_keypairlist(maxkeys);
-                        size_t ki = 0 ;
-                        struct tm tm_start, tm_end;
-
-                        now = time(NULL)+5;
-                        ctime_r(&now,timebuff_now);
-                        if( timebuff_now[strlen(timebuff_now)-1] == '\n')
-                            timebuff_now[strlen(timebuff_now)-1]='\0'; // Remove trailing "\n"
-                        ctime_r(&nextrec_ts,timebuff);
-                        if( timebuff[strlen(timebuff)-1] == '\n')
-                            timebuff[strlen(timebuff)-1]='\0'; // Remove trailing "\n"
-                        snprintf(subj,255,"Server %s shutdown until %s",hname,timebuff);                        
-                        localtime_r(&nextrec_ts,&tm_start);
-                        localtime_r(&nextrec->ts_end,&tm_end);
-                        strftime(timebuff_rec_st,255,"%H:%M",&tm_start);
-                        strftime(timebuff_rec_en,255,"%H:%M",&tm_end);
-
-                        add_keypair(keys,maxkeys,"SERVER",hname,&ki);
-                        add_keypair(keys,maxkeys,"WAKEUPTIME",timebuff,&ki);
-                        add_keypair(keys,maxkeys,"TIME",timebuff_now,&ki);
-                        add_keypair(keys,maxkeys,"NEXTREC",nextrec->title,&ki);
-                        add_keypair(keys,maxkeys,"NEXTRECTIME_START",timebuff_rec_st,&ki);
-                        add_keypair(keys,maxkeys,"NEXTRECTIME_END",timebuff_rec_en,&ki);
-                        add_keypair(keys,maxkeys,"NEXTREC_CHANNEL",nextrec->channel,&ki);
-
-                        if( verbose_log >= 4 ) {
-                            logmsg(LOG_DEBUG,"Opening RTC_DEVICE ...");
-                            int stfd = open(RTC_STATUS_DEVICE,O_RDONLY);
-                            if( -1 == read(stfd,rtc_status,2048) ) {
-                                logmsg(LOG_ERR,"Cannot read RTC status ( %d : %s)",errno,strerror(errno));
-                                *rtc_status = '\0';
-                            }
-                            close(stfd);
-                            add_keypair(keys,maxkeys,"RTC_STATUS",rtc_status,&ki);
-                        } else {
-                            add_keypair(keys,maxkeys,"RTC_STATUS","",&ki);
-                        }
-                        
-                        logmsg(LOG_DEBUG,"Sending shutdown mail ...");
-                        if( -1 == send_mail_template(subj, daemon_email_from, send_mailaddress, "mail_shutdown", keys, ki) ) {
-                            logmsg(LOG_ERR,"Failed to send mail using template \"mail_shutdown\"");
-                        } else {
-                            logmsg(LOG_DEBUG,"Successfully sent mail using template \"mail_shutdown\"!");
-                        }
-
-                        free_keypairlist(keys,ki);
-                        sleep(5); // Make sure the email gets sent before we take down the server
-
-                    } else {
-                        logmsg(LOG_ERR,"Cannot read hostname for shutdown email. No shutdown email sent!");
-                    }
-                    free(body);
-                    free(rtc_status);
-
+            if( nextrec_ts > 0 ) {
+                nextrec_ts -= shutdown_pre_startup_time;
+                if( -1 == set_rtc_alarm(nextrec_ts) ) {
+                    logmsg(LOG_ERR,"Automatic shutdown disabled since the wakeup alarm cannot be set.");
+                } else {
+                    logmsg(LOG_DEBUG,"Scheduled wakeup at ts=%u",(unsigned)nextrec_ts);                    
                 }
-
-                do_shutdown();
+            } else {
+                logmsg(LOG_DEBUG,"NO scheduled wakeup time (no scheduled recordings)");
             }
-
+            send_shutdown_mail(nextrec,nextrec_ts);                
+            logmsg(LOG_DEBUG,"Initiating automatic shutdown");
+            do_shutdown();                
+            
         } else {
             logmsg(LOG_DEBUG,"Aborting automatic shutdown. One or more of the conditions not fulfilled.");
         }
