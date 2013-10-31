@@ -6,11 +6,12 @@ $Id$
 Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.4.5 (xx yyy 2013)
+4.4.5 (31 oct 2013)
 -----
 User visible changes:
-    - Added optional configuration whether the to do the automatic shutdown
-      after the last recording when there are no more scheduled future recordings.
+    - Added optional configuration for automatic shutdown behaviour in case there are 
+      no more scheduled recordings. This lets you choose if the server should stay
+      powered on or be shut down after the very last scheduled recording has finished.
 
 Bugs fixed:
     - For the case where there are no more future recording the automatic shutdown
