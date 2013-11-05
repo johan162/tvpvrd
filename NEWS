@@ -9,6 +9,8 @@ Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 4.4.6-dev (xx dec 2013)
 -----
 User visible changes:
+    - Added configuration for modern style Upstart init script for system that uses
+      initctl to start daemons (e.g. newer version of Debian, Ubuntu, Linux Mint etc)
     - Re-enable the user setting for deciding if a user login when using the Web-UI should
       be required or not. This was previously ignored and a login was always required.
     - If an XML DB files is specified on the command line the full path is now used. 
@@ -18,6 +20,7 @@ Bugs fixed:
     - Web-UI did always require a login and did not adhere to the config setting of
       require_web_password
     - Only 8 command line argument was allowed when starting the daemon
+    - Debian/Ubuntu style autostart script in init.d script had a wrong path
 
 Internal changes:
     - Some minor refactoring in how to handle a non-existent XML DB file
