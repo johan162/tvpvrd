@@ -6,6 +6,24 @@ $Id$
 Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.4.6-dev (xx dec 2013)
+-----
+User visible changes:
+    - Re-enable the user setting for deciding if a user login when using the Web-UI should
+      be required or not. This was previously ignored and a login was always required.
+    - If an XML DB files is specified on the command line the full path is now used. 
+      The previous behavior was to use the daemons working directory
+
+Bugs fixed:
+    - Web-UI did always require a login and did not adhere to the config setting of
+      require_web_password
+    - Only 8 command line argument was allowed when starting the daemon
+
+Internal changes:
+    - Some minor refactoring in how to handle a non-existent XML DB file
+
+
+
 4.4.5 (31 oct 2013)
 -----
 User visible changes:
