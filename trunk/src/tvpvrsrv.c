@@ -289,7 +289,7 @@ parsecmdline(int argc, char **argv) {
     tcpip_port = 0;
     is_master_server = -1;
     opterr = 0; // Suppress error string from getopt_long()
-    if( argc > 8 ) {
+    if( argc > 14 ) {
         fprintf(stderr,"Too many arguments. Try '-h'.");
         exit(EXIT_FAILURE);
     }
@@ -374,7 +374,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'f':
                 if( optarg != NULL ) {
-                    strncpy(xmldbfile,basename(optarg),255);
+                    strncpy(xmldbfile,optarg,255);
                     xmldbfile[255] = '\0';
                     if( strlen(xmldbfile) == 255 ) {
                         fprintf(stderr,"xmldb file given as argument is invalid. Too long.");

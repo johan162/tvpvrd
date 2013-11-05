@@ -642,7 +642,6 @@ writeXMLFile(const char *filename) {
     return 0;
 }
 
-
 /**
  * Initialize the recording database. This is a plain text file in XML format.
  * The full structure of the DB is defined with an XML RNG (grammar) stored in the
@@ -652,41 +651,32 @@ void
 init_tvxmldb(void) {
     // If an XML DB file was given as an argument use this location as the xml db file
     // Otherwise use the XMLDB file specified in the ini-file
-    if( strlen(xmldbfile) > 0 ) {
-        logmsg(LOG_INFO,"Reading initial XML DB from: '%s'.", xmldbfile);
-        if( -1 == readXMLFile(xmldbfile) ) {
-        logmsg(LOG_ERR,
-                "FATAL error. "
-                "Could not read XML DB file '%s'.",xmldbfile);
-            exit(EXIT_FAILURE);
-        }
-    } else {
-        snprintf(xmldbfile,255,"%s/xmldb/%s",
+    if (! strlen(xmldbfile)) {        
+        snprintf(xmldbfile, 255, "%s/xmldb/%s",
                 datadir,
                 basename(iniparser_getstring(dict, "config:xmldbfile_name", XMLDBFILE_NAME))
                 );
         xmldbfile[255] = '\0';
-        if( strlen(xmldbfile) >= 255 ) {
+        if (strlen(xmldbfile) >= 255) {
             logmsg(LOG_ERR,
                     "FATAL error. "
                     "Name of XML DB file is not valid. String too long.\n");
             exit(EXIT_FAILURE);
         }
-        // If the XML DB File doesn't exist we will create an empty one
-        struct stat filestat;
-        if( -1 == stat(xmldbfile,&filestat) ) {
-            if( -1 == writeXMLFile(xmldbfile) ) {
-                logmsg(LOG_ERR,"Failed to initialize xmldb datafile. (%d : %s)",errno,strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-        }
-        logmsg(LOG_INFO,"Reading initial XML DB from: '%s'.", xmldbfile);
-        if( -1 == readXMLFile(xmldbfile) ) {
-            logmsg(LOG_INFO,
-                "No DB file found. Will be created in '%s' when saved.",
-                xmldbfile);
-        }
     }
+
+    logmsg(LOG_INFO, "Reading initial XML DB from: '%s'.", xmldbfile);
+    struct stat filestat;    
+    if (-1 == stat(xmldbfile, &filestat)) {
+        logmsg(LOG_INFO,
+                "Specified XML DB file does not exist. Creating empty DB '%s'. ", xmldbfile);
+
+        // If the XML DB File doesn't exist we will create an empty one
+        if (-1 == writeXMLFile(xmldbfile) || -1 == stat(xmldbfile, &filestat)) {
+            logmsg(LOG_ERR, "Failed to initialize xmldb datafile, check path and permissions. (%d : %s)", errno, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    }        
 }
 
 /* tvxmldb.c */
