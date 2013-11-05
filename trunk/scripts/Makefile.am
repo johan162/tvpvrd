@@ -13,8 +13,9 @@ if have_upstart_init
 
 install-data-local:
 	install -D -m 644  $(top_srcdir)/scripts/deb.init.conf.tvpvrd ${DESTDIR}$(sysconfdir)/init/tvpvrd.conf
-	[ ! -d ${DESTDIR}$(sysconfdir)/init.d/ ] && mkdir ${DESTDIR}$(sysconfdir)/init.d
-	ln -sf /lib/init/upstart-job ${DESTDIR}$(sysconfdir)/init.d/tvpvrd
+	if [ ! -d ${DESTDIR}$(sysconfdir)/init.d/ ]; then mkdir -p ${DESTDIR}$(sysconfdir)/init.d; fi
+	if [ -f ${DESTDIR}$(sysconfdir)/init.d/tvpvrd ]; then rm ${DESTDIR}$(sysconfdir)/init.d/tvpvrd; fi
+	$(LN_S) /lib/init/upstart-job ${DESTDIR}$(sysconfdir)/init.d/tvpvrd
 
 uninstall-local:
 	rm -rf ${DESTDIR}$(sysconfdir)/init.d/tvpvrd
