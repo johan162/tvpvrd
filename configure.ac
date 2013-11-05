@@ -216,6 +216,23 @@ AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 ])
 
 # ===============================================================================
+# MACRO AC_CHECK_UPSTARTINIT
+# Determine if the system uses the newer "Upstart" method to handle init scripts
+# We do this by checking if there is a config file for "dmesg" in that case we
+# can safely assume an Upstart system
+# ===============================================================================
+AC_DEFUN([AC_CHECK_UPSTARTINIT],[
+AC_MSG_CHECKING([If system uses Upstart init scripts])
+if test -f /etc/init/dmesg.conf; then
+                    AC_MSG_RESULT([yes])
+else
+                    AC_MSG_RESULT([no])
+fi
+AM_CONDITIONAL(have_upstart_init, test -f /etc/init/dmesg.conf)
+])
+
+
+# ===============================================================================
 # MACRO AC_CHECK_PMTOOLS
 # Determine if the system uses pm-tools to control power management. In that
 # case the install script will put come scripts to remove the ivtv driver from
@@ -255,6 +272,7 @@ AC_DEFINE_UNQUOTED([LOGIN_COOKIE_SEED],"${cookie_seed}",[Cookie seed for WEB-log
 # Run all previous defined macros
 # ===============================================================================
 AC_CHECK_DEBINIFILES
+AC_CHECK_UPSTARTINIT
 AC_CHECK_XSLDOCBOOK
 AC_CHECK_FFMPEG
 AC_CHECK_PMTOOLS
