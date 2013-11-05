@@ -28,6 +28,8 @@
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
+#include "config.h"
+
 // Standard UNIX includes
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,8 +41,6 @@
 #include <time.h>
 #include <inttypes.h>
 #include <ctype.h>
-
-#include "config.h"
 #include <pcre.h>
 
 #include "tvpvrd.h"
@@ -375,7 +375,7 @@ web_cmd_del(int sockd) {
 
 /**
  * The full main page used when we are called from an ordinary browser, This is also
- * the place where we execute the WEb-command as a side effect to get the web output
+ * the place where we execute the Web-command as a side effect to get the web output
  * @param sockd
  * @param wcmd
  * @param cookie_val
@@ -391,7 +391,7 @@ web_main_page(int sockd, char *wcmd, char *cookie_val, int mobile) {
     }
 
     html_startpage(sockd, cookie_val, FALSE);
-    html_windtitlebar(sockd,TRUE);
+    html_windtitlebar(sockd,require_web_password);
 
     // Left side : Command table
     _writef(sockd, "<div id=\"windowmenu\">\n");
@@ -427,7 +427,7 @@ web_main_page_mobile(int sockd, char *wcmd, char *cookie_val) {
     // Initialize a new page
 
     html_startpage(sockd, cookie_val, TRUE);
-    html_windtitlebar(sockd,TRUE);
+    html_windtitlebar(sockd,require_web_password);
 
     _writef(sockd, "<div class=\"single_side\">\n");    
     web_cmd_add(sockd);
