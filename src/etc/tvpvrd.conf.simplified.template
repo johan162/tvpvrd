@@ -57,7 +57,7 @@ require_web_password=yes
 # The login details (if enabled) for the WEB interface
 #----------------------------------------------------------------------------
 web_user=xxxxx
-web_password=
+web_password=xxxxx
 
 #----------------------------------------------------------------------------
 # DATADIR string
@@ -129,7 +129,7 @@ username=xxxxx
 
 #----------------------------------------------------------------------------
 # REQUIRE_PASSWORD boolean
-# Should a password be required to login to the server on the TVP/IP port
+# Should a password be required to login to the server on the TCP/IP port
 #----------------------------------------------------------------------------
 require_password=no
 

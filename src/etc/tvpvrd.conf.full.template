@@ -67,21 +67,21 @@ port=9300
 # available on port (port+1), i.e. 9301 with the default settings.
 # The Web interface only supports a subset of all available commands.
 #----------------------------------------------------------------------------
-enable_webinterface=no
+enable_webinterface=yes
 
 #----------------------------------------------------------------------------
 # REQUIRE_WEB_PASSWORD boolean
 # Determines if the WEB interface require user to login
 #----------------------------------------------------------------------------
-require_web_password=no
+require_web_password=yes
 
 #----------------------------------------------------------------------------
 # WEB_USER string
 # WEB_PASSWORD string
 # The login details (if enabled) for the WEB interface
 #----------------------------------------------------------------------------
-web_user=xxxxx
-web_password=
+web_user=admin
+web_password=admin
 
 #----------------------------------------------------------------------------
 # WEBLOGIN_TIMEOUT int
@@ -192,7 +192,7 @@ logfile_name=/tmp/tvpvrd.log
 # Setting verbose to 3 will also show info messages + notices + debug messages
 # Setting verbose to 4 will also add RTC debug info in shutdown mail
 #----------------------------------------------------------------------------
-verbose_log=1
+verbose_log=2
 
 #----------------------------------------------------------------------------
 # DAEMONIZE bool
@@ -213,11 +213,11 @@ daemonize=yes
 #    $>adduser --system -G video tvpvrd
 # The new user will belong to the default primary group, normally "users"
 #----------------------------------------------------------------------------
-username=xxxxx
+username=root
 
 #----------------------------------------------------------------------------
 # REQUIRE_PASSWORD boolean
-# Should a password be required to login to the server on the TVP/IP port
+# Should a password be required to login to the server on the TCP/IP port
 #----------------------------------------------------------------------------
 require_password=no
 
