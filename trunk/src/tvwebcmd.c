@@ -93,31 +93,32 @@ _web_cmd_login(int socket,struct keypair_t *args, const size_t numargs, struct h
 #ifdef EXTRA_WEB_DEBUG
     logmsg(LOG_DEBUG,"cmd_login: sock=%d, numargs=%d",socket,numargs);
 #endif 
-    
-    char *user, *pwd, *submit;
-    (void)login_token;
-    // Now extract the parameters and if they are found check that this
-    // is the correct form submission and check that the credentials match.
-    // Otherwise just send back the login page.
-    if( -1 == get_assoc_value_s(args,numargs,"user",&user) ||
-        -1 == get_assoc_value_s(args,numargs,"pwd",&pwd) ||
-        -1 == get_assoc_value_s(args,numargs,"submit_login",&submit) || 
-        strcmp(submit, "Login") ||
-        !validate_login(user, pwd) ) {
-        
-#ifdef EXTRA_WEB_DEBUG
-    logmsg(LOG_DEBUG,"WEB login unsuccessful. users=%s, pwd=%s",user!=NULL ? user : "NULL",pwd!=NULL  ? pwd : "NULL");
-#endif    
-        
-        // No valid login parameters. Send back login page
-        web_login_page(socket, headers->ismobile);
-        return 0;
-    }
-    
-    // Login successful. Show the main page and use the "version" command
-    // as the default command to show in the output area.
-    web_main_page(socket, "v", create_login_cookie(user, pwd), headers->ismobile);
+    if ( require_web_password ) {
+        char *user, *pwd, *submit;
+        (void)login_token;
+        // Now extract the parameters and if they are found check that this
+        // is the correct form submission and check that the credentials match.
+        // Otherwise just send back the login page.
+        if( -1 == get_assoc_value_s(args,numargs,"user",&user) ||
+            -1 == get_assoc_value_s(args,numargs,"pwd",&pwd) ||
+            -1 == get_assoc_value_s(args,numargs,"submit_login",&submit) || 
+            strcmp(submit, "Login") ||
+            !validate_login(user, pwd) ) {
 
+    #ifdef EXTRA_WEB_DEBUG
+        logmsg(LOG_DEBUG,"WEB login unsuccessful. users=%s, pwd=%s",user!=NULL ? user : "NULL",pwd!=NULL  ? pwd : "NULL");
+    #endif    
+
+            // No valid login parameters. Send back login page
+            web_login_page(socket, headers->ismobile);
+            return 0;
+        }
+        web_main_page(socket, "v", create_login_cookie(user, pwd), headers->ismobile);        
+    } else {
+        // Login successful. Show the main page and use the "version" command
+        // as the default command to show in the output area.
+        web_main_page(socket, "v", "", headers->ismobile); // Empty login cookie
+    }
     return 0;
 }
 
@@ -526,7 +527,7 @@ web_exec_httpget(const int socket,struct http_reqheaders *headers,char *login_to
     logmsg(LOG_DEBUG,"File=%s, GET=%s, numargs=%zu, login_token=%s",file,headers->Get,numargs,login_token);
 #endif
        
-    if( *login_token ) {
+    if( *login_token || ! require_web_password) {
         // First try if this is any of the predefined commands
         if( -1==web_dispatch_httpget_cmd(socket,dir,file,args,numargs,headers,login_token) ) {
 
