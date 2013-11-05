@@ -10,26 +10,30 @@
 
 if [ ! -f configure ];
 then
+
+sudo apt-get -y -qq install autoconf
+sudo apt-get -y -qq install libtool
+
 # ------------------------------------------------------------------------------------------------------------
 # These packages are needed to be able to rebuild the documentation
 # ------------------------------------------------------------------------------------------------------------
 sudo apt-get -y -qq install docbook5-xml
-sudo apt-get -y -qq install docbook5-xsl-ns # Note: We will manually upgrade to 1.78.1 but we install this to get the catalog paths
+sudo apt-get -y -qq install docbook-xsl-ns 
 sudo apt-get -y -qq install libxml2-utils
 sudo apt-get -y -qq install fop
 sudo apt-get -y -qq install xsltproc
 
 # Setup latest Docbook5 stylesheets manually the package are too old 
 # (we use the namespace version)
-mkdir -p /usr/share/xml/docbook/stylesheet/nwalsh5
+sudo mkdir -p /usr/share/xml/docbook/stylesheet/nwalsh5
 cd /usr/share/xml/docbook/stylesheet/nwalsh5
-wget -q https://sourceforge.net/projects/docbook/files/docbook-xsl-ns/1.78.1/docbook-xsl-ns-1.78.1.tar.bz2
-tar xjf docbook-xsl-ns-1.78.1.tar.bz2
-ln -s docbook-xsl-ns-1.78.1 current
-rm docbook-xsl-ns-1.78.1.tar.bz2
+sudo wget -q https://sourceforge.net/projects/docbook/files/docbook-xsl-ns/1.78.1/docbook-xsl-ns-1.78.1.tar.bz2
+sudo tar xjf docbook-xsl-ns-1.78.1.tar.bz2
+sudo ln -s docbook-xsl-ns-1.78.1 current
+sudo rm docbook-xsl-ns-1.78.1.tar.bz2
 
 # Make dbtoepub command executable to be able to run it
-chmod +x /usr/share/xml/docbook/stylesheet/nwalsh5/current/epub/bin/dbtoepub
+sudo chmod +x /usr/share/xml/docbook/stylesheet/nwalsh5/current/epub/bin/dbtoepub
 
 # ------------------------------------------------------------------------------------------------------------
 # These packages are needed for the core build
