@@ -10,6 +10,7 @@ AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010-2013])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-xz silent-rules])
 AM_SILENT_RULES
 AM_PROG_AR
+AC_PROG_LN_S
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_CONFIG_HEADER([src/config.h])
@@ -223,7 +224,7 @@ AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 # ===============================================================================
 AC_DEFUN([AC_CHECK_UPSTARTINIT],[
 AC_MSG_CHECKING([If system uses Upstart init scripts])
-if test -f /etc/init/dmesg.conf; then
+if test -f /etc/init/dmesg.conf  -a -f /lib/init/upstart-job; then
                     AC_MSG_RESULT([yes])
 else
                     AC_MSG_RESULT([no])
