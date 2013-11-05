@@ -6,23 +6,19 @@
 # Default-Start:     3 5
 # Default-Stop:      0 1 6
 # Short-Description: Manage the TV recording/transcoding daemon
-# Description:       .  This script can be used to start and and stop the tvpvrd daemon. This daemon will turn your
-#                             computer into an advanced digital TV recorder with the possibility to both schedule recordings
-#                             as well as transcoding them into a more efficient format (using ffmpeg), e.g. MP4
+# Description:       This script can be used to start and and stop the tvpvrd daemon. This daemon will turn your
+#                    computer into an advanced digital TV recorder with the possibility to both schedule recordings
+#                    s well as transcoding them into a more efficient format (using ffmpeg), e.g. MP4
 ### END INIT INFO
 
 # Author:Johan Persson <johan162@gmail.com>
 # $Id$
 #
 
-
-# Do NOT "set -e"
-
-# PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Analogue TV recording/transcoding daemon"
 NAME=tvpvrd
-DAEMON=/usr/sbin/$NAME
+DAEMON=/usr/bin/$NAME
 DAEMON_ARGS=
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
@@ -132,7 +128,7 @@ case "$1" in
 	# If the "reload" option is implemented then remove the
 	# 'force-reload' alias
 	#
-	log_daemon_msg "Restarting $DESC" "$NAME"
+	[ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
 	do_stop
 	case "$?" in
 	  0|1)
