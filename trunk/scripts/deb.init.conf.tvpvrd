@@ -1,0 +1,16 @@
+# tvpvrd - A daemon to schedule recordings from an analogue TV card
+#
+# tvpvrd is a flexible daemon to record and optionally transcode the output
+# from an analogue TV-Card (e.g. Hauppauge 150, 350 etc.) 
+#
+# See man tvpvrd for more details
+# 
+
+description "start and stop the tvpvrd recording daemon"
+author      "Johan Persson <johan162@gmail.com>"
+
+start on runlevel [35]
+stop on starting rc RUNLEVEL=[016]
+
+expect fork
+exec /usr/bin/tvpvrd -d y
