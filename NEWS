@@ -15,17 +15,24 @@ User visible changes:
       be required or not. This was previously ignored and a login was always required.
     - If an XML DB files is specified on the command line the full path is now used. 
       The previous behavior was to use the daemons working directory
+    - The default templates for the tvpvrd.conf file has been slightly adjusted to
+      enable the Web-UI by default.
 
 Bugs fixed:
     - Web-UI did always require a login and did not adhere to the config setting of
       require_web_password
     - Only 8 command line argument was allowed when starting the daemon
-    - Debian/Ubuntu style autostart script in init.d script had a wrong path
 
 Internal changes:
     - Some minor refactoring in how to handle a non-existent XML DB file
-
-
+    - Added some bootstrap scripts to make it easier to create a build environment from
+      a repository download. This will now setup a complete autotools environment
+      from scratch. This is only meant to be used by developers. End users just
+      installing the daemon from the tar-balls will not see these scripts. 
+    - Added ubuntu/debian setup script to install all necessary components to build
+      the server. Will make it very easy for developers to get a working build
+      environment.
+ 
 
 4.4.5 (31 oct 2013)
 -----
