@@ -31,7 +31,10 @@ Internal changes:
       installing the daemon from the tar-balls will not see these scripts. 
     - Added ubuntu/debian setup script to install all necessary components to build
       the server. Will make it very easy for developers to get a working build
-      environment.
+      environment. Files bootstrap.sh and bootstrap-deb.sh
+    - Added script to completely clean up a build environment to pristine state
+      after build and autotools setup. This will completely remove all generated
+      files by autotools or the build process. Files autoclean.sh
  
 
 4.4.5 (31 oct 2013)
