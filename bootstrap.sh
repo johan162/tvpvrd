@@ -2,7 +2,6 @@
 # ------------------------------------------------------------------------------------------------------------
 # Boostrap script for autotools. This script can be run after the sources have been
 # cloned from the repo to create a working autotools setup.
-#
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ! -f configure ];
