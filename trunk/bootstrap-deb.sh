@@ -54,9 +54,14 @@ sudo apt-get -y -qq install ffmpeg
 # ------------------------------------------------------------------------------------------------------------
 # Finally we can do the initial bootstrap to construct the initial configure
 # ------------------------------------------------------------------------------------------------------------
+if [ -d /usr/share/gettext ]; then 
+  ln -s /usr/share/gettext/config.rpath 
+else 
+  echo "ERROR: Cannot bootstrap! '/usr/share/gettext' is missing"
+  exit 1
+fi
 touch ChangeLog 
-automake --add-missing
-autoreconf
+autoreconf --install --symlink
 else
 echo "Ignored. Bootstrap is only supposed to be run once."
 echo "Try running ./stdbuild.sh to build the daemon."
