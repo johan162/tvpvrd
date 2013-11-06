@@ -29,10 +29,12 @@ sudo apt-get -y -qq install xsltproc
 # (we use the namespace version)
 sudo mkdir -p /usr/share/xml/docbook/stylesheet/nwalsh5
 cd /usr/share/xml/docbook/stylesheet/nwalsh5
-sudo wget -q https://sourceforge.net/projects/docbook/files/docbook-xsl-ns/1.78.1/docbook-xsl-ns-1.78.1.tar.bz2
-sudo tar xjf docbook-xsl-ns-1.78.1.tar.bz2
-sudo ln -s docbook-xsl-ns-1.78.1 current
-sudo rm docbook-xsl-ns-1.78.1.tar.bz2
+if [ ! -d docbook-xsl-ns-1.78.1 ]; then
+  sudo wget -q https://sourceforge.net/projects/docbook/files/docbook-xsl-ns/1.78.1/docbook-xsl-ns-1.78.1.tar.bz2
+  sudo tar xjf docbook-xsl-ns-1.78.1.tar.bz2
+  sudo rm docbook-xsl-ns-1.78.1.tar.bz2
+fi
+sudo ln -sf docbook-xsl-ns-1.78.1 current
 cd $WORKING_DIR 
 
 # Make dbtoepub command executable to be able to run it
@@ -63,12 +65,21 @@ fi
 touch ChangeLog 
 autoreconf --install --symlink
 
+if [ "$?" = 0 ]; then 
+
 echo "--------------------------------------------------------------"
 echo " DONE. Build environment is ready. "
 echo " "
-echo " You can now: run \"./stdbuild.sh\" to build the daemon "
-echo " and then then run \"./mkrelease.sh\" to create a new release. "
+echo " You can now run \"./stdbuild.sh\" to build the daemon "
+echo " and then then run \"./mkrelease.sh\" to create new releases. "
 echo "--------------------------------------------------------------"
+
+else
+
+echo "ERROR: Cannot setup build environment. Sorry."
+echo "       Try running \"autoreconf --install --symlink\" manually."
+
+fi
 
 else
 echo "Ignored. Bootstrap is only supposed to be run once."
