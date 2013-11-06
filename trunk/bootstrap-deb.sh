@@ -11,6 +11,8 @@
 if [ ! -f configure ];
 then
 
+WORKING_DIR=`pwd`
+
 sudo apt-get -y -qq install autoconf
 sudo apt-get -y -qq install libtool
 
@@ -31,6 +33,7 @@ sudo wget -q https://sourceforge.net/projects/docbook/files/docbook-xsl-ns/1.78.
 sudo tar xjf docbook-xsl-ns-1.78.1.tar.bz2
 sudo ln -s docbook-xsl-ns-1.78.1 current
 sudo rm docbook-xsl-ns-1.78.1.tar.bz2
+cd $WORKING_DIR 
 
 # Make dbtoepub command executable to be able to run it
 sudo chmod +x /usr/share/xml/docbook/stylesheet/nwalsh5/current/epub/bin/dbtoepub
@@ -51,10 +54,11 @@ sudo apt-get -y -qq install ffmpeg
 # ------------------------------------------------------------------------------------------------------------
 # Finally we can do the initial bootstrap to construct the initial configure
 # ------------------------------------------------------------------------------------------------------------
-touch ChangeLog # This will be built when a release is made from the repository commits
+touch ChangeLog 
 automake --add-missing
 autoreconf
 else
 echo "Ignored. Bootstrap is only supposed to be run once."
 echo "Try running ./stdbuild.sh to build the daemon."
 fi
+
