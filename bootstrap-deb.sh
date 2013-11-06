@@ -62,6 +62,14 @@ else
 fi
 touch ChangeLog 
 autoreconf --install --symlink
+
+echo "--------------------------------------------------------------"
+echo " DONE. Build environment is ready. "
+echo " "
+echo " You can now: run \"./stdbuild.sh\" to build the daemon "
+echo " and then then run \"./mkrelease.sh\" to create a new release. "
+echo "--------------------------------------------------------------"
+
 else
 echo "Ignored. Bootstrap is only supposed to be run once."
 echo "Try running ./stdbuild.sh to build the daemon."
