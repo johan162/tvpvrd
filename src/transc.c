@@ -363,8 +363,8 @@ _create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
                     "%s -report -y -i %s -threads 0 "
-                    " -acodec %s -ab %dk "
-                    " -vcodec %s -b:v %dk "
+                    " -c:a %s -ab %dk "
+                    " -c:v %s -b:v %dk "
                     " -s %s"
                     "  %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
@@ -377,8 +377,8 @@ _create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile
         } else {
             snprintf(cmd, size,
                     "%s -report -y -i %s -threads 0 "
-                    " -acodec %s -ab %dk "
-                    " -vcodec %s -b:v %dk "
+                    " -c:a %s -ab %dk "
+                    " -c:v %s -b:v %dk "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->acodec, profile->audio_bitrate,
@@ -394,14 +394,13 @@ _create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
                     "%s -y -report -i %s -threads 0 -pass 1 "
-                    " -vcodec %s -b:v %dk "
-                    " -an "
+                    " -c:v %s -b:v %dk "
                     " -s %s "
-                    " -f rawvideo  %s "
+                    " -f mp4  %s "
                     "/dev/null > /dev/null 2>&1 && "
                     "%s -y -report -i %s -threads 0 -pass 2 "
-                    "-acodec %s -ab %dk "
-                    " -vcodec %s -b:v %dk "
+                    "-c:a %s -b:a %dk "
+                    "-c:v %s -b:v %dk "
                     " -s %s "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
@@ -417,13 +416,12 @@ _create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile
         } else {
             snprintf(cmd, size,
                     "%s -y -report -i %s -threads 0 -pass 1 "
-                    "-vcodec %s -b:v %dk "
-                    " -an "
-                    " -f rawvideo %s "
+                    "-c:v %s -b:v %dk "
+                    " -f mp4 %s "
                     "/dev/null > /dev/null 2>&1 && "
                     "%s -y -report -i %s -threads 0 -pass 2 "
-                    "-acodec %s -ab %dk "
-                    "-vcodec %s -b:v %dk "
+                    "-c:a %s -b:a %dk "
+                    "-c:v %s -b:v %dk "
                     " %s %s > %s 2>&1",
                     ffmpeg_bin, filename,
                     profile->vcodec, profile->video_bitrate,
@@ -516,11 +514,10 @@ _create_avconv_cmdline(char *filename, struct transcoding_profile_entry *profile
         if( strlen(profile->size) > 0 ) {
             snprintf(cmd, size,
                     "%s -y -pre libx264-fast_firstpass "
-                    " -i %s -threads 0 -pass 1 "
+                    " -i %s -threads 0 -strict experimental -pass 1 "
                     " -c:v %s -b:v %dk "
-                    " -an "
                     " -s %s "
-                    " -f rawvideo  "
+                    " -f mp4  "
                     " /dev/null > %s 2>&1 && "
                     " %s -pre %s "
                     " -i %s -threads 0 -strict experimental -pass 2 "
@@ -542,10 +539,9 @@ _create_avconv_cmdline(char *filename, struct transcoding_profile_entry *profile
         } else {
             snprintf(cmd, size,
                     "%s -y -pre libx264-fast_firstpass  "
-                    " -i %s -threads 0 -pass 1 "
+                    " -i %s -threads 0 -strict experimental -pass 1 "
                     " -c:v %s -b:v %dk "
-                    " -an "
-                    " -f rawvideo "
+                    " -f mp4 "
                     " /dev/null > %s 2>&1 && "
                     " %s -pre %s"
                     " -i %s -threads 0 -strict experimental -pass 2 "
