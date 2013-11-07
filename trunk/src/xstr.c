@@ -170,7 +170,7 @@ xstrtolower(char *s) {
 }
 
 /*
- * Make a string a valid file name by replaceing all punctuation and space
+ * Make a string a valid file name by replacing all punctuation and space
  * with specified character
  */
 void

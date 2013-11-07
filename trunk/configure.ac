@@ -199,7 +199,18 @@ AC_SUBST(DOCBOOK_XSL)
 # ===============================================================================
 AC_DEFUN([AC_CHECK_FFMPEG],[
   AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
+  AM_CONDITIONAL(have_ffmpegbin, test $HAVE_FFMPEGBIN = yes)
 ])
+
+# ===============================================================================
+# MACRO AC_CHECK_AVCONV
+# The following macro checks for a working version of the avconv program.
+# ===============================================================================
+AC_DEFUN([AC_CHECK_AVCONV],[
+  AC_CHECK_PROG(HAVE_AVCONVBIN,avconv,yes,)
+  AM_CONDITIONAL(have_avconvbin, test $HAVE_AVCONVBIN = yes)
+])
+
 
 # ===============================================================================
 # MACRO AC_CHECK_DEBINIFILES

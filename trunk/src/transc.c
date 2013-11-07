@@ -74,7 +74,7 @@ check_ffmpeg_bin(void) {
     if( stat(ffmpeg_bin,&bstat) == 0 ) {
         return 0;
     } else {
-        logmsg(LOG_ERR,"Can not find '%s' executable. Transcoding is not available.",ffmpeg_bin);
+        logmsg(LOG_ERR,"Can not find executable '%s' for transcoding, check your setting in \"tvpvrd.conf\".",ffmpeg_bin);
         return -1;
     }
 }
@@ -318,6 +318,8 @@ list_waiting_transcodings(char *buffer,size_t maxlen) {
     return 0;
 }
 
+
+
 /**
  * Construct the command line for ffmpeg
  * @param file
@@ -329,7 +331,7 @@ list_waiting_transcodings(char *buffer,size_t maxlen) {
  * @return
  */
 int
-create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
+_create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
 
     // Build command line for ffmpeg
     strcpy(destfile, filename);
@@ -344,7 +346,7 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
     }
 
     char ffmpeg_logfile[80];
-    if( verbose_log >= 3 ) {
+    if( verbose_log >= 2 ) {
         strncpy(ffmpeg_logfile,"ffmpeg.log",sizeof(ffmpeg_logfile)-1);
     } else {
         strncpy(ffmpeg_logfile,"/dev/null",sizeof(ffmpeg_logfile)-1);
@@ -438,6 +440,160 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
     return 0;
 
 }
+
+/**
+ * Construct the command line for avconv
+ * @param file
+1 * @param destfile
+ * @param destsize
+ * @param cmd
+ * @param size
+ * @return
+ */
+int
+_create_avconv_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
+
+    // Build command line for avconv
+    strcpy(destfile, filename);
+    int l = (int)strlen(filename)-1;
+    while(l >= 0 && destfile[l] != '.') {
+        l--;
+    }
+    if( l <= 0 ) {
+        logmsg(LOG_ERR,"Cannot create avconv command string. Invalid filename (no file extension found on source file '%s')",
+               filename);
+        return -1;
+    }
+
+    char avconv_logfile[80];
+    char avconv_logfile2[80];
+    if( verbose_log >= 2 ) {
+        strncpy(avconv_logfile,"avconv.log",sizeof(avconv_logfile)-1);
+        strncpy(avconv_logfile2,"avconv-pass2.log",sizeof(avconv_logfile2)-1);
+    } else {
+        strncpy(avconv_logfile,"/dev/null",sizeof(avconv_logfile)-1);
+        strncpy(avconv_logfile2,"/dev/null",sizeof(avconv_logfile)-1);
+    }
+
+    destfile[l] = '\0';
+    strncat(destfile, profile->file_extension,destsize-1);
+
+    // For single pass encoding we only need to run avconv once. For two pass encoding we call avconv twice
+    if (profile->pass == 1) {
+        if( strlen(profile->size) > 0 ) {
+            snprintf(cmd, size,
+                    "%s -pre %s "
+                    " -i %s -threads 0 -strict experimental"
+                    " -c:a %s -b:a %dk "
+                    " -c:v %s -b:v %dk "
+                    " -s %s "
+                    " %s > %s 2>&1",
+                    ffmpeg_bin, profile->extra_ffmpeg_options,
+                    filename,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,
+                    profile->size,                    
+                    destfile, avconv_logfile);
+
+        } else {
+            snprintf(cmd, size,
+                    "%s -pre %s "
+                    " -i %s -threads 0 -strict experimental"
+                    " -c:a %s -b:a %dk "
+                    " -c:v %s -b:v %dk "
+                    " %s > %s 2>&1",
+                    ffmpeg_bin, profile->extra_ffmpeg_options,
+                    filename,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,
+                    destfile,avconv_logfile);
+        }
+
+    } else {
+        // Two pass encoding
+
+        // Removed "-v 0" in second pass
+        if( strlen(profile->size) > 0 ) {
+            snprintf(cmd, size,
+                    "%s -y -pre libx264-fast_firstpass "
+                    " -i %s -threads 0 -pass 1 "
+                    " -c:v %s -b:v %dk "
+                    " -an "
+                    " -s %s "
+                    " -f rawvideo  "
+                    " /dev/null > %s 2>&1 && "
+                    " %s -pre %s "
+                    " -i %s -threads 0 -strict experimental -pass 2 "
+                    " -c:a %s -b:a %dk "
+                    " -c:v %s -b:v %dk "
+                    " -s %s "
+                    " %s > %s 2>&1",
+                    ffmpeg_bin, /* profile->extra_ffmpeg_options,*/
+                    filename,
+                    profile->vcodec, profile->video_bitrate,
+                    profile->size, 
+                    avconv_logfile,
+                    ffmpeg_bin, profile->extra_ffmpeg_options,
+                    filename,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,
+                    profile->size,
+                    destfile,avconv_logfile2);
+        } else {
+            snprintf(cmd, size,
+                    "%s -y -pre libx264-fast_firstpass  "
+                    " -i %s -threads 0 -pass 1 "
+                    " -c:v %s -b:v %dk "
+                    " -an "
+                    " -f rawvideo "
+                    " /dev/null > %s 2>&1 && "
+                    " %s -pre %s"
+                    " -i %s -threads 0 -strict experimental -pass 2 "
+                    " -c:a %s -b:a %dk "
+                    " -c:v %s -b:v %dk "
+                    " %s > %s 2>&1",
+                    ffmpeg_bin, /* profile->extra_ffmpeg_options,*/
+                    filename,
+                    profile->vcodec, profile->video_bitrate,
+                    avconv_logfile,
+                    ffmpeg_bin, profile->extra_ffmpeg_options,
+                    filename,
+                    profile->acodec, profile->audio_bitrate,
+                    profile->vcodec, profile->video_bitrate,                    
+                    destfile,avconv_logfile2);
+        }
+    }
+
+    logmsg(LOG_NOTICE, "avconv command: %s", cmd);
+    return 0;
+ 
+}
+
+/**
+ * Determine which of real construction routine we should call depending on if the daemon is confgired to
+ * use ffmpeg or avconv. 
+ * @param file
+ * @param profile
+ * @param destfile
+ * @param destsize
+ * @param cmd
+ * @param size
+ * @return
+ */
+int
+create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
+    if( -1 == check_ffmpeg_bin() ) {
+        return -1;
+    } else {
+        if( 0 == strncmp(basename(ffmpeg_bin),"avconv",7) ) {
+
+            return _create_avconv_cmdline(filename, profile, destfile, destsize, cmd, size);        
+        } else {
+            return _create_ffmpeg_cmdline(filename, profile, destfile, destsize, cmd, size);
+        }
+    }
+}
+
 
 /**
  * Kill ongoing transcoding with index idx
@@ -591,7 +747,10 @@ _transcode_file(void *arg) {
     get_transcoding_profile(profilename, &profile);
     logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, filename);
 
-    create_ffmpeg_cmdline(basename(filename), profile, destfile, 128, cmd_ffmpeg, 512);
+    if( -1 == create_ffmpeg_cmdline(basename(filename), profile, destfile, 128, cmd_ffmpeg, 512) ) {
+        pthread_exit(NULL);
+        return (void *) 0;        
+    }
     snprintf(cmdbuff, sizeof(cmdbuff)-1, "cd %s;%s", workingdir, cmd_ffmpeg);
     cmdbuff[1023] = '\0';
 
@@ -1425,12 +1584,6 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
     } else  {
 
-        // Check that we can access ffmpeg binary
-        if( -1 == check_ffmpeg_bin() ) {
-            logmsg(LOG_ERR,"Profile '%s' specifies transcoding but 'ffmpeg' executable can not be found.",profile->name);
-            return -1;
-        }
-
         // If recording was successful then do the transcoding
         char cmdbuff[1024], cmd_ffmpeg[512], destfile[128] ;
         int runningtime = 0;
@@ -1450,7 +1603,9 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
             logmsg(LOG_INFO, "Using profile '%s' for transcoding of '%s'", profile->name, short_filename);
 
-            create_ffmpeg_cmdline(short_filename, profile, destfile, sizeof(destfile)-1, cmd_ffmpeg, sizeof(cmd_ffmpeg)-1);
+            if( -1 == create_ffmpeg_cmdline(short_filename, profile, destfile, sizeof(destfile)-1, cmd_ffmpeg, sizeof(cmd_ffmpeg)-1) ) {
+                return -1;    
+            }
 
             snprintf(cmdbuff, sizeof(cmdbuff)-1, "cd %s;%s", workingdir, cmd_ffmpeg);
 

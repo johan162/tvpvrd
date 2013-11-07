@@ -1,7 +1,7 @@
 ############################################################################
 # About this file (tvpvrd.conf.full.template)
 #
-# This is the comlpete template config file for tvpvrd. It contains
+# This is the complete template config file for tvpvrd. It contains
 # all user adjustable settings. If you only want to use mostly default
 # settings consider starting with the template tvpvrd.conf.simplified.template
 # which only contains the most common settings.
@@ -14,13 +14,13 @@
 #
 # config:     General settings for the server
 # encoder:    Setting for the TV Capture card HW MP2 encoder
-# ffmpeg:     General setting for the ffmpeg based transcoding to .mp4 files
+# ffmpeg:     General setting for the ffmpeg/avconv based transcoding
 # shutdown:   Settings to manage the automatic shutdown of the server in
 #             between recordings
 #
 # -------------------------------------------------------------------------------------------------------
 #
-# Copyright (C) 2009,2010,2011 Johan Persson
+# Copyright (C) 2009-2013 Johan Persson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -574,8 +574,12 @@ use_html=no
 
 #----------------------------------------------------------------------------
 # FFMPEG_BIN
-# Command to execute ffmpeg
+# Command to execute the conversion. This should be either ffmpeg OR avconv
+# If avconv is used then the profile directory used will be profile-avconv
+# and if the standard ffmpeg is used then the profile directory will be
+# the ordinary profile
 #----------------------------------------------------------------------------
+# ffmpeg_bin=/usr/bin/avconv
 ffmpeg_bin=/usr/bin/ffmpeg
 
 #----------------------------------------------------------------------------
