@@ -203,7 +203,7 @@ video_size=
 # Any additional options to give to ffmpeg (see ffmpeg(1))
 # **Note: These settings are optimized for the libx264 video codec
 #----------------------------------------------------------------------------
-extra_options=-strict experimental -preset medium -tune film -profile high
+extra_options=-strict experimental -preset medium -tune film -profile:v high
 
 #----------------------------------------------------------------------------
 # FILE_EXTENSION string

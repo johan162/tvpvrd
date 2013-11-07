@@ -287,6 +287,7 @@ AC_CHECK_DEBINIFILES
 AC_CHECK_UPSTARTINIT
 AC_CHECK_XSLDOCBOOK
 AC_CHECK_FFMPEG
+AC_CHECK_AVCONV
 AC_CHECK_PMTOOLS
 
 # ===============================================================================
@@ -314,19 +315,35 @@ if test "x${have_readline_h}" = xno; then
    AC_MSG_NOTICE([    readline-devel to get full history and command line editing support])
 fi
 if test ! "$HAVE_FFMPEGBIN" ; then
-   AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([No ffmpeg executable was found. While strictly speaking not] necessary)
-   AC_MSG_NOTICE([to build the daemon it will be required to do transcoding. The daemon will])
-   AC_MSG_NOTICE([assume that when ffmpeg is used it is reasonable new and supports new style arguments.])
+   if test ! "$HAVE_AVCONVBIN" ; then
+     AC_MSG_NOTICE([ ])
+     AC_MSG_NOTICE([Neither ffmpeg nor avconv executable was found. While strictly speaking not] )
+     AC_MSG_NOTICE([to build the daemon it will be required to do transcoding. ])
+   else
+     AC_MSG_NOTICE([ ])
+     AC_MSG_NOTICE([  - 'avconv' command installed. ])
+     AC_MSG_NOTICE([ ])
+     AC_MSG_NOTICE(["avconv" executable was found to do transcoding ])
+     AC_MSG_NOTICE([Please remember to update the tvpvrd.conf to reflect the usage of avconv])
+     AC_MSG_NOTICE([as the transcoding utility])
+   fi
 else
-   AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([  - 'ffmpeg' command installed. ])
-   AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([Even though you have ffmpeg there might be still problem using it depending])
-   AC_MSG_NOTICE([if you have the x264 (mpeg4) encoder properly installed. Please check the ])
-   AC_MSG_NOTICE([full tvpvrd log in case of errors to see the exact command line used to invoke])
-   AC_MSG_NOTICE([ffmpeg. Try that manually and resolve any missing dependencies until you can ])
-   AC_MSG_NOTICE([manually run the ffmpeg command.])
+   if test ! "$HAVE_AVCONVBIN" ; then
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([  - 'ffmpeg' command installed. ])
+        AC_MSG_NOTICE([ ])
+   else
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([  - 'ffmpeg' command installed. ])
+        AC_MSG_NOTICE([  - 'avconv' command installed. ])
+        AC_MSG_NOTICE([ ])
+        AC_MSG_NOTICE([You have both ffmpeg/avconv installed. It is recommended to use ffmpeg ])
+   fi
+    AC_MSG_NOTICE([ ])
+    AC_MSG_NOTICE([Even though you have ffmpeg/avconv there might be still problem using it depending])
+    AC_MSG_NOTICE([on the exact version. If you have problem using transcoding enable more logging ])
+    AC_MSG_NOTICE([and review the log file (normally /tmp/tvpvrd.log) ])
+    AC_MSG_NOTICE([In the logs you will find the exact command line used for calling ffmpeg/avconv])
 fi
 
 AC_MSG_NOTICE([ ])

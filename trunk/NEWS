@@ -6,8 +6,8 @@ $Id$
 Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.5 (xx dec 2013)
------------------
+4.5.0 (xx dec 2013)
+-------------------
 
 User visible changes:
     - Added configuration for modern style Upstart init script for system that uses
@@ -24,25 +24,23 @@ User visible changes:
       enable the Web-UI by default.
 
     - Ubuntu/Debian/Linux Mint ships "avconv" by default and only includes a very old 
-      (even ancient) version of "ffmpeg". For this reason tvpvrd adds support for 
-      for using "avconv" as alternative to "ffmpeg" to do the transcoding
+      (ancient) version of "ffmpeg". For this reason tvpvrd adds support for 
+      fusing "avconv" as alternative to "ffmpeg" to do the transcoding
       Even though avconv is a fork of ffmpeg the options are quite different so there
       is now also a separate profile directory with settings when avconc is used, "profiles-avconv"
       The use of either "avconv" or "ffmpeg" is specified in the tvpvrd.conf by setting
       the existing "ffmpeg_bin" config variable to the path of either ffmpeg or avconv. 
-      
-      Note: "avconv" seems not to be as stable during transcoding as "ffmpeg". 
-      So there might be more transcoding errors depending on settings, this happens
-      especially for two pass transcodings. Any bug reports here needs to be forwarded
-      to the "avconv" maintainers. 
-      Note2: "avconv" 0.8.8 seems to be unable to do 2-pass transcoding.
-      (See Bug #590 at https://bugzilla.libav.org/ )
+
+      However, ffmpeg is still the recommended transcoder.
+
 
 Bugs fixed:
     - Web-UI did always require a login and did not adhere to the config setting of
       require_web_password
 
     - Only 8 command line argument was allowed when starting the daemon
+
+    - Fixed compatibility with recent versions of ffmpeg for two pass transcodings
 
 Internal changes:
     - Some minor refactoring in how to handle a non-existent XML DB file
