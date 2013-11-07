@@ -6,32 +6,56 @@ $Id$
 Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
-4.4.6-dev (xx dec 2013)
------
+4.5 (xx dec 2013)
+-----------------
+
 User visible changes:
     - Added configuration for modern style Upstart init script for system that uses
       initctl to start daemons (e.g. newer version of Debian, Ubuntu, Linux Mint etc)
+      This is configured automatically depending on the system
+
     - Re-enable the user setting for deciding if a user login when using the Web-UI should
       be required or not. This was previously ignored and a login was always required.
+
     - If an XML DB files is specified on the command line the full path is now used. 
       The previous behavior was to use the daemons working directory
+
     - The default templates for the tvpvrd.conf file has been slightly adjusted to
       enable the Web-UI by default.
+
+    - Ubuntu/Debian/Linux Mint ships "avconv" by default and only includes a very old 
+      (even ancient) version of "ffmpeg". For this reason tvpvrd adds support for 
+      for using "avconv" as alternative to "ffmpeg" to do the transcoding
+      Even though avconv is a fork of ffmpeg the options are quite different so there
+      is now also a separate profile directory with settings when avconc is used, "profiles-avconv"
+      The use of either "avconv" or "ffmpeg" is specified in the tvpvrd.conf by setting
+      the existing "ffmpeg_bin" config variable to the path of either ffmpeg or avconv. 
+      
+      Note: "avconv" seems not to be as stable during transcoding as "ffmpeg". 
+      So there might be more transcoding errors depending on settings, this happens
+      especially for two pass transcodings. Any bug reports here needs to be forwarded
+      to the "avconv" maintainers. 
+      Note2: "avconv" 0.8.8 seems to be unable to do 2-pass transcoding.
+      (See Bug #590 at https://bugzilla.libav.org/ )
 
 Bugs fixed:
     - Web-UI did always require a login and did not adhere to the config setting of
       require_web_password
+
     - Only 8 command line argument was allowed when starting the daemon
 
 Internal changes:
     - Some minor refactoring in how to handle a non-existent XML DB file
+
     - Added some bootstrap scripts to make it easier to create a build environment from
       a repository download. This will now setup a complete autotools environment
       from scratch. This is only meant to be used by developers. End users just
       installing the daemon from the tar-balls will not see these scripts. 
+
     - Added ubuntu/debian setup script to install all necessary components to build
       the server. Will make it very easy for developers to get a working build
       environment. Files bootstrap.sh and bootstrap-deb.sh
+
     - Added script to completely clean up a build environment to pristine state
       after build and autotools setup. This will completely remove all generated
       files by autotools or the build process. Files autoclean.sh

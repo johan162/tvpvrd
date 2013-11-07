@@ -253,7 +253,11 @@ _read_transcoding_profile(char *filename,unsigned idx) {
 int
 read_transcoding_profiles(void) {
     char dirbuff[256];
-    snprintf(dirbuff,255,"%s/tvpvrd/profiles",CONFDIR);
+    if( 0 == strncmp(basename(ffmpeg_bin),"avconv",7) ) {
+        snprintf(dirbuff,255,"%s/tvpvrd/profiles-avconv",CONFDIR);        
+    } else {
+        snprintf(dirbuff,255,"%s/tvpvrd/profiles",CONFDIR);        
+    }
     logmsg(LOG_DEBUG,"Profile directory: %s",dirbuff);  
     return process_files(dirbuff, ".profile", MAX_TRANS_PROFILES, 
                          &num_transcoding_profiles, _read_transcoding_profile);

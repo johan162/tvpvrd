@@ -14,13 +14,13 @@
 #
 # config:     General settings for the server
 # encoder:    Setting for the TV Capture card HW MP2 encoder
-# ffmpeg:     General setting for the ffmpeg based transcoding to .mp4 files
+# ffmpeg:     General setting for the ffmpeg/avconv based transcoding 
 # shutdown:   Settings to manage the automatic shutdown of the server in
 #             between recordings
 #             
 # --------------------------------------------------------------------------
 #
-# Copyright (C) 2009,2010,2011 Johan Persson
+# Copyright (C) 2009-2013 Johan Persson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -125,7 +125,7 @@ logfile_name=/tmp/tvpvrd.log
 #    $>adduser --system -G video tvpvrd
 # The new user will belong to the default primary group, normally "users"
 #----------------------------------------------------------------------------
-username=xxxxx
+username=root
 
 #----------------------------------------------------------------------------
 # REQUIRE_PASSWORD boolean
@@ -159,38 +159,6 @@ frequency_map=europe-west
 # Maximum number of pending recordings per video stream.
 #----------------------------------------------------------------------------
 max_entries=1024
-
-#----------------------------------------------------------------------------
-# MAX_VIDEO integer
-# The number of video cards that can be used  by the server.
-# This is usually the same as the number of TV-Cards available. The number
-# can never be higher than the number of physically available coders but it
-# can be less to tell the server to only use some of the available coders.
-# The program will also validate the available cards. If the number here
-# is higher than the number of found cards in the system the server will
-# given an error during startup and then terminate.
-# If the number is set to 0 then the server will automatically determine
-# the maximum number of cards and use all. In practice very few motherboards
-# have sockets from more than two videocards on the PCI-Express slot
-#----------------------------------------------------------------------------
-max_video=0
-
-#----------------------------------------------------------------------------
-# VIDEO_DEVICE_BASENAME string
-# Basename for video device. This is almost without exception /dev/video
-# Each tuner will then be access as /dev/video0, /dev/video1 etc.
-# This device should be the device providing the MPEG2 output from the card.
-# See also the related setting ENCODER_DEVICE below
-#----------------------------------------------------------------------------
-video_device_basename=/dev/video
-
-#----------------------------------------------------------------------------
-# RECORDING_TIMEHOUR integer
-# RECORDING_TIMEMIN integer
-# Default recording time (hour and minutes) if not specified otherwise
-#----------------------------------------------------------------------------
-recording_timehour=0
-recording_timemin=59
 
 #----------------------------------------------------------------------------
 # XAWTV_STATION_FILE string
@@ -303,15 +271,19 @@ use_html=no
 
 #----------------------------------------------------------------------------
 # FFMPEG_BIN
-# Command to execute ffmpeg
+# Command to execute the conversion. This should be either ffmpeg OR avconv
+# If avconv is used then the profile directory used will be profile-avconv
+# and if the standard ffmpeg is used then the profile directory will be
+# the ordinary profile
 #----------------------------------------------------------------------------
+# ffmpeg_bin=/usr/bin/avconv
 ffmpeg_bin=/usr/bin/ffmpeg
 
 #----------------------------------------------------------------------------
 # DEFAULT_TRANSCODING_PROFIL string
 # The profile that all new recodings will use as primary profile
 #----------------------------------------------------------------------------
-default_transcoding_profile=tnormal
+default_transcoding_profile=normal
 
 
 ############################################################################
