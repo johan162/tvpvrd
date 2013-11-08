@@ -35,6 +35,9 @@ User visible changes:
 
     - libreadline-dev is now required dependency to configure and build the daemon
 
+    - "configure" will now use "/usr" as default prefix and "/etc" for default sysconfdir 
+      so no need to use "configure --prefix=/usr --sysconfdir=/etc".
+
 
 Bugs fixed:
     - Web-UI did always require a login and did not adhere to the config setting of
