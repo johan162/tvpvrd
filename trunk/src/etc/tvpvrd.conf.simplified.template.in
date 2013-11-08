@@ -275,9 +275,10 @@ use_html=no
 # If avconv is used then the profile directory used will be profile-avconv
 # and if the standard ffmpeg is used then the profile directory will be
 # the ordinary profile
+# NOTE: The initial value is set according to what program is detected
+# during the config setup.
 #----------------------------------------------------------------------------
-# ffmpeg_bin=/usr/bin/avconv
-ffmpeg_bin=/usr/bin/ffmpeg
+ffmpeg_bin=@TRANSC_BIN@
 
 #----------------------------------------------------------------------------
 # DEFAULT_TRANSCODING_PROFIL string
