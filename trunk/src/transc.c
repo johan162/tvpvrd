@@ -1662,9 +1662,9 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                     // performance.
                     pid_t rpid;
 
-                    // We only allow one transcoding to run for a maximum of 18 h any longer than
+                    // We only allow one transcoding to run for a maximum of 8 h any longer than
                     // that and we consider the transcoding process as hung
-                    const int watchdog = 18 * 3600;
+                    const int watchdog = 8 * 3600;
                     int ret;
                     float avg1,avg5,avg15;
                     getsysload(&avg1,&avg5,&avg15);
@@ -1713,8 +1713,8 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                         if (WIFEXITED(ret)) {
                             transcoding_done = (WEXITSTATUS(ret) == 0);
                             if (transcoding_done) {
-                                if( runningtime < 30 ) {
-                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 30s for file '%s'. This most likely indicates a problem",
+                                if( runningtime < 15 ) {
+                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 15s for file '%s'. This most likely indicates a problem",
                                         short_filename);
                                     return -1;
 
