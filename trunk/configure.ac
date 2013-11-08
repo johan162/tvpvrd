@@ -24,10 +24,13 @@ src/tvpowerd/uninstall.sh
 src/libsmtpmail/Makefile
 src/libiniparser/Makefile
 src/shell/Makefile
+src/etc/tvpvrd.conf.simplified.template
+src/etc/tvpvrd.conf.full.template
 scripts/Makefile
 scripts/pm/Makefile
 docs/Makefile
 docs/manpages/Makefile
+src/text
 ])
 
 # ===============================================================================
@@ -200,6 +203,8 @@ AC_SUBST(DOCBOOK_XSL)
 AC_DEFUN([AC_CHECK_FFMPEG],[
   AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
   AM_CONDITIONAL(have_ffmpegbin, test $HAVE_FFMPEGBIN = yes)
+  FFMPEG_BIN="ffmpeg-test"
+  AC_SUBST(FFMPEG_BIN)
 ])
 
 # ===============================================================================
