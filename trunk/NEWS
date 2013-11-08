@@ -23,11 +23,13 @@ User visible changes:
     - The default templates for the tvpvrd.conf file has been slightly adjusted to
       enable the Web-UI by default.
 
-    - Support for "avconv" as transcoding program 
+    - Support for "avconv" as transcoding program. This will make the daemon work
+      out-of-the-box with many debian based systems (incl. Ubuntu/Linux Mint) since 
+      they ship with "avconv" as default and not "ffmpeg". 
 
     - The setup process detects if either "ffmpeg" or "avconv" is installed and adjusts
       the template for tvpvrd.conf accordingly. Since "ffmpeg" and "avconv" have
-      different command line arguments there are now two profile directories. The old
+      different command line arguments there are also two profile directories. The old
       one is used with ffmpeg and the new "profiles-avconv" is used with avconv.
 
       However, ffmpeg is still the recommended transcoder and in case both are available
