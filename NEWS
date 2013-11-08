@@ -33,6 +33,8 @@ User visible changes:
       However, ffmpeg is still the recommended transcoder and in case both are available
       the template will be initialized with ffmpeg. 
 
+    - libreadline-dev is now required dependency to configure and build the daemon
+
 
 Bugs fixed:
     - Web-UI did always require a login and did not adhere to the config setting of
