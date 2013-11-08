@@ -4,7 +4,7 @@
 # Use autoreconf to rebuild the build environment
 # ===============================================================================
 AC_PREREQ([2.69])
-AC_INIT([tvpvrd],[4.4.6-dev],[johan162@gmail.com])
+AC_INIT([tvpvrd],[4.5.0-dev],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010-2013])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-xz silent-rules])
@@ -220,9 +220,9 @@ AC_DEFUN([AC_CHECK_AVCONV],[
 AC_DEFUN([AC_CHECK_DEBINIFILES],[
 AC_MSG_CHECKING([If system uses debian style init.d])
 if test ! -f /etc/rc.status; then
-                    AC_MSG_RESULT([yes])
+    AC_MSG_RESULT([yes])
 else
-                    AC_MSG_RESULT([no])
+    AC_MSG_RESULT([no])
 fi
 AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 ])
@@ -236,9 +236,9 @@ AM_CONDITIONAL(have_debian_initd, test ! -f /etc/rc.status)
 AC_DEFUN([AC_CHECK_UPSTARTINIT],[
 AC_MSG_CHECKING([If system uses Upstart init scripts])
 if test -f /etc/init/dmesg.conf  -a -f /lib/init/upstart-job; then
-                    AC_MSG_RESULT([yes])
+    AC_MSG_RESULT([yes])
 else
-                    AC_MSG_RESULT([no])
+    AC_MSG_RESULT([no])
 fi
 AM_CONDITIONAL(have_upstart_init, test -f /etc/init/dmesg.conf)
 ])
@@ -253,9 +253,9 @@ AM_CONDITIONAL(have_upstart_init, test -f /etc/init/dmesg.conf)
 AC_DEFUN([AC_CHECK_PMTOOLS],[
 AC_MSG_CHECKING([if system uses pm-tools])
 if test -d /etc/pm/sleep.d; then
-                    AC_MSG_RESULT([yes])
+    AC_MSG_RESULT([yes])
 else
-                    AC_MSG_RESULT([no])
+    AC_MSG_RESULT([no])
 fi
 AM_CONDITIONAL(have_pmtools, test -d /etc/pm/sleep.d)
 ])
@@ -299,7 +299,9 @@ AC_OUTPUT
 # Finally give some information to the user about the configuration setup
 # ===============================================================================
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
-AC_MSG_NOTICE([INSTALLATION SUMMARY - Basic system configuration is ok.])
+AC_MSG_NOTICE([INSTALLATION SUMMARY])
+AC_MSG_NOTICE([ ])
+AC_MSG_NOTICE([   CONGRATULATION! You seem to have a working environment to build the daemon!])
 if test "x${have_iniparser_h}" = xno; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([  - Will use built-in iniparser library.])
@@ -310,70 +312,46 @@ if test -d /etc/pm/sleep.d ; then
 fi
 if test "x${have_readline_h}" = xno; then
    AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([  - WARNING: 'tvpsh' shell will be built with limited command line editing])
-   AC_MSG_NOTICE([    since the GNU readline library COULD NOT BE FOUND. Please install.])
-   AC_MSG_NOTICE([    readline-devel to get full history and command line editing support])
+   AC_MSG_NOTICE([  - NO GNU readline libraries found.])
+   AC_MSG_NOTICE([      'tvpsh' shell will be built with limited command line editing])
+   AC_MSG_NOTICE([      Please install readline-devel to get full line editing support])
 fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    if test ! "$HAVE_AVCONVBIN" ; then
      AC_MSG_NOTICE([ ])
-     AC_MSG_NOTICE([Neither ffmpeg nor avconv executable was found. While strictly speaking not] )
-     AC_MSG_NOTICE([to build the daemon it will be required to do transcoding. ])
+     AC_MSG_NOTICE([Neither ffmpeg nor avconv executable was found. While strictly not] )
+     AC_MSG_NOTICE([necessary to build the daemon it will be required to do transcoding. ])
    else
      AC_MSG_NOTICE([ ])
-     AC_MSG_NOTICE([  - 'avconv' command installed. ])
-     AC_MSG_NOTICE([ ])
-     AC_MSG_NOTICE(["avconv" executable was found to do transcoding ])
-     AC_MSG_NOTICE([Please remember to update the tvpvrd.conf to reflect the usage of avconv])
-     AC_MSG_NOTICE([as the transcoding utility])
+     AC_MSG_NOTICE([  - Will use 'avconv' for transcoding ])
+     AC_MSG_NOTICE([    Remember to update the tvpvrd.conf to reflect the usage of avconv!])
    fi
 else
    if test ! "$HAVE_AVCONVBIN" ; then
         AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([  - 'ffmpeg' command installed. ])
+        AC_MSG_NOTICE([  - Will use 'ffmpeg' for transcoding. ])
         AC_MSG_NOTICE([ ])
    else
         AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([  - 'ffmpeg' command installed. ])
-        AC_MSG_NOTICE([  - 'avconv' command installed. ])
-        AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([You have both ffmpeg/avconv installed. It is recommended to use ffmpeg ])
+        AC_MSG_NOTICE([  - Can use either 'ffmpeg' or 'avconv' for transcoding ])
+        AC_MSG_NOTICE([    Remember to update the tvpvrd.conf to reflect your choice!])
    fi
-    AC_MSG_NOTICE([ ])
-    AC_MSG_NOTICE([Even though you have ffmpeg/avconv there might be still problem using it depending])
-    AC_MSG_NOTICE([on the exact version. If you have problem using transcoding enable more logging ])
-    AC_MSG_NOTICE([and review the log file (normally /tmp/tvpvrd.log) ])
-    AC_MSG_NOTICE([In the logs you will find the exact command line used for calling ffmpeg/avconv])
 fi
 
 AC_MSG_NOTICE([ ])
 
 if  test "$XSLTPROC_WORKS" = "yes"; then
-    AC_MSG_NOTICE([  - Found Docbook5 and 'xsltproc'.])
-    AC_MSG_NOTICE([ ])
     if test "$JAVAFOP" = "no"; then
+        AC_MSG_NOTICE([  - Docbook5 basic setup detected. Can rebuild documentation except PDF format.])
         AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([The man page can be rebuilt in both html and Unix man format])
-        AC_MSG_NOTICE([but the man page can NOT not be rebuild in PDF format. Please install 'fop'])
-        AC_MSG_NOTICE([if you want to modify the man page and create a new PDF version])
-        AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([Pre-built versions of the man pages are included in the distribution ])
-        AC_MSG_NOTICE([and the install will use these.])
     else
-        AC_MSG_NOTICE([  - Found 'fop' processor.])
-        AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([The man pages can be rebuilt in both html, Unix man format, and])
-        AC_MSG_NOTICE([in PDF format (using 'fop').])
-        AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([In case you get any complains when building PDF files about missing hyphenation])
-        AC_MSG_NOTICE([please see: http://offo.sourceforge.net/hyphenation/binary/installation.html ])
+        AC_MSG_NOTICE([  - Docbook5 full setup detected. All documentation formats can be rebuilt.])
+        AC_MSG_NOTICE([    In case of errors rebuilding PDF regarding missing hyphenation])
+        AC_MSG_NOTICE([    please refer to: http://offo.sourceforge.net/hyphenation/binary/installation.html ])
         AC_MSG_NOTICE([ ])
     fi
 else
-    AC_MSG_NOTICE([Documentation (man pages) can NOT be rebuilt with current system configuration.])
-    AC_MSG_NOTICE([System needs to have 'DocBook5' together with 'xsltproc' installed to do this.])
-    AC_MSG_NOTICE([Pre-built versions of the man pages will be installed. So this is not an issue ])
-    AC_MSG_NOTICE([unless you want to modify the included man page])
+    AC_MSG_NOTICE([  - Docbook5 setup NOT detected. Documentation can not be rebuilt.])
 fi
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 
