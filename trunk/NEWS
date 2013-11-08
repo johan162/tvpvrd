@@ -23,15 +23,15 @@ User visible changes:
     - The default templates for the tvpvrd.conf file has been slightly adjusted to
       enable the Web-UI by default.
 
-    - Ubuntu/Debian/Linux Mint ships "avconv" by default and only includes a very old 
-      (ancient) version of "ffmpeg". For this reason tvpvrd adds support for 
-      fusing "avconv" as alternative to "ffmpeg" to do the transcoding
-      Even though avconv is a fork of ffmpeg the options are quite different so there
-      is now also a separate profile directory with settings when avconc is used, "profiles-avconv"
-      The use of either "avconv" or "ffmpeg" is specified in the tvpvrd.conf by setting
-      the existing "ffmpeg_bin" config variable to the path of either ffmpeg or avconv. 
+    - Support for "avconv" as transcoding program 
 
-      However, ffmpeg is still the recommended transcoder.
+    - The setup process detects if either "ffmpeg" or "avconv" is installed and adjusts
+      the template for tvpvrd.conf accordingly. Since "ffmpeg" and "avconv" have
+      different command line arguments there are now two profile directories. The old
+      one is used with ffmpeg and the new "profiles-avconv" is used with avconv.
+
+      However, ffmpeg is still the recommended transcoder and in case both are available
+      the template will be initialized with ffmpeg. 
 
 
 Bugs fixed:
@@ -57,6 +57,8 @@ Internal changes:
     - Added script to completely clean up a build environment to pristine state
       after build and autotools setup. This will completely remove all generated
       files by autotools or the build process. Files autoclean.sh
+
+    - The internal autotools setup was updated a bit.
  
 
 4.4.5 (31 oct 2013)
