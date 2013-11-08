@@ -7,6 +7,7 @@ AC_PREREQ([2.69])
 AC_INIT([tvpvrd],[4.5.0-dev],[johan162@gmail.com])
 AC_REVISION([$Id$])
 AC_COPYRIGHT([Part of configure script Copyright Johan Persson 2010-2013])
+AC_PREFIX_DEFAULT(/usr)
 AM_INIT_AUTOMAKE([-Wall -Werror dist-xz silent-rules])
 AM_SILENT_RULES
 AM_PROG_AR
@@ -14,6 +15,11 @@ AC_PROG_LN_S
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_CONFIG_HEADER([src/config.h])
+
+# Set default sysconfdir in case prefix is not set by user
+if test "$prefix" = NONE ; then
+  test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
+fi
 
 AC_CONFIG_FILES([
 Makefile
@@ -31,6 +37,8 @@ scripts/pm/Makefile
 docs/Makefile
 docs/manpages/Makefile
 ])
+
+AC_MSG_NOTICE([ "Prefix =  $prefix "])
 
 # ===============================================================================
 # Optional ARGS
@@ -76,6 +84,10 @@ if test "x${enable_stacktrace}" = xyes; then
     AC_DEFINE(SIGSEGV_HANDLER,1,[Enable a stacktrace dump in case of SIGSEGV or SIGBUS error])
 fi
 
+if test "x${prefix}" = x; then
+   sysconfdir=/etc
+fi
+
 # ================================================================================
 # Add a --with-libpcre-prefix[=DIR] Option to allow user specific directory
 # ================================================================================
@@ -89,13 +101,13 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
 AC_CHECK_HEADERS(pcre.h,,AC_MSG_ERROR([pcre.h not available. Please install "libpcre3-dev" package]))
-AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR([linux/videodev2.h not available]))
-have_iniparser_h=no
-AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE([iniparser.h not available. Will use built-in version]))
 have_readline_h=no
 AC_CHECK_HEADERS(readline/readline.h,[have_readline_h=yes],AC_MSG_ERROR([libreadline not available. Please install "libreadline-dev" ]))
+AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR([linux/videodev2.h not available]))
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/param.h sys/socket.h sys/stat.h sys/ioctl.h syslog.h unistd.h])
+have_iniparser_h=no
+AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE([iniparser.h not available. Will use built-in version]))
 AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR([errno.h not available]))
 AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR([syslog.h not available]))
 AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR([getopt.h not available]))
