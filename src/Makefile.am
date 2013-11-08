@@ -34,7 +34,7 @@ tvpvrd_LDADD = libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a ${LIBPCRE}
 tvpvrd_DEPENDENCIES=$(BUILDNBR_FILE) libsmtpmail/libsmtpmail.a libiniparser/libiniparser.a
 endif
 
-EXTRA_DIST = etc/README etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template \
+EXTRA_DIST = etc/README etc/tvpvrd.conf.full.template.in etc/tvpvrd.conf.simplified.template.in \
 etc/themes/tvpvrd_mobile.css \
 etc/themes/tvpvrd_plain.css etc/themes/tvpvrd_metal.css etc/themes/tvpvrd_hq.css etc/themes/tvpvrd_night.css etc/themes/tvpvrd_deep.css \
 etc/img/logout_button.jpg \
@@ -50,12 +50,11 @@ etc/mail_templates/mail_shutdown.html etc/mail_templates/mail_shutdown.txt \
 etc/mail_templates/mail_transcend.html etc/mail_templates/mail_transcend.txt \
 etc/xsl/history.xsl
 
-DISTCLEANFILES = config.h $(BUILDNBR_FILE)
+DISTCLEANFILES = config.h etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template $(BUILDNBR_FILE)
 
 CLEANFILES = *~
 
 install-data-local:
-	install -D -m 644 $(abs_srcdir)/etc/*.template ${DESTDIR}${sysconfdir}/tvpvrd/
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/shellscript
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/www
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/www/img
@@ -67,7 +66,8 @@ install-data-local:
 	install -D -m 644 $(abs_srcdir)/etc/img/favicon.ico ${DESTDIR}${sysconfdir}/tvpvrd/www/
 	install -D -m 644 $(abs_srcdir)/etc/mail_templates/* ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates/
 	install -D -m 644 $(abs_srcdir)/etc/xsl/* ${DESTDIR}${sysconfdir}/tvpvrd/xsl/
-
+	install -D -m 644 $(builddir)/etc/tvpvrd.conf.simplified.template ${DESTDIR}${sysconfdir}/tvpvrd/
+	install -D -m 644 $(builddir)/etc/tvpvrd.conf.full.template ${DESTDIR}${sysconfdir}/tvpvrd/
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)
 	@if ! test -f $(BUILDNBR_FILE); then \

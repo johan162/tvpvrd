@@ -14,8 +14,8 @@ AC_PROG_LN_S
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_CONFIG_HEADER([src/config.h])
-AC_CONFIG_FILES([
 
+AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/tvpowerd/Makefile
@@ -30,7 +30,6 @@ scripts/Makefile
 scripts/pm/Makefile
 docs/Makefile
 docs/manpages/Makefile
-src/text
 ])
 
 # ===============================================================================
@@ -96,7 +95,7 @@ AC_CHECK_HEADERS(linux/videodev2.h,,AC_MSG_ERROR([linux/videodev2.h not availabl
 have_iniparser_h=no
 AC_CHECK_HEADERS(iniparser.h,[have_iniparser_h=yes],AC_MSG_NOTICE([iniparser.h not available. Will use built-in version]))
 have_readline_h=no
-AC_CHECK_HEADERS(readline/readline.h,[have_readline_h=yes],AC_MSG_NOTICE([readline/readline.h not available. Please install "readline-devel" to get command line editing in tvpsh]))
+AC_CHECK_HEADERS(readline/readline.h,[have_readline_h=yes],AC_MSG_ERROR([libreadline not available. Please install "libreadline-dev" ]))
 AC_CHECK_HEADERS(errno.h,,AC_MSG_ERROR([errno.h not available]))
 AC_CHECK_HEADERS(syslog.h,,AC_MSG_ERROR([syslog.h not available]))
 AC_CHECK_HEADERS(getopt.h,,AC_MSG_ERROR([getopt.h not available]))
@@ -182,7 +181,7 @@ if test -n "$XSLTPROC"; then
 END
 	if test "$?" = 0; then
 		XSLTPROC_WORKS=yes
-                AC_MSG_RESULT([yes.])
+            AC_MSG_RESULT([yes.])
         else
         	AC_MSG_RESULT([no.])
 	fi
@@ -191,7 +190,7 @@ fi
 AM_CONDITIONAL(have_xsltproc, test "$XSLTPROC_WORKS" = "yes")
 
 AC_CHECK_PROG(JAVAFOP,fop,yes,no)
-AM_CONDITIONAL(have_javafop, test $JAVAFOP = yes)
+AM_CONDITIONAL(have_javafop, test "$JAVAFOP" = "yes")
 
 AC_SUBST(DOCBOOK_XSL)
 ])
@@ -202,9 +201,7 @@ AC_SUBST(DOCBOOK_XSL)
 # ===============================================================================
 AC_DEFUN([AC_CHECK_FFMPEG],[
   AC_CHECK_PROG(HAVE_FFMPEGBIN,ffmpeg,yes,)
-  AM_CONDITIONAL(have_ffmpegbin, test $HAVE_FFMPEGBIN = yes)
-  FFMPEG_BIN="ffmpeg-test"
-  AC_SUBST(FFMPEG_BIN)
+#  AM_CONDITIONAL(have_ffmpegbin, test "x${HAVE_FFMPEGBIN}" = xyes)
 ])
 
 # ===============================================================================
@@ -213,8 +210,26 @@ AC_DEFUN([AC_CHECK_FFMPEG],[
 # ===============================================================================
 AC_DEFUN([AC_CHECK_AVCONV],[
   AC_CHECK_PROG(HAVE_AVCONVBIN,avconv,yes,)
-  AM_CONDITIONAL(have_avconvbin, test $HAVE_AVCONVBIN = yes)
+#  AM_CONDITIONAL(have_avconvbin, test "x{$HAVE_AVCONVBIN}" = xyes)
 ])
+
+# ===============================================================================
+# MACRO AC_SELECT_FFMPEG
+# The following macro selects which transcoder should be included in the conf
+# file by default.
+# ===============================================================================
+AC_DEFUN([AC_SELECT_TRANSCBIN],[
+  TRANSC_BIN=
+  if test "x${HAVE_FFMPEGBIN}" = xyes ; then
+    AC_PATH_PROG(TRANSC_BIN,ffmpeg)
+  else 
+    if test "x${HAVE_AVCONVBIN}" = xyes ; then
+      AC_PATH_PROG(TRANSC_BIN,avconv)
+    fi
+  fi
+  AC_SUBST(TRANSC_BIN)
+])
+
 
 
 # ===============================================================================
@@ -280,7 +295,8 @@ AM_CONDITIONAL(have_readline, test "x${have_readline_h}" = xyes)
 # Create a unique (well almost) login cookie seed for this installation
 # ===============================================================================
 cookie_seed="424bbb619133439ced118b6ea1cb1a01"
-if test -f /usr/bin/md5sum; then
+if test -f /usr/bin/md5sum; then  FFMPEG_BIN="ffmpeg-test"
+  AC_SUBST(FFMPEG_BIN)
     cookie_seed=`(date; uname -a)|xargs echo|md5sum -|cut -c 1-32`
 fi
 AC_DEFINE_UNQUOTED([LOGIN_COOKIE_SEED],"${cookie_seed}",[Cookie seed for WEB-login cookie])
@@ -293,6 +309,7 @@ AC_CHECK_UPSTARTINIT
 AC_CHECK_XSLDOCBOOK
 AC_CHECK_FFMPEG
 AC_CHECK_AVCONV
+AC_SELECT_TRANSCBIN
 AC_CHECK_PMTOOLS
 
 # ===============================================================================
@@ -307,6 +324,8 @@ AC_MSG_NOTICE([-----------------------------------------------------------------
 AC_MSG_NOTICE([INSTALLATION SUMMARY])
 AC_MSG_NOTICE([ ])
 AC_MSG_NOTICE([   CONGRATULATION! You seem to have a working environment to build the daemon!])
+AC_MSG_NOTICE([ ])
+AC_MSG_NOTICE([  - Will use ${sysconfdir}/tvpvrd for configuration files])
 if test "x${have_iniparser_h}" = xno; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([  - Will use built-in iniparser library.])
@@ -324,22 +343,21 @@ fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    if test ! "$HAVE_AVCONVBIN" ; then
      AC_MSG_NOTICE([ ])
-     AC_MSG_NOTICE([Neither ffmpeg nor avconv executable was found. While strictly not] )
-     AC_MSG_NOTICE([necessary to build the daemon it will be required to do transcoding. ])
+     AC_MSG_NOTICE([  - Transcoding not possible.] )
+     AC_MSG_NOTICE([      Neither 'ffmpeg' nor 'avconv' executable was found. ] )
    else
      AC_MSG_NOTICE([ ])
-     AC_MSG_NOTICE([  - Will use 'avconv' for transcoding ])
-     AC_MSG_NOTICE([    Remember to update the tvpvrd.conf to reflect the usage of avconv!])
+     AC_MSG_NOTICE([  - Will use 'avconv' for transcoding. ])
+     AC_MSG_NOTICE([    (using \"${sysconfdir}/tvpvrd/profiles-avconv/\" as profile directory)])
    fi
 else
    if test ! "$HAVE_AVCONVBIN" ; then
         AC_MSG_NOTICE([ ])
         AC_MSG_NOTICE([  - Will use 'ffmpeg' for transcoding. ])
-        AC_MSG_NOTICE([ ])
    else
         AC_MSG_NOTICE([ ])
         AC_MSG_NOTICE([  - Can use either 'ffmpeg' or 'avconv' for transcoding ])
-        AC_MSG_NOTICE([    Remember to update the tvpvrd.conf to reflect your choice!])
+        AC_MSG_NOTICE([    (ffmpeg selected by default)])
    fi
 fi
 
@@ -347,16 +365,17 @@ AC_MSG_NOTICE([ ])
 
 if  test "$XSLTPROC_WORKS" = "yes"; then
     if test "$JAVAFOP" = "no"; then
-        AC_MSG_NOTICE([  - Docbook5 basic setup detected. Can rebuild documentation except PDF format.])
+        AC_MSG_NOTICE([  - Will use limited Docbook5 setup (man- and HTML-pages can be rebuilt).])
+        AC_MSG_NOTICE([    To also build PDF versions please install 'fop'])
         AC_MSG_NOTICE([ ])
     else
-        AC_MSG_NOTICE([  - Docbook5 full setup detected. All documentation formats can be rebuilt.])
+        AC_MSG_NOTICE([  - Will use Docbook5 to create documentation. ])
         AC_MSG_NOTICE([    In case of errors rebuilding PDF regarding missing hyphenation])
         AC_MSG_NOTICE([    please refer to: http://offo.sourceforge.net/hyphenation/binary/installation.html ])
         AC_MSG_NOTICE([ ])
     fi
 else
-    AC_MSG_NOTICE([  - Docbook5 setup NOT detected. Documentation can not be rebuilt.])
+    AC_MSG_NOTICE([  - Docbook5 setup NOT detected. Documentation can NOT be rebuilt.])
 fi
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 
