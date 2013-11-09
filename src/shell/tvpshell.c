@@ -39,6 +39,7 @@
 #include <getopt.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <pwd.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -533,6 +534,8 @@ cmd_loop(void) {
     free(reply);
 }
 
+#define HISTORY_FILE ".tvpsh_history"
+#define HISTORY_LENGTH 100
 int
 main(int argc, char **argv) {
     parsecmdline(argc, argv);
@@ -541,13 +544,26 @@ main(int argc, char **argv) {
         read_inifile();
     }
 
+    // Setup history file by first finding theb user home directory
+    const char *homedir=getenv("HOME");
+    if( 0 == strnlen(homedir,256) ) {
+        struct passwd *pw = getpwuid(getuid());
+        homedir = pw->pw_dir;        
+    }
+    char hfilename[256];
+    snprintf(hfilename,sizeof(hfilename),"%s/%s",homedir,HISTORY_FILE);
+            
     // Check that server is alive by sending time command
     char reply[128];
     if (tvpvrd_command("t", reply, sizeof(reply), FALSE) < 0) {
         printf("Cannot connect to server %s. ( %d : %s )\n", server_ip, errno, strerror(errno));
         _exit(EXIT_FAILURE);
     } else {
+        // Try to find old history file
+        read_history(hfilename);
         cmd_loop();
+        write_history(hfilename);
+         history_truncate_file (hfilename, HISTORY_LENGTH);
         _exit(EXIT_SUCCESS);
     }
 }
