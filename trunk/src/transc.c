@@ -331,10 +331,10 @@ list_waiting_transcodings(char *buffer,size_t maxlen) {
  * @return
  */
 int
-_create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
-
+create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
+ 
     // Build command line for ffmpeg
-    strcpy(destfile, filename);
+    strncpy(destfile, filename,destsize);
     int l = (int)strlen(filename)-1;
     while(l >= 0 && destfile[l] != '.') {
         l--;
@@ -344,6 +344,7 @@ _create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile
                filename);
         return -1;
     }
+    destfile[l] = '\0';
 
     char ffmpeg_logfile[80];
     if( verbose_log >= 2 ) {
@@ -352,242 +353,51 @@ _create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile
         strncpy(ffmpeg_logfile,"/dev/null",sizeof(ffmpeg_logfile)-1);
     }
 
-    destfile[l] = '\0';
-    strncat(destfile, profile->file_extension,destsize-1);
+    strncat(destfile, profile->file_extension, destsize-1);
 
     // Setup string for default x264 ffmpeg preset. Since the preset seems to change with each release
     // of ffmpeg the default preset has changed to the empty string.
+    
+    // Create the actual command lines by 
+    const size_t max_cmd_line=512;
+    char cmd_line[max_cmd_line], cmd_line_2pass_1[max_cmd_line], cmd_line_2pass_2[max_cmd_line];    
+    char * const input_placeholder="INPUT";
+    char * const output_placeholder="OUTPUT";
+    struct keypairs fnames[2] = {
+        {.key = input_placeholder, .val = filename},
+        {.key = output_placeholder, .val = destfile},
+    };
 
-    // For single pass encoding we only need to run ffmpeg once. For two pass encoding we call ffmpeg twice
-    if (profile->pass == 1) {
-        if( strlen(profile->size) > 0 ) {
-            snprintf(cmd, size,
-                    "%s -report -y -i %s -threads 0 "
-                    " -c:a %s -ab %dk "
-                    " -c:v %s -b:v %dk "
-                    " -s %s"
-                    "  %s %s > %s 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->size,
-                    profile->extra_ffmpeg_options,
-                    destfile, ffmpeg_logfile);
-
-        } else {
-            snprintf(cmd, size,
-                    "%s -report -y -i %s -threads 0 "
-                    " -c:a %s -ab %dk "
-                    " -c:v %s -b:v %dk "
-                    " %s %s > %s 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->extra_ffmpeg_options,
-                    destfile,ffmpeg_logfile);
-        }
-
-    } else {
-        // Two pass encoding
-
-        // Removed "-v 0" in second pass
-        if( strlen(profile->size) > 0 ) {
-            snprintf(cmd, size,
-                    "%s -y -report -i %s -threads 0 -pass 1 "
-                    " -c:v %s -b:v %dk "
-                    " -s %s "
-                    " -f mp4  %s "
-                    "/dev/null > /dev/null 2>&1 && "
-                    "%s -y -report -i %s -threads 0 -pass 2 "
-                    "-c:a %s -b:a %dk "
-                    "-c:v %s -b:v %dk "
-                    " -s %s "
-                    " %s %s > %s 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->size,
-                    profile->extra_ffmpeg_options,
-                    ffmpeg_bin, filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->size,
-                    profile->extra_ffmpeg_options,
-                    destfile,ffmpeg_logfile);
-        } else {
-            snprintf(cmd, size,
-                    "%s -y -report -i %s -threads 0 -pass 1 "
-                    "-c:v %s -b:v %dk "
-                    " -f mp4 %s "
-                    "/dev/null > /dev/null 2>&1 && "
-                    "%s -y -report -i %s -threads 0 -pass 2 "
-                    "-c:a %s -b:a %dk "
-                    "-c:v %s -b:v %dk "
-                    " %s %s > %s 2>&1",
-                    ffmpeg_bin, filename,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->extra_ffmpeg_options,
-                    ffmpeg_bin, filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->extra_ffmpeg_options,
-                    destfile,ffmpeg_logfile);
-        }
-    }
-
-    logmsg(LOG_NOTICE, "ffpmeg command: %s", cmd);
-    return 0;
-
-}
-
-/**
- * Construct the command line for avconv
- * @param file
-1 * @param destfile
- * @param destsize
- * @param cmd
- * @param size
- * @return
- */
-int
-_create_avconv_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
-
-    // Build command line for avconv
-    strcpy(destfile, filename);
-    int l = (int)strlen(filename)-1;
-    while(l >= 0 && destfile[l] != '.') {
-        l--;
-    }
-    if( l <= 0 ) {
-        logmsg(LOG_ERR,"Cannot create avconv command string. Invalid filename (no file extension found on source file '%s')",
-               filename);
+    strncpy(cmd_line, profile->cmd_line, sizeof(cmd_line));
+    strncpy(cmd_line_2pass_1, profile->cmd_line_2pass_1, sizeof(cmd_line_2pass_1));
+    strncpy(cmd_line_2pass_2, profile->cmd_line_2pass_2, sizeof(cmd_line_2pass_2));
+    if( -1 == replace_keywords(cmd_line, sizeof(cmd_line), fnames, sizeof(fnames)) ||
+        -1 == replace_keywords(cmd_line_2pass_1, sizeof(cmd_line_2pass_1), fnames, sizeof(fnames)) ||
+        -1 == replace_keywords(cmd_line_2pass_2, sizeof(cmd_line_2pass_2), fnames, sizeof(fnames))) {
+        logmsg(LOG_ERR, "Cannot create command line for ffmpeg/avconv during substitution.");
         return -1;
     }
-
-    char avconv_logfile[80];
-    char avconv_logfile2[80];
-    if( verbose_log >= 2 ) {
-        strncpy(avconv_logfile,"avconv.log",sizeof(avconv_logfile)-1);
-        strncpy(avconv_logfile2,"avconv-pass2.log",sizeof(avconv_logfile2)-1);
-    } else {
-        strncpy(avconv_logfile,"/dev/null",sizeof(avconv_logfile)-1);
-        strncpy(avconv_logfile2,"/dev/null",sizeof(avconv_logfile)-1);
-    }
-
-    destfile[l] = '\0';
-    strncat(destfile, profile->file_extension,destsize-1);
-
-    // For single pass encoding we only need to run avconv once. For two pass encoding we call avconv twice
+    const size_t MIN_CMD_LEN=15;
     if (profile->pass == 1) {
-        if( strlen(profile->size) > 0 ) {
-            snprintf(cmd, size,
-                    "%s -pre %s "
-                    " -i %s -threads 0 -strict experimental"
-                    " -c:a %s -b:a %dk "
-                    " -c:v %s -b:v %dk "
-                    " -s %s "
-                    " %s > %s 2>&1",
-                    ffmpeg_bin, profile->extra_ffmpeg_options,
-                    filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->size,                    
-                    destfile, avconv_logfile);
-
-        } else {
-            snprintf(cmd, size,
-                    "%s -pre %s "
-                    " -i %s -threads 0 -strict experimental"
-                    " -c:a %s -b:a %dk "
-                    " -c:v %s -b:v %dk "
-                    " %s > %s 2>&1",
-                    ffmpeg_bin, profile->extra_ffmpeg_options,
-                    filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,
-                    destfile,avconv_logfile);
+        if( strnlen(cmd_line,sizeof(cmd_line)) < MIN_CMD_LEN ) {
+            logmsg(LOG_ERR, "Command for transcoding is too short to be valid. \"%s\".",cmd_line);
+            return -1;
         }
-
+        snprintf(cmd, size,"%s %s > %s 2>&1", ffmpeg_bin, cmd_line, ffmpeg_logfile);       
     } else {
-        // Two pass encoding
-
-        // Removed "-v 0" in second pass
-        if( strlen(profile->size) > 0 ) {
-            snprintf(cmd, size,
-                    "%s -y -pre libx264-fast_firstpass "
-                    " -i %s -threads 0 -strict experimental -pass 1 "
-                    " -c:v %s -b:v %dk "
-                    " -s %s "
-                    " -f mp4  "
-                    " /dev/null > %s 2>&1 && "
-                    " %s -pre %s "
-                    " -i %s -threads 0 -strict experimental -pass 2 "
-                    " -c:a %s -b:a %dk "
-                    " -c:v %s -b:v %dk "
-                    " -s %s "
-                    " %s > %s 2>&1",
-                    ffmpeg_bin, /* profile->extra_ffmpeg_options,*/
-                    filename,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->size, 
-                    avconv_logfile,
-                    ffmpeg_bin, profile->extra_ffmpeg_options,
-                    filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,
-                    profile->size,
-                    destfile,avconv_logfile2);
-        } else {
-            snprintf(cmd, size,
-                    "%s -y -pre libx264-fast_firstpass  "
-                    " -i %s -threads 0 -strict experimental -pass 1 "
-                    " -c:v %s -b:v %dk "
-                    " -f mp4 "
-                    " /dev/null > %s 2>&1 && "
-                    " %s -pre %s"
-                    " -i %s -threads 0 -strict experimental -pass 2 "
-                    " -c:a %s -b:a %dk "
-                    " -c:v %s -b:v %dk "
-                    " %s > %s 2>&1",
-                    ffmpeg_bin, /* profile->extra_ffmpeg_options,*/
-                    filename,
-                    profile->vcodec, profile->video_bitrate,
-                    avconv_logfile,
-                    ffmpeg_bin, profile->extra_ffmpeg_options,
-                    filename,
-                    profile->acodec, profile->audio_bitrate,
-                    profile->vcodec, profile->video_bitrate,                    
-                    destfile,avconv_logfile2);
+        if( strnlen(cmd_line,sizeof(cmd_line_2pass_1)) < MIN_CMD_LEN || strnlen(cmd_line,sizeof(cmd_line_2pass_2)) < MIN_CMD_LEN ) {
+            logmsg(LOG_ERR, "Command for 2-pass transcoding is too short to be valid. Pass1: \"%s\", Pass2: \"%s\".",cmd_line_2pass_1,cmd_line_2pass_2);
+            return -1;
         }
+        snprintf(cmd, size,
+                 "%s %s > /dev/null 2>&1 && %s %s > %s 2>&1",
+                 ffmpeg_bin, cmd_line_2pass_1 ,
+                 ffmpeg_bin, cmd_line_2pass_2, ffmpeg_logfile);
     }
 
-    logmsg(LOG_NOTICE, "avconv command: %s", cmd);
+    logmsg(LOG_NOTICE, "Transcoding: %s", cmd);
     return 0;
- 
-}
 
-/**
- * Determine which of real construction routine we should call depending on if the daemon is confgired to
- * use ffmpeg or avconv. 
- * @param file
- * @param profile
- * @param destfile
- * @param destsize
- * @param cmd
- * @param size
- * @return
- */
-int
-create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile, char *destfile, size_t destsize, char *cmd, size_t size) {
-    if( -1 == check_ffmpeg_bin() ) {
-        return -1;
-    } else {
-        if( 0 == strncmp(basename(ffmpeg_bin),"avconv",7) ) {
-
-            return _create_avconv_cmdline(filename, profile, destfile, destsize, cmd, size);        
-        } else {
-            return _create_ffmpeg_cmdline(filename, profile, destfile, destsize, cmd, size);
-        }
-    }
 }
 
 
@@ -804,7 +614,7 @@ _transcode_file(void *arg) {
             // We only allow one transcoding to run for a maximum of 49 h
             // This will easily allow (even on a weak CPU) the transcoding of 4h
             // videos in high quality which could take up to 4-5 hours per hour recorded
-            // for a single running transcoding. This means that two simulataneous running
+            // for a single running transcoding. This means that two simultaneous running
             // jobs would require ~8 hour per recorded hour to complete. This means that
             // it could take up to 48h to encode two 4h videos in high quality simultaneous.
             const int watchdog = 49 * 3600;
@@ -1569,10 +1379,8 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
     *updatedfilename = '\0';
 
     // We do not start transcoding if the recording was aborted
-    // If the bitrate is set to < 10kbps then this indicates that no
-    // transcoding should be done. We just move the MP2 file to the mp2 directory
     int transcoding_done=0;
-    if ( !profile->use_transcoding || profile->video_bitrate == 0) {
+    if ( !profile->use_transcoding ) {
 
         // Do nothing. The MP2 file will be moved by the calling function.
         logmsg(LOG_DEBUG,"Transcoding disabled in profile '%s' for file '%s'",profile->name,short_filename);
@@ -1713,8 +1521,8 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                         if (WIFEXITED(ret)) {
                             transcoding_done = (WEXITSTATUS(ret) == 0);
                             if (transcoding_done) {
-                                if( runningtime < 15 ) {
-                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 15s for file '%s'. This most likely indicates a problem",
+                                if( runningtime < 10 ) {
+                                    logmsg(LOG_NOTICE, "Transcoding process finished in less than 10s for file '%s'. This most likely indicates a problem",
                                         short_filename);
                                     return -1;
 
