@@ -9,7 +9,7 @@
 description "start and stop the tvpvrd recording daemon"
 author      "Johan Persson <johan162@gmail.com>"
 
-start on runlevel [35]
+start on runlevel [2345]
 stop on starting rc RUNLEVEL=[016]
 
 expect fork
