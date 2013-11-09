@@ -5,7 +5,6 @@
 # ===============================================================================
 AUTOMAKE_OPTIONS = gnu
 SUBDIRS = . src scripts docs
-EXTRA_DIST = stdconfig.sh stdbuild.sh 
 
 uninstall-local:
 	rm -rf ${DESTDIR}${sysconfdir}/tvpvrd
