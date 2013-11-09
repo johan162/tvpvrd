@@ -16,11 +16,6 @@ AC_PROG_CC
 AC_PROG_CC_C99
 AC_CONFIG_HEADER([src/config.h])
 
-# Set default sysconfdir in case prefix is not set by user
-if test "$prefix" = NONE ; then
-  test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
-fi
-
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
@@ -38,7 +33,11 @@ docs/Makefile
 docs/manpages/Makefile
 ])
 
-AC_MSG_NOTICE([ "Prefix =  $prefix "])
+# ===============================================================================
+# Set default sysconfdir to "/etc" in case prefix is not set by user
+# ===============================================================================
+AS_IF([ test "$prefix" = NONE],[test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc] )
+
 
 # ===============================================================================
 # Optional ARGS
@@ -84,9 +83,6 @@ if test "x${enable_stacktrace}" = xyes; then
     AC_DEFINE(SIGSEGV_HANDLER,1,[Enable a stacktrace dump in case of SIGSEGV or SIGBUS error])
 fi
 
-if test "x${prefix}" = x; then
-   sysconfdir=/etc
-fi
 
 # ================================================================================
 # Add a --with-libpcre-prefix[=DIR] Option to allow user specific directory
@@ -337,7 +333,7 @@ AC_MSG_NOTICE([INSTALLATION SUMMARY])
 AC_MSG_NOTICE([ ])
 AC_MSG_NOTICE([   CONGRATULATION! You seem to have a working environment to build the daemon!])
 AC_MSG_NOTICE([ ])
-AC_MSG_NOTICE([  - Will use ${sysconfdir}/tvpvrd for configuration files])
+AC_MSG_NOTICE([  - Will use ${sysconfdir}/tvpvrd for configuration files. ])
 if test "x${have_iniparser_h}" = xno; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([  - Will use built-in iniparser library.])
@@ -345,12 +341,6 @@ fi
 if test -d /etc/pm/sleep.d ; then
    AC_MSG_NOTICE([ ])
    AC_MSG_NOTICE([  - Will install pm-util hooks to unload ivtv driver.])
-fi
-if test "x${have_readline_h}" = xno; then
-   AC_MSG_NOTICE([ ])
-   AC_MSG_NOTICE([  - NO GNU readline libraries found.])
-   AC_MSG_NOTICE([      'tvpsh' shell will be built with limited command line editing])
-   AC_MSG_NOTICE([      Please install readline-devel to get full line editing support])
 fi
 if test ! "$HAVE_FFMPEGBIN" ; then
    if test ! "$HAVE_AVCONVBIN" ; then
@@ -368,8 +358,7 @@ else
         AC_MSG_NOTICE([  - Will use 'ffmpeg' for transcoding. ])
    else
         AC_MSG_NOTICE([ ])
-        AC_MSG_NOTICE([  - Can use either 'ffmpeg' or 'avconv' for transcoding ])
-        AC_MSG_NOTICE([    (ffmpeg selected by default)])
+        AC_MSG_NOTICE([  - Both 'ffmpeg' or 'avconv' available for transcoding. Default set to 'ffmpeg'. ])
    fi
 fi
 
@@ -381,8 +370,8 @@ if  test "$XSLTPROC_WORKS" = "yes"; then
         AC_MSG_NOTICE([    To also build PDF versions please install 'fop'])
         AC_MSG_NOTICE([ ])
     else
-        AC_MSG_NOTICE([  - Will use Docbook5 to create documentation. ])
-        AC_MSG_NOTICE([    In case of errors rebuilding PDF regarding missing hyphenation])
+        AC_MSG_NOTICE([  - Docbook5 available to render documentation. ])
+        AC_MSG_NOTICE([    Note: In case of errors rebuilding PDF regarding missing hyphenation])
         AC_MSG_NOTICE([    please refer to: http://offo.sourceforge.net/hyphenation/binary/installation.html ])
         AC_MSG_NOTICE([ ])
     fi
