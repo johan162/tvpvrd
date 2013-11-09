@@ -2,12 +2,12 @@
 # $Id$
 # Utility script to prepare a new release
 echo "Creating new ChangeLog ..."
-./mkcl.sh
+bldscript/mkcl.sh
 echo "Running autoreconf ..."
 autoreconf
 if test "$?" = 0; then
 	echo "Running stdconfig ..."
-		./stdconfig.sh > /dev/null
+		bldscript/stdconfig.sh > /dev/null
 	if test "$?" = 0; then
 		make -j 4 -s distcheck 
 	else

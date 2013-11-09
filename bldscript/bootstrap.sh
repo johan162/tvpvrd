@@ -22,6 +22,7 @@ if [ "$?" = 0 ]; then
 echo "--------------------------------------------------------------"
 echo " DONE. Build environment is ready. "
 echo " "
+echo " Now run autoreconf "
 echo " You can now run \"./stdbuild.sh\" to build the daemon "
 echo " and then then run \"./mkrelease.sh\" to create new releases. "
 echo "--------------------------------------------------------------"
