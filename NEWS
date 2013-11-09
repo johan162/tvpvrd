@@ -12,7 +12,7 @@ Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 User visible changes:
     - Added persistent history to the tvpvrd shell (tvpsh) so that history is
       remembered between usages on a user-by-user level. History is stored in
-      "~/tvpsh_history".
+      "~/.tvpsh_history".
 
     - New format for arguments in transcoding profiles.
       The way to specify transcoding parameters have changed. Since both ffmpeg and
@@ -61,19 +61,22 @@ User visible changes:
 
 Bugs fixed:
     - Web-UI did always require a login and did not adhere to the config setting of
-      require_web_password
+      require_web_password which could be set to not requiring a login
 
     - Only 8 command line argument was allowed when starting the daemon
 
     - Fixed compatibility with recent versions of ffmpeg for two pass transcodings
 
 Internal changes:
+    - Some internal cleanup of the autotools setup
+
     - Some minor refactoring in how to handle a non-existent XML DB file
 
     - Added some bootstrap scripts to make it easier to create a build environment from
       a repository download. This will now setup a complete autotools environment
       from scratch. This is only meant to be used by developers. End users just
       installing the daemon from the tar-balls will not see these scripts. 
+      The scripts are "bootstrap.sh" and its inverse "autoclean.sh"
 
     - Added ubuntu/debian setup script to install all necessary components to build
       the server. Will make it very easy for developers to get a working build
@@ -82,9 +85,6 @@ Internal changes:
     - Added script to completely clean up a build environment to pristine state
       after build and autotools setup. This will completely remove all generated
       files by autotools or the build process. Files autoclean.sh
-
-    - The internal autotools setup was updated a bit.
- 
 
 4.4.5 (31 oct 2013)
 -----
