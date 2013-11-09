@@ -22,8 +22,7 @@ For the impatient:
 
 Step 1.
 -------
-$>./stdbuild.sh
-[lots of output ...]
+$>./configure && make -j4
 
 Step 2. 
 -------
@@ -40,49 +39,48 @@ to adapt to your server setup.
 Basic Installation
 ==================
 
-   Briefly, the shell commands `./configure; make; make install' should
-configure, build, and install this package.  The following
-more-detailed instructions are generic; see the `README' file for
-instructions specific to this package.
-
-We recommend the following basic configuration arguments for a modern
-installation 
-
-$> ./configure --prefix=/usr --sysconfdir=/etc
-
-This will put the executable in '/usr/bin' and then create the 
-configuration directory '/etc/tvpvrd/'. Without these argument the 
-default base installation location will be '/usr/local' 
-(and '/usr/local/etc')
-
 The simplest way to compile and install this package is:
 
-  1. `cd' to the directory containing the package's source code and type
-     `./configure' (see above) to configure the package for your system.
+  0. Unpack the tarball
 
-     Running `configure' might take a while.  While running, it prints
-     some messages telling which features it is checking for.
+     $>tar xJf tvpvrd-<versions>.tar.xz
 
-  2. Type `make' to compile the package. On most modern system the compile
-     will be faster using 'make -j N' where N is replaced by the twice
-     the number of CPU cores available.
+     Where <version> is replaced by the current version number.
+
+  1. Switch to the created directory
+
+     $>cd tvpvrd-<version>
+
+  2. Configure and build the source
+
+     $> ./configure && make -j4
+
+     If there are some error messages it is mot likely due to missing
+     libraries that is needed to build the daemon. The error message
+     will give more information on what library should be installed.
      
-  3. Switch to root user and type `make install' to install the programs 
-     and any data files and documentation. Then adjust the configuration file
-     in the configuration directory by starting with one of the two
-     templates tvpvrd.conf.full.template or tvpvrd.conf.simplified.template
-     and then copy it to tvpvrd.conf and make chnages according to your
-     preference. (More information in the next section).
+  3. Install the daemon
 
-  4. You can remove the program binaries and object files from the
-     source code directory by typing `make clean'.  To also remove the
-     files that `configure' created (so you can compile the package for
-     a different kind of computer), type `make distclean'.  There is
-     also a `make maintainer-clean' target, but that is intended mainly
-     for the package's developers.  If you use it, you may have to get
-     all sorts of other programs in order to regenerate files that came
-     with the distribution.
+     $> sudo make install
 
+     Update the configuration file to match your system. At minimum you
+     need to specify what directory should be used to store the 
+     recordings.  Start with either the simplified or complete 
+     template config file available in "/etc/tvpvrd" and rename that
+     template "tvpvrd.conf". 
+
+  4. After installation you may remove the newly created directory.
+
+  5. Now start the daemon.
+
+     On debian/Ubuntu/Linux Mint type: 
+
+     	$> sudo start tvpvrd
+
+     On OpenSuSE type: 
+
+     	$> /etc/init.s/tvpvrd start
+   
 
 Using mod_proxy in apache Web-server to access the Web interface
 ================================================================
@@ -140,6 +138,7 @@ the necessary changes.
 
 Installing the optional tvpowerd daemon
 =======================================
+For most users this is NOT needed!
 
 The optional power daemon can be found under 'src/tvpowerd'. Since it is supposed
 to be installed on a different server than the recording daemon it will not be
@@ -274,21 +273,18 @@ If despite these warnings you want to go ahead. Then read on.
 
 Setting up a  build environment
 -------------------------------
-If you have downloaded the latest trunk all necessary build file for the autotools (eg.
-configure.ac) are available.
+(It is assumed you are at the root of the installed directory)
 
-The configuration scripts uses some features (silent builds) which are only available in
-autotools 2.65 and above so you need to have those installed to re-build the build
-environment.
+Recreate a build environment that will setup the necessary autotools files
 
-Move to the root directory of tvpvrd (where configure.ac is) and type
+   $>bldscript/bootstrap.sh && autoreconf
+   
+If you happen to be on an Debian/Ubuntu/linux Mint system you can automatically
+install all 3:rd pary dependencies needed to build by rinstead running
 
-$>autoreconf
+   $>bldscript/bootstrap-deb.sh && autoreconf
 
-This will rebuild the "configure" file and the necessary "Makefile.in" in all relevant
-subdirectories.
-
-Now continue as usual.
+Now continue as usual (i.e. ./configure &6 make -j 4)
 
 
 A final note:
@@ -301,5 +297,6 @@ I subscribe to the first view. This keeps the repository clean and it also reduc
 reports of problems when people without necessary experience have failed to correctly build
 the source directly from the repository. It will also avoid a lot of unnecessary traffic to
 the repository just to keep the generated files in sync.
+
 [EOF]
 
