@@ -48,7 +48,9 @@ etc/templates/startup.sh.template \
 etc/templates/switchchannel.sh.template  \
 etc/mail_templates/mail_shutdown.html etc/mail_templates/mail_shutdown.txt \
 etc/mail_templates/mail_transcend.html etc/mail_templates/mail_transcend.txt \
-etc/xsl/history.xsl
+etc/xsl/history.xsl \
+etc/profiles/high.profile etc/profiles/low.profile etc/profiles/normal.profile etc/profiles/thigh.profile etc/profiles/tlow.profile etc/profiles/tnormal.profile etc/profiles-avconv/high.profile etc/profiles-avconv/low.profile etc/profiles-avconv/normal.profile etc/profiles-avconv/thigh.profile etc/profiles-avconv/tlow.profile etc/profiles-avconv/tnormal.profile
+
 
 DISTCLEANFILES = config.h etc/tvpvrd.conf.full.template etc/tvpvrd.conf.simplified.template $(BUILDNBR_FILE)
 
@@ -60,6 +62,8 @@ install-data-local:
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/www/img
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/mail_templates
 	install -m 755 -d ${DESTDIR}${sysconfdir}/tvpvrd/xsl
+	install -m 755 -d ${DESTDIR}$(sysconfdir)/tvpvrd/profiles
+	install -m 755 -d ${DESTDIR}$(sysconfdir)/tvpvrd/profiles-avconv	
 	install -D -m 755 $(abs_srcdir)/etc/templates/* ${DESTDIR}${sysconfdir}/tvpvrd/shellscript/
 	install -D -m 644 $(abs_srcdir)/etc/themes/* ${DESTDIR}${sysconfdir}/tvpvrd/www/
 	install -D -m 644 $(abs_srcdir)/etc/img/*.jpg ${DESTDIR}${sysconfdir}/tvpvrd/www/img/
@@ -68,6 +72,9 @@ install-data-local:
 	install -D -m 644 $(abs_srcdir)/etc/xsl/* ${DESTDIR}${sysconfdir}/tvpvrd/xsl/
 	install -D -m 644 $(builddir)/etc/tvpvrd.conf.simplified.template ${DESTDIR}${sysconfdir}/tvpvrd/
 	install -D -m 644 $(builddir)/etc/tvpvrd.conf.full.template ${DESTDIR}${sysconfdir}/tvpvrd/
+	install -D -m 644 $(abs_srcdir)/etc/profiles-avconv/* ${DESTDIR}$(sysconfdir)/tvpvrd/profiles-avconv
+	install -D -m 644 $(abs_srcdir)/etc/profiles/* ${DESTDIR}$(sysconfdir)/tvpvrd/profiles
+	
 
 $(BUILDNBR_FILE): $(tvpvrd_OBJECTS)
 	@if ! test -f $(BUILDNBR_FILE); then \
