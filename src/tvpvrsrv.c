@@ -853,7 +853,7 @@ startrec(void *arg) {
     for(int i=1; i < REC_MAX_TPROFILES && strlen(recording->transcoding_profiles[i]) > 0; i++) {
         multi_prof_flag = TRUE;
         get_transcoding_profile(recording->transcoding_profiles[i],&tmp_profile);
-        if( tmp_profile->video_bitrate > profile->video_bitrate )
+        if( tmp_profile->encoder_video_bitrate > profile->encoder_video_bitrate )
             chosen_profile_idx = i;
     }
     get_transcoding_profile(recording->transcoding_profiles[chosen_profile_idx],&profile);

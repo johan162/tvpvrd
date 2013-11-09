@@ -142,68 +142,10 @@ video_aspect=1
 use_transcoding=yes
 
 #----------------------------------------------------------------------------
-# VIDEO_BITRATE integer [100,1500]
-# Average video bitrate in kbps
-#----------------------------------------------------------------------------
-video_bitrate=500
-
-#----------------------------------------------------------------------------
-# VCODEC string
-# The video codec to be used
-#----------------------------------------------------------------------------
-vcodec=libx264
-
-#----------------------------------------------------------------------------
 # PASS integer [1,2]
 # Number of encoding pass. Must be 1 or 2
 #----------------------------------------------------------------------------
 pass=1
-
-#----------------------------------------------------------------------------
-# ACODEC string
-# This is depending on the libraries installed and supported for
-# ffmpeg. If you want to use MP3 encoding instead it might not work
-# by just specifying "mp3" it might be necessary to specify
-# libmp3lame in order to do MP3 encoding.
-# Other options might be "ac3" or "vorbis" for OGG encoding.
-# NOTE: Not all players can handle all audio stream codec.
-# NOTE: By setting the codec to "copy" the original audio
-# from the HW encoding will be copied straight through to the transcoded
-# file. Note on this note: Windows mediaplyer have problem decoding a copied
-# stream by ffmpeg. 
-#----------------------------------------------------------------------------
-acodec=aac
-
-#----------------------------------------------------------------------------
-# AUDIO_BITRATE integer [32,320]
-# Audio bitrate in kbps for the encoder specified above
-# Note: If "acodec" is set to "copy" this option will have no effect
-#----------------------------------------------------------------------------
-audio_bitrate=128
-
-#----------------------------------------------------------------------------
-# VIDEO_SIZE string-menu
-# Resulting video size for MP4 stream. If this is not set or set to the empty
-# string the same size as the original MP2 stream will be used
-# frame size as the original MP2 stream
-# The following abbrevations are recognized
-#          sqcif      128x96
-#          qcif       176x144
-#          cif        352x288
-#          4cif       704x576
-#          qqvga      160x120
-#          qvga       320x240
-#          vga        640x480
-# Note: The native (anamorphic) size for a PAL MP2 recording is 720x576
-#----------------------------------------------------------------------------
-video_size=vga
-
-#----------------------------------------------------------------------------
-# EXTRA_OPTIONS string
-# Any additional options to give to ffmpeg (see ffmpeg(1))
-# **Note: These settings are optimized for the libx264 video codec
-#----------------------------------------------------------------------------
-extra_options=-strict experimental -preset faster -tune film -profile:v main
 
 #----------------------------------------------------------------------------
 # FILE_EXTENSION string
@@ -211,5 +153,43 @@ extra_options=-strict experimental -preset faster -tune film -profile:v main
 # of the transcoding
 #----------------------------------------------------------------------------
 file_extension=".mp4"
+
+#----------------------------------------------------------------------------
+# COMMAND_LINE string
+# Command line options passed to the transcoding program. Before passed to
+# the program the following substitutions are done:
+#   [INPUT] is replaced with the input file
+#   [OUTPUT] is replaced with the output file 
+#
+# Example:
+#  -i [INPUT] -threads 0 -c:a aac -ab 128k -c:v libx264 -b:v 700k -strict experimental -preset fast -tune film -profile:v main [OUTPUT]
+#----------------------------------------------------------------------------
+cmd_line=-i [INPUT] -threads 0 -c:a aac -ab 128k -c:v libx264 -b:v 500k -strict experimental -preset fast -tune film -profile:v main [OUTPUT]
+
+#----------------------------------------------------------------------------
+# COMMAND_LINE_2PASS_1 string
+# Command line options passed to the transcoding program when doing 
+# two pass encoding for the first pass.
+#
+# Before passed to the program the following substitutions are done:
+#   [INPUT] is replaced with the input file
+#   [OUTPUT] is replaced bwith the output file 
+# Example:
+# -y -pre libx264-slower -i [INPUT] -pass 1 -threads 0 -strict experimental -c:a aac -b:a 128k -b:v 750k -f mp4 /dev/null
+#----------------------------------------------------------------------------
+cmd_line_2pass_1=-y -pre libx264-slower -i [INPUT] -pass 1 -threads 0 -strict experimental -c:a aac -b:a 128k -b:v 500k -f mp4 /dev/null
+
+#----------------------------------------------------------------------------
+# COMMAND_LINE_2PASS_2 string
+# Command line options passed to the transcoding program when doing 
+# two pass encoding for the second pass.
+#
+# Before passed to the program the following substitutions are done:
+#   [INPUT] is replaced with the input file
+#   [OUTPUT] is replaced with the output file 
+# Example:
+# -pre libx264-slower -i [INPUT] -pass 2 -threads 0 -strict experimental -c:a aac -b:a 128k -b:v 750k [OUTPUT]
+#----------------------------------------------------------------------------
+cmd_line_2pass_2=-pre libx264-slower -i [INPUT] -pass 2 -threads 0 -strict experimental -c:a aac -b:a 128k -b:v 500k [OUTPUT]
 
 # EOF

@@ -93,7 +93,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     }
 
     char profname[256];
-    const unsigned bufsize=256;
+    const unsigned bufsize=512;
     char buffer[bufsize],sname[128];
 
     strncpy(profname,basename(filename),255);
@@ -177,17 +177,31 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     buffer[bufsize-1] = '\0';
     entry->use_transcoding = (unsigned)iniparser_getboolean(profile, buffer, DEFAULT_USE_TRANSCODING);
     
+    /* Read command lines */
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":video_bitrate",bufsize-1-strlen(buffer));
+    strncat(buffer,":cmd_line",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
-    entry->video_bitrate = (unsigned)validate(100,3000,"ffmpeg_video_bitrate",
-                                    iniparser_getint(profile, buffer,DEFAULT_PROFILE_VIDEO_BITRATE));
+    strncpy(entry->cmd_line,
+            iniparser_getstring(profile, buffer,(char *)DEFAULT_CMD_LINE),
+            sizeof(entry->cmd_line));
+    entry->cmd_line[sizeof(entry->cmd_line)-1] = '\0';
     
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":audio_bitrate",bufsize-1-strlen(buffer));
+    strncat(buffer,":cmd_line_2pass_1",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
-    entry->audio_bitrate = (unsigned)validate(32,320,"ffmpeg_audio_bitrate",
-                                    iniparser_getint(profile, buffer,DEFAULT_PROFILE_AUDIO_BITRATE));
+    strncpy(entry->cmd_line_2pass_1,
+            iniparser_getstring(profile, buffer,(char *)DEFAULT_CMD_LINE_2PASS_1),
+            sizeof(entry->cmd_line_2pass_1));
+    entry->cmd_line[sizeof(entry->cmd_line_2pass_1)-1] = '\0';
+    
+    strncpy(buffer,sname,bufsize-1);
+    strncat(buffer,":cmd_line_2pass_2",bufsize-1-strlen(buffer));
+    buffer[bufsize-1] = '\0';
+    strncpy(entry->cmd_line_2pass_2,
+            iniparser_getstring(profile, buffer,(char *)DEFAULT_CMD_LINE_2PASS_2),
+            sizeof(entry->cmd_line_2pass_2));
+    entry->cmd_line[sizeof(entry->cmd_line_2pass_2)-1] = '\0';
+       
 
     strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":pass",bufsize-1-strlen(buffer));
@@ -196,44 +210,12 @@ _read_transcoding_profile(char *filename,unsigned idx) {
                            iniparser_getint(profile, buffer,DEFAULT_PROFILE_PASS));
 
     strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":video_size",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    strncpy(entry->size,
-            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VIDEO_SIZE),
-            31);
-    entry->size[31] = '\0';
-    
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":acodec",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    strncpy(entry->acodec,
-            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_ACODEC),
-            31);
-    entry->acodec[31] = '\0';
-
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":vcodec",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    strncpy(entry->vcodec,
-            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_VCODEC),
-            31);
-    entry->vcodec[31] = '\0';
-
-    strncpy(buffer,sname,bufsize-1);
     strncat(buffer,":file_extension",bufsize-1-strlen(buffer));
     buffer[bufsize-1] = '\0';
     strncpy(entry->file_extension,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_FILE_EXTENSION),
             7);
     entry->file_extension[7] = '\0';
-
-    strncpy(buffer,sname,bufsize-1);
-    strncat(buffer,":extra_options",bufsize-1-strlen(buffer));
-    buffer[bufsize-1] = '\0';
-    strncpy(entry->extra_ffmpeg_options,
-            iniparser_getstring(profile, buffer,(char *)DEFAULT_PROFILE_EXTRA_FFMPEG_OPTIONS),
-            255);
-    entry->extra_ffmpeg_options[255] = '\0';
     
     strncpy(entry->filename,filename,255);
     entry->filename[255] = '\0';
@@ -298,14 +280,8 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     "%-22s: %s\n"           /* frame_size */
     "FFMPEG:\n"             
     "%-22s: %d\n"           /* use_transcodings */
-    "%-22s: %d\n"           /* video_bitrate */
-    "%-22s: %s\n"           /* vcodec */
     "%-22s: %d\n"           /* pass */
-    "%-22s: %s\n"           /* acodec */
-    "%-22s: %d\n"           /* audio_bitrate */
-    "%-22s: %s\n"           /* video_size */
-    "%-22s: %s\n"           /* ffmmpeg_extra_options */
-    "%-22s: %s\n",          /* file_extension */
+    "%-22s: %s\n",          /* file_extension */            
             
     "name",profile->name,
 
@@ -318,13 +294,7 @@ _dump_transcoding_profile(struct transcoding_profile_entry *profile, char *buff,
     
     /* FFMPEG Settings */
     "use_transcoding", profile->use_transcoding,
-    "video_bitrate", profile->video_bitrate,
-    "vcodec",profile->vcodec,
     "pass",profile->pass,
-    "acodec", profile->acodec,
-    "audio_bitrate",profile->audio_bitrate,
-    "video_size",profile->size,
-    "ffmpeg_extra_options",profile->extra_ffmpeg_options,
     "file_extension",profile->file_extension
     );
 }

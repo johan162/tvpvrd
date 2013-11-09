@@ -10,6 +10,19 @@ Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 -------------------
 
 User visible changes:
+    - New format for arguments in transcoding profiles.
+      The way to specify transcoding parameters have changed. Since both ffmpeg and
+      avconv (that is used for transcoding) is constantly evolving its argument 
+      format the old way of simplifying for end users by creating the command line
+      programatically in the daemon is too inflexible. 
+      Instead the new way is to specify the complete command line in the profile
+      setting. This makes it easier to keep the daemon and still upgrade to newer
+      version of ffmpeg/avconv and just updated the setting in the config file and 
+      not having to wait for a new version of tvpvrd to catch up with the latest
+      command format.
+      This also caters better for advanced users that wants to specify more complex
+      encoding options in the transcoding process.
+
     - Added configuration for modern style Upstart init script for system that uses
       initctl to start daemons (e.g. newer version of Debian, Ubuntu, Linux Mint etc)
       This is configured automatically depending on the system
@@ -36,6 +49,7 @@ User visible changes:
       the template will be initialized with ffmpeg. 
 
     - libreadline-dev is now required dependency to configure and build the daemon
+      (This is a very common library used by many utilities so it is not unreasonable)
 
     - "configure" will now use "/usr" as default prefix and "/etc" for default sysconfdir 
       so no need to use "configure --prefix=/usr --sysconfdir=/etc".

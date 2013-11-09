@@ -161,6 +161,9 @@ extern "C" {
  */
 #define KEEP_MP2FILE 1
 
+#define DEFAULT_CMD_LINE "-i [INPUT] -threads 0 -strict experimental -c:a aac -b:a 128k -b:v 750k [OUTPUT].mp4"
+#define DEFAULT_CMD_LINE_2PASS_1 "-i [INPUT] -pass 1 -threads 0 -strict experimental -c:a aac -b:a 128k -b:v 750k [OUTPUT].mp4"
+#define DEFAULT_CMD_LINE_2PASS_2 "-i [INPUT] -pass 2 -threads 0 -strict experimental -c:a aac -b:a 128k -b:v 750k [OUTPUT].mp4"
 
 /**
   * Holds all the information on a specific transcoding profile. The profile
@@ -184,14 +187,12 @@ struct transcoding_profile_entry {
     
     /* ffmpeg entries */
     unsigned use_transcoding;
-    unsigned video_bitrate;
-    unsigned pass;
-    unsigned audio_bitrate;
-    char size[32];
-    char vcodec[32];
-    char acodec[32];
-    char file_extension[16];
-    char extra_ffmpeg_options[256];
+    unsigned pass;    
+    char file_extension[16];    
+    char cmd_line[512];
+    char cmd_line_2pass_1[512];
+    char cmd_line_2pass_2[512];
+
     char filename[256];
 };
 
