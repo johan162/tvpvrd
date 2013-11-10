@@ -402,6 +402,12 @@ init_web_cmds(void) {
     } else {
         web_cmds = web_cmds_plain;
     }
+   
+    // Setup the list of Web-themes available
+    if( -1 == init_web_themes() ) {
+        logmsg(LOG_ERR,"Cannot find any theme files!");
+        _exit(EXIT_FAILURE);
+    }
 }
 
 _Bool web_cmd_islogin(char *file) {

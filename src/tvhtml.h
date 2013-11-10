@@ -79,6 +79,8 @@ html_send_404header(int sockd);
 void
 html_send_304header(int sockd);
 
+int
+init_web_themes(void);
 
 #ifdef	__cplusplus
 }
