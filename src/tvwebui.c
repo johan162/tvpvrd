@@ -364,7 +364,11 @@ web_cmd_del(int sockd) {
     free(listrec);
 
     html_element_select(sockd, "Delete serie:", "delserie", "No", yn_list, n_ynlist, "id_seriesyn");
-    html_element_submit(sockd, "submit_delrec", "Delete", "delrec");
+    if( num ) {
+        html_element_submit(sockd, "submit_delrec", "Delete", "delrec");
+    } else {
+        html_element_submit_disabled(sockd, "submit_delrec", "Delete", "delrec");
+    }
 
     _writef(sockd, "</form>\n");
 
