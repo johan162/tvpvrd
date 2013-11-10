@@ -45,6 +45,14 @@
 #include "tvwebui.h"
 #include "build.h"
 #include "tvplog.h"
+#include "xstr.h"
+#include "futils.h"
+
+
+//static const char *theme_list[] = {"plain", "hq", "metal", "night", "deep"};
+#define MAX_THEME_LIST 12
+size_t num_themes=0;
+const char *theme_list[MAX_THEME_LIST] ;
 
 /**
  * Display the top banner in the WEB interface
@@ -70,13 +78,47 @@ html_windtitlebar(int sockd,_Bool showlogout) {
     _writef(sockd, "</div> <!-- windowtitlebar -->\n");
 }
 
-void html_theme_select(int sockd) {
-    static const char *theme_list[] = {"plain", "hq", "metal", "night", "deep"};
-    const size_t n_themelist = 5;
+int
+_read_theme_file(char *filename,unsigned idx) {
+    char cssfile[128];
+    const char *prefix="tvpvrd_";
+    
+    strncpy(cssfile,basename(filename),sizeof(cssfile));
+    // Strip away the initial "tvpvrd_" and the ".css" suffix
+    // to get the name of the theme
+    char buff[16];
+    xsubstr(buff, sizeof(buff), cssfile, 0, strlen(prefix)-1);
+    if( 0 == strncmp(buff,prefix,strlen(prefix)) ) {
+        //So far so good
+        xsubstr(buff, sizeof(buff), cssfile, strlen(prefix), strlen(cssfile)-5);
+        // Buffer should now contain the profile name
+        theme_list[idx]=strdup(buff);
+        logmsg(LOG_DEBUG,"Found theme '%s'",buff);
+    }
+    return 0;
+    
+}
 
+/* Assume that all files with the format tvpvd_<name>.css in the www/ directory are 
+ * theme files.
+ */
+int
+init_web_themes(void) {
+    char dirbuff[256];
+    snprintf(dirbuff,sizeof(dirbuff),"%s/tvpvrd/www",CONFDIR);
+    process_files(dirbuff, ".css", sizeof(theme_list), &num_themes, _read_theme_file); 
+    if( 0 == num_themes ) {
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+void html_theme_select(int sockd) {
+    
     _writef(sockd, "<form name=\"chwt_form\" method=\"get\" action=\"chwt\" id=\"id_wtform\">\n ");
     _writef(sockd, "<div id=\"theme_select\">\n");
-    html_element_select(sockd, "", "t", web_theme, theme_list, n_themelist, "id_wt");
+    html_element_select(sockd, "", "t", web_theme, theme_list, num_themes, "id_wt");
     _writef(sockd, "\n</div> <!-- theme_select -->\n");
     _writef(sockd, "</form>\n");
 }

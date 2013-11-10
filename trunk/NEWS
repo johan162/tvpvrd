@@ -14,6 +14,11 @@ User visible changes:
       remembered between usages on a user-by-user level. History is stored in
       "~/.tvpsh_history".
 
+    - For the Web-UI new themes can be added dynamically. Just add new themes in
+      the daemons config www directory and restart.
+
+    - New Web-theme "grey"
+
     - New format for arguments in transcoding profiles.
       The way to specify transcoding parameters have changed. Since both ffmpeg and
       avconv (that is used for transcoding) is constantly evolving its argument 
