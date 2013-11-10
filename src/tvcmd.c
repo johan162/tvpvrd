@@ -2850,11 +2850,11 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
     }
 
 
-    // We add 5s just to be sure since the recording thread
+    // We add 3s just to be sure since the recording thread
     // could be busy and it might take some time before this
     // new entry gets checked and we don't want it to be in
     // the past.
-    fromtimestamp(now+1,&sy,&sm,&sd,&sh,&smin,&ssec);
+    fromtimestamp(now+3,&sy,&sm,&sd,&sh,&smin,&ssec);
     ey=sy; em = sm; ed = sd;
     eh=sh; emin=smin; esec=ssec;
     int profile = 0 ;
@@ -2909,22 +2909,26 @@ _cmd_quickrecording(const char *cmd, int sockfd) {
         }
     }
     if (ret > 0) {
-        eh += dh;
-        emin += dmin;
-        ts_end = totimestamp(ey,em,ed,eh,emin,esec);
-        fromtimestamp(ts_end,&ey,&em,&ed,&eh,&emin,&esec);
-        if( *title == 0 ) {
-            sprintf(title,"%s_%d%02d%02d_%02d%02d",field[1],sy,sm,sd,sh,smin);
-        }
+        if( 0 == dh && 0 == dmin ) {
+            _writef(sockfd, "Huh? Recording must have duration longer than 0:00!\n" );
+        } else {
+            eh += dh;
+            emin += dmin;
+            ts_end = totimestamp(ey,em,ed,eh,emin,esec);
+            fromtimestamp(ts_end,&ey,&em,&ed,&eh,&emin,&esec);
+            if( *title == 0 ) {
+                sprintf(title,"%s_%d%02d%02d_%02d%02d",field[1],sy,sm,sd,sh,smin);
+            }
 
-        // Create the real add command and execut that
-        sprintf(cmdbuff,"a %s %02d:%02d:%02d %02d:%02d:%02d %s",field[1],sh,smin,ssec,eh,emin,esec,title);
-        if( profile ) {
-            strcat(cmdbuff,field[profile]);
+            // Create the real add command and execute that
+            sprintf(cmdbuff,"a %s %02d:%02d:%02d %02d:%02d:%02d %s",field[1],sh,smin,ssec,eh,emin,esec,title);
+            if( profile ) {
+                strcat(cmdbuff,field[profile]);
+            }
+            logmsg(LOG_NOTICE,"Sending command: %s",cmdbuff);
+            matchcmd_free(&field);
+            _cmd_add(cmdbuff,sockfd);
         }
-        logmsg(LOG_NOTICE,"Sending command: %s",cmdbuff);
-        matchcmd_free(&field);
-        _cmd_add(cmdbuff,sockfd);
     } else {
         _cmd_syntaxerror(cmd, sockfd);
     }
