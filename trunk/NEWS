@@ -17,7 +17,10 @@ User visible changes:
     - For the Web-UI new themes can be added dynamically. Just add new themes in
       the daemons config www directory and restart.
 
-    - New Web-theme "grey"
+    - The new Web-UI theme "grey" (which is a clean no-frills "flat" theme) is 
+      now the default. 
+
+    - Some minor UI tweaks/improvements in the Web-UI
 
     - New format for arguments in transcoding profiles.
       The way to specify transcoding parameters have changed. Since both ffmpeg and

@@ -449,13 +449,35 @@ input.input_submit {
     box-shadow: 0px 0px 4px #fff; 
 }
 
+input.input_submit:disabled {
+    background: #bbb;
+    border: solid 1px #888;
+    color:#777;
+    -moz-box-shadow: 0px 0px 0px #000; 
+    box-shadow: 0px 0px 0px #000; 
+}
+
 /* Indicate to user that button is about to receive input */
 input.input_submit:hover {
     cursor:pointer;
-    ursor:hand;
     border: solid 2px #222;
     -moz-box-shadow: 0px 0px 10px #fff; 
     box-shadow: 0px 0px 10px #fff; 
+}
+
+input.input_submit:disabled:hover {
+    cursor:default;
+    border: solid 1px #888;
+    -moz-box-shadow: 0px 0px 0px #000; 
+    box-shadow: 0px 0px 0px #000; 
+}
+
+input.input_submit:disabled:active {
+    font-size:10pt;
+    cursor:default;
+    border: solid 1px #888;
+    -moz-box-shadow: 0px 0px 0px #000; 
+    box-shadow: 0px 0px 0px #000; 
 }
 
 /* Give visual feedback that the button has been pressed */
