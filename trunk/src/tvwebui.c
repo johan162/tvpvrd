@@ -356,18 +356,25 @@ web_cmd_del(int sockd) {
 
     struct skeysval_t *listrec;
     size_t num = list_recskeyval(&listrec, 10); // style==10, simple format with no idx and no profile
-    html_element_select_code(sockd, "Title:", "recid", NULL, listrec, num, "id_delselect");
-    for (size_t i = 0; i < num; ++i) {
-        free(listrec[i].key);
-        free(listrec[i].val);
+    
+    if( num > 0 ) {
+        html_element_select_code(sockd, "Title:", "recid", NULL, listrec, num, "id_delselect");
+        for (size_t i = 0; i < num; ++i) {
+            free(listrec[i].key);
+            free(listrec[i].val);
+        }
+    } else {
+        html_element_select_code_disabled(sockd, "Title:", "recid", NULL, listrec, num, "id_delselect");
     }
     free(listrec);
 
-    html_element_select(sockd, "Delete serie:", "delserie", "No", yn_list, n_ynlist, "id_seriesyn");
+    
     if( num ) {
         html_element_submit(sockd, "submit_delrec", "Delete", "delrec");
+        html_element_select(sockd, "Delete serie:", "delserie", "No", yn_list, n_ynlist, "id_seriesyn");
     } else {
         html_element_submit_disabled(sockd, "submit_delrec", "Delete", "delrec");
+        html_element_select_disabled(sockd, "Delete serie:", "delserie", "No", yn_list, n_ynlist, "id_seriesyn");
     }
 
     _writef(sockd, "</form>\n");
