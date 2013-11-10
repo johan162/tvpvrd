@@ -518,6 +518,7 @@ div.input_container#id_title {
 /* Buttons under the on-going recording info display when active */
 div.ongoing_rec_stop_disabled ,
 div.ongoing_transc_stop_disabled  {
+    cursor: default;
     float:right;
     font-weight:bold;
     font-size:9pt;
@@ -542,6 +543,8 @@ div.ongoing_transc_stop_disabled  {
 /* Buttons under the on-going recording info display when inactive */
 div.ongoing_rec_stop,
 div.ongoing_transc_stop {
+    cursor: hand;
+    cursor: pointer;
     float:right;
     font-weight:bold;
     font-size:9pt;
