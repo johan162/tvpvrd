@@ -431,7 +431,8 @@ input.input_submit {
     background-image: -moz-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);
     background-image: -webkit-linear-gradient(bottom, rgb(10,10,10) 1%, rgb(127,127,127) 60%);    
     -moz-box-shadow: 3px  3px  6px  #555; 
-    box-shadow: 3px  3px  6px  #555;   
+    box-shadow: 3px  3px  6px  #555;
+    -webkit-shadow: 3px  3px  6px  #555;      
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;  
 
@@ -457,6 +458,20 @@ input.input_submit:active {
     border: solid 1px #ddd;
     font-size:9pt;
     cursor:pointer;
+}
+
+input.input_submit:disabled,
+input.input_submit:disabled:hover,
+input.input_submit:disabled:active {
+    cursor: default;
+    background: #aaa;
+    border: solid 1px #666;
+    color: #777;
+    text-shadow:0 0 0 #aaa;    
+    -moz-box-shadow: 0 0 0  #000; 
+    box-shadow: 0 0 0  #000; 
+    -webkit-shadow: 0 0 0  #000; 
+    font-size:10pt;
 }
 
 /* Adjustment for submit buttons to make them right aligned */
@@ -485,6 +500,7 @@ div.input_container#id_title {
 
 div.ongoing_rec_stop_disabled ,
 div.ongoing_transc_stop_disabled  {
+    cursor: default;
     float:right;
     font-weight:bold;
     font-size:9pt;
@@ -497,7 +513,7 @@ div.ongoing_transc_stop_disabled  {
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
-    padding-top: 0;
+    padding-top: 2px;
     text-align:center;
     color: #777;
     -webkit-border-radius: 5px;
@@ -525,6 +541,7 @@ div.ongoing_transc_stop {
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
+    padding-top: 2px;
     text-align:center;
 }
 
