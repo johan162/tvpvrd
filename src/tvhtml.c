@@ -355,7 +355,7 @@ html_endpage(int sockd) {
  * @param id
  */
 void
-html_element_select(int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id) {
+_html_element_select(_Bool disabled, int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id) {
     const int maxlen = 8192;
     char *buffer = calloc(1, maxlen);
 
@@ -376,13 +376,13 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
     _writef(sockd, buffer);
 
     if (id && *id) {
-        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\" id=\"%s_select\">\n", name, "input_select", id);
+        snprintf(buffer, maxlen, "<select %s name=\"%s\" class=\"%s\" id=\"%s_select\">\n", disabled ? "disabled":"", name, "input_select", id);
     } else {
-        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\">\n", name, "input_select");
+        snprintf(buffer, maxlen, "<select %s name=\"%s\" class=\"%s\">\n", disabled ? "disabled":"", name, "input_select");
     }
 
     _writef(sockd, buffer);
-    for (int i = 0; i < num; ++i) {
+    for (int i = 0; ! disabled && i < num; ++i) {
         if (selected && 0 == strcmp(selected, list[i])) {
             snprintf(buffer, maxlen, "<option selected=\"selected\" value=\"%s\">%s</option>\n", list[i], list[i]);
         } else {
@@ -394,6 +394,18 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
     _writef(sockd, buffer);
     free(buffer);
 }
+
+
+void
+html_element_select(int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id) {
+    _html_element_select(FALSE, sockd, legend, name, selected, list, num, id);
+}
+
+void
+html_element_select_disabled(int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id) {
+    _html_element_select(TRUE, sockd, legend, name, selected, list, num, id);
+}
+
 
 /**
  * Output a HTML <select> entity where the key and the display value are different
@@ -407,7 +419,7 @@ html_element_select(int sockd, char *legend, char *name, char *selected, const c
  * @param id
  */
 void
-html_element_select_code(int sockd, char *legend, char *name, char *selected, const struct skeysval_t list[], int num, char *id) {
+_html_element_select_code(_Bool disabled, int sockd, char *legend, char *name, char *selected, const struct skeysval_t list[], int num, char *id) {
     const int maxlen = 8192;
     char *buffer = calloc(1, maxlen);
 
@@ -428,13 +440,13 @@ html_element_select_code(int sockd, char *legend, char *name, char *selected, co
     _writef(sockd, buffer);
 
     if (id && *id) {
-        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\" id=\"%s_select\">\n", name, "input_select_code", id);
+        snprintf(buffer, maxlen, "<select %s name=\"%s\" class=\"%s\" id=\"%s_select\">\n", disabled ? "disabled":"", name, "input_select_code", id);
     } else {
-        snprintf(buffer, maxlen, "<select name=\"%s\" class=\"%s\">\n", name, "input_select_code");
+        snprintf(buffer, maxlen, "<select %s name=\"%s\" class=\"%s\">\n", disabled ? "disabled":"", name, "input_select_code");
     }
     _writef(sockd, buffer);
     int i = 0;
-    while (i < num) {
+    while ( ! disabled && i < num) {
         if (selected && 0 == strcmp(selected, list[i].val)) {
             snprintf(buffer, maxlen, "<option selected=\"selected\" value=\"%s\">%s</option>\n", list[i].key, list[i].val);
         } else {
@@ -447,6 +459,17 @@ html_element_select_code(int sockd, char *legend, char *name, char *selected, co
     _writef(sockd, buffer);
     free(buffer);
 }
+
+void
+html_element_select_code(int sockd, char *legend, char *name, char *selected, const struct skeysval_t list[], int num, char *id) {
+    _html_element_select_code(FALSE, sockd, legend, name, selected, list, num, id);
+}
+
+void
+html_element_select_code_disabled(int sockd, char *legend, char *name, char *selected, const struct skeysval_t list[], int num, char *id) {
+    _html_element_select_code(TRUE, sockd, legend, name, selected, list, num, id);
+}
+
 
 /**
  * Create a text input HTML field

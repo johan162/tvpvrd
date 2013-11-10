@@ -56,7 +56,13 @@ void
 html_element_select(int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id);
 
 void
+html_element_select_disabled(int sockd, char *legend, char *name, char *selected, const char *list[], int num, char *id);
+
+void
 html_element_select_code(int sockd, char *legend, char *name, char *selected, const struct skeysval_t list[], int num, char *id);
+
+void
+html_element_select_code_disabled(int sockd, char *legend, char *name, char *selected, const struct skeysval_t list[], int num, char *id);
 
 void
 _html_element_input_text(int sockd, char *legend, char *name, char *id, int passwd);

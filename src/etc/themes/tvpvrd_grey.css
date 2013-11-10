@@ -376,17 +376,27 @@ div.input_legend {
 input,
 select  {
     border: solid gray 1px;
-    background:#fff;
+    background:rgb(245,245,245);
     font-family:Arial, Sans-serif;
-    font-weight:bold;
+    font-weight:normal;
+    color:#000;
+}
+
+/* Adjustment for browser controls */
+select:disabled  {
+    border: solid gray 1px;
+    background:#bbb;
+    font-family:Arial, Sans-serif;
+    font-weight:normal;
     color:#000;
 }
 
 input:focus,
 select:focus {
-    border:solid 1px #ff6633;
-    background:#fff;
+    border:solid 1px #000;
+    background:#ffd;
     color:#000;
+    font-size:9pt;
 }
 
 /* Delete series y/n selector */
@@ -397,15 +407,6 @@ select.input_select#id_seriesyn_select {
 /* Repeat count selector */
 select.input_select#id_rptcount {
     width:50px;
-}
-
-/* Format for selector with list of recordings to delete on focus */
-select.input_select_code#id_delselect_select:focus {
-    width : 390px;
-    overflow: hidden;
-    font-family: fixed, monospace;
-    font-size: 10pt;
-    font-weight:bold;
 }
 
 /* Format for selector with list of recordings to delete out of focus */
