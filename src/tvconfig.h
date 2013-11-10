@@ -114,7 +114,7 @@ extern "C" {
  * DEFAULT_WEB_THEME string
  * Theme for the Web-interface
  */
-#define DEFAULT_WEB_THEME "night"
+#define DEFAULT_WEB_THEME "grey"
 
 /*
  * DEFAULT_THEME_SELECT boolean
