@@ -1826,7 +1826,10 @@ get_stations(const char *stations[],size_t maxlen) {
         stations[i] = station_map[i].name;
     }
 
-    qsort(stations,n,sizeof(char *),_qstrcmp);
+    // JP 2013-11-10 Comment out sort. Preserve channel 
+    // order in mapping file instead since a user might want
+    // to sort according to most watched.
+    // qsort(stations,n,sizeof(char *),_qstrcmp);
 
     return (int)n;
 }

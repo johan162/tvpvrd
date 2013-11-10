@@ -10,6 +10,10 @@ Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)
 -------------------
 
 User visible changes:
+    - The station list is no longer sorted alphabetically. Instead the order
+      from the channel file is preserved since that might have some logic for
+      the user that makes more sense than plain alphabetical sort.
+
     - Added persistent history to the tvpvrd shell (tvpsh) so that history is
       remembered between usages on a user-by-user level. History is stored in
       "~/.tvpsh_history".
@@ -20,7 +24,9 @@ User visible changes:
     - The new Web-UI theme "grey" (which is a clean no-frills "flat" theme) is 
       now the default. 
 
-    - Some minor UI tweaks/improvements in the Web-UI
+    - Some minor UI tweaks/improvements in the Web-UI.
+        ... deletion list disabled if there are no more recordings (as well as
+            submit button)
 
     - New format for arguments in transcoding profiles.
       The way to specify transcoding parameters have changed. Since both ffmpeg and
