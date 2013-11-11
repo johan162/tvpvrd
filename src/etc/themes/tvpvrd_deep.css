@@ -371,7 +371,7 @@ div.input_legend {
     font-family:Arial, Sans-erif;
     font-weight:bold;
     font-size:9pt;
-    color:#000;
+    color:#999;
     text-shadow: 0px 0px 7px #fff;
     margin:0;
 }
@@ -383,7 +383,7 @@ select  {
     background:#CCC8CB;
     font-family:Arial, Sans-serif;
     font-weight:bold;
-    color:#cd702e;
+    color:#007;
 }
 
 input:focus,
@@ -408,7 +408,7 @@ select.input_select_code#id_delselect_select:focus {
     width : 390px;
     overflow: hidden;
     font-family: fixed, monospace;
-    font-size: 10pt;
+    font-size: 9pt;
     font-weight:bold;
 }
 
@@ -455,6 +455,22 @@ input.input_submit:active {
     cursor:pointer;
 }
 
+
+input.input_submit:disabled,
+input.input_submit:disabled:hover,
+input.input_submit:disabled:active {
+    cursor: default;
+    background:#bbb;
+    color: #888;
+    border:solid 1px #666;
+    text-shadow:0 0 0;
+    font-size:10pt;
+   -moz-box-shadow: 0 0 0 ; 
+    box-shadow: 0 0 0 ; 
+   -webkit-box-shadow: 0 0 0 ; 
+}
+
+
 /* Adjustment for submit buttons to make them right aligned */
 div.input_container#delrec,
 div.input_container#id_addrec,
@@ -480,6 +496,7 @@ div.input_container#id_title {
 
 div.ongoing_rec_stop_disabled ,
 div.ongoing_transc_stop_disabled  {
+    cursor: default;
     float:right;
     font-weight:bold;
     font-size:9pt;
@@ -488,13 +505,13 @@ div.ongoing_transc_stop_disabled  {
     margin-top:3px;
     border: solid 1px #999;
     width:50px;
-    background:#B2D4D4;
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
-    padding-top: 0;
+    padding-top: 2px;
     text-align:center;
-    color: #999;
+    background:#bbb;
+    color: #888;
 }
 
 div.ongoing_rec_stop,
@@ -511,6 +528,7 @@ div.ongoing_transc_stop {
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
+    padding-top: 2px;
     text-align:center;
 }
 
