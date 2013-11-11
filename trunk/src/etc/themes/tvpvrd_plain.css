@@ -438,7 +438,7 @@ input.input_submit {
 input.input_submit:hover {
     cursor:pointer;
     ursor:hand;
-    text-shadow:0 0 0 #000;    
+    text-shadow:0 0 0 #000;
     color:#fff;
 }
 
@@ -449,6 +449,21 @@ input.input_submit:active {
     cursor:pointer;
     cursor:hand;
 }
+
+input.input_submit:disabled,
+input.input_submit:disabled:hover,
+input.input_submit:disabled:active {
+    cursor: default;
+    background:#B2D4D4;
+    color: #999;
+    border:solid 2px #999;
+    text-shadow:0 0 0;
+    font-size:10pt;
+   -moz-box-shadow: 0 0 0 #B2D4D4; 
+    box-shadow: 0 0 0 #B2D4D4; 
+   -webkit-box-shadow: 0 0 0 #B2D4D4; 
+}
+
 
 /* Adjustment for submit buttons to make them right aligned */
 div.input_container#delrec,
@@ -475,6 +490,7 @@ div.input_container#id_title {
 
 div.ongoing_rec_stop_disabled ,
 div.ongoing_transc_stop_disabled  {
+    cursor: default;
     float:right;
     font-weight:bold;
     font-size:9pt;
@@ -487,7 +503,7 @@ div.ongoing_transc_stop_disabled  {
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
-    padding-top: 0;
+    padding-top: 2px;
     text-align:center;
     color: #999;
 }
@@ -506,6 +522,7 @@ div.ongoing_transc_stop {
     padding-left: 4px;
     padding-right: 4px;
     padding-bottom: 3px;
+    padding-top: 2px;
     text-align:center;
 }
 
