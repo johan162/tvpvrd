@@ -19,14 +19,18 @@ Quick installation using the tar-ball-package
 =============================================
 
 For the impatient:
+Step 0.
+-------
+$ tar xJf tvpvrd-<version>.tar.xz
 
 Step 1.
 -------
-$>./configure && make -j4
+$ cd tvpvrd-<version>
+$ ./configure && make -j4
 
 Step 2. 
 -------
-$> sudo make install
+$ sudo make install
 
 The above will run the configure script with the most common installation
 directories on modern system as well as do a reasonable silent build.
@@ -43,17 +47,17 @@ The simplest way to compile and install this package is:
 
   0. Unpack the tarball
 
-     $>tar xJf tvpvrd-<versions>.tar.xz
+     $ tar xJf tvpvrd-<versions>.tar.xz
 
      Where <version> is replaced by the current version number.
 
   1. Switch to the created directory
 
-     $>cd tvpvrd-<version>
+     $ cd tvpvrd-<version>
 
   2. Configure and build the source
 
-     $> ./configure && make -j4
+     $ ./configure && make -j4
 
      If there are some error messages it is mot likely due to missing
      libraries that is needed to build the daemon. The error message
@@ -61,7 +65,7 @@ The simplest way to compile and install this package is:
      
   3. Install the daemon
 
-     $> sudo make install
+     $ sudo make install
 
      Update the configuration file to match your system. At minimum you
      need to specify what directory should be used to store the 
@@ -75,11 +79,11 @@ The simplest way to compile and install this package is:
 
      On debian/Ubuntu/Linux Mint type: 
 
-     	$> sudo start tvpvrd
+     	$ sudo start tvpvrd
 
      On OpenSuSE type: 
 
-     	$> /etc/init.s/tvpvrd start
+     	$ /etc/init.s/tvpvrd start
    
 
 Using mod_proxy in apache Web-server to access the Web interface
@@ -175,8 +179,8 @@ Fedora 13
 The package is known to build and install without any problems. All
 needed libraries are available as pre-built packages.
 
-Ubuntu 10.10
-------------
+Linux Mint/Ubuntu 10.xx
+-----------------------
 The package itself is know to build without any problem but
 unfortunately there doesn't seem to be a pre-built package of
 iniparser library. So a built-in version will be used.
@@ -275,28 +279,17 @@ Setting up a  build environment
 -------------------------------
 (It is assumed you are at the root of the installed directory)
 
-Recreate a build environment that will setup the necessary autotools files
+Recreate a build environment that will setup the necessary autotools files and compile
 
-   $>bldscript/bootstrap.sh && autoreconf
+   $ bldscript/bootstrap.sh && configure && make -j4
    
 If you happen to be on an Debian/Ubuntu/linux Mint system you can automatically
-install all 3:rd pary dependencies needed to build by rinstead running
+install all 3:rd pary dependencies needed to build by instead running
 
-   $>bldscript/bootstrap-deb.sh && autoreconf
+   $ bldscript/bootstrap-deb.sh && configure && make -j4
 
-Now continue as usual (i.e. ./configure &6 make -j 4)
+The install the daemon as usual with
 
-
-A final note:
-There are two schools of thought on what to save in the repository. One schools argues that
-only original source files should be stored there and not generated files based on the
-source files. The other school of thought argues that for ease of use the repository
-should contain necessary files so that even an non-developer user can re-build the package.
-
-I subscribe to the first view. This keeps the repository clean and it also reduces false
-reports of problems when people without necessary experience have failed to correctly build
-the source directly from the repository. It will also avoid a lot of unnecessary traffic to
-the repository just to keep the generated files in sync.
-
+$ sudo make install
 [EOF]
 
