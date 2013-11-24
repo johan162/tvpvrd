@@ -7,11 +7,7 @@ AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -rdynamic -ggdb -pthread -pedantic -Wall
 bin_PROGRAMS = tvpvrd
 
 BUILDNBR_FILE=buildnumber.txt
-SUBDIRS = libsmtpmail libiniparser . tvpowerd 
-
-#if have_readline
-SUBDIRS += shell
-#endif
+SUBDIRS = libsmtpmail libiniparser . tvpowerd shell
 
 tvpvrd_SOURCES = freqmap.c  recs.c  stats.c  transc.c  tvcmd.c  tvpvrsrv.c  tvxmldb.c  utils.c \
 vctrl.c tvwebui.c tvhtml.c lockfile.c pcretvmalloc.c tvconfig.c tvshutdown.c mailutil.c \

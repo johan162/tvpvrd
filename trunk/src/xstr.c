@@ -37,6 +37,7 @@
 
 // #include "tvplog.h"
 #include "utils.h"
+#include "xstr.h"
 
 
 /**

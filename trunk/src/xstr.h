@@ -94,7 +94,7 @@ xstricmp(const char *s1, const char *s2);
  * Utility function. Convert string of maximum 4095 characters to lower case
  * @param s 
  */
-void
+int
 xstrtolower(char *s);
 
 /**
