@@ -1118,7 +1118,10 @@ _cmd_add(const char *cmd, int sockfd) {
         // Verify that this is either a named station or a recognized channel in the
         // current frequence map
         unsigned tmp;
-        xstrtolower(channel);
+        if( -1 == xstrtolower(channel) ) {
+            logmsg(LOG_ERR, "Failed to normalize channel name %s", channel);
+            err = 1;
+        }
 
         // Check if this is a regular channel or a direct specification of a
         // video input on the card, i.e. in the form "_inp01"

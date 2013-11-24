@@ -1585,7 +1585,10 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
 
             strncpy(rectitle,recurrence_title,255);
             rectitle[255] = '\0';
-            xstrtolower(rectitle);
+            if( -1 == xstrtolower(rectitle) ) {
+                logmsg(LOG_ERR,"Failed to normalice title or recording");
+                return -1;
+            }
             if( use_repeat_rec_basedir && *rectitle) {
                 logmsg(LOG_DEBUG,"Using basedir '%s' for recurring recording",rectitle);
                 if( 0 == chkcreatedir(tmpbuff3,rectitle) ) {
