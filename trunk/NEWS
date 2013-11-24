@@ -74,6 +74,8 @@ User visible changes:
 
 
 Bugs fixed:
+    - Prototype mismatch for xstrtolower()
+
     - Web-UI did always require a login and did not adhere to the config setting of
       require_web_password which could be set to not requiring a login
 
