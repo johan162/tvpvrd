@@ -83,6 +83,9 @@ Bugs fixed:
 
     - Fixed compatibility with recent versions of ffmpeg for two pass transcodings
 
+    - Fixed a potential memory leak in SMTP library in regards to faulty attachments
+
+
 Internal changes:
     - Some internal cleanup of the autotools setup
 
