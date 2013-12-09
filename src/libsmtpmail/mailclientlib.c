@@ -488,6 +488,7 @@ _smtp_normalize_mailaddr(char *mailaddr, char *name, size_t maxnlen, char *addr,
         char *tmp=calloc(1,strlen(name)+3);
         sprintf(tmp,"\"%s\"",name);
         if( maxnlen < strlen(tmp)+1 ) {
+            free(tmp);
             return -1;
         }
         strcpy(name,tmp);
@@ -737,6 +738,7 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
         char *bdata = calloc(1,N1);
         if( -1 == base64encode(data,len,bdata,N1) ) {
             free(bdata);
+            free(attach);
             return -1;
         }
         size_t const width=76;
@@ -745,6 +747,7 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
         if( -1 == split_in_rows(bdata, bsdata, N2, width) ) {
             free(bdata);
             free(bsdata);
+            free(attach);
             return -1;
         }
         attach->data = strdup(bsdata);
@@ -755,6 +758,7 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
         char *bdata = calloc(1,N1);
         if( -1 == qprint_encode(data,bdata,N1) ) {
             free(bdata);
+            free(attach);
             return -1;
         }
         attach->data = strdup(bdata);
@@ -762,6 +766,7 @@ smtp_add_attachment(struct smtp_handle *handle, char *filename, char *name, char
     } else if( encoding == SMTP_CONTENT_TRANSFER_ENCODING_8BIT ) {
         attach->data = strdup(data);
     } else {
+        free(attach);
         return -1;
     }
 
