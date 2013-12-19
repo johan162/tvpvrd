@@ -79,6 +79,12 @@
 
 #include "config.h"
 
+
+#ifdef SIGSEGV_HANDLER
+#include <execinfo.h>
+#include <ucontext.h>
+#endif
+
 // Aplication specific libs, parse inifiles as well as Perl regular expressions
 #include <pcre.h>
 
@@ -114,19 +120,6 @@
 #include "tvplog.h"
 #include "tvhistory.h"
 #include "tvwebcmd.h"
-
-/*
- * This structure mirrors the one found in /usr/include/asm/ucontext.h and is
- * used to create a stack backtrace if the program crashes
- */
-typedef struct _sig_ucontext {
- unsigned long     uc_flags;
- struct ucontext   *uc_link;
- stack_t           uc_stack;
- struct sigcontext uc_mcontext;
- sigset_t          uc_sigmask;
-} sig_ucontext_t;
-
 
 /*
  * Server identification
@@ -538,33 +531,51 @@ sighand_thread(void *arg) {
     arg =(void *)0;
     return arg;
 }
-// #define SIGSEGV_HANDLER
+
 
 #ifdef SIGSEGV_HANDLER
-void
 sigsegv_handler(int sig_num, siginfo_t * info, void * ucontext) {
-
-    void * array[50];
     void * caller_address;
-    int size;
-    sig_ucontext_t * uc;
 
-    uc = (sig_ucontext_t *) ucontext;
-    caller_address = (void *) uc->uc_mcontext.eip;
+    ucontext_t *uc = (ucontext_t *) ucontext;
+    // NOTE: For x86 we should use REG_EIP but for x86_64 we should use REG_RIP
+#ifdef __x86_64__
+    caller_address = (void *) uc->uc_mcontext.gregs[REG_RIP];
+#else
+    caller_address = (void *) uc->uc_mcontext.gregs[REG_EIP];
+#endif
+    char crashlog[256];
+    snprintf(crashlog, sizeof(crashlog), "/tmp/%s_stack-%ju.crash", PACKAGE, (uintmax_t) time(NULL));
 
-    int fd = open("/tmp/tvpvrd_stack.crash",
-                  O_TRUNC | O_WRONLY | O_CREAT,
-                  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    if( 0 < fd ) {
-        char buff[256];
-        snprintf(buff,255, "signal %d (%s), address is %p from %p\n\nStack trace:\n",
-                sig_num, strsignal(sig_num), info->si_addr,
-                (void *) caller_address);
-        int ret = write(fd,buff,strlen(buff));
-        if( -1 < ret ) {
-            size = backtrace(array, 50);
-            array[1] = caller_address;
-            backtrace_symbols_fd(array, size, fd);
+    int fd = open(crashlog,
+        O_TRUNC | O_WRONLY | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (0 < fd) {
+        char *code;
+        switch (info->si_code) {
+            case SEGV_MAPERR:
+                code = "Addressed not mapped";
+                break;
+            case SEGV_ACCERR:
+                code = "Invalid permission";
+                break;
+            default:
+                code = "UNKNOWN";
+                break;
+        }
+
+        char sbuff[255];
+        snprintf(sbuff, sizeof(sbuff), "signal %d : \"%s\" at %p accessing %p (Reason: \"%s\")\n"
+            "HINT: Use \"addr2line -e %s %p\" to find out which line is giving this condition.\n\n"
+            "Stack trace:\n",
+            sig_num, strsignal(sig_num), (void *) caller_address, info->si_addr, code,
+            PACKAGE, (void *) caller_address);
+        int ret = write(fd, sbuff, strlen(sbuff));
+        if (-1 < ret) {
+            void * bt_lines[50];
+            int size = backtrace(bt_lines, sizeof (bt_lines) / sizeof (void *));
+            bt_lines[1] = caller_address;
+            backtrace_symbols_fd(bt_lines, size, fd);
         }
         close(fd);
     }
