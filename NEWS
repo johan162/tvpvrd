@@ -85,6 +85,8 @@ Bugs fixed:
 
     - Fixed a potential memory leak in SMTP library in regards to faulty attachments
 
+    - 64 bit adaption of backtrace stack print in case of SIGSEGV (previous code only
+      worked on a 32bit kernel)
 
 Internal changes:
     - Some internal cleanup of the autotools setup
