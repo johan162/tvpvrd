@@ -1,0 +1,481 @@
+'\" t
+.\"     Title: tvpowerd
+.\"    Author: Johan Persson <johan162@gmail.com>
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 11/06/2013
+.\"    Manual: http://sourceforge.net/projects/tvpvrd/docs/
+.\"    Source: http://sourceforge.net/projects/tvpvrd/ @VERSION@
+.\"  Language: English
+.\"
+.TH "TVPOWERD" "1" "11/06/2013" "http://sourceforge\&.net/proje" "http://sourceforge\&.net/proje"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+tvpowerd \- Companion power management daemon for tvpvrd
+.SH "SYNOPSIS"
+.HP \w'\fBtvpowerd\fR\ 'u
+\fBtvpowerd\fR [options\&.\&.\&.]
+.SH "DESCRIPTION"
+.PP
+\fBtvpowerd\fR(1)
+is a companion daemon that is meant to be used in conjunction with the
+\fBtvpvrd\fR(1)
+TV\-recording daemon, However, it is vital and
+\fIabsolutely necessary\fR
+that this daemon is run on a completely different physical server\&. The reason is that this daemon monitors the server doing the TV\-recording and turns the power to the recording server on and off according to the recording schedule\&. This will allow the tv\-recording server to act as a faithful imitation of a real VCR (or Digital PVR)\&. This is good solution if you normally have one server that is constantly running (such as you mail\- or file server) where this daemon can run (it takes virtually no extra CPU and a very small memory footprint)\&. The media server doing the recording is often located somewhere else , perhaps in the TV\-room, and it is desirable to both have it quiet when it is not recording as well as saving on the planets energy\&.
+.PP
+In order for this to work there are a few, but vital, pre\-conditions that must be fulfilled\&.
+.PP
+
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+Both server must have network connections and have
+\fBssh\fR(1)
+installed (this is true for basically all Linux distributions)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+The server running the recording daemon must allow the server running the power daemon to login via SSH certificate without password\&. This is easy done by copying the power servers public SSH key into the file "authorized_keys" on the TV\-recording server\&. This is described in details further down\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+The server running the TV recording must support Wake\-On\-Lan, i\&.e\&. it must be possible to turn the power on by sending a special data package to the network card\&. Virtually all network cards support Wake\-On\-Lan as well as most motherboards and BIOS\&. However, it is usually necessary to enable this feature in BIOS (it is often called something similar to "Wake\-Up\-On\-PCI event"\&.
+.RE
+.PP
+The rest of the man page will go through the detailed step in setting this up\&.
+.SH "ARGUMENTS"
+.PP
+The following arguments are supported
+.PP
+\fB\-d\fR, \fB\-\-daemon\fR [\fIy\fR|\fIn\fR]
+.RS 4
+Determine whether the server should be disconnected from the controlling terminal (a\&.k\&.a\&. running as a daemon)\&. If the server is run as a daemon the logfile cannot be \*(Aq\fIstdout\fR\*(Aq\&. This command line option will override the \*(Aq\fIdaemon\fR\*(Aq setting in the ini\-file\&. The default setting is to run as a daemon\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Print a short help and exit\&.
+.RE
+.PP
+\fB\-i\fR, \fB\-\-inifile\fR filename
+.RS 4
+Use the specified file as configuration file\&. This will override the location specified at compile time\&. The default location is \*(Aq/etc/tvpvrd/tvpvrd\&.conf\*(Aq
+.RE
+.PP
+\fB\-l\fR, \fB\-\-logfile\fR filename
+.RS 4
+Define what logfile to use\&. Two special names can be used
+stdout
+which will cause the log to be written to the
+\fIstdout\fR
+and
+syslog
+which will cause the logs to be written using the default system log\&. This command line option will override the \*(Aq\fIlogfile\fR\*(Aq setting in the ini\-file\&. The default location is \*(Aq/tmp/tvpvrd\&.log\*(Aq
+.RE
+.PP
+\fB\-V\fR, \fB\-\-verbose\fR [\fI0\fR|\fI1\fR|\fI2\fR|\fI3\fR]
+.RS 4
+Log verbosity level\&. 0 will only log error messages, 1 will log error and info messages, 2 will log errors, info and additional notices finally 3 will also log high volume debug messages\&.
+.RE
+.PP
+\fB\-v\fR, \fB\-\-version\fR
+.RS 4
+Print program version information and exit\&.
+.RE
+.PP
+The default arguments corresponds to starting the server with
+.PP
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+tvpvrd \-d y \-i /etc/tvpowerd/tvpowerd\&.conf \-V 1 \-l /tmp/tvpowerd\&.log
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "STARTING AND STOPPING THE POWER DAEMON"
+.PP
+While strictly speaking not necessary the server should normally be started by the root user\&. As soon as the server doesn\*(Aqt need root privileges it will switch to run as the user specified in the ini\-file, by default this is the user
+\fItvpowerd\fR\&. This user should for security reasons not be the \*(Aqroot\*(Aq user\&. This user should be a system user without login shell\&. Such a user can normally be created by running the command \*(Aq\fIuseradd\fR\*(Aq\&. (If the server is installed via the RPM package this user will be automatically created)
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$> useradd \-r tvpowerd
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+To start the server as root the simplest way is to just call
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$root> tvpowerd
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+In order to stop the server and allow it to do a clean shutdown the
+SIGHUP
+(or
+SIGSTOP) signal should be sent to the process running the server (assuming tvpvrd has been started as a daemon)\&. The distribution includes two support scripts to help with this\&.
+.PP
+The first script will be automatically installed in "/etc/init\&.d/tvpvrd" and follows the normal guidelines for a "init\&.d" service start/stopping script according to LSB (Linux Standard Base)\&. Using this script to start the server the command
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+/etc/init\&.d/tvpowerd start
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+is given and to stop the server the command
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+/etc/init\&.d/tvpowerd stop
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+should be given\&. The startup script also supports the "restart" and "status" options\&.
+.PP
+Finally if for some reason you don\*(Aqt want to use any of these scripts it is possible to manually kill the daemon process by sending the SIGHUP signal via the \*(Aq\fIkill\fR\*(Aqcommand as
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$> kill \-SIGHUP <pid>
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+where <pid> is the process id of the
+\fItvpowerd\fR
+daemon\&. Use \*(Aqps xa\*(Aq to find the pid or if the server was started as root look in the file \*(Aq/var/run/tvpowerd\&.pid\*(Aq
+.PP
+If the server gives the error message : "\fIServer can not be started\&. See system log\fR" then more information about the details of the problem can be found in the system log, normally
+/var/log/messages\&. One common issue might be a stale lock file (in
+/var/run/tvpowerd\&.pid) in case the server is not started from the root user\&. The reason is that in order to write these lock files the server must run as a root\&. Since normally the server only runs as a root at the startup phase (and then switches over to the selected user) the lock/pid file cannot be removed\&. This is not a problem if the server is again started as root but if the server is started from the command line as a non\-root user it will complain that the lock file already exists\&. The solution in this case is to manually remove the lockfile (as root)\&.
+.SH "HOW TO SHUTDOWN THE REMOTE SERVER"
+.PP
+The specific way to shutdown the remote recording server can be specified in the configuration file\&. By default the server will be shutdown via a standard call to
+\fBshutdonw\fR
+\fI\-h <time>\fR
+command\&.
+.PP
+A variant of this is to put the recording server in suspend or hibernation mode\&. Most reasonable modern computers will support this way of energy saving\&. Unfortunately the ivtv driver (that controls the TV\-card) is not aware of power management which means that it will not survive a suspend\-wakeup cycle\&. In order for the driver to work it must firs be unloaded before the server is shut down and then reloaded when the server is started up\&. The driver load/unload will be handled automatically if the unload_driver variable is set as
+.PP
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+unload_driver=yes
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+in the configuration file\&.
+.PP
+Note 1: If you decide to use suspend/resume it is probably best to try the commands manually first to make sure it works as expected\&.
+.PP
+Note 2: The suspend/hibernate shutdown method should still be regarded as experimental since experience shows that depending on hardware and system configuration this is not always 100% reliable\&. On some hardware/system configurations it has been reported that after a suspend a driver unload/load cycle is still no sufficient to make the driver work again\&. On yet other HW it has been reported that the daemon does no longer respond after a suspend/wakeup cycle\&. If yoiu experince these problems please use the default shutdown method\&.
+.SH "WHEN WILL THE DAEMON SHUTDOWN THE REMOTE SERVER?"
+.PP
+The daemon follows a number of strict rules when it will and when it wont shutdown the remote server\&. The daemon will only shutdown the recording server it the following conditions are satisfied:
+.PP
+
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+There are no users logged into the recording server\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The 5 min avg load on the server is less than
+max_shutdown_5load
+as specified in the configuration file (default is 0\&.5)\&. This helps prevent shutdown if the user has manually started some jobs on the server\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+There are no ongoing transcodings or recordings\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+It is at least
+min_poweroff_time
+minutes until the next recording as specified in the configuration file (default is 45min)\&.
+.RE
+.PP
+Tip: In order to manually force a wakeup the daemon will look for a an (empty) file named
+/tmp/start_tvp
+so giving the command
+.PP
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$>touch /tmp/start_tvp
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+will force a restart of the recording server\&. The daemon will remove the file after it has been seen to avoid endless wake\-up events\&.
+.SH "CONFIGURING SSH"
+.PP
+In order for the daemon to be able to turn the power off on the remote machine it must be given root permission\&. Since we want to avoid to store plain passwords (especially the root password) in configuration file the best way to solve this is to allow the managing server (the one running the daemon) to log into the recording server via ssh certificates\&.
+.PP
+This is done by adding the public ssh certificate from the user running the tvpowerd to the list of authorized users that can log into the root account on the recording daemon\&.
+.PP
+Assuming the power daemon is running as user \*(Aqtvpower\*(Aq (we assume that the user exists and has been created)\&. The following steps will create and install the public key on the recording server\&.
+.PP
+
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+On the managing server\&. Switch to the \*(Aqtvpower\*(Aq user and give the following command
+.sp
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$tvpower>ssh\-keygen
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+When asked for a password just type return (twice) to create a certificate without password\&. The public certificate will be stored in the file \*(Aq~tvpower/\&.ssh/id_rsa\&.pub\*(Aq
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+The next step is to add the content of the \*(Aq~tvpower/\&.ssh/id_rsa\&.pub\*(Aq file to the end of the root users \*(Aq\&.ssh/authorized_keys\*(Aq file on the recording server\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+After this is done it should be possible for the
+tvpower
+user to login to the recording server as root without giving a password using
+\fBssh\fR\&. Make sure that it is possible to execute a remote command on the recording server as root user without giving a password\&. For example the following command (replace the "fake" IP
+\fB192\&.168\&.0\&.100\fR
+with the IP address of your recording server)\&.
+.sp
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$tvpower>ssh root@\fB192\&.168\&.0\&.100\fR uptime
+ 14:22pm  up   1:13,  2 users,  load average: 0\&.00, 0\&.00, 0\&.00
+$tvpower> _
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+If this does not work go back and check that no extra blanks or line breaks where inserted by mistake when the public key was copied\&. Also check that it was really the public key from the
+tvpower
+user on the managing server that was added to the
+root
+user on the recording server\&.
+.RE
+.PP
+It is absolutely critical that the ssh login works before moving on\&. Without this functionality the daemon will no be able to function as intended\&.
+.SH "FILES"
+.PP
+Note: The system configuration directory to be used is a compile time settings and specified with the \*(Aq\fIconfiguration\fR\*(Aq argument \*(Aq\-\-sysconfdir\*(Aq\&.
+.PP
+<log\-directory>/tvpowerd\&.log
+.RS 4
+The logfile\&. The log\-directory is specified in the ini\-file\&. It can also be specified as a command line argument (\fB\-l, \-\-logfile\fR) which will then override the ini\-file setting\&. By default the log file will be stored under
+/tmp/tvpvrd\&.log
+\&.(The reason not to use
+/var/log/tvpowerd\&.log
+is the fact that the server will not normally run as root and hence will not have write access to this directory\&.)
+.RE
+.PP
+/var/run/tvpowerd\&.pid
+.RS 4
+The pid of the started \*(Aqtvpvrd\*(Aq server\&. This is used to easily find the pid in order to shutdown the server\&. This is used by the
+\fIstop\-tvpvrd\fR
+script\&. Note that in order to use this directory the daemon has to be started by the root user\&.
+.RE
+.PP
+/etc/tvpowerd/tvpowerd\&.conf
+.RS 4
+Default configuration file
+.RE
+.SH "LIMITATIONS"
+.PP
+
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The
+/var/run/tvpowerd\&.pid
+file is not removed after the program has shut down if the effective user is any other than \*(Aqroot\*(Aq, (by default the server will switch to the \*(Aqtvpvrd\*(Aq user) since only root has access to
+/var/run
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+All information and error messages are hard coded in English and cannot be easily localized\&.
+.RE
+.sp
+.SH "NOTES"
+.PP
+Any errors that are discovered in the startup phase before a logfile has been established will be written to the default system log (normally
+/var/log/messages)
+.SH "RESOURCES"
+.PP
+
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+SourceForge: <http://sourceforge\&.net/projects/tvpvrd/>
+.RE
+.sp
+.SH "AUTHOR"
+.PP
+Written and maintained by Johan Persson <johan162@gmail\&.com>
+.SH "COPYRIGHT"
+.PP
+Free use of this software is granted under the terms of the GNU General Public License (GPL v3)\&., see the file COPYING included in the distribution archive for details\&.
+.SH "SEE ALSO"
+.PP
+\fBtvpvrd\fR(5)
+.SH "AUTHOR"
+.PP
+\fBJohan Persson\fR <\&johan162@gmail\&.com\&>
+.RS 4
+Main author and maintainer
+.RE

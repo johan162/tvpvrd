@@ -1,0 +1,27 @@
+#!/bin/sh
+#-----------------------------------------------------------
+# Utility script to tag releases
+# $Id$
+# Usage: svntag -t <tag>   Tag to use
+#-----------------------------------------------------------
+
+tag=
+while getopts t: o
+do  case "$o" in
+    t)      tag="$OPTARG"
+            ;;
+    [?])    printf >&2 "Usage; $0 -t tag\n"
+            exit 1
+            ;;
+    esac
+done
+
+if test -z "$tag"; then
+    printf >&2 "Usage: $0 -t tag\n"
+    exit 1
+fi
+
+
+svn cp --username=johan162 -m \""Tagged "$tag\" https://svn.code.sf.net/p/tvpvrd/code/trunk https://svn.code.sf.net/p/tvpvrd/code/tags/$tag
+
+exit 0

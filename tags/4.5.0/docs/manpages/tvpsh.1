@@ -1,0 +1,234 @@
+'\" t
+.\"     Title: tvpvrd
+.\"    Author: Johan Persson <johan162@gmail.com>
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 11/06/2013
+.\"    Manual: http://sourceforge.net/projects/tvpvrd/docs/
+.\"    Source: http://sourceforge.net/projects/tvpvrd/ @VERSION@
+.\"  Language: English
+.\"
+.TH "TVPVRD" "1" "11/06/2013" "http://sourceforge\&.net/proje" "http://sourceforge\&.net/proje"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+tvpsh \- Command line shell to interface tvpvrd daemon
+.SH "SYNOPSIS"
+.HP \w'\fBtvpsh\fR\ 'u
+\fBtvpsh\fR [options\&.\&.\&.]
+.SH "DESCRIPTION"
+.PP
+The
+\fBtvpsh\fR(1)
+is a command line shell meant to interface the
+\fBtvpvrd\fR
+daemon\&. The program offers full command line editing (emulating emacs command set) as well as history\&. This makes it the preferred way to inteface with the daemon for the full feature set\&. The alternative command line way is to connect directly to the daemon port using telnet, however the normal telnet does not allow any command line editing\&.
+.PP
+The most user friendly way is probably still to use the basic Web\-interface of the daemon\&. However, only a subset of the available commands are implemented in the Web\-client in order to keep it easy to use\&.
+.PP
+The shell can be run either on the same server as the daemon in which case it can simply be started with
+.PP
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$>tvpsh
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+or it can be run on a different computer in which case the
+\fBtvpvrd\fR
+server must be specified either on the command line as
+.PP
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$> tvpsh \-s 192\&.168\&.010 \-p 9301
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+or by storing the server and port setting in the
+\fBtvpsh\fR
+config file stored in the users home directory\&. The config file is named "\&.tvpshrc" and should be stored in the home directory\&.
+.PP
+When the daemon is run on the same server the shell will read the necessary informatoin from the daemons config file after looking first for the
+\fBtvpsh\fR
+config file in the users home directory\&.
+.SH "USING THE SHELL AS A LOGIN SHELL"
+.PP
+One possible wasy to use the shell is to use it as a
+\fIsystem login shell\fR\&. In this way it will be possible to login directly to the server by using, for example,
+\fBssh\fR
+and connecting as a dedicated user who uses
+\fBtvpsh\fR
+as default login shell\&.
+.PP
+In order to do this there are two things that must be done:
+.PP
+
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+Add a new user to the server and specify
+\fBtvpsh\fR
+as the login shell\&. This is done by adding a line in the
+/etc/passwd
+file\&. For example as
+.sp
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pvr:x:0:0:tvpvrd shell user:/home/pvr:/usr/bin/tvpsh 
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+The above line creates a new user called
+\fIpvr\fR
+which uses
+\fBtvpsh\fR
+as login shell\&. (The \*(Aq\fIx\fR\*(Aq in the password field indicates that the system is using shadow passwords\&.)\&. You can also use the system tools you are comfortable with in order to create a new user\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+Allow
+\fBtvpsh\fR
+to be used as system shell by adding it to the list of allowed system shells in \*(Aq/etc/shells\*(Aq
+.RE
+.PP
+.SH "ARGUMENTS"
+.PP
+The following command line arguments are supported when starting the shell
+.PP
+\fB\-s\fR, \fB\-\-server\fR \fIIP\-address\fR
+.RS 4
+Specify the server that is running
+\fBtvpvrd\fR\&. Default value is
+\fIlocalhost\fR\&.
+.RE
+.PP
+\fB\-p\fR, \fB\-\-port\fR \fIportnumber\fR
+.RS 4
+TCP/IP port where the
+\fBtvpvrd\fR
+server is listening\&. If the shell is run on the same server as the daemon then the port will be automatically determined from the
+\fBtvpvrd\fR
+config file\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Print a short help and exit\&.
+.RE
+.PP
+\fB\-v\fR, \fB\-\-version\fR
+.RS 4
+Print program version information and exit\&.
+.RE
+.SH "FILES"
+.PP
+\&.tvpshrc
+.RS 4
+Default configuration file in the users home directory\&.
+.RE
+.SH "RESOURCES"
+.PP
+
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+SourceForge: <http://sourceforge\&.net/projects/tvpvrd/>
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ivtv\-driver: <http://ivtvdriver\&.org/>
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Video for Linux: <http://linux\&.bytesex\&.org/v4l2/>
+.RE
+.sp
+.SH "AUTHOR"
+.PP
+Written and maintained by Johan Persson <johan162@gmail\&.com>
+.SH "COPYRIGHT"
+.PP
+Free use of this software is granted under the terms of the GNU General Public License (GPL v3)\&., see the file COPYING included in the distribution archive for details\&.
+.SH "SEE ALSO"
+.PP
+\fBtvpvrd\fR(1),
+\fBtvpowerd\fR(1),
+\fBffmpeg\fR(1),
+\fBscantv\fR(1),
+\fBv4l-info\fR(1),
+\fBv4l-conf\fR(1),
+\fBv4lctl\fR(1),
+\fBxawtv\fR(1)
+.SH "AUTHOR"
+.PP
+\fBJohan Persson\fR <\&johan162@gmail\&.com\&>
+.RS 4
+Main author and maintainer
+.RE
