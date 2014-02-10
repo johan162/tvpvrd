@@ -6,6 +6,8 @@
 AUTOMAKE_OPTIONS = gnu
 SUBDIRS = . src scripts docs
 
+EXTRA_DIST=COPYING
+
 uninstall-local:
 	rm -rf ${DESTDIR}${sysconfdir}/tvpvrd
 	rm -rf ${DESTDIR}${prefix}/share/doc/packages/tvpvrd
