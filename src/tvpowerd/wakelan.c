@@ -26,6 +26,9 @@
  * =========================================================================
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <string.h>
 #include <syslog.h>
@@ -156,6 +159,7 @@ wakelan(char *mac, char *target, uint16_t target_bport) {
     if ( rc < 0) {
         logmsg(LOG_ERR, "Can'tset  socket option SO_BROADCAST: rc = %d, ( %d : %s )\n",
                rc,  errno, strerror(errno));
+        close(sock);
         return -1;
     }
     
@@ -163,10 +167,10 @@ wakelan(char *mac, char *target, uint16_t target_bport) {
     if ( rc < 0) {
         logmsg(LOG_ERR, "Cant send wakeup message on socket: rc = %d, ( %d : %s )\n",
                rc,  errno, strerror(errno));
+        close(sock);
         return -1;
-    } else {
-        return 0;
-    }
-
+    } 
+    close(sock);    
+    return 0;
 }
 
