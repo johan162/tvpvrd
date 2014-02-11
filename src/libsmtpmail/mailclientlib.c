@@ -377,11 +377,16 @@ _smtp_connect(char *server_ip, char *service) {
     if( _read_sock_timeout(sock, buffer, maxlen) ) {
         shutdown(sock, SHUT_RDWR);
         close(sock);
+        free(buffer);
         return NULL;        
     }
     
     ssize_t num = _smtp_split_reply(buffer, reply_list, N);
+    free(buffer);    
+    
     if (1 != num) {
+        shutdown(sock, SHUT_RDWR);
+        close(sock);        
         _free_smtplist(reply_list, N);
         return NULL;
     }
@@ -421,15 +426,18 @@ _smtp_send_command(struct smtp_handle *handle, char *cmd, char *arg, struct smtp
         const ssize_t maxlen=2048;        
         char *buffer = calloc(1, maxlen);
         
-        if( _read_sock_timeout(handle->sfd, buffer, maxlen) )
+        if( _read_sock_timeout(handle->sfd, buffer, maxlen) ) {
+            free(buffer);
             return -1;
+        }
 
         ssize_t num = _smtp_split_reply(buffer, reply_list, N);
-
+        free(buffer);
+        
         if (num > 0) {
             if (reply_list[0]->status == 502) {
                 // Command not recognized
-                _free_smtplist(reply_list, N);
+                _free_smtplist(reply_list, N);                
                 return -1;
             }
             return num;
@@ -807,14 +815,18 @@ smtp_add_attachment_fromfile(struct smtp_handle *handle, char *filename, unsigne
     }
     int fd = fileno(fp);
     struct stat buf;
-    fstat(fd, &buf);
-    char *buffer = calloc(1,buf.st_size);
+    if( -1 == fstat(fd, &buf) ) {
+        fclose(fp);
+        return -1;
+    }
+    char *buffer = calloc(1,buf.st_size+1);
     size_t readsize = fread(buffer,sizeof(char), buf.st_size,fp);
     if( readsize != (size_t)buf.st_size ) {
         fclose(fp);
         free(buffer);
         return -1;
     }
+    buffer[buf.st_size] = '\0';
     fclose(fp);
     int rc = smtp_add_attachment(handle,basename(filename),basename(filename),buffer,buf.st_size,contenttype,encoding);
     free(buffer);
@@ -842,7 +854,7 @@ smtp_add_attachment_inlineimage(struct smtp_handle *handle, char *filename, char
         n--; cnt++;
     }
     if( cnt < 5 && n > 0 && filename[n] == '.') {
-        strncpy(ebuff,&filename[n+1],5);
+        strncpy(ebuff,&filename[n+1],4);
     } else {
         return -1;
     }
@@ -967,7 +979,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
                     "\r\n"
                     "%s\r\n",
                     boundary, CHARSET, handle->plain);
-        } else {
+        } else if( handle->plain && handle->html ) {
             char boundary2[255];
             snprintf(boundary2, 255, "_%x%x%x%x%s_", rand(), rand(), rand(), rand(), hname);
 
@@ -987,6 +999,9 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
                     "%s\r\n"
                     "--%s--\r\n",
                     boundary, boundary2, boundary2, CHARSET, handle->plain, boundary2, CHARSET, handle->html, boundary2);
+        } else {
+            free(buff);
+            return -1;
         }
 
         for (size_t i = 0; i < handle->attachmentidx; ++i) {
@@ -1124,7 +1139,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
 int
 smtp_server_support(struct smtp_handle *handle, size_t feature) {
 
-    if( feature > NumFeat ) {
+    if( feature >= NumFeat ) {
         return -1;
     }
     for( size_t i=0 ; i < handle->capidx; i++ ) {
