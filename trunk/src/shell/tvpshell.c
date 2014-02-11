@@ -384,6 +384,8 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
         snprintf(buffer, sizeof(buffer), "%s\r\n", tvpvrd_pwd);
         ssize_t nw = write(sock, buffer, strlen(buffer));
         if (nw != (ssize_t) strlen(buffer)) {
+            shutdown(sock, SHUT_RDWR);
+            close(sock);            
             return -5;
         } else {
             if (waitread(sock, buffer, sizeof(buffer))) {
@@ -400,6 +402,8 @@ tvpvrd_command(char *cmd, char *reply, int maxreplylen, int multiline) {
 
     ssize_t nw = write(sock, tmpbuff, strlen(tmpbuff) + 1); // Include terminating 0
     if (nw != (ssize_t) strlen(tmpbuff) + 1) {
+        shutdown(sock, SHUT_RDWR);
+        close(sock);                    
         return -7;
     } else {
         int rc;
