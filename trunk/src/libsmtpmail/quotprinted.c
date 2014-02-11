@@ -161,10 +161,9 @@ qprint_encode_word(char * const in, char * const out, size_t maxlen) {
     if( !encoded ) {
         // Didn't need any encoding so we just copy the input to the output
         strcpy(out,in);
-        return 0;
     }
 
-    return n == 0 && *pin ? -1 : 0;
+    return 0;
 }
 
 
