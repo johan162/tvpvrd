@@ -317,7 +317,7 @@ parsecmdline(int argc, char **argv) {
                 break;
 
             case 'V':
-                if( *optarg == '1' || *optarg == '2' || *optarg == '3' )
+                if( optarg != NULL && (*optarg == '1' || *optarg == '2' || *optarg == '3') )
                     verbose_log = *optarg - '0' ;
                 else {
                     logmsg(LOG_ERR,"Illegal verbose level specified. must be in range [1-3]. Aborting.");
@@ -1104,6 +1104,7 @@ void
 setup_sighandlers(void) {
 
     struct sigaction act;
+    memset(&act,0,sizeof(struct sigaction));
     act.sa_handler = sighandler;
     act.sa_flags = 0;
 
@@ -1200,7 +1201,7 @@ refresh_recordings(void) {
         while( rc < MAX_ENTRIES && bc < buffsize && buffer[bc] ) {
 
             int lc=0;
-            while(lc < linesize && bc < buffsize && buffer[bc] && buffer[bc] != '\n') {
+            while(lc < linesize-1 && bc < buffsize && buffer[bc] && buffer[bc] != '\n') {
                 line[lc++] = buffer[bc++];
             }
             line[lc] = '\0';
@@ -1223,15 +1224,19 @@ refresh_recordings(void) {
         snprintf(msgbuff,512,"Refreshing recordings. Next recording '%s' at %02d/%02d %02d:%02d",recordings[0].title,d,m,h,min);
         if( strcmp(prevmsgbuff,msgbuff) ) {
             logmsg(LOG_INFO,msgbuff);
-            strcpy(prevmsgbuff,msgbuff);
+            strncpy(prevmsgbuff,msgbuff,sizeof(prevmsgbuff)-1);
         }
     } else {
-        logmsg(LOG_ERR,"Failed to refresh recordings from server. Have server been powered off manually?");
+        logmsg(LOG_ERR,"Failed to refresh recordings from server. Have server been powered off manually?");    
+        free(buffer);
+        free(line);
+        free(msgbuff);            
         ret = -1;
     }
-
+    
     free(buffer);
     free(line);
+    free(msgbuff);    
 
     return ret;
 #endif
@@ -1392,7 +1397,7 @@ server_refresh_time = 1;
                                             }
                                             break;
                                         } else {
-                                            close(tstfd);
+                                            logmsg(LOG_ERR,"Cannot open \"/tmp/start_tvp\"");
                                         }
 
                                     }
