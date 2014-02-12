@@ -22,7 +22,7 @@
  * giving the command to the command interpretator for parsing and
  * execution.
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1680,7 +1680,7 @@ startupsrv(void) {
             exit(EXIT_FAILURE);
         }
 
-        set_cloexec_flag(websockd, 1);
+        (void) set_cloexec_flag(websockd, 1);
 
     }
 
@@ -1851,7 +1851,7 @@ main(int argc, char *argv[]) {
 
     // Remember the program name we are started as
     char prognamebuffer[256];
-    strncpy(prognamebuffer,argv[0],256);
+    strncpy(prognamebuffer,argv[0],255);
     strncpy(server_program_name,basename(prognamebuffer),31);
     server_program_name[31] = '\0';
 

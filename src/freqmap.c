@@ -12,7 +12,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1795,12 +1795,14 @@ read_xawtvfile(const char *name) {
             logmsg(LOG_DEBUG,"Checking that channel \"%s\" (for station \"%s\") exists in freq. map",channel_name,sname);
             if( -1 == getfreqfromch(&freq, channel_name) ) {
                 logmsg(LOG_ERR,"Channel \"%s\" set for station name \"%s\" in '%s' does not exist in current frequency map.",channel_name,sname,name);
+                iniparser_freedict(rdict);
                 return -1;                
             }
                                    
             num_stations++;
         }
     }    
+    iniparser_freedict(rdict);
     logmsg(LOG_NOTICE,"Successfully read station/channel alias file '%s'. Found %d stations.",name,num_stations);
     return 0;
 }
@@ -1935,7 +1937,7 @@ getfreqfromch(unsigned int *freq, const char *ch) {
             return -1;
         }
         char nch[7];
-        strncpy(nch,ch+1,7);
+        strncpy(nch,ch+1,6);
         *freq = xatoi(nch);
         if( *freq < 1000 || *freq > 999999 ) {
             return -1;

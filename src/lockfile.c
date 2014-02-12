@@ -5,7 +5,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009, 2010 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -111,39 +111,41 @@ createlockfile(void) {
 
 	// Get the old pid
 	int fd = open(buff, O_RDONLY);
-	char pidbuff[32];
-	int oldpid;
-        if( -1 == read(fd,pidbuff,31) ) {
-            _vsyslogf(LOG_ERR,"FATAL: Failed to read file '%s'",buff);
-        }
-	_dbg_close(fd);
-	pidbuff[31]='\0';
-	sscanf(pidbuff,"%d",&oldpid);
+        if( fd >= 0 ) {
+            char pidbuff[32];
+            int oldpid;
+            if( -1 == read(fd,pidbuff,31) ) {
+                _vsyslogf(LOG_ERR,"FATAL: Failed to read file '%s'",buff);
+            }
+            _dbg_close(fd);
+            pidbuff[31]='\0';
+            sscanf(pidbuff,"%d",&oldpid);
 
-	// Now check if the old pid exists under /proc
-	snprintf(pidbuff,31,"/proc/%d",oldpid);
-	_vsyslogf(LOG_NOTICE,"Lockfile %s exists. Checking proc entry for pid=%d",buff,oldpid);
-	if( stat(pidbuff,&filestat) == 0 ) {
-	    // File exists so this process really does exist
-            _vsyslogf(LOG_NOTICE,"/proc/ entry for %d exists so this is really a running process.",oldpid);
-            _vsyslogf(LOG_ERR,"Can't start server, another instance of '%s' is running with pid=%d.\n",
-		    program_invocation_short_name,oldpid);
-            return -1;
-	} else {
-            _vsyslogf(LOG_NOTICE,"There is no proc entry for pid=%d so this must be a stale lockfile.",oldpid);
-	    // Process does not exist so this must be a stale lock file
-	    // so we update the pid with our new pid
-	    fd = open(buff,O_WRONLY|O_TRUNC,fmode);
-	    if( fd == -1 ) {
-                _vsyslogf(LOG_ERR,"Cannot clean up stale lockfile '%s'. Check permissions.",buff);
+            // Now check if the old pid exists under /proc
+            snprintf(pidbuff,31,"/proc/%d",oldpid);
+            _vsyslogf(LOG_NOTICE,"Lockfile %s exists. Checking proc entry for pid=%d",buff,oldpid);
+            if( stat(pidbuff,&filestat) == 0 ) {
+                // File exists so this process really does exist
+                _vsyslogf(LOG_NOTICE,"/proc/ entry for %d exists so this is really a running process.",oldpid);
+                _vsyslogf(LOG_ERR,"Can't start server, another instance of '%s' is running with pid=%d.\n",
+                        program_invocation_short_name,oldpid);
                 return -1;
             } else {
-                _writef(fd,"%d",pid);
-                (void)_dbg_close(fd);
-                strncpy(lockfilename,buff,255);
-                lockfilename[255] = '\0';
-	    }
-	}
+                _vsyslogf(LOG_NOTICE,"There is no proc entry for pid=%d so this must be a stale lockfile.",oldpid);
+                // Process does not exist so this must be a stale lock file
+                // so we update the pid with our new pid
+                fd = open(buff,O_WRONLY|O_TRUNC,fmode);
+                if( fd == -1 ) {
+                    _vsyslogf(LOG_ERR,"Cannot clean up stale lockfile '%s'. Check permissions.",buff);
+                    return -1;
+                } else {
+                    _writef(fd,"%d",pid);
+                    (void)_dbg_close(fd);
+                    strncpy(lockfilename,buff,255);
+                    lockfilename[255] = '\0';
+                }
+            }
+        }
     }
     else {
         // Try to create the lockfile

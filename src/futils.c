@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -84,7 +84,12 @@ removedir(const char *dir) {
     while ((dirp = readdir(dp)) != NULL) {
         if ((strcmp(dirp->d_name, ".") != 0) && (strcmp(dirp->d_name, "..") != 0)) {
             snprintf(tmpbuff, 512, "%s/%s", dir, dirp->d_name);
-            lstat(tmpbuff, &statbuf);
+            
+            if( -1 == lstat(tmpbuff, &statbuf) ) {
+                logmsg(LOG_ERR,"Cannot call lstat() on '%s' (%d : %s)",tmpbuff,errno,strerror(errno));
+                (void) closedir(dp);
+                return -1;
+            }
 
             if (S_ISDIR(statbuf.st_mode)) {
                 if (removedir(tmpbuff) < 0) {
@@ -337,7 +342,11 @@ process_files(const char *dirbuff, char *suffix, size_t maxfiles, size_t *numfil
             if( sflag ) {
 
                 snprintf(tmpbuff, sizeof(tmpbuff)-1, "%s/%s", dirbuff, dirp->d_name);
-                lstat(tmpbuff, &filestat);
+                if( -1 == lstat(tmpbuff, &filestat) ) {
+                    logmsg(LOG_ERR,"Cannot call lstat() on '%s' (%d : %s)",tmpbuff,errno,strerror(errno));
+                    closedir(dp);
+                    return -1;
+                }
 
                 if (S_ISREG(filestat.st_mode) || S_ISLNK(filestat.st_mode)) {
 

@@ -8,7 +8,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1275,12 +1275,17 @@ _cmd_addfromfile(const char *cmd, int sockfd) {
         // Check that file exists
         if( 0 == access(field[1],R_OK) ) {
             FILE *fp = fopen(field[1],"r");
-            char linebuff[255];
-            while ( !feof(fp) && NULL != fgets(linebuff,255,fp) && strlen(linebuff) > 2 ) {
-                linebuff[strlen(linebuff)-1] = '\0'; // remove trailing newline
-                _cmd_add(linebuff,sockfd);
+            if( fp ) {
+                char linebuff[255];
+                while ( !feof(fp) && NULL != fgets(linebuff,255,fp) && strlen(linebuff) > 2 ) {
+                    linebuff[strlen(linebuff)-1] = '\0'; // remove trailing newline
+                    _cmd_add(linebuff,sockfd);
+                }
+                fclose(fp);
+            } else {
+                snprintf(msgbuff, 256, "Cannot open file with add commands: '%s' ( %d : %s )",field[1],errno,strerror(errno));
+                logmsg(LOG_ERR,msgbuff);
             }
-
         } else {
             snprintf(msgbuff, 256, "Cannot access file with add commands: '%s' ( %d : %s )",field[1],errno,strerror(errno));
             logmsg(LOG_ERR,msgbuff);
@@ -2607,19 +2612,37 @@ _cmd_updatexmlfile(const char *cmd, int sockfd) {
     strncpy(tmpbuff,xmldbfile,255);
     tmpbuff[255] = '\0';
     strcat(tmpbuff,".backup");
-    unlink(tmpbuff);
-    rename(xmldbfile,tmpbuff);
+    (void)unlink(tmpbuff);
+    
+    if( -1 == rename(xmldbfile,tmpbuff) ) {
+        snprintf(msgbuff, 255,"Cannot rename \"%s\" (%d : %s)",xmldbfile,errno,strerror(errno));
+        msgbuff[255] = '\0' ;
+        logmsg(LOG_INFO,msgbuff);
+        if( sockfd > -1 ) {
+            strcat(msgbuff,"\n");
+            _writef(sockfd, msgbuff);
+        }                
+        return;        
+    }
 
     if (writeXMLFile(xmldbfile) >= 0 ) {
         snprintf(msgbuff, 255,"Database successfully updated '%s'\n", xmldbfile);
-        msgbuff[255] = 0 ;
+        msgbuff[255] = '\0' ;
         logmsg(LOG_INFO,msgbuff);
+        if( sockfd > -1 ) {
+            strcat(msgbuff,"\n");
+            _writef(sockfd, msgbuff);
+        }        
+    } else {
+        snprintf(msgbuff, 255,"Cannot update database '%s'\n", xmldbfile);
+        msgbuff[255] = '\0' ;
+        logmsg(LOG_INFO,msgbuff);
+        if( sockfd > -1 ) {
+            strcat(msgbuff,"\n");
+            _writef(sockfd, msgbuff);
+        }                
     }
 
-    if( sockfd > -1 ) {
-        strcat(msgbuff,"\n");
-        _writef(sockfd, msgbuff);
-    }
 }
 
 /**

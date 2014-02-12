@@ -116,6 +116,7 @@ _writef(int fd, const char *buf, ...) {
             ret = write(fd, tmpbuff, strnlen(tmpbuff,blen));
         }
         free(tmpbuff);
+        va_end(ap);
         return ret;
     }
     return -1;
@@ -226,22 +227,25 @@ validate(const int min, const int max, const char *name, const int val) {
 void
 getsysload(float *avg1, float *avg5, float *avg15) {
     char lbuff[30];
+    *avg1=-1; *avg5=-1; *avg15=-1;
     int ld = open("/proc/loadavg", O_RDONLY);
-    if( -1 == read(ld, lbuff, 30) ) {
-        logmsg(LOG_ERR,"FATAL: Cannot read '/proc/loadavg' ( %d : %s )",errno,strerror(errno));
-        *avg1=-1; *avg5=-1; *avg15=-1;
+    if( ld >= 0 ) {
+        if( -1 == read(ld, lbuff, 30) ) {
+            logmsg(LOG_ERR,"FATAL: Cannot read '/proc/loadavg' ( %d : %s )",errno,strerror(errno));
+            *avg1=-1; *avg5=-1; *avg15=-1;
+        }
+        close(ld);
+        lbuff[14] = '\0';
+        char oldlocale[64];
+        strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1);
+        oldlocale[sizeof(oldlocale)-1] = '\0';
+        setlocale(LC_ALL,"C");
+        sscanf(lbuff, "%f%f%f", avg1, avg5, avg15);
+    /*
+        logmsg(LOG_DEBUG,"*** Load average: lbuff=%s (%f %f %f)",lbuff,*avg1, *avg5, *avg15);
+    */
+        setlocale(LC_ALL,oldlocale);
     }
-    close(ld);
-    lbuff[14] = '\0';
-    char oldlocale[64];
-    strncpy(oldlocale,setlocale(LC_ALL,NULL),sizeof(oldlocale)-1);
-    oldlocale[sizeof(oldlocale)-1] = '\0';
-    setlocale(LC_ALL,"C");
-    sscanf(lbuff, "%f%f%f", avg1, avg5, avg15);
-/*
-    logmsg(LOG_DEBUG,"*** Load average: lbuff=%s (%f %f %f)",lbuff,*avg1, *avg5, *avg15);
-*/
-    setlocale(LC_ALL,oldlocale);
 }
 
 /**
@@ -251,20 +255,23 @@ getsysload(float *avg1, float *avg5, float *avg15) {
  */
 void
 getuptime(int *totaltime, int *idletime) {
+    *totaltime=-1;
+    *idletime=-1;
     int ld = open("/proc/uptime", O_RDONLY);
+    if( ld >= 0 ) {
+        char lbuff[24];
+        if( -1 == read(ld, lbuff, 24) ) {
+            logmsg(LOG_ERR,"FATAL: Cannot read '/proc/uptime' ( %d : %s )",errno,strerror(errno));
+            *totaltime = 0;
+            *idletime = 0;
+        }
+        close(ld);
 
-    char lbuff[24];
-    if( -1 == read(ld, lbuff, 24) ) {
-        logmsg(LOG_ERR,"FATAL: Cannot read '/proc/uptime' ( %d : %s )",errno,strerror(errno));
-        *totaltime = 0;
-        *idletime = 0;
+        float tmp1,tmp2;
+        sscanf(lbuff,"%f%f",&tmp1,&tmp2);
+        *totaltime = round(tmp1);
+        *idletime = round(tmp2);
     }
-    close(ld);
-
-    float tmp1,tmp2;
-    sscanf(lbuff,"%f%f",&tmp1,&tmp2);
-    *totaltime = round(tmp1);
-    *idletime = round(tmp2);
 }
 
 /**
@@ -389,11 +396,11 @@ get_diskspace(char *dir, char *fs, char *size, char *used, char *avail, int *use
 
 char *
 esc_percentsign(char *str) {
-    char *buff=_chk_calloc(1,strlen(str)*3+1);
-    char *pbuff=buff;
     if( str==NULL ) {
-        return NULL;
+        return NULL;    
     }
+    char *buff=_chk_calloc(1,strlen(str)*3+1);
+    char *pbuff=buff;    
     while( *str ) {
         if( *str == '%' )  {
             *pbuff++ = '%';

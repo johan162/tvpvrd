@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -368,9 +368,9 @@ create_ffmpeg_cmdline(char *filename, struct transcoding_profile_entry *profile,
         {.key = output_placeholder, .val = destfile},
     };
 
-    strncpy(cmd_line, profile->cmd_line, sizeof(cmd_line));
-    strncpy(cmd_line_2pass_1, profile->cmd_line_2pass_1, sizeof(cmd_line_2pass_1));
-    strncpy(cmd_line_2pass_2, profile->cmd_line_2pass_2, sizeof(cmd_line_2pass_2));
+    strncpy(cmd_line, profile->cmd_line, sizeof(cmd_line)-1);
+    strncpy(cmd_line_2pass_1, profile->cmd_line_2pass_1, sizeof(cmd_line_2pass_1)-1);
+    strncpy(cmd_line_2pass_2, profile->cmd_line_2pass_2, sizeof(cmd_line_2pass_2)-1);
     if( -1 == replace_keywords(cmd_line, sizeof(cmd_line), fnames, sizeof(fnames)) ||
         -1 == replace_keywords(cmd_line_2pass_1, sizeof(cmd_line_2pass_1), fnames, sizeof(fnames)) ||
         -1 == replace_keywords(cmd_line_2pass_2, sizeof(cmd_line_2pass_2), fnames, sizeof(fnames))) {
@@ -524,7 +524,9 @@ _transcode_file(void *arg) {
         return (void *) 0;
     } else {
         logmsg(LOG_NOTICE,"Failed stat() on '%s' (%d : %s)",workingdir,errno,strerror(errno));
-        chkcreatedir(datadir,wdirbuff);
+        if( -1 == chkcreatedir(datadir,wdirbuff) ) {
+            logmsg(LOG_ERR,"Cannot create datadir \"%s\"",datadir);
+        }
     }
 
     // Link the file to transcode into this new working directory
@@ -1147,11 +1149,13 @@ transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
     // Check for degenerate cases
     if( filelist == NULL || filelist[0] == NULL || *filelist[0] == '\0' ) {
         logmsg(LOG_ERR, "Internal error: Empty list submitted to transcode_filelist()");
+        free(param);
         return -1;
     }
 
     if( profilename == NULL || *profilename == '\0' ) {
         logmsg(LOG_ERR, "Internal error: No profile specified in call to transcode_filelist()");
+        free(param);
         return -1;
     }
 
@@ -1174,11 +1178,12 @@ transcode_filelist(char *dirpath,char *filelist[],char *profilename) {
         pthread_mutex_lock(&filetransc_mutex);
         nfilelisttransc_threads--;
         pthread_mutex_unlock(&filetransc_mutex);
+        free(param);
         return -1;
-    } else {
-        logmsg(LOG_INFO, "Created thread for transcoding of file list");
     }
-
+    
+    logmsg(LOG_INFO, "Created thread for transcoding of file list");        
+    free(param);
     return 0;
 }
 
@@ -1239,14 +1244,16 @@ read_filenamelist(char *filename, char *filenamelist[], int maxlen) {
 
         if( ptr == NULL ) {
             logmsg(LOG_ERR, "Cannot allocate memory to store filename in filelist. (%d : %s)",errno,strerror(errno));
-            for(int k=0; k < i; i++)
+            for(int k=0; k < i; k++)
                 free(filenamelist[k]);
+            fclose(fp);
             return -1;
         }
         if( -1 == stat(ptr,&statbuffer) ) {
             logmsg(LOG_ERR, "File '%s' in filelist does not exist. Aborting.",ptr);
-            for(int k=0; k < i; i++)
+            for(int k=0; k < i; k++)
                 free(filenamelist[k]);
+            fclose(fp);
             free(ptr);
             return -1;
         }
@@ -1278,13 +1285,15 @@ read_transcode_filelist(char *filename, char *profilename) {
     }
 
     if( -1 == read_filenamelist(filename,filenamelist,MAX_FILELIST_ENTRIES) ) {
+        free(filenamelist);
         return -1;
     }
 
     if( -1 == transcode_filelist(dirpath,filenamelist,profilename) ) {
+        free(filenamelist);
         return -1;
     }
-
+    free(filenamelist);
     logmsg(LOG_INFO,"Videos from list file '%s' queued to transcoding.",filename);
     return 0;
 }
@@ -1305,15 +1314,21 @@ transcode_whole_directory(char *dirpath, char *profilename) {
     int idx=0;
 
     // First check that this is really a directory that was specified
-    stat(dirpath, &statbuf);
+    if( -1 == stat(dirpath, &statbuf) ) {
+        logmsg(LOG_ERR,"Cannot stat directory \"%s\" (%d : %s)",dirpath,errno,strerror(errno));
+        free(filelist);
+        return -1;
+    }
     if ( ! S_ISDIR(statbuf.st_mode) ) {
         logmsg(LOG_ERR,"Specified path '%s' is not a directory.",dirpath);
+        free(filelist);
         return -1;
     }
 
     dp = opendir(dirpath);
     if (dp == NULL) {
         logmsg(LOG_ERR,"Cannot open directory. (%d : %s)",errno,strerror(errno));
+        free(filelist);
         return -1;
     }
 
@@ -1355,12 +1370,15 @@ transcode_whole_directory(char *dirpath, char *profilename) {
         }
     }
 
+    closedir(dp);
     filelist[idx] = strdup("\0");
 
     if( -1 == transcode_filelist(dirpath,filelist,profilename) ) {
+        free(filelist);
         return -1;
     }
-
+    free(filelist);
+    
     logmsg(LOG_INFO,"All %d video files from directory '%s' queued for transcoding.",idx,dirpath);
     return 0;
 }
@@ -1635,6 +1653,7 @@ transcode_and_move_file(char *basedatadir, char *workingdir, char *short_filenam
                         logmsg(LOG_WARNING, "Cannot open post transcoding script '%s' ( %d : %s )",
                                 posttransc_fullname, errno, strerror(errno));
                     } else {
+                        close(csfd);
                         char cmd[255];
                         snprintf(cmd, sizeof(cmd)-1, "%s -f \"%s\" -l %u > /dev/null 2>&1", posttransc_fullname, updatedfilename, *filesize);
                         logmsg(LOG_DEBUG, "Running post transcoding script '%s'", cmd);

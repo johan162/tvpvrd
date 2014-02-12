@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2011 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -149,9 +149,9 @@ processRecord(xmlNodePtr node) {
                     *fnamebuff = '\0';
                     xmldir = xmlGetProp(node, xmldb_nameDir);
                     if( xmldir ) {
-                        strncpy(fnamebuff,(char*)xmldir,sizeof(fnamebuff));
-                        strncat(fnamebuff,"/",sizeof(fnamebuff)-strnlen(fnamebuff,sizeof(fnamebuff)));
-                        strncat(fnamebuff,(char *)childnode->content,sizeof(fnamebuff)-strnlen(fnamebuff,sizeof(fnamebuff)));                    
+                        strncpy(fnamebuff,(char*)xmldir,sizeof(fnamebuff)-1);
+                        strncat(fnamebuff,"/",sizeof(fnamebuff)-strnlen(fnamebuff,sizeof(fnamebuff))-1);
+                        strncat(fnamebuff,(char *)childnode->content,sizeof(fnamebuff)-strnlen(fnamebuff,sizeof(fnamebuff))-1);                    
                         xmlFree(xmldir);
                     } else {
                         // version=1 old history style file
@@ -270,6 +270,7 @@ tvhist_write(void) {
     if (-1 == _writef(fd, 
         "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
         "<?xml-stylesheet type=\"text/xsl\" href=\"%s/tvpvrd/xsl/%s\"?>\n",CONFDIR,HISTORY_XSL_FILENAME )) {
+        close(fd);
         return -1;
     }
     _writef(fd, "<!-- Created: %s -->\n", ctime(&now));
@@ -294,7 +295,7 @@ tvhist_write(void) {
         _writef(fd, "    <%s>%02d:%02d</%s>\n", xmldb_nameEndTime, ehour, emin, xmldb_nameEndTime);        
         
         // We must make a copy since we are not safe in assuming dirname() will not modify the buffer
-        strncpy(dirbuff,history[i].filepath,sizeof(dirbuff));
+        strncpy(dirbuff,history[i].filepath,sizeof(dirbuff)-1);
         _writef(fd, "    <%s dir=\"%s\">%s</%s>\n", xmldb_nameFilepath, dirname(dirbuff), basename(history[i].filepath), xmldb_nameFilepath);
         
         _writef(fd, "    <%s>%s</%s>\n", xmldb_nameProfile, history[i].profile, xmldb_nameProfile);
@@ -595,7 +596,8 @@ hist_list(int fd) {
     if( NULL == buff ) {
         return -1;
     }
-    if( -1 == hist_listbuff(buff, maxlen) ) {
+    if( -1 == hist_listbuff(buff, maxlen-1) ) {
+        free(buff);
         return -1;
     }
     _writef(fd, buff);
