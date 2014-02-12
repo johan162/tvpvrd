@@ -87,7 +87,7 @@ static char * strstrip(char * s)
     
 	while (isspace((int)*s) && *s) s++;
 	memset(l, 0, ASCIILINESZ+1);
-	strcpy(l, s);
+	strncpy(l, s, ASCIILINESZ);
 	last = l + strlen(l);
 	while (last > l) {
 		if (!isspace((int)*(last-1)))
@@ -462,7 +462,7 @@ static line_status iniparser_line(
     char        line[ASCIILINESZ+1];
     int         len ;
 
-    strcpy(line, strstrip(input_line));
+    strncpy(line, strstrip(input_line),ASCIILINESZ);
     len = (int)strlen(line);
 
     sta = LINE_UNPROCESSED ;

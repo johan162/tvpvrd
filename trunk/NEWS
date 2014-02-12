@@ -6,6 +6,23 @@ $Id$
 Copyright (C) 2009-2014 Johan Persson (johan162@gmail.com)
 =======================================================================================
 
+4.5.1 (xx feb 2014)
+-------------------
+User visible changes:
+  - None.
+
+Bugs fixed:
+  - All warnings given by static code analyzing through Coverity was fixed.
+    Most warning where harmless but there were 6 potential resource leaks on
+    error conditions, 2 potential serious crashes, 1 endless-loop 
+    and 6 potential off-by-one mem overwrite errors in corner cases. 
+    All in all a very good and humbling exercise to run the code base through 
+    coverity.
+
+Internal changes:
+   - None.
+
+
 4.5.0 (10 feb 2014)
 -------------------
 

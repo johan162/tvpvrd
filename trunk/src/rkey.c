@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ replace_keywords(char *buffer, size_t maxlen, struct keypairs keys[], size_t nke
             char *ppbuff = pbuff;
             size_t nn = 0 ;
             ++ppbuff;
-            while( nn < 255 && *ppbuff && *ppbuff != ']') {
+            while( nn < sizeof(match)-1 && *ppbuff && *ppbuff != ']') {
                 match[nn++] = *ppbuff++;
             }
             match[nn] = '\0';
@@ -119,17 +119,20 @@ replace_keywords_in_file(char *filename,char **buffer, struct keypairs keys[], s
     }
     int fd = fileno(fp);
     struct stat buf;
-    fstat(fd, &buf);
+    if( -1 == fstat(fd, &buf) ) {
+        fclose(fp);
+        return -1;
+    }
     size_t const N = buf.st_size + MAX_KEYPAIR_VAL_SIZE*nkeys + 1;
     *buffer = calloc(1,N);
     size_t readsize = fread(*buffer,sizeof(char), buf.st_size, fp);
+    fclose(fp);
     if( readsize != (size_t)buf.st_size ) {
-        fclose(fp);
         free(*buffer);
         *buffer = NULL;
         return -1;
     }
-    fclose(fp);
+    (*buffer)[readsize] = '\0';    
     return replace_keywords(*buffer, N, keys, nkeys);
 }
 

@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -75,10 +75,7 @@ xstrlcat(char *dst, const char *src, size_t size) {
         return size-1;
     if( strlen(src) + strlen(dst) < size ) {
         strncat(dst,src,size-1-strlen(dst));
-        if( size > 0 )
-            dst[size-1] = '\0';
-        else
-            dst[0] = '\0';
+        dst[size-1] = '\0';
     }
     return strnlen(dst,size);
 }

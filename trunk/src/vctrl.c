@@ -14,7 +14,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -344,14 +344,17 @@ int
 _vctrl_gettunerinfo(const int fd, double *frequnits,
                       int *minfreq, int *maxfreq,
                       int *analogue_tv, int *signal_strength) {
+    
+    if( NULL == frequnits ) {
+        return -1;
+    }
+    
     struct v4l2_tuner vtun;
-
     CLEAR(vtun);
     vtun.index = 0; // Assume first tuner
 
     if( _vctrl_tuner(VCTRL_GET, fd, &vtun) == 0 ) {
-        if( frequnits != NULL )
-            *frequnits = vtun.capability & V4L2_TUNER_CAP_LOW ? 62.5 : 62500;
+        *frequnits = vtun.capability & V4L2_TUNER_CAP_LOW ? 62.5 : 62500;
         if(minfreq != NULL)
             *minfreq = floor(*frequnits * vtun.rangelow);
         if( maxfreq != NULL )
@@ -787,7 +790,7 @@ int video_open(unsigned int video, unsigned int tuner) {
     // sure the video descriptor is closed in any
     // childs we fork. Otherwise the video will be
     // kept open when it is not in use.
-    set_cloexec_flag(fd, 1);
+    (void)set_cloexec_flag(fd, 1);
 
     return fd;
 }
@@ -1363,6 +1366,7 @@ video_get_cardinfo(unsigned video, _Bool drvflag, char *buffer, size_t maxlen) {
             }
             return 0;
         }
+        video_close(fd);
     }
     return -1;
 }

@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -111,6 +111,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
 
     if( entry == NULL ) {
         logmsg(LOG_ERR,"FATAL: Out of memory when reading profile.");
+        iniparser_freedict(profile);
         return -1;
     }
 
@@ -199,7 +200,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     buffer[bufsize-1] = '\0';
     strncpy(entry->cmd_line_2pass_2,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_CMD_LINE_2PASS_2),
-            sizeof(entry->cmd_line_2pass_2));
+            sizeof(entry->cmd_line_2pass_2)-1);
     entry->cmd_line[sizeof(entry->cmd_line_2pass_2)-1] = '\0';
        
 
@@ -217,7 +218,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
             7);
     entry->file_extension[7] = '\0';
     
-    strncpy(entry->filename,filename,255);
+    strncpy(entry->filename,filename,254);
     entry->filename[255] = '\0';
 
     profiles[idx] = entry;

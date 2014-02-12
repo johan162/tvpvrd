@@ -7,7 +7,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009-2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -545,7 +545,7 @@ insertrec(unsigned video, struct recording_entry * entry, struct excluded_items 
             if( !found ) {
 
                 (void)rec_title_mangling(entry,i,entry->title,titlebuff,sizeof(titlebuff));
-                (void)rec_title_mangling(entry,i,bnamecore,filename_mangling,sizeof(filenamebuff));
+                (void)rec_title_mangling(entry,i,bnamecore,filename_mangling,sizeof(filename_mangling));
 
                 // Name mangling of filename
 //                snprintf(filenamebuff, 512, "%s/%s%s%d-%02d-%02d%s",
@@ -839,7 +839,7 @@ dump_htmlrecordrow(struct recording_entry* entry, char *buffer, size_t bufflen, 
                                 rs->td_r, profbuff);
         } else {
             char padbuff[255];
-            strncpy(padbuff,entry->recurrence_title,sizeof(padbuff));
+            strncpy(padbuff,entry->recurrence_title,sizeof(padbuff)-1);
             xmbrpad(padbuff,REP_TITLE_DISPLAY_LEN,sizeof(padbuff),' ');
             
             snprintf(buffer, bufflen,"%03zu "
@@ -1049,7 +1049,8 @@ listhtml_recsbuff(char *buffer, size_t maxlen, size_t maxrecs, size_t style, int
     }
 
     free(entries);
-
+    free(recs_to_dump);
+    
     return max > 0 ? 0 : -1;
 
 }
@@ -1246,7 +1247,7 @@ dump_record(struct recording_entry* entry, int style, size_t idx,char *buffer, s
         
     // One line short format
     char titlepadbuff[255];
-    strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff));
+    strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff)-1);
     if( -1 == xmbrpad(titlepadbuff, TITLE_DISPLAY_LEN, sizeof(titlepadbuff),' ') ) {
         logmsg(LOG_ERR,"Cannot pad multibyte string. Check the locale setting in config file!");
         strncpy(titlepadbuff,entry->title,sizeof(titlepadbuff)-2);

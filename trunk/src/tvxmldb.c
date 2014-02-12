@@ -7,7 +7,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -235,8 +235,8 @@ processRepeatingRecording(xmlNodePtr node, int *rectype, int *recnbr,
 static void
 processRecording(xmlNodePtr node) {
     char bname_buffer[512];
-    char filename[REC_MAX_NFILENAME], title[REC_MAX_NTITLE], channel[REC_MAX_NCHANNEL];
-    char recprefix[REC_MAX_NPREFIX], *profiles[REC_MAX_TPROFILES];
+    char filename[REC_MAX_NFILENAME+1], title[REC_MAX_NTITLE+1], channel[REC_MAX_NCHANNEL+1];
+    char recprefix[REC_MAX_NPREFIX+1], *profiles[REC_MAX_TPROFILES+1];
     xmlNodePtr childnode;
     int sy, sm, sd;
     int ey, em, ed;

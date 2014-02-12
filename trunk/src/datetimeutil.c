@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -331,11 +331,6 @@ increcdays(int recurrence_type,
         int *ey, int *em, int *ed, int *eh, int *emin, int *esec) {
     struct tm tm_start;
 
-    if( recurrence_type < 0 || recurrence_type > 9 ) {
-        logmsg(LOG_ERR, "FATAL: Internal error. Unknown recurrence type %d in increcdays()",recurrence_type);
-        return -1;
-    }
-
     // Find out the new date for the next recording in sequence
     switch (recurrence_type) {
         case 0:
@@ -356,8 +351,8 @@ increcdays(int recurrence_type,
 
         case 3:
             // Every month
-            sm++;
-            em++;
+            *sm += 1;
+            *em += 1;
             break;
 
         case 4:

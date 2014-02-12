@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ _read_theme_file(char *filename,unsigned idx) {
     char cssfile[128];
     const char *prefix="tvpvrd_";
     
-    strncpy(cssfile,basename(filename),sizeof(cssfile));
+    strncpy(cssfile,basename(filename),sizeof(cssfile)-1);
     // Strip away the initial "tvpvrd_" and the ".css" suffix
     // to get the name of the theme
     char buff[16];
@@ -211,7 +211,7 @@ http_header(int sockd, char *cookie_val) {
     strftime(ftime, 128, TIME_RFC822_FORMAT, &t_tm);
     strftime(fexptime, 128, TIME_RFC822_FORMAT, &t_tmexp);
 
-    if (cookie_val && *cookie_val) {
+    if ( *cookie_val ) {
 
         char *tmpbuff = url_encode(cookie_val);
 

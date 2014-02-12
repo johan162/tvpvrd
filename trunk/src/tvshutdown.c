@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -125,16 +125,17 @@ get_num_users(void) {
         }
 
         int nr = fread(reply, sizeof(char), len, fp);
+        pclose(fp);
         if( nr > 0 ) {
             // Get rid of final '\n'
             if( reply[nr-1] == '\n' )
                 reply[nr-1] = '\0';
         } else  {
             logmsg(LOG_ERR, "Cannot read reply from command to get number of users on server, nr=%d",nr);
+            free(reply);
             return -1;
         }
         reply[nr]='\0';
-        pclose(fp);
         nr = xatoi(reply);
         free(reply);
         return nr;
@@ -253,12 +254,16 @@ send_shutdown_mail(struct recording_entry *nextrec, time_t nextrec_ts) {
             if (nextrec && verbose_log >= 4) {
                 logmsg(LOG_DEBUG, "Opening RTC_DEVICE ...");
                 int stfd = open(RTC_STATUS_DEVICE, O_RDONLY);
-                if (-1 == read(stfd, rtc_status, BUFFLEN_LONG)) {
-                    logmsg(LOG_ERR, "Cannot read RTC status ( %d : %s)", errno, strerror(errno));
-                    *rtc_status = '\0';
+                if( stfd >= 0 ) {
+                    if (-1 == read(stfd, rtc_status, BUFFLEN_LONG)) {
+                        logmsg(LOG_ERR, "Cannot read RTC status ( %d : %s)", errno, strerror(errno));
+                        *rtc_status = '\0';
+                    }
+                    close(stfd);
+                    add_keypair(keys, maxkeys, "RTC_STATUS", rtc_status, &ki);
+                } else {
+                    logmsg(LOG_ERR, "Cannot open RTC device ( %d : %s)", errno, strerror(errno));
                 }
-                close(stfd);
-                add_keypair(keys, maxkeys, "RTC_STATUS", rtc_status, &ki);
             } else if (nextrec) {
                 add_keypair(keys, maxkeys, "RTC_STATUS", "", &ki);
             }

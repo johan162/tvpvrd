@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -233,20 +233,20 @@ read_webroot_file(char *file_buffer, size_t maxlen, size_t *actualfilelen, char 
     *actualfilelen=fread(file_buffer,sizeof(char),maxlen-1,fp);
     if( ferror(fp) ) {
         logmsg(LOG_ERR, "Error reading file '%s' ( %d : %s )", full_filename,errno,strerror(errno));
-        return -1;
         fclose(fp);
+        return -1;
     } else {
         if( feof(fp) ) {
             fclose(fp);
             return 1;       
         } else if( *actualfilelen==maxlen-1 ){
             logmsg(LOG_ERR, "Error reading file '%s' . File buffer too small to read entire file", full_filename);
-            return -1;
             fclose(fp);            
+            return -1;            
         } else {
             logmsg(LOG_ERR, "Unknown error reading file '%s' .", full_filename);
-            return -1;
             fclose(fp);                        
+            return -1;            
         }
     }
 }
@@ -450,7 +450,6 @@ web_parse_httpreq(char *req, struct http_reqheaders *headers) {
         }
         if( i>=rowsize || req[i]=='\0' || req[i+1]=='\0' || req[i]!='\r' || req[i+1]!='\n') {
             goto _httpreq_freeret;
-            ret = -1;
         }
         i+=2;    
         row[j]='\0';

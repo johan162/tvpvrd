@@ -5,7 +5,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -233,6 +233,7 @@ setup_video(unsigned video,struct transcoding_profile_entry *profile) {
 #endif
             return -1;
         }
+        close(csfd);
         char cmd[255];
         snprintf(cmd,255,"%s -s %s > /dev/null 2>&1",csname,ongoing_recs[video]->channel);
         logmsg(LOG_DEBUG,"setup_video(): Running external channel switching cmd '%s'",cmd);
@@ -373,12 +374,16 @@ setup_capture_cards(void) {
     // FIXME: The image and audio controls should be settable individually in each profile
     for(unsigned video=0; video < max_video; video++) {
         int fd = video_open(video,FALSE);
-        int ret = setup_audio_image_controls(fd);
-        video_close(fd);
-        if( -1 == ret ) {
-            // We can ignore errors here. Usually it means that one or more controls
-            // was not supported by the specific card.
-            logmsg(LOG_ERR,"Cannot set HW capture card(s) audio/image controls ( %d : %s )", errno, strerror(errno));
+        if( fd >= 0 ) {
+            int ret = setup_audio_image_controls(fd);
+            video_close(fd);
+            if( -1 == ret ) {
+                // We can ignore errors here. Usually it means that one or more controls
+                // was not supported by the specific card.
+                logmsg(LOG_ERR,"Cannot set HW capture card(s) audio/image controls ( %d : %s )", errno, strerror(errno));
+            }
+        } else {
+            logmsg(LOG_ERR,"Cannot open video ( %d : %s )", errno, strerror(errno));
         }
     }
 }

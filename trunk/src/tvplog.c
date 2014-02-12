@@ -4,7 +4,7 @@
  * Author:      Johan Persson (johan162@gmail.com)
  * SVN:         $Id$
  *
- * Copyright (C) 2009,2010,2011,2012 Johan Persson
+ * Copyright (C) 2009-2014 Johan Persson
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -88,6 +88,7 @@ _writef_log(int fd, const char *buf, ...) {
         tmpbuff[blen-1] = 0;
         int ret = write(fd, tmpbuff, strnlen(tmpbuff,blen));
         free(tmpbuff);
+        va_end(ap);
         return ret;
     }
     return -1;
@@ -120,6 +121,7 @@ _vsyslogf(int priority, char *msg, ...) {
     vsnprintf(tmpbuff+erroffset,blen-1-erroffset,msg,ap);
     tmpbuff[blen-1] = 0 ;
     syslog(priority,"%s", tmpbuff);
+    va_end(ap);
 }
 
 /*
@@ -182,6 +184,7 @@ void logmsg(int priority, char *msg, ...) {
             free(tmpbuff);
             free(logfilebuff);
             _lastlogcnt++;
+            va_end(ap);
             return;
         } else {
             if( _lastlogcnt > 0 ) {
