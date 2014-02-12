@@ -1227,10 +1227,7 @@ refresh_recordings(void) {
             strncpy(prevmsgbuff,msgbuff,sizeof(prevmsgbuff)-1);
         }
     } else {
-        logmsg(LOG_ERR,"Failed to refresh recordings from server. Have server been powered off manually?");    
-        free(buffer);
-        free(line);
-        free(msgbuff);            
+        logmsg(LOG_ERR,"Failed to refresh recordings from server. Have server been powered off manually?");            
         ret = -1;
     }
     

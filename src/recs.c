@@ -798,8 +798,8 @@ dump_htmlrecordrow(struct recording_entry* entry, char *buffer, size_t bufflen, 
                                 rs->td_r, profbuff);
         } else {
             char padbuff[255];
-            strncpy(padbuff,entry->title,sizeof(padbuff));
-            xmbrpad(padbuff,TITLE_DISPLAY_LEN,sizeof(padbuff),' ');
+            strncpy(padbuff,entry->title,sizeof(padbuff)-1);
+            xmbrpad(padbuff,TITLE_DISPLAY_LEN,sizeof(padbuff)-1,' ');
             snprintf(buffer, bufflen, "%03zu "                                
                                   "%s %s %02d "
                                   "%02d:%02d "

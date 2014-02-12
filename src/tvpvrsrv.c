@@ -307,7 +307,7 @@ parsecmdline(int argc, char **argv) {
 
             case 'h':
                 fprintf(stdout,
-                        "'%s' (C) 2009-2013 Johan Persson, (johan162@gmail.com) \n"
+                        "'%s' (C) 2009-2014 Johan Persson, (johan162@gmail.com) \n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 #ifdef DEBUG_SIMULATE
@@ -340,7 +340,7 @@ parsecmdline(int argc, char **argv) {
 #ifdef DEBUG_SIMULATE
                         " *** DEBUG BUILD. WILL NOT RECORD REAL VIDEO STREAMS *** \n"
 #endif
-                        "Copyright (C) 2009-2013 Johan Persson (johan162@gmail.com)\n"
+                        "Copyright (C) 2009-2014 Johan Persson (johan162@gmail.com)\n"
                         "This is free software; see the source for copying conditions.\nThere is NO "
                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
                 exit(EXIT_SUCCESS);
@@ -377,7 +377,7 @@ parsecmdline(int argc, char **argv) {
                 break;
 
             case 'V':
-                if( *optarg == '1' || *optarg == '2' || *optarg == '3' )
+                if( optarg != NULL && (*optarg == '1' || *optarg == '2' || *optarg == '3') )
                     verbose_log = *optarg - '0' ;
                 else {
                     logmsg(LOG_ERR,"Illegal verbose level specified. must be in range [1-3]. Aborting.");
@@ -1648,7 +1648,7 @@ startupsrv(void) {
     }
 
     // We don't want to risk that a child holds this descriptor
-    set_cloexec_flag(sockd, 1);
+    (void)set_cloexec_flag(sockd, 1);
 
     if( enable_webinterface ) {
 
