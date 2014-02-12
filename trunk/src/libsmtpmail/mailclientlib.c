@@ -931,7 +931,7 @@ smtp_sendmail(struct smtp_handle *handle, char *from, char *subject) {
             handle->databuff = calloc(1, databufflen);
             snprintf(handle->databuff, databufflen, "%s", handle->plain);
 
-        } else if (handle->html && *handle->html) {
+        } else if (handle->plain && handle->html ) {
             char boundary[255];
             snprintf(boundary, 255, "_%x%x%x%x%s_", rand(), rand(), rand(), rand(), hname);
             snprintf(buff, 1024, "Content-Type: multipart/alternative; boundary=\"%s\"", boundary);

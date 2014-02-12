@@ -155,7 +155,7 @@ processRecord(xmlNodePtr node) {
                         xmlFree(xmldir);
                     } else {
                         // version=1 old history style file
-                        strncpy(fnamebuff,(char *)childnode->content,sizeof(fnamebuff));
+                        strncpy(fnamebuff,(char *)childnode->content,sizeof(fnamebuff)-1);
                     }
                     history[nrecs].filepath = strdup(fnamebuff);
                 } else {

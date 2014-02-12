@@ -103,6 +103,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
         k--;
     if( k <= 0 ) {
         logmsg(LOG_ERR,"Invalid profile name: %s",profname);
+        iniparser_freedict(profile);
         return -1;
     }
     profname[k] = '\0';
@@ -192,7 +193,7 @@ _read_transcoding_profile(char *filename,unsigned idx) {
     buffer[bufsize-1] = '\0';
     strncpy(entry->cmd_line_2pass_1,
             iniparser_getstring(profile, buffer,(char *)DEFAULT_CMD_LINE_2PASS_1),
-            sizeof(entry->cmd_line_2pass_1));
+            sizeof(entry->cmd_line_2pass_1)-1);
     entry->cmd_line[sizeof(entry->cmd_line_2pass_1)-1] = '\0';
     
     strncpy(buffer,sname,bufsize-1);

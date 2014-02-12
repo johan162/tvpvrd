@@ -358,12 +358,17 @@ setup_capture_cards(void) {
         get_transcoding_profile(default_transcoding_profile,&profile);
         for(unsigned video=0; video < max_video; video++) {
             int fd = video_open(video,FALSE);
-            int ret = setup_hw_parameters(fd,profile);
-            video_close(fd);
-            if( -1 == ret  ) {
-                // Nothing else to do than to quit
-                logmsg(LOG_ERR,"Fatal error. Cannot initialize HW capture card(s) ( %d : %s )", errno, strerror(errno));
-                _exit(EXIT_FAILURE);
+            if( fd >= 0 ) {
+                int ret = setup_hw_parameters(fd,profile);
+                video_close(fd);
+                if( -1 == ret  ) {
+                    // Nothing else to do than to quit
+                    logmsg(LOG_ERR,"Fatal error. Cannot initialize HW capture card(s) ( %d : %s )", errno, strerror(errno));
+                    _exit(EXIT_FAILURE);
+                }
+            } else {
+                logmsg(LOG_ERR,"Fatal error. Cannot open HW capture card(s) ( %d : %s )", errno, strerror(errno));
+                _exit(EXIT_FAILURE);                
             }
         }
     }

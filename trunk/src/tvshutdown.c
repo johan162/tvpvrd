@@ -120,7 +120,8 @@ get_num_users(void) {
         const int len = 1048;
         char *reply = calloc(1,len);
         if( NULL == reply ) {
-            logmsg(LOG_ERR, "get_num_users() : Cannot allocate memory.");
+            logmsg(LOG_ERR, "get_num_users() : Cannot allocate memory.");            
+            pclose(fp);
             return -1;
         }
 
