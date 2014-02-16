@@ -1,0 +1,68 @@
+bootstrap-deb-sh - Bootstrap script for Debian/Ubuntu/Linux Mint type system
+
+PURPOSE
+This is a simple shell script to be used after the repository has been downloaded to
+setup the initial build environment on a typical Debian/Ubuntu/Linux Mint type system.
+
+The script has two principal parts
+  
+  1. It installs all packages necessary to do a full build
+
+  2. It bootstraps the automake/autoconf build system
+
+Note: If the installation tar-ball has been downloaded this file is not included
+since the configure script is pre-generated for end users just compiling and 
+installing the package. This script is for helping developers get started in
+working with tvpvrd.
+
+
+RATIONALE
+
+In order to use GNU/autotools in a normal installation a configuration script is
+generated which is supposed to be run by the end user installing the package using
+the traditional triple
+
+./configure && make && make install
+
+However the actual configuration script is created by the autotools from a 
+configuration.ac For an end user this step is not needed since a configuration
+script is generated in the installation tar ball.
+
+However in the repository there are no generated files stored. Only original
+files. Hence, if the package is built from the actual repository then the
+configuration script must be re-created with the help of autotools. 
+
+The bootstrap script can then be run after the repository has been downloaded to create
+an initial build environment. It will first make sure a number of needed packages
+are installed and then perform the actual bootstrap of the autotools whichi also 
+includes adding a number of autotools support script in the source tree. All added
+automake support scripts are added as links to the installed system scripts.
+
+This script is only meant to be run once to create the initial enviroment. Any changes
+hereafter is adapted to by running autoreconf which is done automatically by the 
+utility scripts "./stdbuild.sh" which will do all necessary steps to perform a build
+of the entire package.
+
+NORMAL BUILDING
+
+After the initial setup there are two utility script included in the repo that can be used
+to build the daemon. There are two scripts:
+
+  1. "stdconf.sh" - This runs the "configure" script with standard arguments to use "/etc" as
+     the system configuration directory (by default autotools uses /usr/local/etc").
+
+  2. "stdbuild.sh" - This first runs a configurations as needed and then builds the entire
+     source tree. In normal case you only need to run "stdubild.sh" in order to rebuild the
+     source.
+
+ 
+MAKING A RELEASE
+
+To facilitate the making of new release and do all the necessary checks a utility script
+is used.
+
+  1. "mkrelease.sh" - This script refreshes the build environment, builds the tree and then
+     runs the distcheck and packages the tarball.
+
+Note: Do not forget to update the version number in "configure.ac"
+

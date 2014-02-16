@@ -1,0 +1,33 @@
+$Id$
+
+Contains support scripts that gets installed under '${sysconfdir}/tvpvrd/'
+
+Files:
+
+tvpvrd.conf.simplified.template
+	A simplified version of the configuration file which mostly
+	relies on default values. 
+
+tvpvrd.conf.full.template
+	The full version of the configuration file with all options
+	included.
+
+themes/
+	Directory with all CSS theme files for the web interface.
+	All themes are named as tvpvrd_<THEME_NAME>.css
+	Note: This gets installed under "${sysconfdir}/tvpvrd/www"
+
+img/
+	Contains all image file used for the web interface
+	Note: This gets installed under "${sysconfdir}/tvpvrd/www/img"
+
+mail_templates/
+	Template for the mails that tvpvrd can send out
+
+templates/
+	Template for shell scripts such as startup and shutdown actions.
+
+xsl/
+	Includes XSLT style sheets to transform history and database
+	into readable HTML files. This makes it possible to view the XML
+	files directly in a browser.
